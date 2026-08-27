@@ -1,11 +1,25 @@
-﻿* { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+* { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
 body { background-color: #0a0a0a; color: #ffffff; min-height: 100vh; position: relative; }
-.bg-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-image: url('assets/fondo.jpg'); background-size: cover; background-position: center; background-repeat: no-repeat; z-index: 0; }
+
+/* CONFIGURACIÓN DEL FONDO DE PANTALLA */
+.bg-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-image: url('assets/fondo.jpg'); /* Si tu foto es PNG cambia .jpg por .png */
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  z-index: 0;
+}
 .bg-overlay::after { content: ''; position: absolute; inset: 0; background: rgba(0, 0, 0, 0.82); backdrop-filter: blur(3px); }
+
 .app-container { position: relative; z-index: 10; min-height: 100vh; display: flex; flex-direction: column; justify-content: space-between; }
 .navbar { display: flex; justify-content: space-between; align-items: center; padding: 1rem 2rem; background: rgba(10, 10, 10, 0.9); border-bottom: 1px solid #262626; position: sticky; top: 0; z-index: 50; backdrop-filter: blur(8px); }
 .logo-container { display: flex; align-items: center; gap: 0.75rem; cursor: pointer; }
-.logo-img { height: 40px; width: auto; object-fit: contain; }
+.logo-img { height: 45px; width: auto; object-fit: contain; }
 .brand-title { font-weight: 800; font-size: 1.25rem; letter-spacing: 1px; }
 .nav-links { display: flex; gap: 0.5rem; background: rgba(23, 23, 23, 0.8); padding: 0.25rem; border-radius: 12px; border: 1px solid #262626; }
 .nav-links button { background: transparent; border: none; color: #a3a3a3; padding: 0.5rem 1rem; border-radius: 8px; font-weight: 600; cursor: pointer; transition: all 0.2s ease; }
