@@ -1,0 +1,116 @@
+﻿<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>HN Muebles | Diseño y Fabricación a Medida</title>
+  <link rel="stylesheet" href="styles.css" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+</head>
+<body>
+  <div class="bg-overlay"></div>
+  <div class="app-container">
+    <header class="navbar">
+      <div class="logo-container" onclick="mostrarSeccion('inicio')">
+        <img src="assets/logo.png" alt="HN Muebles Logo" class="logo-img" onerror="this.style.display='none'" />
+        <span class="brand-title">HN MUEBLES</span>
+      </div>
+      <nav class="nav-links">
+        <button onclick="mostrarSeccion('inicio')" id="btn-inicio" class="active">Inicio</button>
+        <button onclick="mostrarSeccion('rastreo')" id="btn-rastreo">Rastrear Proyecto</button>
+        <button onclick="mostrarSeccion('admin')" id="btn-admin"><i class="fa-solid fa-lock"></i> Admin</button>
+      </nav>
+    </header>
+    <section id="sec-inicio" class="content-section">
+      <div class="hero-box">
+        <h1>Diseño y Fabricación de Muebles a Medida</h1>
+        <p>Transformamos tus espacios con melamina y acabados de primera calidad. Consulta el avance de tu fabricación en tiempo real o ponte en contacto directo con nosotros.</p>
+        <button class="btn-primary" onclick="mostrarSeccion('rastreo')">
+          <i class="fa-solid fa-magnifying-glass"></i> Consultar Estado de Mi Mueble
+        </button>
+      </div>
+    </section>
+    <section id="sec-rastreo" class="content-section hidden">
+      <div class="card-box">
+        <h2><i class="fa-solid fa-box font-amber"></i> Seguimiento de Proyecto</h2>
+        <p class="subtitle">Ingresa el código asignado a tu orden (Ejemplo: <strong>HN-001</strong>)</p>
+        <form id="form-buscar" class="search-form">
+          <input type="text" id="input-codigo" placeholder="Código de tu proyecto..." required />
+          <button type="submit" class="btn-primary"><i class="fa-solid fa-search"></i> Buscar</button>
+        </form>
+        <div id="mensaje-error" class="error-msg hidden">
+          No se encontró ningún proyecto con el código ingresado. Verifica tu comprobante.
+        </div>
+        <div id="resultado-proyecto" class="project-details hidden">
+          <div class="project-header">
+            <div>
+              <span id="res-codigo" class="badge"></span>
+              <h3 id="res-mueble"></h3>
+              <p id="res-cliente" class="text-sub"></p>
+            </div>
+            <span id="res-estado" class="status-tag"></span>
+          </div>
+          <div class="progress-container">
+            <div class="progress-labels">
+              <span>Avance de Fabricación</span>
+              <span id="res-porcentaje">0%</span>
+            </div>
+            <div class="progress-bar">
+              <div id="res-bar-fill" class="progress-fill" style="width: 0%;"></div>
+            </div>
+          </div>
+          <div class="details-box">
+            <strong class="font-amber">Estado actual:</strong> <span id="res-detalles"></span>
+          </div>
+        </div>
+      </div>
+    </section>
+    <section id="sec-admin" class="content-section hidden">
+      <div id="admin-login" class="card-box login-box">
+        <i class="fa-solid fa-lock icon-lock font-amber"></i>
+        <h2>Acceso Administrador</h2>
+        <p class="subtitle">Ingresa tu contraseña de supervisor</p>
+        <form id="form-login" class="login-form">
+          <input type="password" id="input-pass" placeholder="Contraseña..." required />
+          <button type="submit" class="btn-primary">Ingresar al Panel</button>
+        </form>
+      </div>
+      <div id="admin-panel" class="panel-box hidden">
+        <div class="panel-header">
+          <div>
+            <h2>Panel de Supervisión - HN Muebles</h2>
+            <p class="subtitle">Gestiona y actualiza el avance de tus proyectos</p>
+          </div>
+          <button onclick="cerrarSesionAdmin()" class="btn-logout"><i class="fa-solid fa-right-from-bracket"></i> Cerrar Sesión</button>
+        </div>
+        <form id="form-nuevo-proyecto" class="admin-form">
+          <h3><i class="fa-solid fa-plus font-amber"></i> Registrar Nuevo Mueble / Cliente</h3>
+          <div class="form-grid">
+            <input type="text" id="nuevo-codigo" placeholder="Código (Ej: HN-002)" required />
+            <input type="text" id="nuevo-cliente" placeholder="Nombre del Cliente" required />
+            <input type="text" id="nuevo-mueble" placeholder="Tipo de Mueble" required />
+          </div>
+          <button type="submit" class="btn-primary">Crear Proyecto</button>
+        </form>
+        <div class="projects-list-container">
+          <h3>Proyectos Registrados (<span id="total-proyectos">0</span>)</h3>
+          <div id="lista-proyectos-admin" class="projects-list"></div>
+        </div>
+      </div>
+    </section>
+    <footer class="footer">
+      <p>¿Tienes alguna consulta o quieres iniciar un proyecto? Encuéntranos en nuestras redes:</p>
+      <div class="social-buttons">
+        <a href="https://wa.me/59162037033?text=Hola%20HN%20Muebles,%20quisiera%20consultar%20sobre%20un%20proyecto" target="_blank" class="btn-social btn-wa">
+          <i class="fa-brands fa-whatsapp"></i> WhatsApp (+591 62037033)
+        </a>
+        <a href="https://www.instagram.com/hnmuebles/" target="_blank" class="btn-social btn-ig">
+          <i class="fa-brands fa-instagram"></i> Instagram (@hnmuebles)
+        </a>
+      </div>
+      <p class="copyright">© 2026 HN Muebles. Todos los derechos reservados.</p>
+    </footer>
+  </div>
+  <script src="script.js"></script>
+</body>
+</html>
