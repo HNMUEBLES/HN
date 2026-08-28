@@ -18,13 +18,13 @@ body { background-color: #0a0a0a; color: #ffffff; min-height: 100vh; position: r
   content: ''; 
   position: absolute; 
   inset: 0; 
-  background: rgba(0, 0, 0, 0.45); /* Oscurecido sutil para que se vea la foto y el texto */
+  background: rgba(0, 0, 0, 0.45); 
   backdrop-filter: blur(2px); 
 }
 
 .app-container { position: relative; z-index: 10; min-height: 100vh; display: flex; flex-direction: column; justify-content: space-between; }
 
-/* BARRA Y NAVEGACIÓN TOTALMENTE TRANSPARENTE */
+/* BARRA DE NAVEGACIÓN TRANSPARENTE */
 .navbar {
   display: flex;
   justify-content: space-between;
@@ -62,15 +62,16 @@ body { background-color: #0a0a0a; color: #ffffff; min-height: 100vh; position: r
 
 /* AL PASAR EL MOUSE POR ENCIMA */
 .nav-links button:hover {
-  background-color: rgba(255, 255, 255, 0.2) !important;
-  border-color: rgba(255, 255, 255, 0.4) !important;
+  background-color: rgba(255, 255, 255, 0.15) !important;
+  border-color: rgba(255, 255, 255, 0.3) !important;
 }
 
-/* BOTÓN SELECCIONADO / CLIC (ACTIVO) */
+/* BOTÓN SELECCIONADO / CLIC (ROJO SEMITRANSPARENTE) */
 .nav-links button.active {
-  background-color: rgba(217, 119, 6, 0.85) !important;
-  border-color: #f59e0b !important;
-  box-shadow: 0 4px 12px rgba(217, 119, 6, 0.4);
+  background-color: rgba(220, 38, 38, 0.75) !important; /* Rojo elegante con transparencia */
+  color: #ffffff !important;
+  border-color: rgba(239, 68, 68, 0.9) !important;
+  box-shadow: 0 4px 15px rgba(220, 38, 38, 0.4); /* Brillo suave en tono rojo */
 }
 
 /* RESTO DE LA PÁGINA */
@@ -80,14 +81,14 @@ body { background-color: #0a0a0a; color: #ffffff; min-height: 100vh; position: r
 .hero-box { text-align: center; max-width: 700px; }
 .hero-box h1 { font-size: 2.75rem; font-weight: 800; margin-bottom: 1.5rem; line-height: 1.2; }
 .hero-box p { color: #d4d4d4; font-size: 1.15rem; margin-bottom: 2rem; line-height: 1.6; }
-.btn-primary { background-color: #d97706; color: #ffffff; border: none; padding: 0.85rem 1.75rem; font-size: 1rem; font-weight: 700; border-radius: 12px; cursor: pointer; transition: transform 0.2s ease, background-color 0.2s ease; display: inline-flex; align-items: center; gap: 0.5rem; justify-content: center; }
-.btn-primary:hover { background-color: #b45309; transform: scale(1.03); }
+.btn-primary { background-color: #dc2626; color: #ffffff; border: none; padding: 0.85rem 1.75rem; font-size: 1rem; font-weight: 700; border-radius: 12px; cursor: pointer; transition: transform 0.2s ease, background-color 0.2s ease; display: inline-flex; align-items: center; gap: 0.5rem; justify-content: center; }
+.btn-primary:hover { background-color: #b91c1c; transform: scale(1.03); }
 .card-box { background: rgba(23, 23, 23, 0.85); border: 1px solid rgba(255, 255, 255, 0.1); padding: 2.5rem; border-radius: 20px; width: 100%; max-width: 600px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); backdrop-filter: blur(10px); }
 .card-box h2 { text-align: center; font-size: 1.6rem; margin-bottom: 0.5rem; }
 .subtitle { text-align: center; color: #a3a3a3; font-size: 0.9rem; margin-bottom: 1.5rem; }
 .search-form { display: flex; gap: 0.5rem; margin-bottom: 1.5rem; }
 input[type="text"], input[type="password"] { flex-grow: 1; background-color: #0a0a0a; border: 1px solid #404040; border-radius: 10px; padding: 0.75rem 1rem; color: #fff; outline: none; }
-input:focus { border-color: #f59e0b; }
+input:focus { border-color: #ef4444; }
 .footer { border-top: 1px solid rgba(255,255,255,0.1); background: rgba(10, 10, 10, 0.8); padding: 2.5rem 1.5rem; text-align: center; backdrop-filter: blur(8px); }
 .footer p { color: #d4d4d4; font-size: 0.9rem; margin-bottom: 1.25rem; }
 .social-buttons { display: flex; justify-content: center; gap: 1rem; flex-wrap: wrap; margin-bottom: 1.5rem; }
