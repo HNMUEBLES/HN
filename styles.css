@@ -8,7 +8,8 @@ body { background-color: #0a0a0a; color: #ffffff; min-height: 100vh; position: r
   left: 0;
   width: 100%;
   height: 100%;
-  background-image: url('assets/fondo.jpg'); /* Si tu foto es PNG cámbialo a fondo.png */
+  background-image: url('assets/fondo.jpg');
+
   background-size: cover;
   background-position: center;
   background-repeat: no-repeat;
