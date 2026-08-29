@@ -55,38 +55,54 @@ body { background-color: #000000; color: #ffffff; min-height: 100vh; }
   content: '';
   position: absolute;
   inset: 0;
-  background: rgba(0, 0, 0, 0.7);
+  background: rgba(0, 0, 0, 0.75);
 }
 
 .hero-split-container {
   position: relative;
   z-index: 2;
   width: 100%;
-  max-width: 1100px;
+  max-width: 1150px;
   display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 3rem;
+  grid-template-columns: 1.1fr 0.9fr;
+  gap: 3.5rem;
   align-items: center;
 }
 
-/* Columna Izquierda: Quiénes Somos */
-.hero-about-col h1 {
-  font-size: 3rem;
-  font-weight: 800;
+/* Columna Izquierda: Título más grande y elegante */
+.badge-brand {
+  background: rgba(217, 119, 6, 0.15);
+  color: #f59e0b;
+  border: 1px solid rgba(217, 119, 6, 0.3);
+  padding: 4px 12px;
+  border-radius: 20px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  display: inline-block;
+  margin-bottom: 1rem;
+}
+
+.hero-title-big {
+  font-size: 4rem; /* ¡Título mucho más grande y llamativo! */
+  font-weight: 900;
+  line-height: 1.1;
   margin-bottom: 0.5rem;
   color: #ffffff;
+  letter-spacing: -1px;
 }
 
 .tagline {
-  color: #d97706;
-  font-size: 1.2rem;
+  color: #f59e0b;
+  font-size: 1.25rem;
   font-weight: 600;
   margin-bottom: 1.2rem;
 }
 
 .about-text {
   color: #d4d4d4;
-  font-size: 1rem;
+  font-size: 1.05rem;
   line-height: 1.6;
   margin-bottom: 1.5rem;
 }
@@ -98,57 +114,126 @@ body { background-color: #000000; color: #ffffff; min-height: 100vh; }
   color: #e5e7eb;
 }
 
-/* Columna Derecha: Rastreo */
-.mini-card-box {
-  background: rgba(18, 18, 18, 0.85);
-  border: 1px solid rgba(255, 255, 255, 0.12);
-  padding: 2rem;
-  border-radius: 16px;
-  box-shadow: 0 10px 30px rgba(0,0,0,0.6);
-  backdrop-filter: blur(10px);
+/* Columna Derecha: Ventanita de Seguimiento Muy Linda (Estilo Tarjeta Moderna) */
+.modern-tracking-card {
+  background: rgba(15, 15, 15, 0.88);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  padding: 2.5rem 2rem;
+  border-radius: 20px;
+  box-shadow: 0 15px 35px rgba(0, 0, 0, 0.7);
+  backdrop-filter: blur(12px);
+  position: relative;
+  overflow: hidden;
 }
 
-.mini-card-box h2 {
-  font-size: 1.4rem;
-  margin-bottom: 0.25rem;
+.modern-tracking-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 4px;
+  background: linear-gradient(90deg, #d97706, #f59e0b);
+}
+
+.card-icon-header {
+  font-size: 1.8rem;
+  margin-bottom: 0.5rem;
+}
+
+.modern-tracking-card h2 {
+  font-size: 1.5rem;
+  font-weight: 700;
+  margin-bottom: 0.4rem;
+  color: #fff;
 }
 
 .subtitle {
   color: #a3a3a3;
-  font-size: 0.85rem;
-  margin-bottom: 1.2rem;
+  font-size: 0.88rem;
+  margin-bottom: 1.5rem;
+  line-height: 1.4;
 }
 
-.search-form {
+.search-form-modern {
   display: flex;
-  gap: 8px;
+  flex-direction: column;
+  gap: 12px;
 }
 
-input[type="text"], input[type="password"] {
-  flex-grow: 1;
-  background-color: #0a0a0a;
+.input-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.input-wrapper i {
+  position: absolute;
+  left: 14px;
+  color: #737373;
+  font-size: 0.95rem;
+}
+
+.input-wrapper input {
+  width: 100%;
+  background-color: rgba(0, 0, 0, 0.6);
   border: 1px solid #333;
-  border-radius: 8px;
-  padding: 0.65rem 0.9rem;
+  border-radius: 10px;
+  padding: 0.8rem 1rem 0.8rem 2.5rem;
   color: #fff;
   outline: none;
-  font-size: 0.9rem;
+  font-size: 0.95rem;
+  transition: all 0.3s;
 }
-input:focus { border-color: #d97706; }
+.input-wrapper input:focus {
+  border-color: #f59e0b;
+  box-shadow: 0 0 0 3px rgba(245, 158, 11, 0.15);
+}
 
-.btn-primary {
-  background-color: #b45309;
+.btn-primary-modern {
+  background: linear-gradient(135deg, #b45309, #d97706);
   color: #ffffff;
   border: none;
-  padding: 0.65rem 1.2rem;
-  font-size: 0.9rem;
+  padding: 0.8rem 1.5rem;
+  font-size: 0.95rem;
   font-weight: 700;
-  border-radius: 8px;
+  border-radius: 10px;
   cursor: pointer;
-  transition: background 0.2s;
-  white-space: nowrap;
+  transition: transform 0.2s, opacity 0.2s;
+  box-shadow: 0 4px 12px rgba(217, 119, 6, 0.3);
 }
-.btn-primary:hover { background-color: #d97706; }
+.btn-primary-modern:hover {
+  opacity: 0.95;
+  transform: translateY(-1px);
+}
+
+/* Caja de resultados dentro de la tarjeta */
+.result-box-modern {
+  margin-top: 1.2rem;
+  background: rgba(0, 0, 0, 0.5);
+  padding: 1rem;
+  border-radius: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  text-align: left;
+}
+
+.result-status-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 10px;
+  font-size: 0.85rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
+  padding-top: 8px;
+}
+
+.progress-pill {
+  background: rgba(245, 158, 11, 0.15);
+  color: #f59e0b;
+  padding: 2px 8px;
+  border-radius: 6px;
+  font-size: 0.8rem;
+}
 
 /* CONTENEDOR INFERIOR: NEGRO SÓLIDO */
 .black-content-container {
@@ -248,10 +333,22 @@ input:focus { border-color: #d97706; }
 }
 .modal-close:hover { color: #fff; }
 
+input[type="text"], input[type="password"] {
+  background-color: #0a0a0a;
+  border: 1px solid #333;
+  border-radius: 8px;
+  padding: 0.7rem 0.9rem;
+  color: #fff;
+  outline: none;
+  font-size: 0.9rem;
+}
+input:focus { border-color: #d97706; }
+
 /* UTILIDADES */
 .hidden { display: none !important; }
 .font-amber { color: #d97706; }
 .badge { background: #222; padding: 2px 6px; border-radius: 4px; font-size: 0.75rem; color: #d97706; font-family: monospace; }
+.error-msg { background: rgba(239, 68, 68, 0.15); color: #f87171; border: 1px solid rgba(239, 68, 68, 0.3); padding: 8px 12px; border-radius: 8px; font-size: 0.85rem; margin-top: 10px; }
 
 /* FOOTER */
 .footer {
@@ -267,10 +364,11 @@ input:focus { border-color: #d97706; }
 .btn-ig { background: linear-gradient(45deg, #7c3aed, #db2777); }
 .copyright { color: #555 !important; font-size: 0.75rem !important; }
 
-/* RESPONSIVE PARA PANTALLAS PEQUEÑAS */
+/* RESPONSIVE */
 @media (max-width: 768px) {
-  .hero-split-container { grid-template-columns: 1fr; gap: 2rem; text-align: center; }
-  .hero-about-col h1 { font-size: 2.2rem; }
+  .hero-split-container { grid-template-columns: 1fr; gap: 2.5rem; text-align: center; }
+  .hero-title-big { font-size: 3rem; }
   .hero-highlights { justify-content: center; }
   .hero-fixed-banner { height: auto; min-height: 100vh; padding-top: 5rem; padding-bottom: 3rem; }
+  .search-form-modern { align-items: stretch; }
 }
