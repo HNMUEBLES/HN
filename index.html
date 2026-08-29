@@ -82,6 +82,7 @@
           </div>
           <button onclick="cerrarSesionAdmin()" class="btn-logout"><i class="fa-solid fa-right-from-bracket"></i> Cerrar Sesión</button>
         </div>
+        
         <form id="form-nuevo-proyecto" class="admin-form">
           <h3><i class="fa-solid fa-plus font-amber"></i> Registrar Nuevo Mueble / Cliente</h3>
           <div class="form-grid">
@@ -89,9 +90,20 @@
             <input type="text" id="nuevo-cliente" placeholder="Nombre del Cliente" required />
             <input type="text" id="nuevo-mueble" placeholder="Tipo de Mueble" required />
             <input type="text" id="nuevo-telefono" placeholder="WhatsApp / Celular (Ej: 70012345)" />
+            
+            <!-- CAMPOS DE FINANZAS AL CREAR -->
+            <input type="number" id="nuevo-presupuesto" placeholder="Presupuesto Total (Bs)" />
+            <input type="number" id="nuevo-adelanto" placeholder="Adelanto Pagado (Bs)" />
           </div>
+          
+          <!-- CÁLCULO AUTOMÁTICO EN VIVO DEL SALDO -->
+          <div style="margin-top: 0.8rem; font-size: 0.9rem; color: #a3a3a3;">
+            Saldo restante calculado: <strong id="lbl-nuevo-saldo" style="color: #f87171;">Bs. 0.00</strong>
+          </div>
+
           <button type="submit" class="btn-primary" style="margin-top: 1rem;">Crear Proyecto</button>
         </form>
+
         <div class="projects-list-container">
           <h3>Proyectos Registrados (<span id="total-proyectos">0</span>)</h3>
           <div id="lista-proyectos-admin" class="projects-list"></div>
