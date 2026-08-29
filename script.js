@@ -206,7 +206,6 @@ document.addEventListener('DOMContentLoaded', function() {
         
         await cargarProyectosDesdeNube();
         renderProyectosAdmin();
-        // Sin ventanas emergentes
       } catch (error) {
         console.error("Error al guardar en Firebase:", error);
       }
