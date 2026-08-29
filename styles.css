@@ -171,9 +171,11 @@ body { background-color: #000000; color: #ffffff; min-height: 100vh; }
 
 .input-wrapper i {
   position: absolute;
-  left: 14px;
-  color: #737373;
-  font-size: 0.9rem;
+  left: 16px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #a3a3a3;
+  font-size: 0.95rem;
   pointer-events: none;
 }
 
@@ -182,10 +184,10 @@ body { background-color: #000000; color: #ffffff; min-height: 100vh; }
   background-color: rgba(0, 0, 0, 0.6);
   border: 1px solid #333;
   border-radius: 10px;
-  padding: 0.7rem 1rem 0.7rem 2.8rem; /* Espacio ideal para que la lupa no encime el texto */
+  padding: 0.75rem 1rem 0.75rem 3.2rem; /* Espacio amplio para que la lupa y el texto no se encimen */
   color: #fff;
   outline: none;
-  font-size: 0.9rem;
+  font-size: 0.95rem;
   transition: all 0.3s;
 }
 .input-wrapper input:focus {
