@@ -68,6 +68,9 @@ async function cargarProyectosDesdeNube() {
     if (esAdmin) {
       renderProyectosAdmin();
     }
+    
+    // Una vez cargados los datos, revisa si el usuario entró mediante un enlace con código por URL
+    procesarEnlaceDirectoUrl();
   } catch (error) {
     console.error("Error al cargar proyectos de la nube: ", error);
   }
@@ -75,6 +78,20 @@ async function cargarProyectosDesdeNube() {
 
 // Ejecutar carga inicial al abrir la página
 cargarProyectosDesdeNube();
+
+// Función para autocompletar y buscar si el cliente entra desde el enlace de WhatsApp
+function procesarEnlaceDirectoUrl() {
+  const urlParams = new URLSearchParams(window.location.search);
+  const codigoUrl = urlParams.get('codigo');
+  if (codigoUrl) {
+    const inputCodigo = document.getElementById('input-codigo');
+    const formBuscar = document.getElementById('form-buscar');
+    if (inputCodigo && formBuscar) {
+      inputCodigo.value = codigoUrl;
+      formBuscar.dispatchEvent(new Event('submit'));
+    }
+  }
+}
 
 // ==========================================
 // 3. NAVEGACIÓN ENTRE SECCIONES
@@ -147,7 +164,7 @@ document.addEventListener('DOMContentLoaded', function() {
     });
   }
 
-  // LOGIN ADMIN (CORREGIDO Y SEGURO)
+  // LOGIN ADMIN
   const formLogin = document.getElementById('form-login');
   if (formLogin) {
     formLogin.addEventListener('submit', async function(e) {
@@ -519,9 +536,11 @@ function notificarWhatsApp(index) {
   const saldo = presupuesto - adelanto;
   const fechaTexto = p.fechaEntrega ? p.fechaEntrega.split('-').reverse().join('/') : 'Por coordinar';
   
-  const linkPagina = window.location.origin + window.location.pathname;
+  // Genera el enlace directo con el código del proyecto incluido
+  const linkBase = window.location.origin + window.location.pathname;
+  const linkDirecto = `${linkBase}?codigo=${p.codigo}`;
 
-  const mensaje = `Hola *${p.cliente}* 👋, desde *HN Muebles* te informamos el estado de tu proyecto *"${p.mueble}"*:\n\n🛠️ *Estado:* ${p.estado}\n📊 *Progreso:* ${p.progreso}%\n📅 *Fecha Estimada de Entrega:* ${fechaTexto}\n\n💰 *Resumen Financiero:*\n• Presupuesto Total: Bs. ${formatearMonto(presupuesto)}\n• Adelanto: Bs. ${formatearMonto(adelanto)}\n• Saldo Pendiente: Bs. ${formatearMonto(saldo)}\n\n🔍 *Puedes rastrear tu proyecto ingresando tu código (*${p.codigo}*) aquí:*\n${linkPagina}`;
+  const mensaje = `Hola *${p.cliente}* 👋, desde *HN Muebles* te informamos el estado de tu proyecto *"${p.mueble}"*:\n\n🛠️ *Estado:* ${p.estado}\n📊 *Progreso:* ${p.progreso}%\n📅 *Fecha Estimada de Entrega:* ${fechaTexto}\n\n💰 *Resumen Financiero:*\n• Presupuesto Total: Bs. ${formatearMonto(presupuesto)}\n• Adelanto: Bs. ${formatearMonto(adelanto)}\n• Saldo Pendiente: Bs. ${formatearMonto(saldo)}\n\n🔍 *Haz clic en el siguiente enlace para ver el estado de tu proyecto (Código: ${p.codigo}):*\n${linkDirecto}`;
   
   window.open(`https://wa.me/${num}?text=${encodeURIComponent(mensaje)}`, '_blank');
 }
