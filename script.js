@@ -415,6 +415,7 @@ async function guardarEdicionInline(idFirebase, index) {
   }
 }
 
+// FUNCIÓN OPTIMIZADA PARA CAMBIO DE ESTADO INSTANTÁNEO
 async function cambiarEstadoPorId(idFirebase, etapaIdx, nuevoProgreso) {
   const etapas = ['Diseño Aprobado', 'Corte', 'Armado', 'Instalación', 'Finalizado'];
   const descripciones = [
@@ -424,16 +425,29 @@ async function cambiarEstadoPorId(idFirebase, etapaIdx, nuevoProgreso) {
     'El mueble está en proceso de traslado e instalación en sitio.',
     '¡El proyecto ha sido completado e instalado con éxito!'
   ];
-  try {
-    await db.collection("proyectos").doc(idFirebase).update({
-      estado: etapas[etapaIdx], progreso: nuevoProgreso, detalles: descripciones[etapaIdx]
-    });
-    await cargarProyectosDesdeNube();
-    renderProyectosAdmin();
-  } catch (error) {
-    console.error("Error cambiando estado:", error);
-    alert("Error al cambiar estado.");
+
+  const nuevoEstado = etapas[etapaIdx];
+  const nuevaDesc = descripciones[etapaIdx];
+
+  // 1. Actualización local inmediata para respuesta instantánea (0 segundos de espera)
+  const proyectoLocal = proyectos.find(p => p.id === idFirebase);
+  if (proyectoLocal) {
+    proyectoLocal.estado = nuevoEstado;
+    proyectoLocal.progreso = nuevoProgreso;
+    proyectoLocal.detalles = nuevaDesc;
   }
+
+  // 2. Refrescamos la vista local al instante
+  renderProyectosAdmin();
+
+  // 3. Sincronizamos con Firebase en segundo plano sin bloquear al usuario
+  db.collection("proyectos").doc(idFirebase).update({
+    estado: nuevoEstado,
+    progreso: nuevoProgreso,
+    detalles: nuevaDesc
+  }).catch(error => {
+    console.error("Error cambiando estado en segundo plano:", error);
+  });
 }
 
 async function eliminarProyecto(idFirebase) {
