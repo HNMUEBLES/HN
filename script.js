@@ -1,26 +1,61 @@
-// --- BASE DE DATOS INICIAL ---
-const proyectosIniciales = [
-  { 
-    codigo: 'HN-001', 
-    cliente: 'Carlos Mendoza', 
-    mueble: 'Juego de Comedor en Melamina', 
-    telefono: '62037033',
-    estado: 'Diseño Aprobado', 
-    progreso: 20, 
-    detalles: 'Diseño confirmado por WhatsApp. Listo para corte.',
-    presupuesto: 3500,
-    adelanto: 1500,
-    fechaEntrega: '2026-03-15'
+// --- CONFIGURACIÓN DE FIREBASE (Tus credenciales reales) ---
+const firebaseConfig = {
+  apiKey: "AIzaSyCLrVUpGCTxFxuMR0ATlwj2t3osSP0dD7Y",
+  authDomain: "hn-muebles.firebaseapp.com",
+  projectId: "hn-muebles",
+  storageBucket: "hn-muebles.firebasestorage.app",
+  messagingSenderId: "175601256381",
+  appId: "1:175601256381:web:db2031a56faa87a02bf4d4",
+  measurementId: "G-8PJGERB67Q"
+};
+
+// Inicializar Firebase (Versión compatible con script clásico)
+firebase.initializeApp(firebaseConfig);
+const db = firebase.firestore();
+
+let proyectos = [];
+let esAdmin = false;
+
+// --- CARGAR PROYECTOS DESDE FIRESTORE EN VIVO ---
+async function cargarProyectosDesdeNube() {
+  try {
+    const querySnapshot = await db.collection("proyectos").get();
+    proyectos = [];
+    querySnapshot.forEach((docSnap) => {
+      proyectos.push({
+        id: docSnap.id,
+        ...docSnap.data()
+      });
+    });
+    
+    // Si la base de datos está vacía, creamos un proyecto inicial de prueba
+    if (proyectos.length === 0) {
+      const proyectoInicial = {
+        codigo: 'HN-001',
+        cliente: 'Carlos Mendoza',
+        mueble: 'Juego de Comedor en Melamina',
+        telefono: '62037033',
+        estado: 'Diseño Aprobado',
+        progreso: 20,
+        detalles: 'Diseño confirmado por WhatsApp. Listo para corte.',
+        presupuesto: 3500,
+        adelanto: 1500,
+        fechaEntrega: '2026-03-15'
+      };
+      const docRef = await db.collection("proyectos").add(proyectoInicial);
+      proyectos.push({ id: docRef.id, ...proyectoInicial });
+    }
+
+    if (esAdmin) {
+      renderProyectosAdmin();
+    }
+  } catch (error) {
+    console.error("Error al cargar proyectos de la nube: ", error);
   }
-];
-
-let proyectos = JSON.parse(localStorage.getItem('hn_proyectos')) || proyectosIniciales;
-
-function guardarEnLocalStorage() { 
-  localStorage.setItem('hn_proyectos', JSON.stringify(proyectos)); 
 }
 
-let esAdmin = false;
+// Ejecutar carga inicial al abrir la página
+cargarProyectosDesdeNube();
 
 // --- 1. NAVEGACIÓN ENTRE SECCIONES ---
 function mostrarSeccion(seccionId) {
@@ -51,12 +86,14 @@ function mostrarSeccion(seccionId) {
 document.addEventListener('DOMContentLoaded', function() {
   const formBuscar = document.getElementById('form-buscar');
   if (formBuscar) {
-    formBuscar.addEventListener('submit', function(e) {
+    formBuscar.addEventListener('submit', async function(e) {
       e.preventDefault();
       const codigoInput = document.getElementById('input-codigo');
       if (!codigoInput) return;
       
       const codigo = codigoInput.value.trim().toUpperCase();
+      await cargarProyectosDesdeNube();
+      
       const encontrado = proyectos.find(p => p.codigo === codigo);
       const errorMsg = document.getElementById('mensaje-error');
       const resultBox = document.getElementById('resultado-proyecto');
@@ -82,7 +119,7 @@ document.addEventListener('DOMContentLoaded', function() {
   // LOGIN ADMIN
   const formLogin = document.getElementById('form-login');
   if (formLogin) {
-    formLogin.addEventListener('submit', function(e) {
+    formLogin.addEventListener('submit', async function(e) {
       e.preventDefault();
       const passInput = document.getElementById('input-pass');
       
@@ -91,6 +128,7 @@ document.addEventListener('DOMContentLoaded', function() {
         document.getElementById('admin-login').classList.add('hidden');
         document.getElementById('admin-panel').classList.remove('hidden');
         passInput.value = '';
+        await cargarProyectosDesdeNube();
         renderProyectosAdmin();
       } else { 
         alert('Contraseña incorrecta'); 
@@ -116,10 +154,10 @@ document.addEventListener('DOMContentLoaded', function() {
   if (inputPresupuestoNuevo) inputPresupuestoNuevo.addEventListener('input', calcularSaldoEnVivo);
   if (inputAdelantoNuevo) inputAdelantoNuevo.addEventListener('input', calcularSaldoEnVivo);
 
-  // NUEVO PROYECTO (GUARDAR)
+  // NUEVO PROYECTO (GUARDAR EN FIRESTORE)
   const formNuevo = document.getElementById('form-nuevo-proyecto');
   if (formNuevo) {
-    formNuevo.addEventListener('submit', function(e) {
+    formNuevo.addEventListener('submit', async function(e) {
       e.preventDefault();
       const codIn = document.getElementById('nuevo-codigo');
       const cliIn = document.getElementById('nuevo-cliente');
@@ -129,7 +167,7 @@ document.addEventListener('DOMContentLoaded', function() {
       const adelIn = document.getElementById('nuevo-adelanto');
       const fechaIn = document.getElementById('nuevo-fecha');
 
-      proyectos.push({
+      const nuevoProyectoObj = {
         codigo: codIn ? codIn.value.trim().toUpperCase() : '',
         cliente: cliIn ? cliIn.value.trim() : '',
         mueble: mueIn ? mueIn.value.trim() : '',
@@ -140,20 +178,27 @@ document.addEventListener('DOMContentLoaded', function() {
         presupuesto: presIn ? parseFloat(presIn.value) || 0 : 0,
         adelanto: adelIn ? parseFloat(adelIn.value) || 0 : 0,
         fechaEntrega: fechaIn ? fechaIn.value : ''
-      });
+      };
 
-      guardarEnLocalStorage();
-      
-      if (codIn) codIn.value = '';
-      if (cliIn) cliIn.value = '';
-      if (mueIn) mueIn.value = '';
-      if (telIn) telIn.value = '';
-      if (presIn) presIn.value = '';
-      if (adelIn) adelIn.value = '';
-      if (fechaIn) fechaIn.value = '';
-      calcularSaldoEnVivo();
-      
-      renderProyectosAdmin();
+      try {
+        await db.collection("proyectos").add(nuevoProyectoObj);
+        
+        if (codIn) codIn.value = '';
+        if (cliIn) cliIn.value = '';
+        if (mueIn) mueIn.value = '';
+        if (telIn) telIn.value = '';
+        if (presIn) presIn.value = '';
+        if (adelIn) adelIn.value = '';
+        if (fechaIn) fechaIn.value = '';
+        calcularSaldoEnVivo();
+        
+        await cargarProyectosDesdeNube();
+        renderProyectosAdmin();
+        alert("¡Proyecto guardado en la nube con éxito!");
+      } catch (error) {
+        console.error("Error al guardar en Firebase:", error);
+        alert("Hubo un error al guardar el proyecto en la nube.");
+      }
     });
   }
 });
@@ -188,7 +233,7 @@ function renderProyectosAdmin() {
     let botonesEtapas = etapas.map((est, idx) => {
       const activeStyle = p.estado === est ? 'background: #f59e0b; color: #000; font-weight: bold;' : 'background: rgba(255,255,255,0.1); color: #fff;';
       const porcentaje = (idx + 1) * 20;
-      return `<button type="button" style="border:none; padding: 0.4rem 0.7rem; border-radius: 6px; cursor: pointer; font-size: 0.8rem; margin: 0.2rem; ${activeStyle}" onclick="cambiarEstadoPorIndice(${index}, ${idx}, ${porcentaje})">${est}</button>`;
+      return `<button type="button" style="border:none; padding: 0.4rem 0.7rem; border-radius: 6px; cursor: pointer; font-size: 0.8rem; margin: 0.2rem; ${activeStyle}" onclick="cambiarEstadoPorId('${p.id}', ${idx}, ${porcentaje})">${est}</button>`;
     }).join('');
 
     card.innerHTML = `
@@ -257,7 +302,7 @@ function renderProyectosAdmin() {
               <input type="date" id="input-edit-fecha-${index}" value="${p.fechaEntrega || ''}" style="width:100%; padding:0.4rem; background:#0a0a0a; border:1px solid #404040; color:#fff; border-radius:6px; font-size:0.85rem;">
             </div>
             <div style="display: flex; gap: 0.5rem; margin-top: 0.4rem;">
-              <button type="button" onclick="guardarEdicionInline(${index})" style="background: #16a34a; color: white; border: none; padding: 0.4rem 0.8rem; border-radius: 6px; cursor: pointer; font-size: 0.8rem; font-weight: bold;">Guardar</button>
+              <button type="button" onclick="guardarEdicionInline('${p.id}', ${index})" style="background: #16a34a; color: white; border: none; padding: 0.4rem 0.8rem; border-radius: 6px; cursor: pointer; font-size: 0.8rem; font-weight: bold;">Guardar</button>
               <button type="button" onclick="cancelarEdicionInline(${index})" style="background: #404040; color: white; border: none; padding: 0.4rem 0.8rem; border-radius: 6px; cursor: pointer; font-size: 0.8rem;">Cancelar</button>
             </div>
           </div>
@@ -268,7 +313,7 @@ function renderProyectosAdmin() {
           <button type="button" id="btn-edit-toggle-${index}" onclick="activarEdicionInline(${index})" title="Editar datos, finanzas y fecha" style="background: #3b82f6; color: white; border: none; padding: 0.6rem 0.8rem; border-radius: 8px; cursor: pointer;">
             <i class="fa-solid fa-pen-to-square"></i>
           </button>
-          <button type="button" onclick="eliminarProyecto(${index})" title="Eliminar proyecto" style="background: #ef4444; color: white; border: none; padding: 0.6rem 0.8rem; border-radius: 8px; cursor: pointer;">
+          <button type="button" onclick="eliminarProyecto('${p.id}')" title="Eliminar proyecto" style="background: #ef4444; color: white; border: none; padding: 0.6rem 0.8rem; border-radius: 8px; cursor: pointer;">
             <i class="fa-solid fa-trash"></i>
           </button>
         </div>
@@ -292,7 +337,7 @@ function cancelarEdicionInline(index) {
   document.getElementById(`btn-edit-toggle-${index}`).style.display = 'block';
 }
 
-function guardarEdicionInline(index) {
+async function guardarEdicionInline(idFirebase, index) {
   const nuevoCodigo = document.getElementById(`input-edit-codigo-${index}`).value.trim().toUpperCase();
   const nuevoCliente = document.getElementById(`input-edit-cliente-${index}`).value.trim();
   const nuevoMueble = document.getElementById(`input-edit-mueble-${index}`).value.trim();
@@ -306,20 +351,28 @@ function guardarEdicionInline(index) {
     return;
   }
 
-  proyectos[index].codigo = nuevoCodigo;
-  proyectos[index].cliente = nuevoCliente;
-  proyectos[index].mueble = nuevoMueble;
-  proyectos[index].telefono = nuevoTelefono;
-  proyectos[index].presupuesto = nuevoPresupuesto;
-  proyectos[index].adelanto = nuevoAdelanto;
-  proyectos[index].fechaEntrega = nuevaFecha;
+  try {
+    await db.collection("proyectos").doc(idFirebase).update({
+      codigo: nuevoCodigo,
+      cliente: nuevoCliente,
+      mueble: nuevoMueble,
+      telefono: nuevoTelefono,
+      presupuesto: nuevoPresupuesto,
+      adelanto: nuevoAdelanto,
+      fechaEntrega: nuevaFecha
+    });
 
-  guardarEnLocalStorage();
-  renderProyectosAdmin();
+    await cargarProyectosDesdeNube();
+    renderProyectosAdmin();
+    alert("¡Cambios guardados en la nube con éxito!");
+  } catch (error) {
+    console.error("Error al actualizar:", error);
+    alert("Error al actualizar el proyecto.");
+  }
 }
 
 // --- 5. OTRAS ACCIONES ---
-function cambiarEstadoPorIndice(proyectoIdx, etapaIdx, nuevoProgreso) {
+async function cambiarEstadoPorId(idFirebase, etapaIdx, nuevoProgreso) {
   const etapas = ['Diseño Aprobado', 'Corte', 'Armado', 'Instalación', 'Finalizado'];
   const descripciones = [
     'El diseño ha sido aprobado por WhatsApp. El proyecto ingresa a producción.',
@@ -329,19 +382,29 @@ function cambiarEstadoPorIndice(proyectoIdx, etapaIdx, nuevoProgreso) {
     '¡El proyecto ha sido completado e instalado con éxito!'
   ];
   
-  proyectos[proyectoIdx].estado = etapas[etapaIdx];
-  proyectos[proyectoIdx].progreso = nuevoProgreso;
-  proyectos[proyectoIdx].detalles = descripciones[etapaIdx];
-  
-  guardarEnLocalStorage();
-  renderProyectosAdmin();
+  try {
+    await db.collection("proyectos").doc(idFirebase).update({
+      estado: etapas[etapaIdx],
+      progreso: nuevoProgreso,
+      detalles: descripciones[etapaIdx]
+    });
+    
+    await cargarProyectosDesdeNube();
+    renderProyectosAdmin();
+  } catch (error) {
+    console.error("Error cambiando estado:", error);
+  }
 }
 
-function eliminarProyecto(index) {
-  if (confirm('¿Deseas eliminar este proyecto?')) {
-    proyectos.splice(index, 1);
-    guardarEnLocalStorage();
-    renderProyectosAdmin();
+async function eliminarProyecto(idFirebase) {
+  if (confirm('¿Deseas eliminar este proyecto de la nube?')) {
+    try {
+      await db.collection("proyectos").doc(idFirebase).delete();
+      await cargarProyectosDesdeNube();
+      renderProyectosAdmin();
+    } catch (error) {
+      console.error("Error al eliminar:", error);
+    }
   }
 }
 
@@ -362,13 +425,9 @@ function notificarWhatsApp(index) {
   const saldo = presupuesto - adelanto;
   const fechaTexto = p.fechaEntrega ? p.fechaEntrega.split('-').reverse().join('/') : 'Por coordinar';
   
-  const linkPagina = window.location.href;
+  const linkPagina = window.location.origin + window.location.pathname;
 
   const mensaje = `Hola *${p.cliente}* 👋, desde *HN Muebles* te informamos el estado de tu proyecto *"${p.mueble}"*:\n\n🛠️ *Estado:* ${p.estado}\n📊 *Progreso:* ${p.progreso}%\n📅 *Fecha Estimada de Entrega:* ${fechaTexto}\n\n💰 *Resumen Financiero:*\n• Presupuesto Total: Bs. ${presupuesto.toFixed(2)}\n• Adelanto: Bs. ${adelanto.toFixed(2)}\n• Saldo Pendiente: Bs. ${saldo.toFixed(2)}\n\n🔍 *Puedes rastrear tu proyecto ingresando tu código (${p.codigo}) aquí:*\n${linkPagina}`;
   
   window.open(`https://wa.me/${num}?text=${encodeURIComponent(mensaje)}`, '_blank');
-}
-
-if (!localStorage.getItem('hn_proyectos')) { 
-  guardarEnLocalStorage(); 
 }
