@@ -260,11 +260,20 @@ body { background-color: #000000; color: #ffffff; min-height: 100vh; }
   margin-bottom: 0.5rem;
 }
 
-/* CUADROS EXPLICATIVOS */
+/* CUADROS EXPLICATIVOS DE 4 PASOS (Antiguo, por si acaso) */
 .steps-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
   gap: 1.2rem;
+  margin-top: 2rem;
+  text-align: left;
+}
+
+/* NUEVA GRILLA DE 5 PASOS PARA LA RUTA DEL MUEBLE */
+.steps-grid-5 {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 1rem;
   margin-top: 2rem;
   text-align: left;
 }
