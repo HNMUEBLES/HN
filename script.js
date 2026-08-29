@@ -207,10 +207,9 @@ document.addEventListener('DOMContentLoaded', function() {
         
         await cargarProyectosDesdeNube();
         renderProyectosAdmin();
-        alert(`¡Proyecto guardado con éxito! Código asignado: ${codigoGenerado}`);
+        // Guardado silencioso y limpio sin alertas
       } catch (error) {
         console.error("Error al guardar en Firebase:", error);
-        alert("Hubo un error al guardar el proyecto en la nube.");
       }
     });
   }
@@ -377,10 +376,9 @@ async function guardarEdicionInline(idFirebase, index) {
 
     await cargarProyectosDesdeNube();
     renderProyectosAdmin();
-    alert("¡Cambios guardados en la nube con éxito!");
+    // Guardado silencioso y limpio sin alertas
   } catch (error) {
     console.error("Error al actualizar:", error);
-    alert("Error al actualizar el proyecto.");
   }
 }
 
