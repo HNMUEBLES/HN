@@ -2,18 +2,18 @@
   box-sizing: border-box; 
   margin: 0; 
   padding: 0; 
-  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+  font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, Roboto, sans-serif; 
 }
 
 body { 
-  background-color: #050505; 
-  color: #f5f5f5; 
+  background-color: #080808 !important; 
+  color: #ededed !important; 
   min-height: 100vh; 
   position: relative; 
   overflow-x: hidden;
 }
 
-/* FONDO DE PANTALLA */
+/* FONDO CON CAPA OSCURA ELEGANTE */
 .bg-overlay {
   position: fixed;
   top: 0;
@@ -23,15 +23,14 @@ body {
   background-image: url('assets/fondo.jpg'), url('assets/fondo.png'), url('assets/fondo.jpeg');
   background-size: cover;
   background-position: center;
-  background-repeat: no-repeat;
   z-index: 0;
 }
 .bg-overlay::after { 
   content: ''; 
   position: absolute; 
   inset: 0; 
-  background: rgba(5, 5, 5, 0.82); 
-  backdrop-filter: blur(4px); 
+  background: rgba(8, 8, 8, 0.92); 
+  backdrop-filter: blur(6px); 
 }
 
 .app-container { 
@@ -43,20 +42,20 @@ body {
   justify-content: space-between; 
 }
 
-/* BARRA Y BOTONES TRANSPARENTES (CORREGIDO PARA MÓVILES) */
+/* NAVBAR DE LUJO */
 .navbar {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 1.2rem 2rem;
-  background: rgba(5, 5, 5, 0.8) !important;
-  backdrop-filter: blur(12px);
+  padding: 1.25rem 2.5rem;
+  background: rgba(8, 8, 8, 0.85) !important;
+  backdrop-filter: blur(15px);
   position: sticky;
   top: 0;
   z-index: 50;
-  flex-wrap: wrap; /* CLAVE: Permite que los elementos bajen si no caben en una línea */
+  flex-wrap: wrap;
   gap: 1rem;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  border-bottom: 1px solid rgba(212, 175, 55, 0.15); /* Sutil línea dorada */
 }
 
 .logo-container { 
@@ -66,53 +65,51 @@ body {
   cursor: pointer; 
 }
 .logo-img { 
-  height: 45px; 
+  height: 40px; 
   width: auto; 
   object-fit: contain; 
 }
 
 .nav-links {
   display: flex;
-  gap: 0.5rem;
+  gap: 0.75rem;
   background: transparent !important;
   border: none !important;
   padding: 0;
-  flex-wrap: wrap; /* CLAVE: Los botones se acomodan ordenadamente en pantallas chicas */
+  flex-wrap: wrap;
 }
 
-/* BOTONES TRANSPARENTES POR DEFECTO */
 .nav-links button {
   background: transparent !important;
   border: 1px solid transparent !important;
-  color: #d4d4d4 !important;
-  padding: 0.6rem 1.2rem;
-  border-radius: 8px;
-  font-weight: 500;
-  font-size: 0.95rem;
+  color: #a3a3a3 !important;
+  padding: 0.55rem 1.1rem;
+  border-radius: 6px;
+  font-weight: 400;
+  font-size: 0.9rem;
+  letter-spacing: 0.5px;
   cursor: pointer;
   transition: all 0.3s ease;
 }
 
 .nav-links button:hover {
   color: #ffffff !important;
-  background-color: rgba(255, 255, 255, 0.05) !important;
-  border-color: rgba(255, 255, 255, 0.1) !important;
+  background-color: rgba(255, 255, 255, 0.03) !important;
+  border-color: rgba(255, 255, 255, 0.08) !important;
 }
 
-/* BOTÓN SELECCIONADO */
 .nav-links button.active {
-  background-color: rgba(217, 119, 6, 0.15) !important;
-  color: #fbbf24 !important;
-  border-color: rgba(217, 119, 6, 0.4) !important;
-  box-shadow: 0 4px 15px rgba(217, 119, 6, 0.15);
+  background-color: rgba(212, 175, 55, 0.1) !important;
+  color: #e5c158 !important; /* Tono dorado elegante */
+  border-color: rgba(212, 175, 55, 0.3) !important;
 }
 
-/* RESTO DEL SITIO */
+/* SECCIONES Y CONTENEDORES */
 .content-section { 
   max-width: 950px; 
   margin: 0 auto; 
   width: 100%; 
-  padding: 3.5rem 1.5rem; 
+  padding: 4rem 1.5rem; 
   flex-grow: 1; 
   display: flex; 
   align-items: center; 
@@ -120,35 +117,37 @@ body {
 }
 
 .hidden { display: none !important; }
-.font-amber { color: #d97706 !important; }
+.font-amber { color: #e5c158 !important; }
 
 .hero-box { 
   text-align: center; 
   max-width: 750px; 
 }
 .hero-box h1 { 
-  font-size: 3rem; 
-  font-weight: 700; 
-  margin-bottom: 1.5rem; 
-  line-height: 1.15; 
+  font-size: 2.8rem; 
+  font-weight: 500; 
+  margin-bottom: 1.25rem; 
+  line-height: 1.2; 
   letter-spacing: -0.5px;
+  color: #fff;
 }
 .hero-box p { 
-  color: #a3a3a3; 
-  font-size: 1.1rem; 
+  color: #999; 
+  font-size: 1.05rem; 
   margin-bottom: 2rem; 
   line-height: 1.6; 
   font-weight: 300;
 }
 
+/* BOTÓN PRINCIPAL DORADO / ÁMBAR LUJO */
 .btn-primary { 
-  background-color: #d97706; 
-  color: #050505; 
+  background-color: #e5c158; 
+  color: #080808; 
   border: none; 
-  padding: 0.85rem 1.75rem; 
-  font-size: 0.95rem; 
+  padding: 0.8rem 1.6rem; 
+  font-size: 0.9rem; 
   font-weight: 600; 
-  border-radius: 10px; 
+  border-radius: 8px; 
   cursor: pointer; 
   transition: all 0.3s ease; 
   display: inline-flex; 
@@ -158,43 +157,44 @@ body {
   text-decoration: none;
 }
 .btn-primary:hover { 
-  background-color: #f59e0b; 
-  transform: translateY(-2px); 
-  box-shadow: 0 6px 20px rgba(217, 119, 6, 0.3);
+  background-color: #f3d068; 
+  transform: translateY(-1px); 
+  box-shadow: 0 4px 20px rgba(229, 193, 88, 0.25);
 }
 
+/* TARJETAS ESTILO GALERÍA OSCURA */
 .card-box { 
-  background: rgba(15, 15, 15, 0.85); 
-  border: 1px solid rgba(255, 255, 255, 0.08); 
+  background: rgba(14, 14, 14, 0.9); 
+  border: 1px solid rgba(255, 255, 255, 0.06); 
   padding: 2.5rem; 
-  border-radius: 16px; 
+  border-radius: 14px; 
   width: 100%; 
   max-width: 800px; 
-  box-shadow: 0 20px 40px rgba(0,0,0,0.6); 
+  box-shadow: 0 20px 40px rgba(0,0,0,0.8); 
   backdrop-filter: blur(10px); 
 }
 
-/* PANEL ADMINISTRADOR CON FONDO NEGRO SÓLIDO */
 .panel-box { 
-  background: #080808 !important; 
-  border: 1px solid rgba(255, 255, 255, 0.12); 
+  background: #0b0b0b !important; 
+  border: 1px solid rgba(212, 175, 55, 0.15); 
   padding: 2.5rem; 
-  border-radius: 16px; 
+  border-radius: 14px; 
   width: 100%; 
   max-width: 900px; 
-  box-shadow: 0 20px 50px rgba(0,0,0,0.9); 
+  box-shadow: 0 25px 50px rgba(0,0,0,0.9); 
 }
 
 .card-box h2 { 
   text-align: center; 
-  font-size: 1.7rem; 
-  margin-bottom: 0.5rem; 
-  font-weight: 600;
+  font-size: 1.6rem; 
+  margin-bottom: 0.4rem; 
+  font-weight: 500;
+  color: #fff;
 }
 .subtitle { 
   text-align: center; 
   color: #888; 
-  font-size: 0.92rem; 
+  font-size: 0.9rem; 
   margin-bottom: 1.75rem; 
   font-weight: 300;
 }
@@ -204,35 +204,34 @@ body {
   margin-bottom: 1.5rem; 
 }
 
-input[type="text"], input[type="password"] { 
+input[type="text"], input[type="password"], input[type="date"], input[type="month"] { 
   flex-grow: 1; 
-  background-color: #0c0c0c !important; 
-  border: 1px solid rgba(255, 255, 255, 0.12) !important; 
-  border-radius: 8px !important; 
-  padding: 0.8rem 1rem !important; 
+  background-color: #050505 !important; 
+  border: 1px solid rgba(255, 255, 255, 0.1) !important; 
+  border-radius: 6px !important; 
+  padding: 0.75rem 1rem !important; 
   color: #fff !important; 
   outline: none !important; 
-  font-size: 0.95rem !important;
+  font-size: 0.9rem !important;
   transition: all 0.3s ease !important;
 }
 input:focus { 
-  border-color: #d97706 !important; 
-  box-shadow: 0 0 0 2px rgba(217, 119, 6, 0.2) !important;
+  border-color: #e5c158 !important; 
+  box-shadow: 0 0 0 2px rgba(229, 193, 88, 0.15) !important;
 }
 
-/* DISEÑO DEL FORMULARIO ADMINISTRADOR (4 CAJAS) */
 .admin-form {
-  background: rgba(255, 255, 255, 0.02);
+  background: rgba(255, 255, 255, 0.015);
   padding: 1.5rem;
-  border-radius: 12px;
-  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.04);
   margin-bottom: 2rem;
 }
 .admin-form h3 {
-  font-size: 1.1rem;
+  font-size: 1.05rem;
   margin-bottom: 1rem;
   font-weight: 500;
-  color: #e5e5e5;
+  color: #ddd;
 }
 .form-grid {
   display: grid !important;
@@ -240,7 +239,6 @@ input:focus {
   gap: 0.85rem !important;
 }
 
-/* BOTÓN CERRAR SESIÓN */
 .panel-header {
   display: flex;
   justify-content: space-between;
@@ -250,13 +248,13 @@ input:focus {
   gap: 1rem;
 }
 .btn-logout {
-  background: rgba(239, 68, 68, 0.15);
+  background: rgba(239, 68, 68, 0.1);
   color: #f87171;
-  border: 1px solid rgba(239, 68, 68, 0.3);
+  border: 1px solid rgba(239, 68, 68, 0.2);
   padding: 0.5rem 1rem;
   border-radius: 6px;
   cursor: pointer;
-  font-weight: 500;
+  font-weight: 400;
   font-size: 0.85rem;
   transition: all 0.2s ease;
   display: inline-flex;
@@ -264,19 +262,20 @@ input:focus {
   gap: 0.4rem;
 }
 .btn-logout:hover {
-  background: rgba(239, 68, 68, 0.3);
+  background: rgba(239, 68, 68, 0.2);
 }
 
+/* FOOTER */
 .footer { 
-  border-top: 1px solid rgba(255,255,255,0.06); 
-  background: rgba(5, 5, 5, 0.9); 
+  border-top: 1px solid rgba(255, 255, 255, 0.05); 
+  background: rgba(6, 6, 6, 0.95); 
   padding: 2.5rem 1.5rem; 
   text-align: center; 
   backdrop-filter: blur(8px); 
 }
 .footer p { 
-  color: #888; 
-  font-size: 0.9rem; 
+  color: #777; 
+  font-size: 0.85rem; 
   margin-bottom: 1.25rem; 
   font-weight: 300;
 }
@@ -289,47 +288,47 @@ input:focus {
 }
 .btn-social { 
   text-decoration: none; 
-  color: #fff; 
-  padding: 0.7rem 1.4rem; 
-  border-radius: 8px; 
-  font-weight: 500; 
-  font-size: 0.9rem; 
+  color: #ddd; 
+  padding: 0.6rem 1.2rem; 
+  border-radius: 6px; 
+  font-weight: 400; 
+  font-size: 0.85rem; 
   display: inline-flex; 
   align-items: center; 
   gap: 0.5rem; 
   transition: all 0.3s ease;
-  border: 1px solid rgba(255, 255, 255, 0.08); 
-  background: rgba(255, 255, 255, 0.03); 
+  border: 1px solid rgba(255, 255, 255, 0.06); 
+  background: rgba(255, 255, 255, 0.02); 
 }
 .btn-social:hover { 
-  transform: translateY(-2px); 
-  background: rgba(255, 255, 255, 0.08); 
-  border-color: rgba(255, 255, 255, 0.2); 
+  transform: translateY(-1px); 
+  background: rgba(255, 255, 255, 0.06); 
+  border-color: rgba(255, 255, 255, 0.15); 
 }
 .btn-wa { 
-  background-color: rgba(22, 163, 74, 0.15); 
-  border-color: rgba(22, 163, 74, 0.3); 
+  background-color: rgba(22, 163, 74, 0.1); 
+  border-color: rgba(22, 163, 74, 0.2); 
   color: #4ade80; 
 }
 .btn-wa:hover { 
-  background-color: rgba(22, 163, 74, 0.3) !important; 
+  background-color: rgba(22, 163, 74, 0.2) !important; 
 }
 .btn-ig { 
-  background: rgba(219, 39, 119, 0.15); 
-  border-color: rgba(219, 39, 119, 0.3); 
+  background: rgba(219, 39, 119, 0.1); 
+  border-color: rgba(219, 39, 119, 0.2); 
   color: #f472b6; 
 }
 .btn-ig:hover { 
-  background-color: rgba(219, 39, 119, 0.3) !important; 
+  background-color: rgba(219, 39, 119, 0.2) !important; 
 }
 .copyright { 
-  color: #666 !important; 
-  font-size: 0.8rem !important; 
+  color: #555 !important; 
+  font-size: 0.75rem !important; 
 }
 
-/* AJUSTES PARA MÓVILES */
+/* RESPONSIVE */
 @media (max-width: 600px) { 
-  .hero-box h1 { font-size: 2.2rem; } 
+  .hero-box h1 { font-size: 2.1rem; } 
   .navbar { 
     flex-direction: column; 
     align-items: center; 
