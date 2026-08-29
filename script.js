@@ -86,17 +86,18 @@ function mostrarSeccion(seccionId) {
 document.addEventListener('DOMContentLoaded', function() {
   const formBuscar = document.getElementById('form-buscar');
   if (formBuscar) {
-    formBuscar.addEventListener('submit', async function(e) {
-      e.preventDefault();
+    formBuscar.addEventListener('submit', function(e) {
+      e.preventDefault(); // Evita que el celular recargue la página
+      
       const codigoInput = document.getElementById('input-codigo');
       if (!codigoInput) return;
       
       const codigo = codigoInput.value.trim().toUpperCase();
-      await cargarProyectosDesdeNube();
-      
-      const encontrado = proyectos.find(p => p.codigo === codigo);
       const errorMsg = document.getElementById('mensaje-error');
       const resultBox = document.getElementById('resultado-proyecto');
+
+      // Busca instantáneamente en los proyectos descargados de Firebase
+      const encontrado = proyectos.find(p => p.codigo === codigo);
 
       if (encontrado) {
         if (errorMsg) errorMsg.classList.add('hidden');
@@ -411,7 +412,7 @@ async function eliminarProyecto(idFirebase) {
 function notificarWhatsApp(index) {
   const p = proyectos[index];
   if (!p.telefono || p.telefono.trim() === '') {
-    alert("Este cliente no tiene un número de teléfono registrado. Presiona el botón azul del lápiz para agregarlo.");
+    alert("Este cliente no tiene un número de teléfono registrado.");
     return;
   }
   
