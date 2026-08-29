@@ -69,7 +69,7 @@ async function cargarProyectosDesdeNube() {
       renderProyectosAdmin();
     }
     
-    // Una vez cargados los datos, revisa si el usuario entró mediante un enlace con código por URL
+    // Una vez descargados los datos, procesa si hay un enlace directo en la URL
     procesarEnlaceDirectoUrl();
   } catch (error) {
     console.error("Error al cargar proyectos de la nube: ", error);
@@ -79,17 +79,35 @@ async function cargarProyectosDesdeNube() {
 // Ejecutar carga inicial al abrir la página
 cargarProyectosDesdeNube();
 
-// Función para autocompletar y buscar si el cliente entra desde el enlace de WhatsApp
+// Función inteligente para cambiar de sección y activar el enlace de WhatsApp
 function procesarEnlaceDirectoUrl() {
   const urlParams = new URLSearchParams(window.location.search);
   const codigoUrl = urlParams.get('codigo');
+  
   if (codigoUrl) {
-    const inputCodigo = document.getElementById('input-codigo');
-    const formBuscar = document.getElementById('form-buscar');
-    if (inputCodigo && formBuscar) {
-      inputCodigo.value = codigoUrl;
-      formBuscar.dispatchEvent(new Event('submit'));
-    }
+    setTimeout(() => {
+      // 1. Muestra la sección de rastreo obligatoriamente
+      if (typeof mostrarSeccion === 'function') {
+        mostrarSeccion('rastreo');
+      } else {
+        const secInicio = document.getElementById('sec-inicio');
+        const secRastreo = document.getElementById('sec-rastreo');
+        if (secInicio) secInicio.classList.add('hidden');
+        if (secRastreo) secRastreo.classList.remove('hidden');
+      }
+
+      // 2. Rellena el input y ejecuta la búsqueda
+      const inputCodigo = document.getElementById('input-codigo');
+      const formBuscar = document.getElementById('form-buscar');
+      
+      if (inputCodigo) {
+        inputCodigo.value = codigoUrl;
+      }
+      
+      if (formBuscar) {
+        formBuscar.dispatchEvent(new Event('submit', { cancelable: true, bubbles: true }));
+      }
+    }, 400);
   }
 }
 
@@ -536,7 +554,6 @@ function notificarWhatsApp(index) {
   const saldo = presupuesto - adelanto;
   const fechaTexto = p.fechaEntrega ? p.fechaEntrega.split('-').reverse().join('/') : 'Por coordinar';
   
-  // Genera el enlace directo con el código del proyecto incluido
   const linkBase = window.location.origin + window.location.pathname;
   const linkDirecto = `${linkBase}?codigo=${p.codigo}`;
 
