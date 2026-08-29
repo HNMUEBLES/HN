@@ -133,7 +133,7 @@ function cerrarSesionAdmin() {
   document.getElementById('admin-login').classList.remove('hidden');
 }
 
-// --- 3. MOSTRAR TARJETAS EN PANEL ADMIN ---
+// --- 3. MOSTRAR TARJETAS EN PANEL ADMIN (CON EDICIÓN INLINE) ---
 function renderProyectosAdmin() {
   const container = document.getElementById('lista-proyectos-admin');
   const totalEl = document.getElementById('total-proyectos');
@@ -147,7 +147,7 @@ function renderProyectosAdmin() {
   proyectos.forEach((p, index) => {
     const card = document.createElement('div');
     card.className = 'admin-card';
-    card.style.cssText = 'background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 12px; padding: 1rem; margin-bottom: 1rem; display: flex; justify-content: space-between; align-items: center; gap: 1rem; flex-wrap: wrap;';
+    card.style.cssText = 'background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 12px; padding: 1.2rem; margin-bottom: 1rem;';
 
     let botonesEtapas = etapas.map((est, idx) => {
       const activeStyle = p.estado === est ? 'background: #f59e0b; color: #000; font-weight: bold;' : 'background: rgba(255,255,255,0.1); color: #fff;';
@@ -156,103 +156,100 @@ function renderProyectosAdmin() {
     }).join('');
 
     card.innerHTML = `
-      <div style="flex: 1; min-width: 250px;">
-        <span class="badge" style="background: #f59e0b; color: #000; padding: 0.2rem 0.5rem; border-radius: 4px; font-weight: bold; font-size: 0.85rem;">${p.codigo}</span>
-        <strong style="margin-left: 0.5rem; font-size: 1.05rem;">${p.mueble}</strong>
-        <p style="margin: 0.4rem 0; color: #a3a3a3; font-size: 0.85rem;">
-          <i class="fa-solid fa-user"></i> Cliente: ${p.cliente} | <i class="fa-solid fa-phone"></i> Tel: ${p.telefono || 'Sin registrar'}
-        </p>
-        <div style="margin-top: 0.5rem;">${botonesEtapas}</div>
-        <div style="margin-top: 0.8rem;">
-          <button type="button" onclick="notificarWhatsApp(${index})" style="background: #16a34a; color: white; border: none; padding: 0.4rem 0.8rem; border-radius: 6px; cursor: pointer; font-size: 0.85rem; font-weight: bold; display: inline-flex; align-items: center; gap: 0.4rem;">
-            <i class="fa-brands fa-whatsapp"></i> Notificar Avance por WhatsApp
+      <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 1rem; flex-wrap: wrap;">
+        
+        <!-- VISTA NORMAL / INFO -->
+        <div id="info-view-${index}" style="flex: 1; min-width: 250px;">
+          <span style="background: #f59e0b; color: #000; padding: 0.2rem 0.5rem; border-radius: 4px; font-weight: bold; font-size: 0.85rem;">${p.codigo}</span>
+          <strong style="margin-left: 0.5rem; font-size: 1.05rem;">${p.mueble}</strong>
+          <p style="margin: 0.4rem 0; color: #a3a3a3; font-size: 0.85rem;">
+            <i class="fa-solid fa-user"></i> Cliente: ${p.cliente} | <i class="fa-solid fa-phone"></i> Tel: ${p.telefono || 'Sin registrar'}
+          </p>
+          <div style="margin-top: 0.5rem;">${botonesEtapas}</div>
+          <div style="margin-top: 0.8rem;">
+            <button type="button" onclick="notificarWhatsApp(${index})" style="background: #16a34a; color: white; border: none; padding: 0.4rem 0.8rem; border-radius: 6px; cursor: pointer; font-size: 0.85rem; font-weight: bold; display: inline-flex; align-items: center; gap: 0.4rem;">
+              <i class="fa-brands fa-whatsapp"></i> Notificar Avance por WhatsApp
+            </button>
+          </div>
+        </div>
+
+        <!-- VISTA DE EDICIÓN INLINE (OCULTA POR DEFECTO) -->
+        <div id="edit-view-${index}" style="flex: 1; min-width: 280px; display: none; background: rgba(0,0,0,0.4); padding: 1rem; border-radius: 8px; border: 1px solid rgba(255,255,255,0.15);">
+          <h4 style="margin-bottom: 0.6rem; color: #f59e0b; font-size: 0.95rem;">Editando Proyecto</h4>
+          <div style="display: flex; flex-direction: column; gap: 0.5rem;">
+            <div>
+              <label style="font-size: 0.75rem; color: #a3a3a3;">Código:</label>
+              <input type="text" id="input-edit-codigo-${index}" value="${p.codigo}" style="width:100%; padding:0.4rem; background:#0a0a0a; border:1px solid #404040; color:#fff; border-radius:6px; font-size:0.85rem;">
+            </div>
+            <div>
+              <label style="font-size: 0.75rem; color: #a3a3a3;">Cliente:</label>
+              <input type="text" id="input-edit-cliente-${index}" value="${p.cliente}" style="width:100%; padding:0.4rem; background:#0a0a0a; border:1px solid #404040; color:#fff; border-radius:6px; font-size:0.85rem;">
+            </div>
+            <div>
+              <label style="font-size: 0.75rem; color: #a3a3a3;">Mueble:</label>
+              <input type="text" id="input-edit-mueble-${index}" value="${p.mueble}" style="width:100%; padding:0.4rem; background:#0a0a0a; border:1px solid #404040; color:#fff; border-radius:6px; font-size:0.85rem;">
+            </div>
+            <div>
+              <label style="font-size: 0.75rem; color: #a3a3a3;">Teléfono:</label>
+              <input type="text" id="input-edit-telefono-${index}" value="${p.telefono || ''}" style="width:100%; padding:0.4rem; background:#0a0a0a; border:1px solid #404040; color:#fff; border-radius:6px; font-size:0.85rem;">
+            </div>
+            <div style="display: flex; gap: 0.5rem; margin-top: 0.4rem;">
+              <button type="button" onclick="guardarEdicionInline(${index})" style="background: #16a34a; color: white; border: none; padding: 0.4rem 0.8rem; border-radius: 6px; cursor: pointer; font-size: 0.8rem; font-weight: bold;">Guardar</button>
+              <button type="button" onclick="cancelarEdicionInline(${index})" style="background: #404040; color: white; border: none; padding: 0.4rem 0.8rem; border-radius: 6px; cursor: pointer; font-size: 0.8rem;">Cancelar</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- BOTONES DE ACCIÓN PRINCIPAL (EDITAR / ELIMINAR) -->
+        <div style="display: flex; gap: 0.5rem;">
+          <button type="button" id="btn-edit-toggle-${index}" onclick="activarEdicionInline(${index})" title="Editar datos" style="background: #3b82f6; color: white; border: none; padding: 0.6rem 0.8rem; border-radius: 8px; cursor: pointer;">
+            <i class="fa-solid fa-pen-to-square"></i>
+          </button>
+          <button type="button" onclick="eliminarProyecto(${index})" title="Eliminar proyecto" style="background: #ef4444; color: white; border: none; padding: 0.6rem 0.8rem; border-radius: 8px; cursor: pointer;">
+            <i class="fa-solid fa-trash"></i>
           </button>
         </div>
-      </div>
-      <div style="display: flex; gap: 0.5rem;">
-        <button type="button" onclick="abrirModalEditar(${index})" title="Editar datos" style="background: #3b82f6; color: white; border: none; padding: 0.6rem 0.8rem; border-radius: 8px; cursor: pointer;">
-          <i class="fa-solid fa-pen-to-square"></i>
-        </button>
-        <button type="button" onclick="eliminarProyecto(${index})" title="Eliminar proyecto" style="background: #ef4444; color: white; border: none; padding: 0.6rem 0.8rem; border-radius: 8px; cursor: pointer;">
-          <i class="fa-solid fa-trash"></i>
-        </button>
+
       </div>
     `;
     container.appendChild(card);
   });
 }
 
-// --- 4. VENTANA FLOTANTE DE EDICIÓN ---
-function abrirModalEditar(index) {
-  const p = proyectos[index];
-  
-  let modal = document.getElementById('modal-editar');
-  if (!modal) {
-    const div = document.createElement('div');
-    div.id = 'modal-editar';
-    div.style.cssText = 'position: fixed; inset: 0; background: rgba(0,0,0,0.85); z-index: 1000; display: flex; align-items: center; justify-content: center; backdrop-filter: blur(5px);';
-    div.innerHTML = `
-      <div style="background: #171717; border: 1px solid rgba(255,255,255,0.2); padding: 1.8rem; border-radius: 16px; width: 90%; max-width: 420px; color: white; box-shadow: 0 10px 25px rgba(0,0,0,0.8);">
-        <h3 style="margin-bottom: 1.2rem; font-size: 1.25rem; color: #f59e0b; text-align: center;">Editar Datos del Proyecto</h3>
-        <form id="form-editar">
-          <input type="hidden" id="edit-index">
-          <div style="margin-bottom: 0.8rem;">
-            <label style="display:block; font-size: 0.85rem; color: #a3a3a3; margin-bottom: 0.3rem;">Código:</label>
-            <input type="text" id="edit-codigo" style="width:100%; padding:0.6rem; background:#0a0a0a; border:1px solid #404040; color:#fff; border-radius:8px;" required>
-          </div>
-          <div style="margin-bottom: 0.8rem;">
-            <label style="display:block; font-size: 0.85rem; color: #a3a3a3; margin-bottom: 0.3rem;">Cliente:</label>
-            <input type="text" id="edit-cliente" style="width:100%; padding:0.6rem; background:#0a0a0a; border:1px solid #404040; color:#fff; border-radius:8px;" required>
-          </div>
-          <div style="margin-bottom: 0.8rem;">
-            <label style="display:block; font-size: 0.85rem; color: #a3a3a3; margin-bottom: 0.3rem;">Mueble:</label>
-            <input type="text" id="edit-mueble" style="width:100%; padding:0.6rem; background:#0a0a0a; border:1px solid #404040; color:#fff; border-radius:8px;" required>
-          </div>
-          <div style="margin-bottom: 1.4rem;">
-            <label style="display:block; font-size: 0.85rem; color: #a3a3a3; margin-bottom: 0.3rem;">Teléfono (para WhatsApp):</label>
-            <input type="text" id="edit-telefono" style="width:100%; padding:0.6rem; background:#0a0a0a; border:1px solid #404040; color:#fff; border-radius:8px;">
-          </div>
-          <div style="display:flex; justify-content:flex-end; gap:0.5rem;">
-            <button type="button" onclick="cerrarModalEditar()" style="background:#404040; color:white; border:none; padding:0.6rem 1.2rem; border-radius:8px; cursor:pointer; font-weight:600;">Cancelar</button>
-            <button type="submit" style="background:#16a34a; color:white; border:none; padding:0.6rem 1.2rem; border-radius:8px; cursor:pointer; font-weight:bold;">Guardar</button>
-          </div>
-        </form>
-      </div>
-    `;
-    document.body.appendChild(div);
-    modal = div;
+// --- 4. FUNCIONES DE EDICIÓN DIRECTA EN LA TARJETA ---
+function activarEdicionInline(index) {
+  document.getElementById(`info-view-${index}`).style.display = 'none';
+  document.getElementById(`edit-view-${index}`).style.display = 'block';
+  document.getElementById(`btn-edit-toggle-${index}`).style.display = 'none';
+}
 
-    document.getElementById('form-editar').addEventListener('submit', function(e) {
-      e.preventDefault();
-      const idx = document.getElementById('edit-index').value;
-      if (idx !== '' && proyectos[idx]) {
-        proyectos[idx].codigo = document.getElementById('edit-codigo').value.trim().toUpperCase();
-        proyectos[idx].cliente = document.getElementById('edit-cliente').value.trim();
-        proyectos[idx].mueble = document.getElementById('edit-mueble').value.trim();
-        proyectos[idx].telefono = document.getElementById('edit-telefono').value.trim();
-        
-        guardarEnLocalStorage();
-        cerrarModalEditar();
-        renderProyectosAdmin();
-      }
-    });
+function cancelarEdicionInline(index) {
+  document.getElementById(`info-view-${index}`).style.display = 'block';
+  document.getElementById(`edit-view-${index}`).style.display = 'none';
+  document.getElementById(`btn-edit-toggle-${index}`).style.display = 'block';
+}
+
+function guardarEdicionInline(index) {
+  const nuevoCodigo = document.getElementById(`input-edit-codigo-${index}`).value.trim().toUpperCase();
+  const nuevoCliente = document.getElementById(`input-edit-cliente-${index}`).value.trim();
+  const nuevoMueble = document.getElementById(`input-edit-mueble-${index}`).value.trim();
+  const nuevoTelefono = document.getElementById(`input-edit-telefono-${index}`).value.trim();
+
+  if (!nuevoCodigo || !nuevoCliente || !nuevoMueble) {
+    alert("Los campos Código, Cliente y Mueble son obligatorios.");
+    return;
   }
 
-  document.getElementById('edit-index').value = index;
-  document.getElementById('edit-codigo').value = p.codigo;
-  document.getElementById('edit-cliente').value = p.cliente;
-  document.getElementById('edit-mueble').value = p.mueble;
-  document.getElementById('edit-telefono').value = p.telefono || '';
-  
-  modal.style.display = 'flex';
+  proyectos[index].codigo = nuevoCodigo;
+  proyectos[index].cliente = nuevoCliente;
+  proyectos[index].mueble = nuevoMueble;
+  proyectos[index].telefono = nuevoTelefono;
+
+  guardarEnLocalStorage();
+  renderProyectosAdmin();
 }
 
-function cerrarModalEditar() {
-  const modal = document.getElementById('modal-editar');
-  if (modal) modal.style.display = 'none';
-}
-
-// --- 5. OTRAS FUNCIONES ---
+// --- 5. OTRAS ACCIONES ---
 function cambiarEstadoPorIndice(proyectoIdx, etapaIdx, nuevoProgreso) {
   const etapas = ['Diseño Aprobado', 'Corte', 'Armado', 'Instalación', 'Finalizado'];
   const descripciones = [
@@ -282,7 +279,7 @@ function eliminarProyecto(index) {
 function notificarWhatsApp(index) {
   const p = proyectos[index];
   if (!p.telefono || p.telefono.trim() === '') {
-    alert("Este cliente no tiene un número de teléfono registrado. Usa el botón azul del lápiz para agregarlo.");
+    alert("Este cliente no tiene un número de teléfono registrado. Presiona el botón azul del lápiz para agregarlo.");
     return;
   }
   
