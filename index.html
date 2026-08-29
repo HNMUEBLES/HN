@@ -78,7 +78,7 @@
         <div class="panel-header">
           <div>
             <h2>Panel de Supervisión - HN Muebles</h2>
-            <p class="subtitle">Gestiona y actualiza el avance de tus proyectos en la nube</p>
+            <p class="subtitle">Gestiona y actualiza el avance de tus proyectos</p>
           </div>
           <button onclick="cerrarSesionAdmin()" class="btn-logout"><i class="fa-solid fa-right-from-bracket"></i> Cerrar Sesión</button>
         </div>
@@ -91,6 +91,7 @@
             <input type="text" id="nuevo-mueble" placeholder="Tipo de Mueble" required />
             <input type="text" id="nuevo-telefono" placeholder="WhatsApp / Celular (Ej: 70012345)" />
             
+            <!-- CAMPOS DE FINANZAS Y FECHA AL CREAR -->
             <input type="number" id="nuevo-presupuesto" placeholder="Presupuesto Total (Bs)" />
             <input type="number" id="nuevo-adelanto" placeholder="Adelanto Pagado (Bs)" />
             
@@ -100,11 +101,12 @@
             </div>
           </div>
           
+          <!-- CÁLCULO AUTOMÁTICO EN VIVO DEL SALDO -->
           <div style="margin-top: 0.8rem; font-size: 0.9rem; color: #a3a3a3;">
             Saldo restante calculado: <strong id="lbl-nuevo-saldo" style="color: #f87171;">Bs. 0.00</strong>
           </div>
 
-          <button type="submit" class="btn-primary" style="margin-top: 1rem;">Crear Proyecto en la Nube</button>
+          <button type="submit" class="btn-primary" style="margin-top: 1rem;">Crear Proyecto</button>
         </form>
 
         <div class="projects-list-container">
@@ -116,4 +118,16 @@
     <footer class="footer">
       <p>¿Tienes alguna consulta o quieres iniciar un proyecto? Encuéntranos en nuestras redes:</p>
       <div class="social-buttons">
-        <a href="
+        <a href="https://wa.me/59162037033?text=Hola%20HN%20Muebles,%20quisiera%20consultar%20sobre%20un%20proyecto" target="_blank" class="btn-social btn-wa">
+          <i class="fa-brands fa-whatsapp"></i> WhatsApp (+591 62037033)
+        </a>
+        <a href="https://www.instagram.com/hnmuebles/" target="_blank" class="btn-social btn-ig">
+          <i class="fa-brands fa-instagram"></i> Instagram (@hnmuebles)
+        </a>
+      </div>
+      <p class="copyright">© 2026 HN Muebles. Todos los derechos reservados.</p>
+    </footer>
+  </div>
+  <script src="script.js"></script>
+</body>
+</html>
