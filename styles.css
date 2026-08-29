@@ -1,39 +1,7 @@
-* { 
-  box-sizing: border-box; 
-  margin: 0; 
-  padding: 0; 
-  font-family: 'Playfair Display', 'Segoe UI', serif, sans-serif; 
-}
+* { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+body { background-color: #0a0a0a; color: #ffffff; min-height: 100vh; position: relative; }
 
-body { 
-  background-color: #07110e !important; /* Tono base negro verdoso de lujo */
-  color: #f3f4f6 !important; 
-  min-height: 100vh; 
-  position: relative; 
-  overflow-x: hidden;
-}
-
-/* ANUNCIO SUPERIOR (TOP BAR) */
-.top-announcement {
-  background: #d97706;
-  color: #07110e;
-  text-align: center;
-  padding: 0.5rem 1rem;
-  font-size: 0.8rem;
-  font-weight: 700;
-  letter-spacing: 1px;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  gap: 1rem;
-}
-.top-announcement span {
-  cursor: pointer;
-  text-decoration: underline;
-  font-weight: 800;
-}
-
-/* FONDO GENERAL */
+/* FONDO DE PANTALLA */
 .bg-overlay {
   position: fixed;
   top: 0;
@@ -43,327 +11,161 @@ body {
   background-image: url('assets/fondo.jpg'), url('assets/fondo.png'), url('assets/fondo.jpeg');
   background-size: cover;
   background-position: center;
+  background-repeat: no-repeat;
   z-index: 0;
 }
 .bg-overlay::after { 
   content: ''; 
   position: absolute; 
   inset: 0; 
-  background: rgba(7, 17, 14, 0.94); 
-  backdrop-filter: blur(8px); 
+  background: rgba(0, 0, 0, 0.45); 
+  backdrop-filter: blur(2px); 
 }
 
-.app-container { 
-  position: relative; 
-  z-index: 10; 
-  min-height: 100vh; 
-  display: flex; 
-  flex-direction: column; 
-  justify-content: space-between; 
-}
+.app-container { position: relative; z-index: 10; min-height: 100vh; display: flex; flex-direction: column; justify-content: space-between; }
 
-/* NAVBAR DE LUJO */
+/* BARRA Y BOTONES TRANSPARENTES (CORREGIDO PARA MÓVILES) */
 .navbar {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 1.25rem 3rem;
-  background: rgba(7, 17, 14, 0.9) !important;
-  backdrop-filter: blur(15px);
+  padding: 1.2rem 2rem;
+  background: rgba(10, 10, 10, 0.6) !important;
+  backdrop-filter: blur(8px);
   position: sticky;
   top: 0;
   z-index: 50;
-  flex-wrap: wrap;
+  flex-wrap: wrap; /* CLAVE: Permite que los elementos bajen si no caben en una línea */
   gap: 1rem;
-  border-bottom: 1px solid rgba(217, 119, 6, 0.2);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
 }
 
-.logo-container { 
-  display: flex; 
-  align-items: center; 
-  gap: 0.75rem; 
-  cursor: pointer; 
-}
-.logo-img { 
-  height: 42px; 
-  width: auto; 
-  object-fit: contain; 
-}
+.logo-container { display: flex; align-items: center; gap: 0.75rem; cursor: pointer; }
+.logo-img { height: 45px; width: auto; object-fit: contain; }
 
 .nav-links {
   display: flex;
-  gap: 1rem;
+  gap: 0.5rem;
   background: transparent !important;
   border: none !important;
   padding: 0;
-  flex-wrap: wrap;
-  align-items: center;
+  flex-wrap: wrap; /* CLAVE: Los botones se acomodan ordenadamente en pantallas chicas */
 }
 
+/* BOTONES TRANSPARENTES POR DEFECTO */
 .nav-links button {
   background: transparent !important;
   border: 1px solid transparent !important;
-  color: #d1d5db !important;
-  padding: 0.5rem 1rem;
-  border-radius: 4px;
-  font-weight: 500;
-  font-size: 0.85rem;
-  letter-spacing: 1px;
-  text-transform: uppercase;
+  color: #ffffff !important;
+  padding: 0.6rem 1.2rem;
+  border-radius: 8px;
+  font-weight: 600;
+  font-size: 0.95rem;
   cursor: pointer;
   transition: all 0.3s ease;
 }
 
 .nav-links button:hover {
-  color: #ffffff !important;
-  background-color: rgba(255, 255, 255, 0.04) !important;
+  background-color: rgba(255, 255, 255, 0.1) !important;
+  border-color: rgba(255, 255, 255, 0.2) !important;
 }
 
+/* BOTÓN SELECCIONADO (MARRÓN CASI TRANSPARENTE) */
 .nav-links button.active {
-  background-color: rgba(217, 119, 6, 0.15) !important;
-  color: #fbbf24 !important;
-  border-color: rgba(217, 119, 6, 0.4) !important;
+  background-color: rgba(140, 75, 40, 0.35) !important;
+  color: #ffffff !important;
+  border-color: rgba(180, 100, 50, 0.5) !important;
+  box-shadow: 0 2px 10px rgba(140, 75, 40, 0.25);
 }
 
-/* SECCIONES */
-.content-section { 
-  max-width: 1100px; 
-  margin: 0 auto; 
-  width: 100%; 
-  padding: 4rem 1.5rem; 
-  flex-grow: 1; 
-  display: flex; 
-  align-items: center; 
-  justify-content: center; 
-}
-
+/* RESTO DEL SITIO */
+.content-section { max-width: 900px; margin: 0 auto; width: 100%; padding: 3rem 1.5rem; flex-grow: 1; display: flex; align-items: center; justify-content: center; }
 .hidden { display: none !important; }
-.font-amber { color: #fbbf24 !important; }
+.font-amber { color: #d97706; }
+.hero-box { text-align: center; max-width: 700px; }
+.hero-box h1 { font-size: 2.75rem; font-weight: 800; margin-bottom: 1.5rem; line-height: 1.2; }
+.hero-box p { color: #d4d4d4; font-size: 1.15rem; margin-bottom: 2rem; line-height: 1.6; }
+.btn-primary { background-color: rgba(140, 75, 40, 0.85); color: #ffffff; border: none; padding: 0.85rem 1.75rem; font-size: 1rem; font-weight: 700; border-radius: 12px; cursor: pointer; transition: transform 0.2s ease, background-color 0.2s ease; display: inline-flex; align-items: center; gap: 0.5rem; justify-content: center; }
+.btn-primary:hover { background-color: rgba(110, 55, 30, 0.95); transform: scale(1.03); }
 
-.hero-box { 
-  text-align: center; 
-  max-width: 800px; 
-}
-.hero-box h1 { 
-  font-size: 3.2rem; 
-  font-weight: 600; 
-  margin-bottom: 1.5rem; 
-  line-height: 1.15; 
-  letter-spacing: -0.5px;
-  color: #ffffff;
-}
-.hero-box p { 
-  color: #9ca3af; 
-  font-size: 1.1rem; 
-  margin-bottom: 2.5rem; 
-  line-height: 1.7; 
-  font-weight: 300;
-  font-family: 'Segoe UI', sans-serif;
-}
+.card-box { background: rgba(23, 23, 23, 0.85); border: 1px solid rgba(255, 255, 255, 0.1); padding: 2.5rem; border-radius: 20px; width: 100%; max-width: 800px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); backdrop-filter: blur(10px); }
 
-/* BOTÓN DE LUJO DORADO */
-.btn-primary { 
-  background-color: #d97706; 
-  color: #07110e; 
-  border: none; 
-  padding: 0.9rem 2rem; 
-  font-size: 0.85rem; 
-  font-weight: 700; 
-  letter-spacing: 1px;
-  text-transform: uppercase;
-  border-radius: 4px; 
-  cursor: pointer; 
-  transition: all 0.3s ease; 
-  display: inline-flex; 
-  align-items: center; 
-  gap: 0.75rem; 
-  justify-content: center; 
-  text-decoration: none;
-}
-.btn-primary:hover { 
-  background-color: #f59e0b; 
-  transform: translateY(-2px); 
-  box-shadow: 0 8px 25px rgba(217, 119, 6, 0.3);
-}
-
-/* TARJETAS DE CONTENIDO */
-.card-box { 
-  background: rgba(12, 26, 21, 0.85); 
-  border: 1px solid rgba(217, 119, 6, 0.2); 
-  padding: 3rem; 
-  border-radius: 12px; 
-  width: 100%; 
-  max-width: 850px; 
-  box-shadow: 0 25px 50px rgba(0,0,0,0.8); 
-  backdrop-filter: blur(12px); 
-}
-
+/* PANEL ADMINISTRADOR CON FONDO NEGRO SÓLIDO */
 .panel-box { 
-  background: rgba(9, 20, 16, 0.95) !important; 
-  border: 1px solid rgba(217, 119, 6, 0.3); 
-  padding: 3rem; 
-  border-radius: 12px; 
+  background: #000000 !important; 
+  border: 1px solid rgba(255, 255, 255, 0.15); 
+  padding: 2.5rem; 
+  border-radius: 20px; 
   width: 100%; 
-  max-width: 950px; 
-  box-shadow: 0 30px 60px rgba(0,0,0,0.9); 
+  max-width: 800px; 
+  box-shadow: 0 10px 30px rgba(0,0,0,0.8); 
 }
 
-.card-box h2 { 
-  text-align: center; 
-  font-size: 2rem; 
-  margin-bottom: 0.5rem; 
-  font-weight: 600;
-  color: #fff;
-}
-.subtitle { 
-  text-align: center; 
-  color: #9ca3af; 
-  font-size: 0.95rem; 
-  margin-bottom: 2rem; 
-  font-weight: 300;
-  font-family: 'Segoe UI', sans-serif;
-}
-.search-form { 
-  display: flex; 
-  gap: 1rem; 
-  margin-bottom: 2rem; 
-}
+.card-box h2 { text-align: center; font-size: 1.6rem; margin-bottom: 0.5rem; }
+.subtitle { text-align: center; color: #a3a3a3; font-size: 0.9rem; margin-bottom: 1.5rem; }
+.search-form { display: flex; gap: 0.5rem; margin-bottom: 1.5rem; }
+input[type="text"], input[type="password"] { flex-grow: 1; background-color: #0a0a0a; border: 1px solid #404040; border-radius: 10px; padding: 0.75rem 1rem; color: #fff; outline: none; }
+input:focus { border-color: #b45309; }
 
-input[type="text"], input[type="password"], input[type="date"], input[type="month"] { 
-  flex-grow: 1; 
-  background-color: #050d0a !important; 
-  border: 1px solid rgba(255, 255, 255, 0.1) !important; 
-  border-radius: 6px !important; 
-  padding: 0.85rem 1.1rem !important; 
-  color: #fff !important; 
-  outline: none !important; 
-  font-size: 0.95rem !important;
-  font-family: 'Segoe UI', sans-serif;
-  transition: all 0.3s ease !important;
-}
-input:focus { 
-  border-color: #d97706 !important; 
-  box-shadow: 0 0 0 2px rgba(217, 119, 6, 0.2) !important;
-}
-
+/* DISEÑO DEL FORMULARIO ADMINISTRADOR (4 CAJAS) */
 .admin-form {
-  background: rgba(255, 255, 255, 0.02);
-  padding: 2rem;
-  border-radius: 8px;
-  border: 1px solid rgba(255, 255, 255, 0.05);
-  margin-bottom: 2.5rem;
+  background: rgba(255, 255, 255, 0.05);
+  padding: 1.5rem;
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  margin-bottom: 2rem;
 }
 .admin-form h3 {
-  font-size: 1.2rem;
-  margin-bottom: 1.25rem;
-  font-weight: 600;
-  color: #f3f4f6;
+  font-size: 1.1rem;
+  margin-bottom: 1rem;
 }
 .form-grid {
   display: grid !important;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)) !important;
-  gap: 1rem !important;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)) !important;
+  gap: 0.75rem !important;
 }
 
+/* BOTÓN CERRAR SESIÓN */
 .panel-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 2rem;
+  margin-bottom: 1.5rem;
   flex-wrap: wrap;
   gap: 1rem;
 }
 .btn-logout {
-  background: rgba(239, 68, 68, 0.15);
-  color: #f87171;
-  border: 1px solid rgba(239, 68, 68, 0.3);
-  padding: 0.6rem 1.2rem;
-  border-radius: 6px;
+  background: rgba(239, 68, 68, 0.2);
+  color: #ef4444;
+  border: 1px solid rgba(239, 68, 68, 0.4);
+  padding: 0.5rem 1rem;
+  border-radius: 8px;
   cursor: pointer;
   font-weight: 600;
-  font-size: 0.85rem;
-  transition: all 0.2s ease;
-  display: inline-flex;
-  align-items: center;
-  gap: 0.5rem;
 }
 .btn-logout:hover {
-  background: rgba(239, 68, 68, 0.3);
+  background: rgba(239, 68, 68, 0.4);
 }
 
-/* FOOTER DE LUJO */
-.footer { 
-  border-top: 1px solid rgba(217, 119, 6, 0.2); 
-  background: rgba(5, 13, 10, 0.98); 
-  padding: 3rem 1.5rem; 
-  text-align: center; 
-  backdrop-filter: blur(10px); 
-}
-.footer p { 
-  color: #9ca3af; 
-  font-size: 0.9rem; 
-  margin-bottom: 1.5rem; 
-  font-weight: 300;
-  font-family: 'Segoe UI', sans-serif;
-}
-.social-buttons { 
-  display: flex; 
-  justify-content: center; 
-  gap: 1rem; 
-  flex-wrap: wrap; 
-  margin-bottom: 1.5rem; 
-}
-.btn-social { 
-  text-decoration: none; 
-  color: #fff; 
-  padding: 0.75rem 1.5rem; 
-  border-radius: 6px; 
-  font-weight: 600; 
-  font-size: 0.85rem; 
-  letter-spacing: 0.5px;
-  display: inline-flex; 
-  align-items: center; 
-  gap: 0.5rem; 
-  transition: all 0.3s ease;
-  border: 1px solid rgba(255, 255, 255, 0.1); 
-  background: rgba(255, 255, 255, 0.03); 
-}
-.btn-social:hover { 
-  transform: translateY(-2px); 
-  background: rgba(255, 255, 255, 0.08); 
-  border-color: rgba(217, 119, 6, 0.4); 
-}
-.btn-wa { 
-  background-color: rgba(22, 163, 74, 0.15); 
-  border-color: rgba(22, 163, 74, 0.3); 
-  color: #4ade80; 
-}
-.btn-wa:hover { 
-  background-color: rgba(22, 163, 74, 0.3) !important; 
-}
-.btn-ig { 
-  background: rgba(219, 39, 119, 0.15); 
-  border-color: rgba(219, 39, 119, 0.3); 
-  color: #f472b6; 
-}
-.btn-ig:hover { 
-  background-color: rgba(219, 39, 119, 0.3) !important; 
-}
-.copyright { 
-  color: #6b7280 !important; 
-  font-size: 0.8rem !important; 
-}
+.footer { border-top: 1px solid rgba(255,255,255,0.1); background: rgba(10, 10, 10, 0.8); padding: 2.5rem 1.5rem; text-align: center; backdrop-filter: blur(8px); }
+.footer p { color: #d4d4d4; font-size: 0.9rem; margin-bottom: 1.25rem; }
+.social-buttons { display: flex; justify-content: center; gap: 1rem; flex-wrap: wrap; margin-bottom: 1.5rem; }
+.btn-social { text-decoration: none; color: #fff; padding: 0.75rem 1.5rem; border-radius: 10px; font-weight: 600; font-size: 0.9rem; display: inline-flex; align-items: center; gap: 0.5rem; transition: transform 0.2s ease; }
+.btn-social:hover { transform: scale(1.05); }
+.btn-wa { background-color: #16a34a; }
+.btn-ig { background: linear-gradient(45deg, #7c3aed, #db2777, #f97316); }
+.copyright { color: #888; font-size: 0.75rem !important; }
 
-/* RESPONSIVE */
-@media (max-width: 768px) { 
-  .hero-box h1 { font-size: 2.3rem; } 
+/* AJUSTES PARA MÓVILES */
+@media (max-width: 600px) { 
+  .hero-box h1 { font-size: 2rem; } 
   .navbar { 
     flex-direction: column; 
     align-items: center; 
     text-align: center; 
     padding: 1rem; 
-    gap: 1rem;
+    gap: 0.75rem;
   } 
   .search-form { flex-direction: column; } 
-  .content-section { padding: 2.5rem 1rem; }
+  .content-section { padding: 1.5rem 1rem; }
 }
