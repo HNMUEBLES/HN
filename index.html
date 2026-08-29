@@ -3,180 +3,69 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>HN Muebles | Live in Luxury</title>
+  <title>HN Muebles | Diseño y Fabricación a Medida</title>
   <link rel="stylesheet" href="styles.css" />
-  <!-- Tipografía de lujo y FontAwesome -->
-  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&family=Plus+Jakarta+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
 </head>
 <body>
-
-  <!-- BARRA DE ANUNCIO SUPERIOR -->
-  <div class="top-announcement">
-    <i class="fa-solid fa-gem" style="color: #fbbf24; margin-right: 6px;"></i> DISEÑO Y FABRICACIÓN DE MUEBLES A MEDIDA 
-    <button onclick="mostrarSeccion('rastreo')" class="shop-now-btn">RASTREAR</button>
-  </div>
-
-  <!-- NAVBAR PRINCIPAL -->
-  <header class="navbar">
-    <div class="logo-container" onclick="irInicio()">
-      <div class="logo-icon-box">HN</div>
-      <div>
-        <span class="logo-title">HN MUEBLES</span>
-        <span class="logo-subtitle-text">LIVE IN LUXURY</span>
+  <div class="bg-overlay"></div>
+  <div class="app-container">
+    <!-- NAVBAR -->
+    <header class="navbar">
+      <div class="logo-container" onclick="irInicio()">
+        <img src="assets/logo.png" alt="HN Muebles Logo" class="logo-img" onerror="this.style.display='none'" />
       </div>
-    </div>
+      <nav class="nav-links">
+        <button onclick="irInicio()" id="btn-inicio" class="active">Inicio</button>
+        <button onclick="mostrarSeccion('rastreo')" id="btn-rastreo">Rastrear Proyecto</button>
+        <button onclick="mostrarSeccion('admin')" id="btn-admin"><i class="fa-solid fa-lock"></i> Admin</button>
+        <button onclick="mostrarSeccion('reportes')" id="btn-reportes" class="hidden"><i class="fa-solid fa-chart-pie"></i> Reporte Financiero</button>
+      </nav>
+    </header>
     
-    <nav class="nav-links">
-      <button onclick="irInicio()" id="btn-inicio" class="active">Inicio</button>
-      <button onclick="mostrarSeccion('rastreo')" id="btn-rastreo">Rastrear Proyecto</button>
-      <button onclick="mostrarSeccion('admin')" id="btn-admin"><i class="fa-solid fa-lock"></i> Admin</button>
-      <button onclick="mostrarSeccion('reportes')" id="btn-reportes" class="hidden"><i class="fa-solid fa-chart-pie"></i> Reporte Financiero</button>
-    </nav>
-  </header>
-
-  <!-- CONTENEDOR PRINCIPAL DE SECCIONES -->
-  <main>
-
-    <!-- SECCIÓN INICIO (DISEÑO DE LUJO CON IMÁGENES FLEXIBLES) -->
+    <!-- SECCIÓN INICIO -->
     <section id="sec-inicio" class="content-section">
-      
-      <!-- HERO PRINCIPAL -->
-      <div class="luxury-hero">
-        <div class="hero-text-content">
-          <span class="collection-tag">PREMIUM COLLECTION</span>
-          <h1>Diseño y Fabricación<br><span class="italic-gold">a Medida.</span></h1>
-          <p>Transformamos tus espacios con melamina y acabados de primera calidad. Consulta el avance de tu fabricación en tiempo real.</p>
-          
-          <div class="hero-cta-group">
-            <button class="btn-explore" onclick="mostrarSeccion('rastreo')">
-              CONSULTAR ESTADO <i class="fa-solid fa-arrow-right"></i>
-            </button>
-          </div>
-        </div>
+      <div class="hero-box">
+        <h1>Diseño y Fabricación de Muebles a Medida</h1>
+        <p>Transformamos tus espacios con melamina y acabados de primera calidad. Consulta el avance de tu fabricación en tiempo real o ponte en contacto directo con nosotros.</p>
+        <button class="btn-primary" onclick="mostrarSeccion('rastreo')">
+          <i class="fa-solid fa-magnifying-glass"></i> Consultar Estado de Mi Mueble
+        </button>
       </div>
-
-      <!-- BARRA DE CARACTERÍSTICAS -->
-      <div class="features-luxury-bar">
-        <div class="feat-box">
-          <i class="fa-solid fa-gem"></i>
-          <div>
-            <strong>Premium Quality</strong>
-            <span>Melamina y materiales de alta durabilidad.</span>
-          </div>
-        </div>
-        <div class="feat-box">
-          <i class="fa-solid fa-shield-halved"></i>
-          <div>
-            <strong>Garantía HN</strong>
-            <span>Respaldo y confianza en cada proyecto.</span>
-          </div>
-        </div>
-        <div class="feat-box">
-          <i class="fa-solid fa-truck-fast"></i>
-          <div>
-            <strong>Entrega Puntual</strong>
-            <span>Seguimiento transparente de fabricación.</span>
-          </div>
-        </div>
-        <div class="feat-box">
-          <i class="fa-solid fa-headset"></i>
-          <div>
-            <strong>Atención Directa</strong>
-            <span>Asesoramiento personalizado vía WhatsApp.</span>
-          </div>
-        </div>
-      </div>
-
-      <!-- SECCIÓN SHOP BY COLLECTION (IMÁGENES 100% PERSONALIZABLES) -->
-      <div class="shop-collection-section">
-        <div class="collection-header">
-          <span>NUESTROS ESPACIOS</span>
-          <h2>Diseñado para Cada Ambiente</h2>
-          <p>Coloca aquí las fotografías reales de tus trabajos modificando las rutas de las imágenes.</p>
-        </div>
-
-        <div class="spaces-grid">
-          <!-- Tarjeta 1: Cambia 'assets/living.jpg' por la foto que necesites -->
-          <div class="space-card" onclick="mostrarSeccion('rastreo')">
-            <div class="space-img-container">
-              <img src="assets/living.jpg" alt="Living Room" class="flexible-img" onerror="this.src='https://images.unsplash.com/photo-1618221195710-dd6b41faaea6?auto=format&fit=crop&w=600&q=80'" />
-            </div>
-            <div class="space-footer">
-              <h3>LIVING ROOM</h3>
-              <p>Muebles de sala a medida.</p>
-            </div>
-          </div>
-
-          <!-- Tarjeta 2: Cambia 'assets/bedroom.jpg' por la foto que necesites -->
-          <div class="space-card" onclick="mostrarSeccion('rastreo')">
-            <div class="space-img-container">
-              <img src="assets/bedroom.jpg" alt="Bedroom" class="flexible-img" onerror="this.src='https://images.unsplash.com/photo-1616594039964-ae9021a400a0?auto=format&fit=crop&w=600&q=80'" />
-            </div>
-            <div class="space-footer">
-              <h3>DORMITORIO</h3>
-              <p>Closets y roperos elegantes.</p>
-            </div>
-          </div>
-
-          <!-- Tarjeta 3: Cambia 'assets/dining.jpg' por la foto que necesites -->
-          <div class="space-card" onclick="mostrarSeccion('rastreo')">
-            <div class="space-img-container">
-              <img src="assets/dining.jpg" alt="Dining Room" class="flexible-img" onerror="this.src='https://images.unsplash.com/photo-1615529162924-f8605388461d?auto=format&fit=crop&w=600&q=80'" />
-            </div>
-            <div class="space-footer">
-              <h3>COCINAS / COMEDOR</h3>
-              <p>Reposteros y diseño funcional.</p>
-            </div>
-          </div>
-
-          <!-- Tarjeta 4: Cambia 'assets/office.jpg' por la foto que necesites -->
-          <div class="space-card" onclick="mostrarSeccion('rastreo')">
-            <div class="space-img-container">
-              <img src="assets/office.jpg" alt="Office" class="flexible-img" onerror="this.src='https://images.unsplash.com/photo-1524758631624-e2822e304c36?auto=format&fit=crop&w=600&q=80'" />
-            </div>
-            <div class="space-footer">
-              <h3>OFICINA Y OTROS</h3>
-              <p>Escritorios y paneles a medida.</p>
-            </div>
-          </div>
-        </div>
-      </div>
-
     </section>
 
     <!-- SECCIÓN RASTREO -->
     <section id="sec-rastreo" class="content-section hidden">
-      <div class="app-card-container">
-        <h2><i class="fa-solid fa-box" style="color: #fbbf24;"></i> Seguimiento de Proyecto</h2>
-        <p class="section-sub">Ingresa el código asignado a tu orden (Ejemplo: <strong>HN-001</strong>)</p>
-        <form id="form-buscar" class="search-form-luxury">
+      <div class="card-box">
+        <h2><i class="fa-solid fa-box font-amber"></i> Seguimiento de Proyecto</h2>
+        <p class="subtitle">Ingresa el código asignado a tu orden (Ejemplo: <strong>HN-001</strong>)</p>
+        <form id="form-buscar" class="search-form">
           <input type="text" id="input-codigo" placeholder="Código de tu proyecto..." required />
-          <button type="submit" class="btn-explore"><i class="fa-solid fa-search"></i> Buscar</button>
+          <button type="submit" class="btn-primary"><i class="fa-solid fa-search"></i> Buscar</button>
         </form>
         <div id="mensaje-error" class="error-msg hidden">
           No se encontró ningún proyecto con el código ingresado. Verifica tu comprobante.
         </div>
-        <div id="resultado-proyecto" class="project-details hidden" style="margin-top: 2rem;">
+        <div id="resultado-proyecto" class="project-details hidden">
           <div class="project-header">
             <div>
               <span id="res-codigo" class="badge"></span>
-              <h3 id="res-mueble" style="font-family: 'Playfair Display', serif; font-size: 1.5rem; margin-top: 5px;"></h3>
-              <p id="res-cliente" style="color: #9ca3af; font-size: 0.9rem;"></p>
+              <h3 id="res-mueble"></h3>
+              <p id="res-cliente" class="text-sub"></p>
             </div>
             <span id="res-estado" class="status-tag"></span>
           </div>
-          <div class="progress-container" style="margin-top: 1.5rem;">
-            <div class="progress-labels" style="display: flex; justify-content: space-between; margin-bottom: 8px; font-size: 0.85rem; color: #9ca3af;">
+          <div class="progress-container">
+            <div class="progress-labels">
               <span>Avance de Fabricación</span>
               <span id="res-porcentaje">0%</span>
             </div>
-            <div class="progress-bar" style="background: rgba(255,255,255,0.05); height: 8px; border-radius: 4px; overflow: hidden;">
-              <div id="res-bar-fill" class="progress-fill" style="width: 0%; height: 100%; background: #d97706; transition: width 0.4s ease;"></div>
+            <div class="progress-bar">
+              <div id="res-bar-fill" class="progress-fill" style="width: 0%;"></div>
             </div>
           </div>
-          <div class="details-box" style="margin-top: 1.5rem; background: rgba(0,0,0,0.3); padding: 1rem; border-radius: 6px; font-size: 0.9rem;">
-            <strong style="color: #fbbf24;">Estado actual:</strong> <span id="res-detalles"></span>
+          <div class="details-box">
+            <strong class="font-amber">Estado actual:</strong> <span id="res-detalles"></span>
           </div>
         </div>
       </div>
@@ -184,57 +73,61 @@
 
     <!-- SECCIÓN ADMIN -->
     <section id="sec-admin" class="content-section hidden">
-      <div id="admin-login" class="app-card-container login-box" style="max-width: 500px; margin: 0 auto;">
-        <i class="fa-solid fa-lock" style="font-size: 2.5rem; color: #fbbf24; display: block; text-align: center; margin-bottom: 1rem;"></i>
+      <div id="admin-login" class="card-box login-box">
+        <i class="fa-solid fa-lock icon-lock font-amber"></i>
         <h2>Acceso Administrador</h2>
-        <p class="section-sub">Ingresa tu contraseña de supervisor</p>
-        <form id="form-login" style="display: flex; gap: 1rem;">
+        <p class="subtitle">Ingresa tu contraseña de supervisor</p>
+        <form id="form-login" class="login-form">
           <input type="password" id="input-pass" placeholder="Contraseña..." required />
-          <button type="submit" class="btn-explore">Ingresar</button>
+          <button type="submit" class="btn-primary">Ingresar al Panel</button>
         </form>
       </div>
       
-      <div id="admin-panel" class="app-card-container hidden" style="max-width: 1000px; margin: 0 auto;">
-        <div class="panel-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
+      <div id="admin-panel" class="panel-box hidden">
+        <div class="panel-header">
           <div>
             <h2>Panel de Supervisión - HN Muebles</h2>
-            <p class="section-sub" style="margin-bottom: 0; text-align: left;">Gestiona y actualiza el avance de tus proyectos</p>
+            <p class="subtitle">Gestiona y actualiza el avance de tus proyectos</p>
           </div>
-          <button onclick="cerrarSesionAdmin()" class="btn-logout-luxury"><i class="fa-solid fa-right-from-bracket"></i> Cerrar Sesión</button>
+          <button onclick="cerrarSesionAdmin()" class="btn-logout"><i class="fa-solid fa-right-from-bracket"></i> Cerrar Sesión</button>
         </div>
       
-        <form id="form-nuevo-proyecto" class="admin-form-luxury">
-          <h3 style="font-family: 'Playfair Display', serif; margin-bottom: 1rem; color: #fff;"><i class="fa-solid fa-plus" style="color: #fbbf24;"></i> Registrar Nuevo Mueble / Cliente</h3>
+        <form id="form-nuevo-proyecto" class="admin-form">
+          <h3><i class="fa-solid fa-plus font-amber"></i> Registrar Nuevo Mueble / Cliente</h3>
           
-          <div style="background: rgba(255,255,255,0.02); border: 1px solid rgba(217, 119, 6, 0.2); padding: 14px; border-radius: 8px; margin-bottom: 1rem;">
-            <label style="display: block; font-size: 0.85rem; color: #9ca3af; margin-bottom: 6px;">Código del Proyecto:</label>
-            <div style="display: flex; gap: 8px;">
-              <input type="text" id="nuevo-codigo" placeholder="Dejar vacío para autogenerar (Ej: HN9X4F)" style="flex: 1;" />
-              <button type="button" onclick="llenarCodigoAutomatico()" class="btn-explore" style="padding: 0 1.5rem; font-size: 0.85rem;">Generar</button>
+          <div style="background: transparent; border: 1px solid rgba(255,255,255,0.15); padding: 12px; border-radius: 8px; margin-bottom: 12px;">
+            <label style="display: block; font-size: 0.8rem; color: #a3a3a3; margin-bottom: 4px;">Código del Proyecto:</label>
+            <div style="display: flex; gap: 8px; width: 100%;">
+              <input type="text" id="nuevo-codigo" placeholder="Dejar vacío para autogenerar (Ej: HN9X4F)" style="flex: 1; padding: 0.6rem; background: transparent; border: 1px solid #525252; color: #fff; border-radius: 6px; box-sizing: border-box;" />
+              <button type="button" onclick="llenarCodigoAutomatico()" title="Generar código automático" style="background: #f59e0b; color: #000; border: none; padding: 0 16px; border-radius: 6px; cursor: pointer; font-weight: bold; font-size: 0.85rem; white-space: nowrap; height: 38px;">
+                Generar
+              </button>
             </div>
           </div>
 
-          <div class="form-grid-luxury" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem;">
+          <div class="form-grid">
             <input type="text" id="nuevo-cliente" placeholder="Nombre del Cliente" required />
             <input type="text" id="nuevo-mueble" placeholder="Tipo de Mueble" required />
             <input type="text" id="nuevo-telefono" placeholder="WhatsApp / Celular (Ej: 70012345)" />
-            <input type="text" id="nuevo-presupuesto" placeholder="Presupuesto Total (Bs)" inputmode="decimal" />
-            <input type="text" id="nuevo-adelanto" placeholder="Adelanto Pagado (Bs)" inputmode="decimal" />
-            <div style="grid-column: 1 / -1; display: flex; flex-direction: column; gap: 0.4rem;">
-              <label style="font-size: 0.85rem; color: #9ca3af;"><i class="fa-regular fa-calendar"></i> Fecha Estimada de Entrega:</label>
-              <input type="date" id="nuevo-fecha" />
+            
+            <input type="text" id="nuevo-presupuesto" placeholder="Presupuesto Total (Bs)" inputmode="decimal" style="background: transparent; border: 1px solid #525252; color: #fff; padding: 0.6rem; border-radius: 6px; box-sizing: border-box;" />
+            <input type="text" id="nuevo-adelanto" placeholder="Adelanto Pagado (Bs)" inputmode="decimal" style="background: transparent; border: 1px solid #525252; color: #fff; padding: 0.6rem; border-radius: 6px; box-sizing: border-box;" />
+            
+            <div style="grid-column: 1 / -1; display: flex; flex-direction: column; gap: 0.3rem;">
+              <label style="font-size: 0.8rem; color: #a3a3a3;"><i class="fa-regular fa-calendar"></i> Fecha Estimada de Entrega:</label>
+              <input type="date" id="nuevo-fecha" style="padding: 0.5rem; background: transparent; border: 1px solid #525252; color: #fff; border-radius: 6px; box-sizing: border-box;" />
             </div>
           </div>
           
-          <div style="margin-top: 1rem; font-size: 0.9rem; color: #9ca3af;">
+          <div style="margin-top: 0.8rem; font-size: 0.9rem; color: #a3a3a3;">
             Saldo restante calculado: <strong id="lbl-nuevo-saldo" style="color: #f87171;">Bs. 0.00</strong>
           </div>
 
-          <button type="submit" class="btn-explore" style="margin-top: 1.5rem;">Crear Proyecto</button>
+          <button type="submit" class="btn-primary" style="margin-top: 1rem;">Crear Proyecto</button>
         </form>
 
         <div class="projects-list-container">
-          <h3 style="font-family: 'Playfair Display', serif; margin-bottom: 1rem; color: #fff;">Proyectos Registrados (<span id="total-proyectos">0</span>)</h3>
+          <h3>Proyectos Registrados (<span id="total-proyectos">0</span>)</h3>
           <div id="lista-proyectos-admin" class="projects-list"></div>
         </div>
       </div>
@@ -242,35 +135,37 @@
 
     <!-- SECCIÓN REPORTE FINANCIERO -->
     <section id="sec-reportes" class="content-section hidden">
-      <div class="app-card-container" style="max-width: 950px; margin: 0 auto;">
+      <div class="panel-box">
         <div class="panel-header">
           <div>
             <h2>Reporte Financiero Mensual</h2>
-            <p class="section-sub" style="margin-bottom: 0; text-align: left;">Control de ingresos, adelantos y saldos por cobrar</p>
+            <p class="subtitle">Control de ingresos, adelantos y saldos por cobrar</p>
           </div>
         </div>
 
-        <div style="background: rgba(255,255,255,0.02); border: 1px solid rgba(217, 119, 6, 0.2); border-radius: 10px; padding: 24px; margin-top: 20px;">
-          <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem; margin-bottom: 20px;">
-            <h3 style="color: #fbbf24; margin: 0; font-size: 1.1rem;"><i class="fa-solid fa-calendar-days"></i> Filtrar por Mes</h3>
-            <input type="month" id="filtro-mes">
+        <div style="background: transparent; border: 1px solid rgba(255,255,255,0.15); border-radius: 8px; padding: 20px; margin-top: 20px;">
+          <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem; margin-bottom: 16px;">
+            <h3 style="color: #f59e0b; margin: 0; font-size: 1.2rem;"><i class="fa-solid fa-calendar-days"></i> Filtrar por Mes</h3>
+            <div>
+              <input type="month" id="filtro-mes" style="padding: 0.5rem; background: transparent; border: 1px solid #525252; color: #fff; border-radius: 6px;">
+            </div>
           </div>
 
-          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 1rem;">
-            <div style="background: rgba(6, 20, 15, 0.8); padding: 1.2rem; border-radius: 8px; text-align: center; border: 1px solid rgba(255,255,255,0.06);">
-              <span style="color: #9ca3af; font-size: 0.75rem; display: block; margin-bottom: 6px;">PROYECTOS</span>
-              <strong id="reporte-cant-mes" style="font-size: 1.4rem; color: #fff;">0</strong>
+          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 1rem;">
+            <div style="background: rgba(0,0,0,0.3); padding: 1rem; border-radius: 8px; text-align: center; border: 1px solid rgba(255,255,255,0.08);">
+              <span style="color: #a3a3a3; font-size: 0.8rem; display: block; margin-bottom: 4px;">Proyectos del Mes</span>
+              <strong id="reporte-cant-mes" style="font-size: 1.3rem; color: #fff;">0</strong>
             </div>
-            <div style="background: rgba(6, 20, 15, 0.8); padding: 1.2rem; border-radius: 8px; text-align: center; border: 1px solid rgba(255,255,255,0.06);">
-              <span style="color: #9ca3af; font-size: 0.75rem; display: block; margin-bottom: 6px;">PRESUPUESTO TOTAL</span>
+            <div style="background: rgba(0,0,0,0.3); padding: 1rem; border-radius: 8px; text-align: center; border: 1px solid rgba(255,255,255,0.08);">
+              <span style="color: #a3a3a3; font-size: 0.8rem; display: block; margin-bottom: 4px;">Presupuesto Total</span>
               <strong id="reporte-presupuesto-mes" style="font-size: 1.2rem; color: #38bdf8;">Bs. 0</strong>
             </div>
-            <div style="background: rgba(6, 20, 15, 0.8); padding: 1.2rem; border-radius: 8px; text-align: center; border: 1px solid rgba(255,255,255,0.06);">
-              <span style="color: #9ca3af; font-size: 0.75rem; display: block; margin-bottom: 6px;">ADELANTOS</span>
+            <div style="background: rgba(0,0,0,0.3); padding: 1rem; border-radius: 8px; text-align: center; border: 1px solid rgba(255,255,255,0.08);">
+              <span style="color: #a3a3a3; font-size: 0.8rem; display: block; margin-bottom: 4px;">Adelantos Recibidos</span>
               <strong id="reporte-adelanto-mes" style="font-size: 1.2rem; color: #4ade80;">Bs. 0</strong>
             </div>
-            <div style="background: rgba(6, 20, 15, 0.8); padding: 1.2rem; border-radius: 8px; text-align: center; border: 1px solid rgba(255,255,255,0.06);">
-              <span style="color: #9ca3af; font-size: 0.75rem; display: block; margin-bottom: 6px;">SALDOS POR COBRAR</span>
+            <div style="background: rgba(0,0,0,0.3); padding: 1rem; border-radius: 8px; text-align: center; border: 1px solid rgba(255,255,255,0.08);">
+              <span style="color: #a3a3a3; font-size: 0.8rem; display: block; margin-bottom: 4px;">Saldos por Cobrar</span>
               <strong id="reporte-saldo-mes" style="font-size: 1.2rem; color: #f87171;">Bs. 0</strong>
             </div>
           </div>
@@ -278,34 +173,37 @@
       </div>
     </section>
 
-  </main>
+    <footer class="footer">
+      <p>¿Tienes alguna consulta o quieres iniciar un proyecto? Encuéntranos en nuestras redes:</p>
+      <div class="social-buttons">
+        <a href="https://wa.me/59162037033?text=Hola%20HN%20Muebles,%20quisiera%20consultar%20sobre%20un%20proyecto" target="_blank" class="btn-social btn-wa">
+          <i class="fa-brands fa-whatsapp"></i> WhatsApp (+591 62037033)
+        </a>
+        <a href="https://www.instagram.com/hnmuebles/" target="_blank" class="btn-social btn-ig">
+          <i class="fa-brands fa-instagram"></i> Instagram (@hnmuebles)
+        </a>
+      </div>
+      <p class="copyright">© 2026 HN Muebles. Todos los derechos reservados.</p>
+    </footer>
+  </div>
 
-  <!-- FOOTER -->
-  <footer class="luxury-footer">
-    <p>¿Tienes alguna consulta o quieres iniciar un proyecto? Encuéntranos en nuestras redes:</p>
-    <div class="social-buttons">
-      <a href="https://wa.me/59162037033?text=Hola%20HN%20Muebles,%20quisiera%20consultar%20sobre%20un%20proyecto" target="_blank" class="btn-social btn-wa">
-        <i class="fa-brands fa-whatsapp"></i> WhatsApp (+591 62037033)
-      </a>
-      <a href="https://www.instagram.com/hnmuebles/" target="_blank" class="btn-social btn-ig">
-        <i class="fa-brands fa-instagram"></i> Instagram (@hnmuebles)
-      </a>
-    </div>
-    <p class="copyright">© 2026 HN Muebles. Todos los derechos reservados. Live in Luxury.</p>
-  </footer>
-
-  <!-- CONTROL DE NAVEGACIÓN BLINDADO Y SEGURO -->
+  <!-- CONTROL DE NAVEGACIÓN BLINDADO -->
   <script>
     function irInicio() {
+      // Oculta absolutamente todas las secciones de la página
       document.querySelectorAll('.content-section').forEach(sec => sec.classList.add('hidden'));
+      
+      // Muestra únicamente la sección de inicio
       const secInicio = document.getElementById('sec-inicio');
       if (secInicio) secInicio.classList.remove('hidden');
 
+      // Actualiza los botones de la barra superior para marcar "Inicio" como activo
       document.querySelectorAll('.nav-links button').forEach(btn => btn.classList.remove('active'));
       const btnInicio = document.getElementById('btn-inicio');
       if (btnInicio) btnInicio.classList.add('active');
     }
 
+    // Asegurar que la función mostrarSeccion también oculte todo limpiamente si viene desde script.js
     const originalMostrarSeccion = window.mostrarSeccion;
     window.mostrarSeccion = function(seccion) {
       document.querySelectorAll('.content-section').forEach(sec => sec.classList.add('hidden'));
@@ -325,6 +223,7 @@
           setTimeout(function() {
             const adminPanel = document.getElementById('admin-panel');
             if (adminPanel && !adminPanel.classList.contains('hidden')) {
+              // Ocultar rastreo arriba y mostrar reporte financiero al loguearse como admin
               document.getElementById('btn-rastreo').classList.add('hidden');
               document.getElementById('btn-reportes').classList.remove('hidden');
             }
@@ -334,17 +233,21 @@
     });
 
     function cerrarSesionAdmin() {
+      // Restablecer barra superior
       document.getElementById('btn-rastreo').classList.remove('hidden');
       document.getElementById('btn-reportes').classList.add('hidden');
 
+      // Ocultar panel admin y mostrar login
       const adminPanel = document.getElementById('admin-panel');
       if (adminPanel) adminPanel.classList.add('hidden');
       const adminLogin = document.getElementById('admin-login');
       if (adminLogin) adminLogin.classList.remove('hidden');
       
+      // Limpiar contraseña escrita
       const inputPass = document.getElementById('input-pass');
       if (inputPass) inputPass.value = '';
 
+      // Volver al inicio limpiando todo
       irInicio();
     }
   </script>
