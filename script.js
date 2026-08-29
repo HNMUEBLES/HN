@@ -9,7 +9,8 @@ const proyectosIniciales = [
     progreso: 20, 
     detalles: 'Diseño confirmado por WhatsApp. Listo para corte.',
     presupuesto: 3500,
-    adelanto: 1500
+    adelanto: 1500,
+    fechaEntrega: '2026-03-15'
   }
 ];
 
@@ -126,6 +127,7 @@ document.addEventListener('DOMContentLoaded', function() {
       const telIn = document.getElementById('nuevo-telefono');
       const presIn = document.getElementById('nuevo-presupuesto');
       const adelIn = document.getElementById('nuevo-adelanto');
+      const fechaIn = document.getElementById('nuevo-fecha');
 
       proyectos.push({
         codigo: codIn ? codIn.value.trim().toUpperCase() : '',
@@ -136,7 +138,8 @@ document.addEventListener('DOMContentLoaded', function() {
         progreso: 20, 
         detalles: 'Diseño confirmado por WhatsApp. Listo para corte.',
         presupuesto: presIn ? parseFloat(presIn.value) || 0 : 0,
-        adelanto: adelIn ? parseFloat(adelIn.value) || 0 : 0
+        adelanto: adelIn ? parseFloat(adelIn.value) || 0 : 0,
+        fechaEntrega: fechaIn ? fechaIn.value : ''
       });
 
       guardarEnLocalStorage();
@@ -147,6 +150,7 @@ document.addEventListener('DOMContentLoaded', function() {
       if (telIn) telIn.value = '';
       if (presIn) presIn.value = '';
       if (adelIn) adelIn.value = '';
+      if (fechaIn) fechaIn.value = '';
       calcularSaldoEnVivo();
       
       renderProyectosAdmin();
@@ -175,6 +179,7 @@ function renderProyectosAdmin() {
     const presupuesto = Number(p.presupuesto) || 0;
     const adelanto = Number(p.adelanto) || 0;
     const saldo = presupuesto - adelanto;
+    const fechaFormateada = p.fechaEntrega ? p.fechaEntrega.split('-').reverse().join('/') : 'Sin definir';
 
     const card = document.createElement('div');
     card.className = 'admin-card';
@@ -198,6 +203,9 @@ function renderProyectosAdmin() {
           <p style="margin: 0.4rem 0; color: #a3a3a3; font-size: 0.85rem;">
             <i class="fa-solid fa-user"></i> Cliente: ${p.cliente} | <i class="fa-solid fa-phone"></i> Tel: ${p.telefono || 'Sin registrar'}
           </p>
+          <p style="margin: 0.2rem 0 0.5rem 0; color: #38bdf8; font-size: 0.85rem;">
+            <i class="fa-regular fa-calendar"></i> Entrega estimada: <strong>${fechaFormateada}</strong>
+          </p>
 
           <!-- SECCIÓN DE FINANZAS -->
           <div style="background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.08); padding: 0.6rem 0.8rem; border-radius: 8px; margin: 0.6rem 0; display: flex; gap: 1rem; flex-wrap: wrap; font-size: 0.85rem;">
@@ -209,14 +217,14 @@ function renderProyectosAdmin() {
           <div style="margin-top: 0.5rem;">${botonesEtapas}</div>
           <div style="margin-top: 0.8rem;">
             <button type="button" onclick="notificarWhatsApp(${index})" style="background: #16a34a; color: white; border: none; padding: 0.4rem 0.8rem; border-radius: 6px; cursor: pointer; font-size: 0.85rem; font-weight: bold; display: inline-flex; align-items: center; gap: 0.4rem;">
-              <i class="fa-brands fa-whatsapp"></i> Notificar Avance y Saldo por WhatsApp
+              <i class="fa-brands fa-whatsapp"></i> Notificar Avance, Saldo y Fecha por WhatsApp
             </button>
           </div>
         </div>
 
         <!-- VISTA DE EDICIÓN INLINE (OCULTA POR DEFECTO) -->
         <div id="edit-view-${index}" style="flex: 1; min-width: 280px; display: none; background: rgba(0,0,0,0.4); padding: 1rem; border-radius: 8px; border: 1px solid rgba(255,255,255,0.15);">
-          <h4 style="margin-bottom: 0.6rem; color: #f59e0b; font-size: 0.95rem;">Editar Proyecto y Finanzas</h4>
+          <h4 style="margin-bottom: 0.6rem; color: #f59e0b; font-size: 0.95rem;">Editar Proyecto, Finanzas y Fecha</h4>
           <div style="display: flex; flex-direction: column; gap: 0.5rem;">
             <div>
               <label style="font-size: 0.75rem; color: #a3a3a3;">Código:</label>
@@ -244,6 +252,10 @@ function renderProyectosAdmin() {
                 <input type="number" id="input-edit-adelanto-${index}" value="${adelanto}" style="width:100%; padding:0.4rem; background:#0a0a0a; border:1px solid #404040; color:#fff; border-radius:6px; font-size:0.85rem;">
               </div>
             </div>
+            <div>
+              <label style="font-size: 0.75rem; color: #a3a3a3;">Fecha de Entrega:</label>
+              <input type="date" id="input-edit-fecha-${index}" value="${p.fechaEntrega || ''}" style="width:100%; padding:0.4rem; background:#0a0a0a; border:1px solid #404040; color:#fff; border-radius:6px; font-size:0.85rem;">
+            </div>
             <div style="display: flex; gap: 0.5rem; margin-top: 0.4rem;">
               <button type="button" onclick="guardarEdicionInline(${index})" style="background: #16a34a; color: white; border: none; padding: 0.4rem 0.8rem; border-radius: 6px; cursor: pointer; font-size: 0.8rem; font-weight: bold;">Guardar</button>
               <button type="button" onclick="cancelarEdicionInline(${index})" style="background: #404040; color: white; border: none; padding: 0.4rem 0.8rem; border-radius: 6px; cursor: pointer; font-size: 0.8rem;">Cancelar</button>
@@ -253,7 +265,7 @@ function renderProyectosAdmin() {
 
         <!-- BOTONES DE ACCIÓN PRINCIPAL (EDITAR / ELIMINAR) -->
         <div style="display: flex; gap: 0.5rem;">
-          <button type="button" id="btn-edit-toggle-${index}" onclick="activarEdicionInline(${index})" title="Editar datos y finanzas" style="background: #3b82f6; color: white; border: none; padding: 0.6rem 0.8rem; border-radius: 8px; cursor: pointer;">
+          <button type="button" id="btn-edit-toggle-${index}" onclick="activarEdicionInline(${index})" title="Editar datos, finanzas y fecha" style="background: #3b82f6; color: white; border: none; padding: 0.6rem 0.8rem; border-radius: 8px; cursor: pointer;">
             <i class="fa-solid fa-pen-to-square"></i>
           </button>
           <button type="button" onclick="eliminarProyecto(${index})" title="Eliminar proyecto" style="background: #ef4444; color: white; border: none; padding: 0.6rem 0.8rem; border-radius: 8px; cursor: pointer;">
@@ -287,6 +299,7 @@ function guardarEdicionInline(index) {
   const nuevoTelefono = document.getElementById(`input-edit-telefono-${index}`).value.trim();
   const nuevoPresupuesto = parseFloat(document.getElementById(`input-edit-presupuesto-${index}`).value) || 0;
   const nuevoAdelanto = parseFloat(document.getElementById(`input-edit-adelanto-${index}`).value) || 0;
+  const nuevaFecha = document.getElementById(`input-edit-fecha-${index}`).value;
 
   if (!nuevoCodigo || !nuevoCliente || !nuevoMueble) {
     alert("Los campos Código, Cliente y Mueble son obligatorios.");
@@ -299,6 +312,7 @@ function guardarEdicionInline(index) {
   proyectos[index].telefono = nuevoTelefono;
   proyectos[index].presupuesto = nuevoPresupuesto;
   proyectos[index].adelanto = nuevoAdelanto;
+  proyectos[index].fechaEntrega = nuevaFecha;
 
   guardarEnLocalStorage();
   renderProyectosAdmin();
@@ -346,8 +360,9 @@ function notificarWhatsApp(index) {
   const presupuesto = Number(p.presupuesto) || 0;
   const adelanto = Number(p.adelanto) || 0;
   const saldo = presupuesto - adelanto;
+  const fechaTexto = p.fechaEntrega ? p.fechaEntrega.split('-').reverse().join('/') : 'Por coordinar';
 
-  const mensaje = `Hola *${p.cliente}* 👋, desde *HN Muebles* te informamos el estado de tu proyecto *"${p.mueble}"*:\n\n🛠️ *Estado:* ${p.estado}\n📊 *Progreso:* ${p.progreso}%\n\n💰 *Resumen Financiero:*\n• Presupuesto Total: Bs. ${presupuesto.toFixed(2)}\n• Adelanto: Bs. ${adelanto.toFixed(2)}\n• Saldo Pendiente: Bs. ${saldo.toFixed(2)}\n\nPuedes consultar el detalle ingresando tu código *${p.codigo}* en nuestra web.`;
+  const mensaje = `Hola *${p.cliente}* 👋, desde *HN Muebles* te informamos el estado de tu proyecto *"${p.mueble}"*:\n\n🛠️ *Estado:* ${p.estado}\n📊 *Progreso:* ${p.progreso}%\n📅 *Fecha Estimada de Entrega:* ${fechaTexto}\n\n💰 *Resumen Financiero:*\n• Presupuesto Total: Bs. ${presupuesto.toFixed(2)}\n• Adelanto: Bs. ${adelanto.toFixed(2)}\n• Saldo Pendiente: Bs. ${saldo.toFixed(2)}\n\nPuedes consultar el detalle ingresando tu código *${p.codigo}* en nuestra web.`;
   
   window.open(`https://wa.me/${num}?text=${encodeURIComponent(mensaje)}`, '_blank');
 }
