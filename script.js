@@ -1,29 +1,68 @@
-// --- BASE DE DATOS INICIAL ---
-const proyectosIniciales = [
-  { 
-    codigo: 'HN-001', 
-    cliente: 'Carlos Mendoza', 
-    mueble: 'Juego de Comedor en Melamina', 
-    telefono: '62037033',
-    estado: 'Diseño Aprobado', 
-    progreso: 20, 
-    detalles: 'Diseño confirmado por WhatsApp. Listo para corte.',
-    presupuesto: 3500,
-    adelanto: 1500,
-    fechaEntrega: '2026-03-15'
-  }
-];
+// Importar Firebase y Firestore desde los servidores oficiales
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+import { getFirestore, collection, getDocs, addDoc, updateDoc, deleteDoc, doc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
-let proyectos = JSON.parse(localStorage.getItem('hn_proyectos')) || proyectosIniciales;
+// Configuración de Firebase (Tus llaves)
+const firebaseConfig = {
+  apiKey: "AIzaSyCLrVUpGCTxFxuMR0ATlwj2t3osSP0dD7Y",
+  authDomain: "hn-muebles.firebaseapp.com",
+  projectId: "hn-muebles",
+  storageBucket: "hn-muebles.firebasestorage.app",
+  messagingSenderId: "175601256381",
+  appId: "1:175601256381:web:db2031a56faa87a02bf4d4",
+  measurementId: "G-8PJGERB67Q"
+};
 
-function guardarEnLocalStorage() { 
-  localStorage.setItem('hn_proyectos', JSON.stringify(proyectos)); 
-}
+// Inicializar Firebase y Base de datos Firestore
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
 
+let proyectos = [];
 let esAdmin = false;
 
+// --- CARGAR PROYECTOS DESDE FIRESTORE EN VIVO ---
+async function cargarProyectosDesdeNube() {
+  try {
+    const querySnapshot = await getDocs(collection(db, "proyectos"));
+    proyectos = [];
+    querySnapshot.forEach((docSnap) => {
+      proyectos.push({
+        id: docSnap.id, // ID único de Firebase
+        ...docSnap.data()
+      });
+    });
+    
+    // Si la base de datos está vacía, creamos uno por defecto para que no luzca vacía
+    if (proyectos.length === 0) {
+      const proyectoInicial = {
+        codigo: 'HN-001',
+        cliente: 'Carlos Mendoza',
+        mueble: 'Juego de Comedor en Melamina',
+        telefono: '62037033',
+        estado: 'Diseño Aprobado',
+        progreso: 20,
+        detalles: 'Diseño confirmado por WhatsApp. Listo para corte.',
+        presupuesto: 3500,
+        adelanto: 1500,
+        fechaEntrega: '2026-03-15'
+      };
+      await addDoc(collection(db, "proyectos"), proyectoInicial);
+      proyectos.push({ id: 'temp-1', ...proyectoInicial });
+    }
+
+    if (esAdmin) {
+      renderProyectosAdmin();
+    }
+  } catch (error) {
+    console.error("Error al cargar proyectos de la nube: ", error);
+  }
+}
+
+// Ejecutar carga inicial al abrir la página
+cargarProyectosDesdeNube();
+
 // --- 1. NAVEGACIÓN ENTRE SECCIONES ---
-function mostrarSeccion(seccionId) {
+window.mostrarSeccion = function(seccionId) {
   const secInicio = document.getElementById('sec-inicio');
   const secRastreo = document.getElementById('sec-rastreo');
   const secAdmin = document.getElementById('sec-admin');
@@ -45,18 +84,22 @@ function mostrarSeccion(seccionId) {
 
   if (secDestino) secDestino.classList.remove('hidden');
   if (btnDestino) btnDestino.classList.add('active');
-}
+};
 
 // --- 2. INICIALIZACIÓN Y EVENTOS ---
 document.addEventListener('DOMContentLoaded', function() {
   const formBuscar = document.getElementById('form-buscar');
   if (formBuscar) {
-    formBuscar.addEventListener('submit', function(e) {
+    formBuscar.addEventListener('submit', async function(e) {
       e.preventDefault();
       const codigoInput = document.getElementById('input-codigo');
       if (!codigoInput) return;
       
       const codigo = codigoInput.value.trim().toUpperCase();
+      
+      // Asegurarnos de tener los datos más frescos de la nube
+      await cargarProyectosDesdeNube();
+      
       const encontrado = proyectos.find(p => p.codigo === codigo);
       const errorMsg = document.getElementById('mensaje-error');
       const resultBox = document.getElementById('resultado-proyecto');
@@ -91,7 +134,7 @@ document.addEventListener('DOMContentLoaded', function() {
         document.getElementById('admin-login').classList.add('hidden');
         document.getElementById('admin-panel').classList.remove('hidden');
         passInput.value = '';
-        renderProyectosAdmin();
+        cargarProyectosDesdeNube();
       } else { 
         alert('Contraseña incorrecta'); 
       }
@@ -116,10 +159,10 @@ document.addEventListener('DOMContentLoaded', function() {
   if (inputPresupuestoNuevo) inputPresupuestoNuevo.addEventListener('input', calcularSaldoEnVivo);
   if (inputAdelantoNuevo) inputAdelantoNuevo.addEventListener('input', calcularSaldoEnVivo);
 
-  // NUEVO PROYECTO (GUARDAR)
+  // NUEVO PROYECTO (GUARDAR EN FIRESTORE)
   const formNuevo = document.getElementById('form-nuevo-proyecto');
   if (formNuevo) {
-    formNuevo.addEventListener('submit', function(e) {
+    formNuevo.addEventListener('submit', async function(e) {
       e.preventDefault();
       const codIn = document.getElementById('nuevo-codigo');
       const cliIn = document.getElementById('nuevo-cliente');
@@ -129,7 +172,7 @@ document.addEventListener('DOMContentLoaded', function() {
       const adelIn = document.getElementById('nuevo-adelanto');
       const fechaIn = document.getElementById('nuevo-fecha');
 
-      proyectos.push({
+      const nuevoProyectoObj = {
         codigo: codIn ? codIn.value.trim().toUpperCase() : '',
         cliente: cliIn ? cliIn.value.trim() : '',
         mueble: mueIn ? mueIn.value.trim() : '',
@@ -140,29 +183,35 @@ document.addEventListener('DOMContentLoaded', function() {
         presupuesto: presIn ? parseFloat(presIn.value) || 0 : 0,
         adelanto: adelIn ? parseFloat(adelIn.value) || 0 : 0,
         fechaEntrega: fechaIn ? fechaIn.value : ''
-      });
+      };
 
-      guardarEnLocalStorage();
-      
-      if (codIn) codIn.value = '';
-      if (cliIn) cliIn.value = '';
-      if (mueIn) mueIn.value = '';
-      if (telIn) telIn.value = '';
-      if (presIn) presIn.value = '';
-      if (adelIn) adelIn.value = '';
-      if (fechaIn) fechaIn.value = '';
-      calcularSaldoEnVivo();
-      
-      renderProyectosAdmin();
+      try {
+        await addDoc(collection(db, "proyectos"), nuevoProyectoObj);
+        
+        if (codIn) codIn.value = '';
+        if (cliIn) cliIn.value = '';
+        if (mueIn) mueIn.value = '';
+        if (telIn) telIn.value = '';
+        if (presIn) presIn.value = '';
+        if (adelIn) adelIn.value = '';
+        if (fechaIn) fechaIn.value = '';
+        calcularSaldoEnVivo();
+        
+        await cargarProyectosDesdeNube();
+        alert("¡Proyecto guardado en la nube con éxito!");
+      } catch (error) {
+        console.error("Error al guardar en Firebase:", error);
+        alert("Hubo un error al guardar el proyecto en la nube.");
+      }
     });
   }
 });
 
-function cerrarSesionAdmin() {
+window.cerrarSesionAdmin = function() {
   esAdmin = false;
   document.getElementById('admin-panel').classList.add('hidden');
   document.getElementById('admin-login').classList.remove('hidden');
-}
+};
 
 // --- 3. MOSTRAR TARJETAS EN PANEL ADMIN ---
 function renderProyectosAdmin() {
@@ -188,13 +237,12 @@ function renderProyectosAdmin() {
     let botonesEtapas = etapas.map((est, idx) => {
       const activeStyle = p.estado === est ? 'background: #f59e0b; color: #000; font-weight: bold;' : 'background: rgba(255,255,255,0.1); color: #fff;';
       const porcentaje = (idx + 1) * 20;
-      return `<button type="button" style="border:none; padding: 0.4rem 0.7rem; border-radius: 6px; cursor: pointer; font-size: 0.8rem; margin: 0.2rem; ${activeStyle}" onclick="cambiarEstadoPorIndice(${index}, ${idx}, ${porcentaje})">${est}</button>`;
+      return `<button type="button" style="border:none; padding: 0.4rem 0.7rem; border-radius: 6px; cursor: pointer; font-size: 0.8rem; margin: 0.2rem; ${activeStyle}" onclick="cambiarEstadoPorIndice('${p.id}', ${idx}, ${porcentaje})">${est}</button>`;
     }).join('');
 
     card.innerHTML = `
       <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 1rem; flex-wrap: wrap;">
         
-        <!-- VISTA NORMAL / INFO -->
         <div id="info-view-${index}" style="flex: 1; min-width: 280px;">
           <div style="display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap;">
             <span style="background: #f59e0b; color: #000; padding: 0.2rem 0.5rem; border-radius: 4px; font-weight: bold; font-size: 0.85rem;">${p.codigo}</span>
@@ -207,7 +255,6 @@ function renderProyectosAdmin() {
             <i class="fa-regular fa-calendar"></i> Entrega estimada: <strong>${fechaFormateada}</strong>
           </p>
 
-          <!-- SECCIÓN DE FINANZAS -->
           <div style="background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.08); padding: 0.6rem 0.8rem; border-radius: 8px; margin: 0.6rem 0; display: flex; gap: 1rem; flex-wrap: wrap; font-size: 0.85rem;">
             <div><span style="color: #a3a3a3;">Total:</span> <strong>Bs. ${presupuesto.toFixed(2)}</strong></div>
             <div><span style="color: #a3a3a3;">Adelanto:</span> <strong style="color: #38bdf8;">Bs. ${adelanto.toFixed(2)}</strong></div>
@@ -222,7 +269,6 @@ function renderProyectosAdmin() {
           </div>
         </div>
 
-        <!-- VISTA DE EDICIÓN INLINE (OCULTA POR DEFECTO) -->
         <div id="edit-view-${index}" style="flex: 1; min-width: 280px; display: none; background: rgba(0,0,0,0.4); padding: 1rem; border-radius: 8px; border: 1px solid rgba(255,255,255,0.15);">
           <h4 style="margin-bottom: 0.6rem; color: #f59e0b; font-size: 0.95rem;">Editar Proyecto, Finanzas y Fecha</h4>
           <div style="display: flex; flex-direction: column; gap: 0.5rem;">
@@ -257,18 +303,17 @@ function renderProyectosAdmin() {
               <input type="date" id="input-edit-fecha-${index}" value="${p.fechaEntrega || ''}" style="width:100%; padding:0.4rem; background:#0a0a0a; border:1px solid #404040; color:#fff; border-radius:6px; font-size:0.85rem;">
             </div>
             <div style="display: flex; gap: 0.5rem; margin-top: 0.4rem;">
-              <button type="button" onclick="guardarEdicionInline(${index})" style="background: #16a34a; color: white; border: none; padding: 0.4rem 0.8rem; border-radius: 6px; cursor: pointer; font-size: 0.8rem; font-weight: bold;">Guardar</button>
+              <button type="button" onclick="guardarEdicionInline('${p.id}', ${index})" style="background: #16a34a; color: white; border: none; padding: 0.4rem 0.8rem; border-radius: 6px; cursor: pointer; font-size: 0.8rem; font-weight: bold;">Guardar</button>
               <button type="button" onclick="cancelarEdicionInline(${index})" style="background: #404040; color: white; border: none; padding: 0.4rem 0.8rem; border-radius: 6px; cursor: pointer; font-size: 0.8rem;">Cancelar</button>
             </div>
           </div>
         </div>
 
-        <!-- BOTONES DE ACCIÓN PRINCIPAL (EDITAR / ELIMINAR) -->
         <div style="display: flex; gap: 0.5rem;">
           <button type="button" id="btn-edit-toggle-${index}" onclick="activarEdicionInline(${index})" title="Editar datos, finanzas y fecha" style="background: #3b82f6; color: white; border: none; padding: 0.6rem 0.8rem; border-radius: 8px; cursor: pointer;">
             <i class="fa-solid fa-pen-to-square"></i>
           </button>
-          <button type="button" onclick="eliminarProyecto(${index})" title="Eliminar proyecto" style="background: #ef4444; color: white; border: none; padding: 0.6rem 0.8rem; border-radius: 8px; cursor: pointer;">
+          <button type="button" onclick="eliminarProyecto('${p.id}')" title="Eliminar proyecto" style="background: #ef4444; color: white; border: none; padding: 0.6rem 0.8rem; border-radius: 8px; cursor: pointer;">
             <i class="fa-solid fa-trash"></i>
           </button>
         </div>
@@ -280,19 +325,19 @@ function renderProyectosAdmin() {
 }
 
 // --- 4. FUNCIONES DE EDICIÓN DIRECTA EN LA TARJETA ---
-function activarEdicionInline(index) {
+window.activarEdicionInline = function(index) {
   document.getElementById(`info-view-${index}`).style.display = 'none';
   document.getElementById(`edit-view-${index}`).style.display = 'block';
   document.getElementById(`btn-edit-toggle-${index}`).style.display = 'none';
-}
+};
 
-function cancelarEdicionInline(index) {
+window.cancelarEdicionInline = function(index) {
   document.getElementById(`info-view-${index}`).style.display = 'block';
   document.getElementById(`edit-view-${index}`).style.display = 'none';
   document.getElementById(`btn-edit-toggle-${index}`).style.display = 'block';
-}
+};
 
-function guardarEdicionInline(index) {
+window.guardarEdicionInline = async function(idFirebase, index) {
   const nuevoCodigo = document.getElementById(`input-edit-codigo-${index}`).value.trim().toUpperCase();
   const nuevoCliente = document.getElementById(`input-edit-cliente-${index}`).value.trim();
   const nuevoMueble = document.getElementById(`input-edit-mueble-${index}`).value.trim();
@@ -306,20 +351,28 @@ function guardarEdicionInline(index) {
     return;
   }
 
-  proyectos[index].codigo = nuevoCodigo;
-  proyectos[index].cliente = nuevoCliente;
-  proyectos[index].mueble = nuevoMueble;
-  proyectos[index].telefono = nuevoTelefono;
-  proyectos[index].presupuesto = nuevoPresupuesto;
-  proyectos[index].adelanto = nuevoAdelanto;
-  proyectos[index].fechaEntrega = nuevaFecha;
+  try {
+    const docRef = doc(db, "proyectos", idFirebase);
+    await updateDoc(docRef, {
+      codigo: nuevoCodigo,
+      cliente: nuevoCliente,
+      mueble: nuevoMueble,
+      telefono: nuevoTelefono,
+      presupuesto: nuevoPresupuesto,
+      adelanto: nuevoAdelanto,
+      fechaEntrega: nuevaFecha
+    });
 
-  guardarEnLocalStorage();
-  renderProyectosAdmin();
-}
+    await cargarProyectosDesdeNube();
+    alert("¡Cambios guardados en la nube con éxito!");
+  } catch (error) {
+    console.error("Error al actualizar:", error);
+    alert("Error al actualizar el proyecto.");
+  }
+};
 
 // --- 5. OTRAS ACCIONES ---
-function cambiarEstadoPorIndice(proyectoIdx, etapaIdx, nuevoProgreso) {
+window.cambiarEstadoPorIndice = async function(idFirebase, etapaIdx, nuevoProgreso) {
   const etapas = ['Diseño Aprobado', 'Corte', 'Armado', 'Instalación', 'Finalizado'];
   const descripciones = [
     'El diseño ha sido aprobado por WhatsApp. El proyecto ingresa a producción.',
@@ -329,23 +382,32 @@ function cambiarEstadoPorIndice(proyectoIdx, etapaIdx, nuevoProgreso) {
     '¡El proyecto ha sido completado e instalado con éxito!'
   ];
   
-  proyectos[proyectoIdx].estado = etapas[etapaIdx];
-  proyectos[proyectoIdx].progreso = nuevoProgreso;
-  proyectos[proyectoIdx].detalles = descripciones[etapaIdx];
-  
-  guardarEnLocalStorage();
-  renderProyectosAdmin();
-}
-
-function eliminarProyecto(index) {
-  if (confirm('¿Deseas eliminar este proyecto?')) {
-    proyectos.splice(index, 1);
-    guardarEnLocalStorage();
-    renderProyectosAdmin();
+  try {
+    const docRef = doc(db, "proyectos", idFirebase);
+    await updateDoc(docRef, {
+      estado: etapas[etapaIdx],
+      progreso: nuevoProgreso,
+      detalles: descripciones[etapaIdx]
+    });
+    
+    await cargarProyectosDesdeNube();
+  } catch (error) {
+    console.error("Error cambiando estado:", error);
   }
-}
+};
 
-function notificarWhatsApp(index) {
+window.eliminarProyecto = async function(idFirebase) {
+  if (confirm('¿Deseas eliminar este proyecto de la nube?')) {
+    try {
+      await deleteDoc(doc(db, "proyectos", idFirebase));
+      await cargarProyectosDesdeNube();
+    } catch (error) {
+      console.error("Error al eliminar:", error);
+    }
+  }
+};
+
+window.notificarWhatsApp = function(index) {
   const p = proyectos[index];
   if (!p.telefono || p.telefono.trim() === '') {
     alert("Este cliente no tiene un número de teléfono registrado. Presiona el botón azul del lápiz para agregarlo.");
@@ -362,13 +424,9 @@ function notificarWhatsApp(index) {
   const saldo = presupuesto - adelanto;
   const fechaTexto = p.fechaEntrega ? p.fechaEntrega.split('-').reverse().join('/') : 'Por coordinar';
   
-  const linkPagina = window.location.href;
+  const linkPagina = window.location.origin + window.location.pathname;
 
   const mensaje = `Hola *${p.cliente}* 👋, desde *HN Muebles* te informamos el estado de tu proyecto *"${p.mueble}"*:\n\n🛠️ *Estado:* ${p.estado}\n📊 *Progreso:* ${p.progreso}%\n📅 *Fecha Estimada de Entrega:* ${fechaTexto}\n\n💰 *Resumen Financiero:*\n• Presupuesto Total: Bs. ${presupuesto.toFixed(2)}\n• Adelanto: Bs. ${adelanto.toFixed(2)}\n• Saldo Pendiente: Bs. ${saldo.toFixed(2)}\n\n🔍 *Puedes rastrear tu proyecto ingresando tu código (${p.codigo}) aquí:*\n${linkPagina}`;
   
   window.open(`https://wa.me/${num}?text=${encodeURIComponent(mensaje)}`, '_blank');
-}
-
-if (!localStorage.getItem('hn_proyectos')) { 
-  guardarEnLocalStorage(); 
-}
+};
