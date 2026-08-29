@@ -5,9 +5,9 @@ const proyectosIniciales = [
     cliente: 'Carlos Mendoza', 
     mueble: 'Juego de Comedor en Melamina', 
     telefono: '62037033',
-    estado: 'Fabricación', 
-    progreso: 60, 
-    detalles: 'Corte finalizado. Ensamblado de partes en proceso.' 
+    estado: 'Diseño Aprobado', 
+    progreso: 20, 
+    detalles: 'Diseño confirmado por WhatsApp. Listo para corte.' 
   }
 ];
 
@@ -96,7 +96,7 @@ document.addEventListener('DOMContentLoaded', function() {
     });
   }
 
-  // --- 4. REGISTRAR NUEVO PROYECTO (INCLUYE TELÉFONO) ---
+  // --- 4. REGISTRAR NUEVO PROYECTO ---
   const formNuevo = document.getElementById('form-nuevo-proyecto');
   if (formNuevo) {
     formNuevo.addEventListener('submit', function(e) {
@@ -111,9 +111,9 @@ document.addEventListener('DOMContentLoaded', function() {
         cliente: cliIn ? cliIn.value.trim() : '',
         mueble: mueIn ? mueIn.value.trim() : '',
         telefono: telIn ? telIn.value.trim() : '',
-        estado: 'Diseño', 
+        estado: 'Diseño Aprobado', 
         progreso: 20, 
-        detalles: 'Proyecto registrado en sistema.'
+        detalles: 'Diseño confirmado por WhatsApp. Listo para corte.'
       });
 
       guardarEnLocalStorage();
@@ -143,7 +143,9 @@ function renderProyectosAdmin() {
   if (!container) return;
   
   container.innerHTML = '';
-  const etapas = ['Diseño', 'Corte de Placas', 'Fabricación', 'Lustre / Enchapado', 'Listo para Entrega'];
+  
+  // Etapas del proceso requeridas
+  const etapas = ['Diseño Aprobado', 'Corte', 'Armado', 'Instalación', 'Finalizado'];
 
   proyectos.forEach((p, index) => {
     const card = document.createElement('div');
@@ -179,10 +181,18 @@ function renderProyectosAdmin() {
 }
 
 function cambiarEstadoPorIndice(proyectoIdx, etapaIdx, nuevoProgreso) {
-  const etapas = ['Diseño', 'Corte de Placas', 'Fabricación', 'Lustre / Enchapado', 'Listo para Entrega'];
+  const etapas = ['Diseño Aprobado', 'Corte', 'Armado', 'Instalación', 'Finalizado'];
+  const descripciones = [
+    'El diseño ha sido aprobado por WhatsApp. El proyecto ingresa a producción.',
+    'Las placas se encuentran en proceso de corte y pegado de tapacantos.',
+    'Las piezas se están ensamblando en taller.',
+    'El mueble está en proceso de traslado e instalación en sitio.',
+    '¡El proyecto ha sido completado e instalado con éxito!'
+  ];
+  
   proyectos[proyectoIdx].estado = etapas[etapaIdx];
   proyectos[proyectoIdx].progreso = nuevoProgreso;
-  proyectos[proyectoIdx].detalles = `El proyecto ha avanzado a la etapa de: ${etapas[etapaIdx]}.`;
+  proyectos[proyectoIdx].detalles = descripciones[etapaIdx];
   
   guardarEnLocalStorage();
   renderProyectosAdmin();
@@ -196,7 +206,7 @@ function eliminarProyecto(index) {
   }
 }
 
-// --- 6. FUNCIÓN PARA NOTIFICAR POR WHATSAPP ---
+// --- 6. NOTIFICACIONES POR WHATSAPP ---
 function notificarWhatsApp(index) {
   const p = proyectos[index];
   if (!p.telefono || p.telefono.trim() === '') {
@@ -209,7 +219,7 @@ function notificarWhatsApp(index) {
     num = '591' + num;
   }
   
-  const mensaje = `Hola *${p.cliente}* 👋, desde *HN Muebles* te informamos el avance de tu proyecto *"${p.mueble}"*:\n\n🛠️ *Estado:* ${p.estado}\n📊 *Progreso:* ${p.progreso}%\n\nPuedes ver los detalles ingresando tu código *${p.codigo}* en nuestra web.`;
+  const mensaje = `Hola *${p.cliente}* 👋, desde *HN Muebles* te informamos el avance de tu proyecto *"${p.mueble}"*:\n\n🛠️ *Estado:* ${p.estado}\n📊 *Progreso:* ${p.progreso}%\n\nPuedes ver el estado actualizado ingresando tu código *${p.codigo}* en nuestra web.`;
   
   window.open(`https://wa.me/${num}?text=${encodeURIComponent(mensaje)}`, '_blank');
 }
