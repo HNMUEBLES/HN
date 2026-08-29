@@ -7,7 +7,9 @@ const proyectosIniciales = [
     telefono: '62037033',
     estado: 'Diseño Aprobado', 
     progreso: 20, 
-    detalles: 'Diseño confirmado por WhatsApp. Listo para corte.' 
+    detalles: 'Diseño confirmado por WhatsApp. Listo para corte.',
+    presupuesto: 3500,
+    adelanto: 1500
   }
 ];
 
@@ -112,7 +114,9 @@ document.addEventListener('DOMContentLoaded', function() {
         telefono: telIn ? telIn.value.trim() : '',
         estado: 'Diseño Aprobado', 
         progreso: 20, 
-        detalles: 'Diseño confirmado por WhatsApp. Listo para corte.'
+        detalles: 'Diseño confirmado por WhatsApp. Listo para corte.',
+        presupuesto: 0,
+        adelanto: 0
       });
 
       guardarEnLocalStorage();
@@ -133,7 +137,7 @@ function cerrarSesionAdmin() {
   document.getElementById('admin-login').classList.remove('hidden');
 }
 
-// --- 3. MOSTRAR TARJETAS EN PANEL ADMIN (CON EDICIÓN INLINE) ---
+// --- 3. MOSTRAR TARJETAS EN PANEL ADMIN (CON FINANZAS E INLINE EDIT) ---
 function renderProyectosAdmin() {
   const container = document.getElementById('lista-proyectos-admin');
   const totalEl = document.getElementById('total-proyectos');
@@ -145,6 +149,10 @@ function renderProyectosAdmin() {
   const etapas = ['Diseño Aprobado', 'Corte', 'Armado', 'Instalación', 'Finalizado'];
 
   proyectos.forEach((p, index) => {
+    const presupuesto = Number(p.presupuesto) || 0;
+    const adelanto = Number(p.adelanto) || 0;
+    const saldo = presupuesto - adelanto;
+
     const card = document.createElement('div');
     card.className = 'admin-card';
     card.style.cssText = 'background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 12px; padding: 1.2rem; margin-bottom: 1rem;';
@@ -159,23 +167,33 @@ function renderProyectosAdmin() {
       <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 1rem; flex-wrap: wrap;">
         
         <!-- VISTA NORMAL / INFO -->
-        <div id="info-view-${index}" style="flex: 1; min-width: 250px;">
-          <span style="background: #f59e0b; color: #000; padding: 0.2rem 0.5rem; border-radius: 4px; font-weight: bold; font-size: 0.85rem;">${p.codigo}</span>
-          <strong style="margin-left: 0.5rem; font-size: 1.05rem;">${p.mueble}</strong>
+        <div id="info-view-${index}" style="flex: 1; min-width: 280px;">
+          <div style="display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap;">
+            <span style="background: #f59e0b; color: #000; padding: 0.2rem 0.5rem; border-radius: 4px; font-weight: bold; font-size: 0.85rem;">${p.codigo}</span>
+            <strong style="font-size: 1.05rem;">${p.mueble}</strong>
+          </div>
           <p style="margin: 0.4rem 0; color: #a3a3a3; font-size: 0.85rem;">
             <i class="fa-solid fa-user"></i> Cliente: ${p.cliente} | <i class="fa-solid fa-phone"></i> Tel: ${p.telefono || 'Sin registrar'}
           </p>
+
+          <!-- SECCIÓN DE FINANZAS -->
+          <div style="background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.08); padding: 0.6rem 0.8rem; border-radius: 8px; margin: 0.6rem 0; display: flex; gap: 1rem; flex-wrap: wrap; font-size: 0.85rem;">
+            <div><span style="color: #a3a3a3;">Total:</span> <strong>Bs. ${presupuesto.toFixed(2)}</strong></div>
+            <div><span style="color: #a3a3a3;">Adelanto:</span> <strong style="color: #38bdf8;">Bs. ${adelanto.toFixed(2)}</strong></div>
+            <div><span style="color: #a3a3a3;">Saldo:</span> <strong style="color: ${saldo > 0 ? '#f87171' : '#4ade80'};">Bs. ${saldo.toFixed(2)}</strong></div>
+          </div>
+
           <div style="margin-top: 0.5rem;">${botonesEtapas}</div>
           <div style="margin-top: 0.8rem;">
             <button type="button" onclick="notificarWhatsApp(${index})" style="background: #16a34a; color: white; border: none; padding: 0.4rem 0.8rem; border-radius: 6px; cursor: pointer; font-size: 0.85rem; font-weight: bold; display: inline-flex; align-items: center; gap: 0.4rem;">
-              <i class="fa-brands fa-whatsapp"></i> Notificar Avance por WhatsApp
+              <i class="fa-brands fa-whatsapp"></i> Notificar Avance y Saldo por WhatsApp
             </button>
           </div>
         </div>
 
         <!-- VISTA DE EDICIÓN INLINE (OCULTA POR DEFECTO) -->
         <div id="edit-view-${index}" style="flex: 1; min-width: 280px; display: none; background: rgba(0,0,0,0.4); padding: 1rem; border-radius: 8px; border: 1px solid rgba(255,255,255,0.15);">
-          <h4 style="margin-bottom: 0.6rem; color: #f59e0b; font-size: 0.95rem;">Editando Proyecto</h4>
+          <h4 style="margin-bottom: 0.6rem; color: #f59e0b; font-size: 0.95rem;">Editar Proyecto y Finanzas</h4>
           <div style="display: flex; flex-direction: column; gap: 0.5rem;">
             <div>
               <label style="font-size: 0.75rem; color: #a3a3a3;">Código:</label>
@@ -193,6 +211,16 @@ function renderProyectosAdmin() {
               <label style="font-size: 0.75rem; color: #a3a3a3;">Teléfono:</label>
               <input type="text" id="input-edit-telefono-${index}" value="${p.telefono || ''}" style="width:100%; padding:0.4rem; background:#0a0a0a; border:1px solid #404040; color:#fff; border-radius:6px; font-size:0.85rem;">
             </div>
+            <div style="display: flex; gap: 0.5rem;">
+              <div style="flex: 1;">
+                <label style="font-size: 0.75rem; color: #a3a3a3;">Presupuesto Total:</label>
+                <input type="number" id="input-edit-presupuesto-${index}" value="${presupuesto}" style="width:100%; padding:0.4rem; background:#0a0a0a; border:1px solid #404040; color:#fff; border-radius:6px; font-size:0.85rem;">
+              </div>
+              <div style="flex: 1;">
+                <label style="font-size: 0.75rem; color: #a3a3a3;">Adelanto:</label>
+                <input type="number" id="input-edit-adelanto-${index}" value="${adelanto}" style="width:100%; padding:0.4rem; background:#0a0a0a; border:1px solid #404040; color:#fff; border-radius:6px; font-size:0.85rem;">
+              </div>
+            </div>
             <div style="display: flex; gap: 0.5rem; margin-top: 0.4rem;">
               <button type="button" onclick="guardarEdicionInline(${index})" style="background: #16a34a; color: white; border: none; padding: 0.4rem 0.8rem; border-radius: 6px; cursor: pointer; font-size: 0.8rem; font-weight: bold;">Guardar</button>
               <button type="button" onclick="cancelarEdicionInline(${index})" style="background: #404040; color: white; border: none; padding: 0.4rem 0.8rem; border-radius: 6px; cursor: pointer; font-size: 0.8rem;">Cancelar</button>
@@ -202,7 +230,7 @@ function renderProyectosAdmin() {
 
         <!-- BOTONES DE ACCIÓN PRINCIPAL (EDITAR / ELIMINAR) -->
         <div style="display: flex; gap: 0.5rem;">
-          <button type="button" id="btn-edit-toggle-${index}" onclick="activarEdicionInline(${index})" title="Editar datos" style="background: #3b82f6; color: white; border: none; padding: 0.6rem 0.8rem; border-radius: 8px; cursor: pointer;">
+          <button type="button" id="btn-edit-toggle-${index}" onclick="activarEdicionInline(${index})" title="Editar datos y finanzas" style="background: #3b82f6; color: white; border: none; padding: 0.6rem 0.8rem; border-radius: 8px; cursor: pointer;">
             <i class="fa-solid fa-pen-to-square"></i>
           </button>
           <button type="button" onclick="eliminarProyecto(${index})" title="Eliminar proyecto" style="background: #ef4444; color: white; border: none; padding: 0.6rem 0.8rem; border-radius: 8px; cursor: pointer;">
@@ -234,6 +262,8 @@ function guardarEdicionInline(index) {
   const nuevoCliente = document.getElementById(`input-edit-cliente-${index}`).value.trim();
   const nuevoMueble = document.getElementById(`input-edit-mueble-${index}`).value.trim();
   const nuevoTelefono = document.getElementById(`input-edit-telefono-${index}`).value.trim();
+  const nuevoPresupuesto = parseFloat(document.getElementById(`input-edit-presupuesto-${index}`).value) || 0;
+  const nuevoAdelanto = parseFloat(document.getElementById(`input-edit-adelanto-${index}`).value) || 0;
 
   if (!nuevoCodigo || !nuevoCliente || !nuevoMueble) {
     alert("Los campos Código, Cliente y Mueble son obligatorios.");
@@ -244,6 +274,8 @@ function guardarEdicionInline(index) {
   proyectos[index].cliente = nuevoCliente;
   proyectos[index].mueble = nuevoMueble;
   proyectos[index].telefono = nuevoTelefono;
+  proyectos[index].presupuesto = nuevoPresupuesto;
+  proyectos[index].adelanto = nuevoAdelanto;
 
   guardarEnLocalStorage();
   renderProyectosAdmin();
@@ -288,7 +320,11 @@ function notificarWhatsApp(index) {
     num = '591' + num;
   }
   
-  const mensaje = `Hola *${p.cliente}* 👋, desde *HN Muebles* te informamos el avance de tu proyecto *"${p.mueble}"*:\n\n🛠️ *Estado:* ${p.estado}\n📊 *Progreso:* ${p.progreso}%\n\nPuedes ver el estado actualizado ingresando tu código *${p.codigo}* en nuestra web.`;
+  const presupuesto = Number(p.presupuesto) || 0;
+  const adelanto = Number(p.adelanto) || 0;
+  const saldo = presupuesto - adelanto;
+
+  const mensaje = `Hola *${p.cliente}* 👋, desde *HN Muebles* te informamos el estado de tu proyecto *"${p.mueble}"*:\n\n🛠️ *Estado:* ${p.estado}\n📊 *Progreso:* ${p.progreso}%\n\n💰 *Resumen Financiero:*\n• Presupuesto Total: Bs. ${presupuesto.toFixed(2)}\n• Adelanto: Bs. ${adelanto.toFixed(2)}\n• Saldo Pendiente: Bs. ${saldo.toFixed(2)}\n\nPuedes consultar el detalle ingresando tu código *${p.codigo}* en nuestra web.`;
   
   window.open(`https://wa.me/${num}?text=${encodeURIComponent(mensaje)}`, '_blank');
 }
