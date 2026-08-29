@@ -97,7 +97,25 @@ document.addEventListener('DOMContentLoaded', function() {
     });
   }
 
-  // NUEVO PROYECTO
+  // CÁLCULO EN VIVO DEL SALDO AL CREAR PROYECTO
+  const inputPresupuestoNuevo = document.getElementById('nuevo-presupuesto');
+  const inputAdelantoNuevo = document.getElementById('nuevo-adelanto');
+  
+  function calcularSaldoEnVivo() {
+    const pres = parseFloat(inputPresupuestoNuevo ? inputPresupuestoNuevo.value : 0) || 0;
+    const adel = parseFloat(inputAdelantoNuevo ? inputAdelantoNuevo.value : 0) || 0;
+    const saldoFinal = pres - adel;
+    const lblSaldo = document.getElementById('lbl-nuevo-saldo');
+    if (lblSaldo) {
+      lblSaldo.innerText = `Bs. ${saldoFinal.toFixed(2)}`;
+      lblSaldo.style.color = saldoFinal > 0 ? '#f87171' : '#4ade80';
+    }
+  }
+
+  if (inputPresupuestoNuevo) inputPresupuestoNuevo.addEventListener('input', calcularSaldoEnVivo);
+  if (inputAdelantoNuevo) inputAdelantoNuevo.addEventListener('input', calcularSaldoEnVivo);
+
+  // NUEVO PROYECTO (GUARDAR)
   const formNuevo = document.getElementById('form-nuevo-proyecto');
   if (formNuevo) {
     formNuevo.addEventListener('submit', function(e) {
@@ -106,6 +124,8 @@ document.addEventListener('DOMContentLoaded', function() {
       const cliIn = document.getElementById('nuevo-cliente');
       const mueIn = document.getElementById('nuevo-mueble');
       const telIn = document.getElementById('nuevo-telefono');
+      const presIn = document.getElementById('nuevo-presupuesto');
+      const adelIn = document.getElementById('nuevo-adelanto');
 
       proyectos.push({
         codigo: codIn ? codIn.value.trim().toUpperCase() : '',
@@ -115,8 +135,8 @@ document.addEventListener('DOMContentLoaded', function() {
         estado: 'Diseño Aprobado', 
         progreso: 20, 
         detalles: 'Diseño confirmado por WhatsApp. Listo para corte.',
-        presupuesto: 0,
-        adelanto: 0
+        presupuesto: presIn ? parseFloat(presIn.value) || 0 : 0,
+        adelanto: adelIn ? parseFloat(adelIn.value) || 0 : 0
       });
 
       guardarEnLocalStorage();
@@ -125,6 +145,9 @@ document.addEventListener('DOMContentLoaded', function() {
       if (cliIn) cliIn.value = '';
       if (mueIn) mueIn.value = '';
       if (telIn) telIn.value = '';
+      if (presIn) presIn.value = '';
+      if (adelIn) adelIn.value = '';
+      calcularSaldoEnVivo();
       
       renderProyectosAdmin();
     });
@@ -137,7 +160,7 @@ function cerrarSesionAdmin() {
   document.getElementById('admin-login').classList.remove('hidden');
 }
 
-// --- 3. MOSTRAR TARJETAS EN PANEL ADMIN (CON FINANZAS E INLINE EDIT) ---
+// --- 3. MOSTRAR TARJETAS EN PANEL ADMIN ---
 function renderProyectosAdmin() {
   const container = document.getElementById('lista-proyectos-admin');
   const totalEl = document.getElementById('total-proyectos');
