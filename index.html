@@ -90,11 +90,11 @@
         <form id="form-nuevo-proyecto" class="admin-form">
           <h3><i class="fa-solid fa-plus font-amber"></i> Registrar Nuevo Mueble / Cliente</h3>
           
-          <!-- CONTENEDOR SEGURO PARA EL CÓDIGO Y EL BOTÓN (EVITA ENCIMADOS) -->
-          <div style="background: rgba(0,0,0,0.2); border: 1px solid rgba(255,255,255,0.1); padding: 12px; border-radius: 8px; margin-bottom: 12px;">
+          <!-- CÓDIGO TRANSPARENTE CON BOTÓN -->
+          <div style="background: transparent; border: 1px solid rgba(255,255,255,0.15); padding: 12px; border-radius: 8px; margin-bottom: 12px;">
             <label style="display: block; font-size: 0.8rem; color: #a3a3a3; margin-bottom: 4px;">Código del Proyecto:</label>
             <div style="display: flex; gap: 8px; width: 100%;">
-              <input type="text" id="nuevo-codigo" placeholder="Dejar vacío para autogenerar (Ej: HN9X4F)" style="flex: 1; padding: 0.6rem; background: #0a0a0a; border: 1px solid #404040; color: #fff; border-radius: 6px; box-sizing: border-box;" />
+              <input type="text" id="nuevo-codigo" placeholder="Dejar vacío para autogenerar (Ej: HN9X4F)" style="flex: 1; padding: 0.6rem; background: transparent; border: 1px solid #525252; color: #fff; border-radius: 6px; box-sizing: border-box;" />
               <button type="button" onclick="llenarCodigoAutomatico()" title="Generar código automático" style="background: #f59e0b; color: #000; border: none; padding: 0 16px; border-radius: 6px; cursor: pointer; font-weight: bold; font-size: 0.85rem; white-space: nowrap; height: 38px;">
                 Generar
               </button>
@@ -106,13 +106,13 @@
             <input type="text" id="nuevo-mueble" placeholder="Tipo de Mueble" required />
             <input type="text" id="nuevo-telefono" placeholder="WhatsApp / Celular (Ej: 70012345)" />
             
-            <!-- CAMPOS DE FINANZAS Y FECHA AL CREAR -->
-            <input type="number" id="nuevo-presupuesto" placeholder="Presupuesto Total (Bs)" />
-            <input type="number" id="nuevo-adelanto" placeholder="Adelanto Pagado (Bs)" />
+            <!-- CAMPOS DE FINANZAS TRANSPARENTES Y LIBRES (SIN CEROS FORZADOS) -->
+            <input type="text" id="nuevo-presupuesto" placeholder="Presupuesto Total (Bs)" inputmode="decimal" style="background: transparent; border: 1px solid #525252; color: #fff; padding: 0.6rem; border-radius: 6px; box-sizing: border-box;" />
+            <input type="text" id="nuevo-adelanto" placeholder="Adelanto Pagado (Bs)" inputmode="decimal" style="background: transparent; border: 1px solid #525252; color: #fff; padding: 0.6rem; border-radius: 6px; box-sizing: border-box;" />
             
             <div style="grid-column: 1 / -1; display: flex; flex-direction: column; gap: 0.3rem;">
               <label style="font-size: 0.8rem; color: #a3a3a3;"><i class="fa-regular fa-calendar"></i> Fecha Estimada de Entrega:</label>
-              <input type="date" id="nuevo-fecha" style="padding: 0.5rem; background: #0a0a0a; border: 1px solid #404040; color: #fff; border-radius: 6px; box-sizing: border-box;" />
+              <input type="date" id="nuevo-fecha" style="padding: 0.5rem; background: transparent; border: 1px solid #525252; color: #fff; border-radius: 6px; box-sizing: border-box;" />
             </div>
           </div>
           
