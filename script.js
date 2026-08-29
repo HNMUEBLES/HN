@@ -1,4 +1,4 @@
-// --- CONFIGURACIÓN DE FIREBASE (Tus credenciales reales) ---
+// --- CONFIGURACIÓN DE FIREBASE ---
 const firebaseConfig = {
   apiKey: "AIzaSyCLrVUpGCTxFxuMR0ATlwj2t3osSP0dD7Y",
   authDomain: "hn-muebles.firebaseapp.com",
@@ -16,14 +16,16 @@ const db = firebase.firestore();
 let proyectos = [];
 let esAdmin = false;
 
-// --- FUNCIÓN PARA MOSTRAR MONTOS EXACTOS SIN CEROS INNECESARIOS ---
+// ==========================================
+// 1. FUNCIONES UTILITARIAS Y AUXILIARES
+// ==========================================
+
 function formatearMonto(valor) {
   const num = Number(valor);
   if (isNaN(num)) return "0";
   return Number.isInteger(num) ? num.toString() : num.toString();
 }
 
-// --- FUNCIÓN PARA GENERAR CÓDIGO AL AZAR SIN GUION (Ej: HN9X4F) ---
 function generarCodigoAleatorio() {
   const caracteres = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
   let aleatorio = '';
@@ -33,7 +35,6 @@ function generarCodigoAleatorio() {
   return `HN${aleatorio}`;
 }
 
-// --- FUNCIÓN PARA AUTO-RELLENAR EL INPUT DE CÓDIGO CON EL BOTÓN ---
 function llenarCodigoAutomatico() {
   const inputCod = document.getElementById('nuevo-codigo');
   if (inputCod) {
@@ -41,7 +42,18 @@ function llenarCodigoAutomatico() {
   }
 }
 
-// --- CARGAR PROYECTOS DESDE FIRESTORE EN VIVO ---
+function copiarCodigoAlPortapapeles(codigo) {
+  navigator.clipboard.writeText(codigo).then(() => {
+    alert(`¡Código "${codigo}" copiado al portapapeles!`);
+  }).catch(err => {
+    console.error("Error al copiar código: ", err);
+  });
+}
+
+// ==========================================
+// 2. CARGA DE DATOS DESDE FIRESTORE
+// ==========================================
+
 async function cargarProyectosDesdeNube() {
   try {
     const querySnapshot = await db.collection("proyectos").get();
@@ -64,23 +76,30 @@ async function cargarProyectosDesdeNube() {
 // Ejecutar carga inicial al abrir la página
 cargarProyectosDesdeNube();
 
-// --- 1. NAVEGACIÓN ENTRE SECCIONES ---
+// ==========================================
+// 3. NAVEGACIÓN ENTRE SECCIONES
+// ==========================================
+
 function mostrarSeccion(seccionId) {
   const secInicio = document.getElementById('sec-inicio');
   const secRastreo = document.getElementById('sec-rastreo');
   const secAdmin = document.getElementById('sec-admin');
+  const secReportes = document.getElementById('sec-reportes');
 
   if (secInicio) secInicio.classList.add('hidden');
   if (secRastreo) secRastreo.classList.add('hidden');
   if (secAdmin) secAdmin.classList.add('hidden');
+  if (secReportes) secReportes.classList.add('hidden');
 
   const btnInicio = document.getElementById('btn-inicio');
   const btnRastreo = document.getElementById('btn-rastreo');
   const btnAdmin = document.getElementById('btn-admin');
+  const btnReportes = document.getElementById('btn-reportes');
 
   if (btnInicio) btnInicio.classList.remove('active');
   if (btnRastreo) btnRastreo.classList.remove('active');
   if (btnAdmin) btnAdmin.classList.remove('active');
+  if (btnReportes) btnReportes.classList.remove('active');
 
   const secDestino = document.getElementById(`sec-${seccionId}`);
   const btnDestino = document.getElementById(`btn-${seccionId}`);
@@ -89,8 +108,13 @@ function mostrarSeccion(seccionId) {
   if (btnDestino) btnDestino.classList.add('active');
 }
 
-// --- 2. INICIALIZACIÓN Y EVENTOS ---
+// ==========================================
+// 4. INICIALIZACIÓN Y EVENTOS DEL DOM
+// ==========================================
+
 document.addEventListener('DOMContentLoaded', function() {
+  
+  // BÚSQUEDA DE PROYECTO (CLIENTE)
   const formBuscar = document.getElementById('form-buscar');
   if (formBuscar) {
     formBuscar.addEventListener('submit', function(e) {
@@ -123,22 +147,27 @@ document.addEventListener('DOMContentLoaded', function() {
     });
   }
 
-  // LOGIN ADMIN
+  // LOGIN ADMIN (CORREGIDO Y SEGURO)
   const formLogin = document.getElementById('form-login');
   if (formLogin) {
     formLogin.addEventListener('submit', async function(e) {
       e.preventDefault();
       const passInput = document.getElementById('input-pass');
       
-      if (passInput && passInput.value === 'hn2026') {
+      if (passInput && passInput.value.trim() === 'hn2026') {
         esAdmin = true;
-        document.getElementById('admin-login').classList.add('hidden');
-        document.getElementById('admin-panel').classList.remove('hidden');
+        const divLogin = document.getElementById('admin-login');
+        const divPanel = document.getElementById('admin-panel');
+        
+        if (divLogin) divLogin.classList.add('hidden');
+        if (divPanel) divPanel.classList.remove('hidden');
+        
         passInput.value = '';
         await cargarProyectosDesdeNube();
         renderProyectosAdmin();
       } else { 
         alert('Contraseña incorrecta'); 
+        if (passInput) passInput.value = '';
       }
     });
   }
@@ -161,7 +190,7 @@ document.addEventListener('DOMContentLoaded', function() {
   if (inputPresupuestoNuevo) inputPresupuestoNuevo.addEventListener('input', calcularSaldoEnVivo);
   if (inputAdelantoNuevo) inputAdelantoNuevo.addEventListener('input', calcularSaldoEnVivo);
 
-  // NUEVO PROYECTO (GUARDAR EN FIRESTORE) - 100% SILENCIOSO
+  // NUEVO PROYECTO (GUARDAR EN FIRESTORE)
   const formNuevo = document.getElementById('form-nuevo-proyecto');
   if (formNuevo) {
     formNuevo.addEventListener('submit', async function(e) {
@@ -215,7 +244,6 @@ document.addEventListener('DOMContentLoaded', function() {
   // EVENTO PARA EL FILTRO DE REPORTE MENSUAL
   const selectMes = document.getElementById('filtro-mes');
   if (selectMes) {
-    // Poner el mes actual por defecto (YYYY-MM)
     const fechaActual = new Date();
     const anio = fechaActual.getFullYear();
     const mes = String(fechaActual.getMonth() + 1).padStart(2, '0');
@@ -229,32 +257,38 @@ document.addEventListener('DOMContentLoaded', function() {
 
 function cerrarSesionAdmin() {
   esAdmin = false;
-  document.getElementById('admin-panel').classList.add('hidden');
-  document.getElementById('admin-login').classList.remove('hidden');
+  const divPanel = document.getElementById('admin-panel');
+  const divLogin = document.getElementById('admin-login');
+  if (divPanel) divPanel.classList.add('hidden');
+  if (divLogin) divLogin.classList.remove('hidden');
 }
 
-// --- 3. MOSTRAR TARJETAS Y REPORTE MENSUAL EN PANEL ADMIN ---
+// ==========================================
+// 5. RENDERIZADO Y REPORTE MENSUAL EN PANEL ADMIN
+// ==========================================
+
 function renderProyectosAdmin() {
   const container = document.getElementById('lista-proyectos-admin');
   const totalEl = document.getElementById('total-proyectos');
   
   if (totalEl) totalEl.innerText = proyectos.length;
 
-  // --- CÁLCULO DE REPORTE MENSUAL ---
   const selectMes = document.getElementById('filtro-mes');
-  const mesSeleccionado = selectMes ? selectMes.value : ''; // Formato "YYYY-MM"
+  const mesSeleccionado = selectMes ? selectMes.value : ''; 
 
-  let proyectosFiltradosMes = proyectos;
+  let proyectosFiltradosMes = proyectos.filter(p => {
+    if (!p.fechaEntrega || p.fechaEntrega.trim() === '') {
+      return true; 
+    }
+    if (mesSeleccionado) {
+      return p.fechaEntrega.startsWith(mesSeleccionado);
+    }
+    return true;
+  });
+
   let totalPresupuestoMes = 0;
   let totalAdelantoMes = 0;
   let totalSaldoMes = 0;
-
-  if (mesSeleccionado) {
-    proyectosFiltradosMes = proyectos.filter(p => {
-      if (!p.fechaEntrega) return false;
-      return p.fechaEntrega.startsWith(mesSeleccionado);
-    });
-  }
 
   proyectosFiltradosMes.forEach(p => {
     const pres = Number(p.presupuesto) || 0;
@@ -264,7 +298,6 @@ function renderProyectosAdmin() {
     totalSaldoMes += (pres - adel);
   });
 
-  // Pintar valores en el DOM del reporte mensual
   const elCantMes = document.getElementById('reporte-cant-mes');
   const elPresMes = document.getElementById('reporte-presupuesto-mes');
   const elAdelMes = document.getElementById('reporte-adelanto-mes');
@@ -299,10 +332,14 @@ function renderProyectosAdmin() {
     card.innerHTML = `
       <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 1rem; flex-wrap: wrap;">
         
-        <!-- VISTA NORMAL / INFO -->
         <div id="info-view-${index}" style="flex: 1; min-width: 280px;">
           <div style="display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap;">
-            <span style="background: #f59e0b; color: #000; padding: 0.2rem 0.5rem; border-radius: 4px; font-weight: bold; font-size: 0.85rem;">${p.codigo}</span>
+            <div style="display: flex; align-items: center; gap: 0.4rem;">
+              <span style="background: #f59e0b; color: #000; padding: 0.2rem 0.6rem; border-radius: 4px; font-weight: bold; font-size: 0.85rem;">${p.codigo}</span>
+              <button type="button" onclick="copiarCodigoAlPortapapeles('${p.codigo}')" title="Copiar código" style="background: rgba(255,255,255,0.1); color: #fff; border: 1px solid rgba(255,255,255,0.2); padding: 0.2rem 0.5rem; border-radius: 4px; cursor: pointer; font-size: 0.75rem;">
+                <i class="fa-regular fa-copy"></i> Copiar
+              </button>
+            </div>
             <strong style="font-size: 1.05rem;">${p.mueble}</strong>
           </div>
           <p style="margin: 0.4rem 0; color: #a3a3a3; font-size: 0.85rem;">
@@ -312,7 +349,6 @@ function renderProyectosAdmin() {
             <i class="fa-regular fa-calendar"></i> Entrega estimada: <strong>${fechaFormateada}</strong>
           </p>
 
-          <!-- SECCIÓN DE FINANZAS -->
           <div style="background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.08); padding: 0.6rem 0.8rem; border-radius: 8px; margin: 0.6rem 0; display: flex; gap: 1rem; flex-wrap: wrap; font-size: 0.85rem;">
             <div><span style="color: #a3a3a3;">Total:</span> <strong>Bs. ${formatearMonto(presupuesto)}</strong></div>
             <div><span style="color: #a3a3a3;">Adelanto:</span> <strong style="color: #38bdf8;">Bs. ${formatearMonto(adelanto)}</strong></div>
@@ -327,7 +363,6 @@ function renderProyectosAdmin() {
           </div>
         </div>
 
-        <!-- VISTA DE EDICIÓN INLINE (OCULTA POR DEFECTO) -->
         <div id="edit-view-${index}" style="flex: 1; min-width: 280px; display: none; background: rgba(0,0,0,0.4); padding: 1rem; border-radius: 8px; border: 1px solid rgba(255,255,255,0.15);">
           <h4 style="margin-bottom: 0.6rem; color: #f59e0b; font-size: 0.95rem;">Editar Proyecto, Finanzas y Fecha</h4>
           <div style="display: flex; flex-direction: column; gap: 0.5rem;">
@@ -368,12 +403,11 @@ function renderProyectosAdmin() {
           </div>
         </div>
 
-        <!-- BOTONES DE ACCIÓN PRINCIPAL (EDITAR / ELIMINAR) -->
         <div style="display: flex; gap: 0.5rem;">
-          <button type="button" id="btn-edit-toggle-${index}" onclick="activarEdicionInline(${index})" title="Editar datos, finanzas y fecha" style="background: #3b82f6; color: white; border: none; padding: 0.6rem 0.8rem; border-radius: 8px; cursor: pointer;">
+          <button type="button" id="btn-edit-toggle-${index}" onclick="activarEdicionInline(${index})" title="Editar" style="background: #3b82f6; color: white; border: none; padding: 0.6rem 0.8rem; border-radius: 8px; cursor: pointer;">
             <i class="fa-solid fa-pen-to-square"></i>
           </button>
-          <button type="button" onclick="eliminarProyecto('${p.id}')" title="Eliminar proyecto" style="background: #ef4444; color: white; border: none; padding: 0.6rem 0.8rem; border-radius: 8px; cursor: pointer;">
+          <button type="button" onclick="eliminarProyecto('${p.id}')" title="Eliminar" style="background: #ef4444; color: white; border: none; padding: 0.6rem 0.8rem; border-radius: 8px; cursor: pointer;">
             <i class="fa-solid fa-trash"></i>
           </button>
         </div>
@@ -384,7 +418,10 @@ function renderProyectosAdmin() {
   });
 }
 
-// --- 4. FUNCIONES DE EDICIÓN DIRECTA EN LA TARJETA ---
+// ==========================================
+// 6. ACCIONES DE EDICIÓN, ESTADOS Y WHATSAPP
+// ==========================================
+
 function activarEdicionInline(index) {
   document.getElementById(`info-view-${index}`).style.display = 'none';
   document.getElementById(`edit-view-${index}`).style.display = 'block';
@@ -429,7 +466,6 @@ async function guardarEdicionInline(idFirebase, index) {
   }
 }
 
-// --- 5. OTRAS ACCIONES ---
 async function cambiarEstadoPorId(idFirebase, etapaIdx, nuevoProgreso) {
   const etapas = ['Diseño Aprobado', 'Corte', 'Armado', 'Instalación', 'Finalizado'];
   const descripciones = [
@@ -485,7 +521,57 @@ function notificarWhatsApp(index) {
   
   const linkPagina = window.location.origin + window.location.pathname;
 
-  const mensaje = `Hola *${p.cliente}* 👋, desde *HN Muebles* te informamos el estado de tu proyecto *"${p.mueble}"*:\n\n🛠️ *Estado:* ${p.estado}\n📊 *Progreso:* ${p.progreso}%\n📅 *Fecha Estimada de Entrega:* ${fechaTexto}\n\n💰 *Resumen Financiero:*\n• Presupuesto Total: Bs. ${formatearMonto(presupuesto)}\n• Adelanto: Bs. ${formatearMonto(adelanto)}\n• Saldo Pendiente: Bs. ${formatearMonto(saldo)}\n\n🔍 *Puedes rastrear tu proyecto ingresando tu código (${p.codigo}) aquí:*\n${linkPagina}`;
+  const mensaje = `Hola *${p.cliente}* 👋, desde *HN Muebles* te informamos el estado de tu proyecto *"${p.mueble}"*:\n\n🛠️ *Estado:* ${p.estado}\n📊 *Progreso:* ${p.progreso}%\n📅 *Fecha Estimada de Entrega:* ${fechaTexto}\n\n💰 *Resumen Financiero:*\n• Presupuesto Total: Bs. ${formatearMonto(presupuesto)}\n• Adelanto: Bs. ${formatearMonto(adelanto)}\n• Saldo Pendiente: Bs. ${formatearMonto(saldo)}\n\n🔍 *Puedes rastrear tu proyecto ingresando tu código (*${p.codigo}*) aquí:*\n${linkPagina}`;
   
   window.open(`https://wa.me/${num}?text=${encodeURIComponent(mensaje)}`, '_blank');
+}
+
+// ==========================================
+// 7. EXPORTACIÓN A EXCEL (CSV)
+// ==========================================
+
+function exportarReporteExcel() {
+  const selectMes = document.getElementById('filtro-mes');
+  const mesSeleccionado = selectMes ? selectMes.value : 'Todos';
+
+  let proyectosFiltrados = proyectos.filter(p => {
+    if (!p.fechaEntrega || p.fechaEntrega.trim() === '') {
+      return true; 
+    }
+    if (mesSeleccionado) {
+      return p.fechaEntrega.startsWith(mesSeleccionado);
+    }
+    return true;
+  });
+
+  if (proyectosFiltrados.length === 0) {
+    alert("No hay proyectos en este período para exportar.");
+    return;
+  }
+
+  let csvContent = "\uFEFF"; 
+  csvContent += "Codigo;Cliente;Mueble;Telefono;Estado;Fecha Entrega;Presupuesto (Bs);Adelanto (Bs);Saldo Pendiente (Bs)\n";
+
+  proyectosFiltrados.forEach(p => {
+    const presupuesto = Number(p.presupuesto) || 0;
+    const adelanto = Number(p.adelanto) || 0;
+    const saldo = presupuesto - adelanto;
+    const fecha = p.fechaEntrega ? p.fechaEntrega.split('-').reverse().join('/') : 'Sin definir';
+    
+    const cliente = (p.cliente || '').replace(/;/g, ',');
+    const mueble = (p.mueble || '').replace(/;/g, ',');
+    const telefono = p.telefono || 'Sin registrar';
+    const estado = p.estado || '';
+
+    csvContent += `${p.codigo};"${cliente}";"${mueble}";"${telefono}";"${estado}";${fecha};${presupuesto};${adelanto};${saldo}\n`;
+  });
+
+  const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement("a");
+  link.setAttribute("href", url);
+  link.setAttribute("download", `Reporte_Financiero_HN_${mesSeleccionado || 'General'}.csv`);
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
 }
