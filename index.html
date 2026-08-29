@@ -5,22 +5,24 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>HN Muebles | Diseño y Fabricación a Medida</title>
   <link rel="stylesheet" href="styles.css" />
-  <!-- Importando tipografía elegante estilo lujo -->
-  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&display=swap" rel="stylesheet">
+  <!-- Tipografía de lujo de Google Fonts -->
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&family=Plus+Jakarta+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
 </head>
 <body>
-  <!-- BARRA DE ANUNCIO SUPERIOR (ESTILO REFERENCIA) -->
+
+  <!-- BARRA DE ANUNCIO SUPERIOR -->
   <div class="top-announcement">
-    <i class="fa-solid fa-gem"></i> DISEÑO Y EXCLUSIVIDAD EN MELAMINA Y ACABADOS DE PRIMERA <span onclick="mostrarSeccion('rastreo')">RASTREA TU PROYECTO</span>
+    <span><i class="fa-solid fa-gem"></i> DISEÑO Y EXCLUSIVIDAD EN MELAMINA</span> — FABRICACIÓN DE ALTA GAMA <button onclick="mostrarSeccion('rastreo')" class="announcement-link">RASTREA TU ORDEN</button>
   </div>
 
-  <div class="bg-overlay"></div>
   <div class="app-container">
-    <!-- NAVBAR -->
+    
+    <!-- NAVBAR PRINCIPAL -->
     <header class="navbar">
       <div class="logo-container" onclick="irInicio()">
         <img src="assets/logo.png" alt="HN Muebles Logo" class="logo-img" onerror="this.style.display='none'" />
+        <span class="logo-text">HN MUEBLES</span>
       </div>
       <nav class="nav-links">
         <button onclick="irInicio()" id="btn-inicio" class="active">Inicio</button>
@@ -30,15 +32,78 @@
       </nav>
     </header>
     
-    <!-- SECCIÓN INICIO -->
-    <section id="sec-inicio" class="content-section">
-      <div class="hero-box">
-        <h1>Diseño y Fabricación de Muebles a Medida</h1>
-        <p>Transformamos tus espacios con melamina y acabados de primera calidad. Consulta el avance de tu fabricación en tiempo real o ponte en contacto directo con nosotros.</p>
-        <button class="btn-primary" onclick="mostrarSeccion('rastreo')">
-          <i class="fa-solid fa-magnifying-glass"></i> Consultar Estado de Mi Mueble
-        </button>
+    <!-- SECCIÓN INICIO (ESTILO HERO DE LUJO) -->
+    <section id="sec-inicio" class="content-section-hero">
+      
+      <!-- HERO BANNER PRINCIPAL -->
+      <div class="hero-banner">
+        <div class="hero-content">
+          <span class="hero-subtitle">COLECCIÓN EXCLUSIVA HN</span>
+          <h1>Redefine Tus Espacios.<br>Vive con Estilo.</h1>
+          <p>Diseños atemporales a medida. Melamina y acabados de primera calidad creados para una vida de elegancia y confort inigualable.</p>
+          <div class="hero-buttons">
+            <button class="btn-primary" onclick="mostrarSeccion('rastreo')">
+              Consultar Mi Proyecto <i class="fa-solid fa-arrow-right"></i>
+            </button>
+          </div>
+        </div>
       </div>
+
+      <!-- BARRA DE CARACTERÍSTICAS (4 ICONOS ESTILO REFERENCIA) -->
+      <div class="features-bar">
+        <div class="feature-item">
+          <i class="fa-solid fa-gem"><div><strong>Calidad Premium</strong><span>Materiales de máxima durabilidad.</span></div></i>
+        </div>
+        <div class="feature-item">
+          <i class="fa-solid fa-shield-halved"><div><strong>Garantía HN</strong><span>Respaldo total en fabricación.</span></div></i>
+        </div>
+        <div class="feature-item">
+          <i class="fa-solid fa-truck-fast"><div><strong>Entrega Segura</strong><span>Instalación profesional en domicilio.</span></div></i>
+        </div>
+        <div class="feature-item">
+          <i class="fa-solid fa-headset"><div><strong>Atención 24/7</strong><span>Soporte y seguimiento directo.</span></div></i>
+        </div>
+      </div>
+
+      <!-- SECCIÓN DE CATEGORÍAS / ESPACIOS (ESTILO GALERÍA) -->
+      <div class="collections-section">
+        <div class="section-header-title">
+          <span>DISEÑADOS PARA CADA ESPACIO</span>
+          <h2>Inspírate para tu Hogar</h2>
+        </div>
+
+        <div class="categories-grid">
+          <div class="cat-card" onclick="mostrarSeccion('rastreo')">
+            <div class="cat-img-box living"></div>
+            <div class="cat-info">
+              <h3>LIVING ROOM</h3>
+              <p>Confort y elegancia moderna.</p>
+            </div>
+          </div>
+          <div class="cat-card" onclick="mostrarSeccion('rastreo')">
+            <div class="cat-img-box bedroom"></div>
+            <div class="cat-info">
+              <h3>DORMITORIOS</h3>
+              <p>Diseño exclusivo y descanso.</p>
+            </div>
+          </div>
+          <div class="cat-card" onclick="mostrarSeccion('rastreo')">
+            <div class="cat-img-box dining"></div>
+            <div class="cat-info">
+              <h3>COCINAS & COMEDORES</h3>
+              <p>Funcionalidad y alta gama.</p>
+            </div>
+          </div>
+          <div class="cat-card" onclick="mostrarSeccion('rastreo')">
+            <div class="cat-img-box office"></div>
+            <div class="cat-info">
+              <h3>OFICINAS & OTROS</h3>
+              <p>Optimización y sofisticación.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
     </section>
 
     <!-- SECCIÓN RASTREO -->
@@ -195,10 +260,10 @@
     </footer>
   </div>
 
-  <!-- CONTROL DE NAVEGACIÓN BLINDADO -->
+  <!-- CONTROL DE NAVEGACIÓN -->
   <script>
     function irInicio() {
-      document.querySelectorAll('.content-section').forEach(sec => sec.classList.add('hidden'));
+      document.querySelectorAll('.content-section, .content-section-hero').forEach(sec => sec.classList.add('hidden'));
       const secInicio = document.getElementById('sec-inicio');
       if (secInicio) secInicio.classList.remove('hidden');
 
@@ -209,7 +274,7 @@
 
     const originalMostrarSeccion = window.mostrarSeccion;
     window.mostrarSeccion = function(seccion) {
-      document.querySelectorAll('.content-section').forEach(sec => sec.classList.add('hidden'));
+      document.querySelectorAll('.content-section, .content-section-hero').forEach(sec => sec.classList.add('hidden'));
       document.querySelectorAll('.nav-links button').forEach(btn => btn.classList.remove('active'));
 
       const target = document.getElementById('sec-' + seccion);
@@ -250,7 +315,7 @@
     }
   </script>
 
-  <!-- SDKs de Firebase (Compatibilidad) -->
+  <!-- SDKs de Firebase -->
   <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
 
