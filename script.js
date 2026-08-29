@@ -4,6 +4,7 @@ const proyectosIniciales = [
     codigo: 'HN-001', 
     cliente: 'Carlos Mendoza', 
     mueble: 'Juego de Comedor en Melamina', 
+    telefono: '62037033',
     estado: 'Fabricación', 
     progreso: 60, 
     detalles: 'Corte finalizado. Ensamblado de partes en proceso.' 
@@ -19,9 +20,8 @@ function guardarEnLocalStorage() {
 
 let esAdmin = false;
 
-// --- 1. NAVEGACIÓN ENTRE SECCIONES (INICIO / RASTREO / ADMIN) ---
+// --- 1. NAVEGACIÓN ENTRE SECCIONES ---
 function mostrarSeccion(seccionId) {
-  // Ocultar todas las secciones del HTML
   const secInicio = document.getElementById('sec-inicio');
   const secRastreo = document.getElementById('sec-rastreo');
   const secAdmin = document.getElementById('sec-admin');
@@ -30,7 +30,6 @@ function mostrarSeccion(seccionId) {
   if (secRastreo) secRastreo.classList.add('hidden');
   if (secAdmin) secAdmin.classList.add('hidden');
 
-  // Quitar estado activo de los botones del menú
   const btnInicio = document.getElementById('btn-inicio');
   const btnRastreo = document.getElementById('btn-rastreo');
   const btnAdmin = document.getElementById('btn-admin');
@@ -39,7 +38,6 @@ function mostrarSeccion(seccionId) {
   if (btnRastreo) btnRastreo.classList.remove('active');
   if (btnAdmin) btnAdmin.classList.remove('active');
 
-  // Mostrar la sección seleccionada y activar su botón correspondiente
   const secDestino = document.getElementById(`sec-${seccionId}`);
   const btnDestino = document.getElementById(`btn-${seccionId}`);
 
@@ -47,7 +45,7 @@ function mostrarSeccion(seccionId) {
   if (btnDestino) btnDestino.classList.add('active');
 }
 
-// --- 2. BÚSQUEDA DEL CLIENTE (RASTREO) ---
+// --- 2. BÚSQUEDA DEL CLIENTE ---
 document.addEventListener('DOMContentLoaded', function() {
   const formBuscar = document.getElementById('form-buscar');
   if (formBuscar) {
@@ -98,7 +96,7 @@ document.addEventListener('DOMContentLoaded', function() {
     });
   }
 
-  // --- 4. REGISTRAR NUEVO PROYECTO ---
+  // --- 4. REGISTRAR NUEVO PROYECTO (INCLUYE TELÉFONO) ---
   const formNuevo = document.getElementById('form-nuevo-proyecto');
   if (formNuevo) {
     formNuevo.addEventListener('submit', function(e) {
@@ -106,11 +104,13 @@ document.addEventListener('DOMContentLoaded', function() {
       const codIn = document.getElementById('nuevo-codigo');
       const cliIn = document.getElementById('nuevo-cliente');
       const mueIn = document.getElementById('nuevo-mueble');
+      const telIn = document.getElementById('nuevo-telefono');
 
       proyectos.push({
         codigo: codIn ? codIn.value.trim().toUpperCase() : '',
         cliente: cliIn ? cliIn.value.trim() : '',
         mueble: mueIn ? mueIn.value.trim() : '',
+        telefono: telIn ? telIn.value.trim() : '',
         estado: 'Diseño', 
         progreso: 20, 
         detalles: 'Proyecto registrado en sistema.'
@@ -121,6 +121,7 @@ document.addEventListener('DOMContentLoaded', function() {
       if (codIn) codIn.value = '';
       if (cliIn) cliIn.value = '';
       if (mueIn) mueIn.value = '';
+      if (telIn) telIn.value = '';
       
       renderProyectosAdmin();
     });
@@ -159,8 +160,15 @@ function renderProyectosAdmin() {
       <div style="flex: 1; min-width: 250px;">
         <span class="badge" style="background: #f59e0b; color: #000; padding: 0.2rem 0.5rem; border-radius: 4px; font-weight: bold; font-size: 0.85rem;">${p.codigo}</span>
         <strong style="margin-left: 0.5rem; font-size: 1.05rem;">${p.mueble}</strong>
-        <p style="margin: 0.4rem 0; color: #a3a3a3; font-size: 0.85rem;"><i class="fa-solid fa-user"></i> Cliente: ${p.cliente}</p>
+        <p style="margin: 0.4rem 0; color: #a3a3a3; font-size: 0.85rem;">
+          <i class="fa-solid fa-user"></i> Cliente: ${p.cliente} | <i class="fa-solid fa-phone"></i> Tel: ${p.telefono || 'Sin registrar'}
+        </p>
         <div style="margin-top: 0.5rem;">${botonesEtapas}</div>
+        <div style="margin-top: 0.8rem;">
+          <button type="button" onclick="notificarWhatsApp(${index})" style="background: #16a34a; color: white; border: none; padding: 0.4rem 0.8rem; border-radius: 6px; cursor: pointer; font-size: 0.85rem; font-weight: bold; display: inline-flex; align-items: center; gap: 0.4rem;">
+            <i class="fa-brands fa-whatsapp"></i> Notificar Avance por WhatsApp
+          </button>
+        </div>
       </div>
       <button type="button" onclick="eliminarProyecto(${index})" title="Eliminar proyecto" style="background: #ef4444; color: white; border: none; padding: 0.6rem 0.8rem; border-radius: 8px; cursor: pointer;">
         <i class="fa-solid fa-trash"></i>
@@ -170,7 +178,6 @@ function renderProyectosAdmin() {
   });
 }
 
-// Cambiar estado del proyecto desde el panel
 function cambiarEstadoPorIndice(proyectoIdx, etapaIdx, nuevoProgreso) {
   const etapas = ['Diseño', 'Corte de Placas', 'Fabricación', 'Lustre / Enchapado', 'Listo para Entrega'];
   proyectos[proyectoIdx].estado = etapas[etapaIdx];
@@ -181,13 +188,30 @@ function cambiarEstadoPorIndice(proyectoIdx, etapaIdx, nuevoProgreso) {
   renderProyectosAdmin();
 }
 
-// Eliminar proyecto
 function eliminarProyecto(index) {
   if (confirm('¿Deseas eliminar este proyecto?')) {
     proyectos.splice(index, 1);
     guardarEnLocalStorage();
     renderProyectosAdmin();
   }
+}
+
+// --- 6. FUNCIÓN PARA NOTIFICAR POR WHATSAPP ---
+function notificarWhatsApp(index) {
+  const p = proyectos[index];
+  if (!p.telefono || p.telefono.trim() === '') {
+    alert("Este cliente no tiene un número de teléfono registrado.");
+    return;
+  }
+  
+  let num = p.telefono.toString().replace(/\D/g, '');
+  if (!num.startsWith('591') && num.length === 8) {
+    num = '591' + num;
+  }
+  
+  const mensaje = `Hola *${p.cliente}* 👋, desde *HN Muebles* te informamos el avance de tu proyecto *"${p.mueble}"*:\n\n🛠️ *Estado:* ${p.estado}\n📊 *Progreso:* ${p.progreso}%\n\nPuedes ver los detalles ingresando tu código *${p.codigo}* en nuestra web.`;
+  
+  window.open(`https://wa.me/${num}?text=${encodeURIComponent(mensaje)}`, '_blank');
 }
 
 if (!localStorage.getItem('hn_proyectos')) { 
