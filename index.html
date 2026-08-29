@@ -10,26 +10,34 @@
 <body>
   <div class="bg-overlay"></div>
   <div class="app-container">
+    <!-- NAVBAR ORIGINAL + PESTAÑA DE REPORTE OCULTA HASTA ENTRAR A ADMIN -->
     <header class="navbar">
       <div class="logo-container" onclick="mostrarSeccion('inicio')">
         <img src="assets/logo.png" alt="HN Muebles Logo" class="logo-img" onerror="this.style.display='none'" />
       </div>
       <nav class="nav-links">
         <button onclick="mostrarSeccion('inicio')" id="btn-inicio" class="active">Inicio</button>
-        <button onclick="mostrarSeccion('reportes')" id="btn-reportes"><i class="fa-solid fa-chart-pie"></i> Reporte Mensual</button>
+        <button onclick="mostrarSeccion('rastreo')" id="btn-rastreo">Rastrear Proyecto</button>
         <button onclick="mostrarSeccion('admin')" id="btn-admin"><i class="fa-solid fa-lock"></i> Admin</button>
+        <!-- Esta pestaña de reporte financiero solo aparecerá arriba cuando seas Admin -->
+        <button onclick="mostrarSeccion('reportes')" id="btn-reportes" style="display: none;"><i class="fa-solid fa-chart-pie"></i> Reporte Financiero</button>
       </nav>
     </header>
     
-    <!-- SECCIÓN INICIO CON EL BUSCADOR DE PROYECTOS INTEGRADO -->
+    <!-- SECCIÓN INICIO ORIGINAL -->
     <section id="sec-inicio" class="content-section">
       <div class="hero-box">
         <h1>Diseño y Fabricación de Muebles a Medida</h1>
         <p>Transformamos tus espacios con melamina y acabados de primera calidad. Consulta el avance de tu fabricación en tiempo real o ponte en contacto directo con nosotros.</p>
+        <button class="btn-primary" onclick="mostrarSeccion('rastreo')">
+          <i class="fa-solid fa-magnifying-glass"></i> Consultar Estado de Mi Mueble
+        </button>
       </div>
+    </section>
 
-      <!-- CAJITA DE RASTREO DIRECTA EN EL INICIO -->
-      <div class="card-box" style="margin-top: 20px;">
+    <!-- SECCIÓN RASTREO ORIGINAL -->
+    <section id="sec-rastreo" class="content-section hidden">
+      <div class="card-box">
         <h2><i class="fa-solid fa-box font-amber"></i> Seguimiento de Proyecto</h2>
         <p class="subtitle">Ingresa el código asignado a tu orden (Ejemplo: <strong>HN-001</strong>)</p>
         <form id="form-buscar" class="search-form">
@@ -64,58 +72,7 @@
       </div>
     </section>
 
-    <!-- SECCIÓN REPORTE MENSUAL -->
-    <section id="sec-reportes" class="content-section hidden">
-      <div id="reportes-login" class="card-box login-box">
-        <i class="fa-solid fa-chart-pie icon-lock font-amber" style="font-size: 2.5rem; margin-bottom: 1rem;"></i>
-        <h2>Reporte Financiero</h2>
-        <p class="subtitle">Ingresa la contraseña para ver los balances</p>
-        <form id="form-login-reportes" class="login-form">
-          <input type="password" id="input-pass-reportes" placeholder="Contraseña..." required />
-          <button type="submit" class="btn-primary">Ver Reportes</button>
-        </form>
-      </div>
-
-      <div id="reportes-panel" class="panel-box hidden">
-        <div class="panel-header">
-          <div>
-            <h2>Reporte Financiero Mensual</h2>
-            <p class="subtitle">Control de ingresos, adelantos y saldos por cobrar</p>
-          </div>
-          <button onclick="cerrarSesionReportes()" class="btn-logout"><i class="fa-solid fa-right-from-bracket"></i> Salir</button>
-        </div>
-
-        <div style="background: transparent; border: 1px solid rgba(255,255,255,0.15); border-radius: 8px; padding: 20px; margin-top: 20px;">
-          <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem; margin-bottom: 16px;">
-            <h3 style="color: #f59e0b; margin: 0; font-size: 1.2rem;"><i class="fa-solid fa-calendar-days"></i> Filtrar por Mes</h3>
-            <div>
-              <input type="month" id="filtro-mes" style="padding: 0.5rem; background: transparent; border: 1px solid #525252; color: #fff; border-radius: 6px;">
-            </div>
-          </div>
-
-          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 1rem;">
-            <div style="background: rgba(0,0,0,0.3); padding: 1rem; border-radius: 8px; text-align: center; border: 1px solid rgba(255,255,255,0.08);">
-              <span style="color: #a3a3a3; font-size: 0.8rem; display: block; margin-bottom: 4px;">Proyectos del Mes</span>
-              <strong id="reporte-cant-mes" style="font-size: 1.3rem; color: #fff;">0</strong>
-            </div>
-            <div style="background: rgba(0,0,0,0.3); padding: 1rem; border-radius: 8px; text-align: center; border: 1px solid rgba(255,255,255,0.08);">
-              <span style="color: #a3a3a3; font-size: 0.8rem; display: block; margin-bottom: 4px;">Presupuesto Total</span>
-              <strong id="reporte-presupuesto-mes" style="font-size: 1.2rem; color: #38bdf8;">Bs. 0</strong>
-            </div>
-            <div style="background: rgba(0,0,0,0.3); padding: 1rem; border-radius: 8px; text-align: center; border: 1px solid rgba(255,255,255,0.08);">
-              <span style="color: #a3a3a3; font-size: 0.8rem; display: block; margin-bottom: 4px;">Adelantos Recibidos</span>
-              <strong id="reporte-adelanto-mes" style="font-size: 1.2rem; color: #4ade80;">Bs. 0</strong>
-            </div>
-            <div style="background: rgba(0,0,0,0.3); padding: 1rem; border-radius: 8px; text-align: center; border: 1px solid rgba(255,255,255,0.08);">
-              <span style="color: #a3a3a3; font-size: 0.8rem; display: block; margin-bottom: 4px;">Saldos por Cobrar</span>
-              <strong id="reporte-saldo-mes" style="font-size: 1.2rem; color: #f87171;">Bs. 0</strong>
-            </div>
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <!-- SECCIÓN ADMIN -->
+    <!-- SECCIÓN ADMIN ORIGINAL -->
     <section id="sec-admin" class="content-section hidden">
       <div id="admin-login" class="card-box login-box">
         <i class="fa-solid fa-lock icon-lock font-amber"></i>
@@ -177,6 +134,46 @@
       </div>
     </section>
 
+    <!-- SECCIÓN REPORTE FINANCIERO -->
+    <section id="sec-reportes" class="content-section hidden">
+      <div class="panel-box">
+        <div class="panel-header">
+          <div>
+            <h2>Reporte Financiero Mensual</h2>
+            <p class="subtitle">Control de ingresos, adelantos y saldos por cobrar</p>
+          </div>
+        </div>
+
+        <div style="background: transparent; border: 1px solid rgba(255,255,255,0.15); border-radius: 8px; padding: 20px; margin-top: 20px;">
+          <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem; margin-bottom: 16px;">
+            <h3 style="color: #f59e0b; margin: 0; font-size: 1.2rem;"><i class="fa-solid fa-calendar-days"></i> Filtrar por Mes</h3>
+            <div>
+              <input type="month" id="filtro-mes" style="padding: 0.5rem; background: transparent; border: 1px solid #525252; color: #fff; border-radius: 6px;">
+            </div>
+          </div>
+
+          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 1rem;">
+            <div style="background: rgba(0,0,0,0.3); padding: 1rem; border-radius: 8px; text-align: center; border: 1px solid rgba(255,255,255,0.08);">
+              <span style="color: #a3a3a3; font-size: 0.8rem; display: block; margin-bottom: 4px;">Proyectos del Mes</span>
+              <strong id="reporte-cant-mes" style="font-size: 1.3rem; color: #fff;">0</strong>
+            </div>
+            <div style="background: rgba(0,0,0,0.3); padding: 1rem; border-radius: 8px; text-align: center; border: 1px solid rgba(255,255,255,0.08);">
+              <span style="color: #a3a3a3; font-size: 0.8rem; display: block; margin-bottom: 4px;">Presupuesto Total</span>
+              <strong id="reporte-presupuesto-mes" style="font-size: 1.2rem; color: #38bdf8;">Bs. 0</strong>
+            </div>
+            <div style="background: rgba(0,0,0,0.3); padding: 1rem; border-radius: 8px; text-align: center; border: 1px solid rgba(255,255,255,0.08);">
+              <span style="color: #a3a3a3; font-size: 0.8rem; display: block; margin-bottom: 4px;">Adelantos Recibidos</span>
+              <strong id="reporte-adelanto-mes" style="font-size: 1.2rem; color: #4ade80;">Bs. 0</strong>
+            </div>
+            <div style="background: rgba(0,0,0,0.3); padding: 1rem; border-radius: 8px; text-align: center; border: 1px solid rgba(255,255,255,0.08);">
+              <span style="color: #a3a3a3; font-size: 0.8rem; display: block; margin-bottom: 4px;">Saldos por Cobrar</span>
+              <strong id="reporte-saldo-mes" style="font-size: 1.2rem; color: #f87171;">Bs. 0</strong>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
     <footer class="footer">
       <p>¿Tienes alguna consulta o quieres iniciar un proyecto? Encuéntranos en nuestras redes:</p>
       <div class="social-buttons">
@@ -191,28 +188,30 @@
     </footer>
   </div>
 
+  <!-- SCRIPT PARA MOSTRAR EL BOTÓN DE REPORTE ARRIBA SOLO CUANDO SE INICIA SESIÓN COMO ADMIN -->
   <script>
-    window.mostrarSeccion = function(seccion) {
-      document.querySelectorAll('.content-section').forEach(sec => sec.classList.add('hidden'));
-      document.querySelectorAll('.nav-links button').forEach(btn => btn.classList.remove('active'));
-
-      const target = document.getElementById('sec-' + seccion);
-      if (target) target.classList.remove('hidden');
-
-      const btn = document.getElementById('btn-' + seccion);
-      if (btn) btn.classList.add('active');
-    };
-
-    document.getElementById('form-login-reportes').addEventListener('submit', function(e) {
-      e.preventDefault();
-      document.getElementById('reportes-login').classList.add('hidden');
-      document.getElementById('reportes-panel').classList.remove('hidden');
+    // Sobrescribir la función de éxito de login en tu script.js (o integrarlo aquí)
+    // Cuando el admin pone la contraseña correcta, hacemos que aparezca el botoncito arriba:
+    document.addEventListener('DOMContentLoaded', function() {
+      const formLogin = document.getElementById('form-login');
+      if (formLogin) {
+        // Escuchamos cuando envían el formulario de admin
+        formLogin.addEventListener('submit', function() {
+          // Damos un pequeño respiro para que script.js valide la contraseña y muestre el panel
+          setTimeout(function() {
+            const adminPanel = document.getElementById('admin-panel');
+            if (adminPanel && !adminPanel.classList.contains('hidden')) {
+              // Si el panel ya está visible, mostramos la pestaña de reporte arriba
+              document.getElementById('btn-reportes').style.display = 'inline-block';
+            }
+          }, 200);
+        });
+      }
     });
 
-    function cerrarSesionReportes() {
-      document.getElementById('input-pass-reportes').value = '';
-      document.getElementById('reportes-panel').classList.add('hidden');
-      document.getElementById('reportes-login').classList.remove('hidden');
+    // Si cierran sesión, ocultamos de nuevo el botón de reportes de arriba
+    function cerrarSesionAdminOriginal() {
+      document.getElementById('btn-reportes').style.display = 'none';
     }
   </script>
 
