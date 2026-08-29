@@ -1,99 +1,195 @@
-const proyectosIniciales = [{ codigo: 'HN-001', cliente: 'Carlos Mendoza', mueble: 'Juego de Comedor en Melamina', estado: 'Fabricación', progreso: 60, detalles: 'Corte de piezas terminado. En proceso de armado y enchapado de tapacantos.' }];
+// --- BASE DE DATOS INICIAL ---
+const proyectosIniciales = [
+  { 
+    codigo: 'HN-001', 
+    cliente: 'Carlos Mendoza', 
+    mueble: 'Juego de Comedor en Melamina', 
+    estado: 'Fabricación', 
+    progreso: 60, 
+    detalles: 'Corte finalizado. Ensamblado de partes en proceso.' 
+  }
+];
+
+// Cargar desde LocalStorage o usar la inicial
 let proyectos = JSON.parse(localStorage.getItem('hn_proyectos')) || proyectosIniciales;
-function guardarEnLocalStorage() { localStorage.setItem('hn_proyectos', JSON.stringify(proyectos)); }
-let esAdmin = false;
-function mostrarSeccion(seccionId) {
-  document.getElementById('sec-inicio').classList.add('hidden');
-  document.getElementById('sec-rastreo').classList.add('hidden');
-  document.getElementById('sec-admin').classList.add('hidden');
-  document.getElementById('btn-inicio').classList.remove('active');
-  document.getElementById('btn-rastreo').classList.remove('active');
-  document.getElementById('btn-admin').classList.remove('active');
-  document.getElementById(`sec-${seccionId}`).classList.remove('hidden');
-  document.getElementById(`btn-${seccionId}`).classList.add('active');
+
+function guardarEnLocalStorage() { 
+  localStorage.setItem('hn_proyectos', JSON.stringify(proyectos)); 
 }
-document.getElementById('form-buscar').addEventListener('submit', function(e) {
-  e.preventDefault();
-  const codigo = document.getElementById('input-codigo').value.trim().toUpperCase();
-  const encontrado = proyectos.find(p => p.codigo === codigo);
-  const errorMsg = document.getElementById('mensaje-error');
-  const resultBox = document.getElementById('resultado-proyecto');
-  if (encontrado) {
-    errorMsg.classList.add('hidden');
-    resultBox.classList.remove('hidden');
-    document.getElementById('res-codigo').innerText = encontrado.codigo;
-    document.getElementById('res-mueble').innerText = encontrado.mueble;
-    document.getElementById('res-cliente').innerText = `Cliente: ${encontrado.cliente}`;
-    document.getElementById('res-estado').innerText = encontrado.estado;
-    document.getElementById('res-porcentaje').innerText = `${encontrado.progreso}%`;
-    document.getElementById('res-bar-fill').style.width = `${encontrado.progreso}%`;
-    document.getElementById('res-detalles').innerText = encontrado.detalles;
-  } else {
-    resultBox.classList.add('hidden');
-    errorMsg.classList.remove('hidden');
+
+let esAdmin = false;
+
+// --- 1. NAVEGACIÓN ENTRE SECCIONES (INICIO / RASTREO / ADMIN) ---
+function mostrarSeccion(seccionId) {
+  // Ocultar todas las secciones del HTML
+  const secInicio = document.getElementById('sec-inicio');
+  const secRastreo = document.getElementById('sec-rastreo');
+  const secAdmin = document.getElementById('sec-admin');
+
+  if (secInicio) secInicio.classList.add('hidden');
+  if (secRastreo) secRastreo.classList.add('hidden');
+  if (secAdmin) secAdmin.classList.add('hidden');
+
+  // Quitar estado activo de los botones del menú
+  const btnInicio = document.getElementById('btn-inicio');
+  const btnRastreo = document.getElementById('btn-rastreo');
+  const btnAdmin = document.getElementById('btn-admin');
+
+  if (btnInicio) btnInicio.classList.remove('active');
+  if (btnRastreo) btnRastreo.classList.remove('active');
+  if (btnAdmin) btnAdmin.classList.remove('active');
+
+  // Mostrar la sección seleccionada y activar su botón correspondiente
+  const secDestino = document.getElementById(`sec-${seccionId}`);
+  const btnDestino = document.getElementById(`btn-${seccionId}`);
+
+  if (secDestino) secDestino.classList.remove('hidden');
+  if (btnDestino) btnDestino.classList.add('active');
+}
+
+// --- 2. BÚSQUEDA DEL CLIENTE (RASTREO) ---
+document.addEventListener('DOMContentLoaded', function() {
+  const formBuscar = document.getElementById('form-buscar');
+  if (formBuscar) {
+    formBuscar.addEventListener('submit', function(e) {
+      e.preventDefault();
+      const codigoInput = document.getElementById('input-codigo');
+      if (!codigoInput) return;
+      
+      const codigo = codigoInput.value.trim().toUpperCase();
+      const encontrado = proyectos.find(p => p.codigo === codigo);
+      const errorMsg = document.getElementById('mensaje-error');
+      const resultBox = document.getElementById('resultado-proyecto');
+
+      if (encontrado) {
+        if (errorMsg) errorMsg.classList.add('hidden');
+        if (resultBox) resultBox.classList.remove('hidden');
+        
+        document.getElementById('res-codigo').innerText = encontrado.codigo;
+        document.getElementById('res-mueble').innerText = encontrado.mueble;
+        document.getElementById('res-cliente').innerText = `Cliente: ${encontrado.cliente}`;
+        document.getElementById('res-estado').innerText = encontrado.estado;
+        document.getElementById('res-porcentaje').innerText = `${encontrado.progreso}%`;
+        document.getElementById('res-bar-fill').style.width = `${encontrado.progreso}%`;
+        document.getElementById('res-detalles').innerText = encontrado.detalles || `El proyecto se encuentra en etapa de ${encontrado.estado}.`;
+      } else {
+        if (resultBox) resultBox.classList.add('hidden');
+        if (errorMsg) errorMsg.classList.remove('hidden');
+      }
+    });
+  }
+
+  // --- 3. LOGIN ADMINISTRADOR ---
+  const formLogin = document.getElementById('form-login');
+  if (formLogin) {
+    formLogin.addEventListener('submit', function(e) {
+      e.preventDefault();
+      const passInput = document.getElementById('input-pass');
+      
+      if (passInput && passInput.value === 'hn2026') {
+        esAdmin = true;
+        document.getElementById('admin-login').classList.add('hidden');
+        document.getElementById('admin-panel').classList.remove('hidden');
+        passInput.value = '';
+        renderProyectosAdmin();
+      } else { 
+        alert('Contraseña incorrecta'); 
+      }
+    });
+  }
+
+  // --- 4. REGISTRAR NUEVO PROYECTO ---
+  const formNuevo = document.getElementById('form-nuevo-proyecto');
+  if (formNuevo) {
+    formNuevo.addEventListener('submit', function(e) {
+      e.preventDefault();
+      const codIn = document.getElementById('nuevo-codigo');
+      const cliIn = document.getElementById('nuevo-cliente');
+      const mueIn = document.getElementById('nuevo-mueble');
+
+      proyectos.push({
+        codigo: codIn ? codIn.value.trim().toUpperCase() : '',
+        cliente: cliIn ? cliIn.value.trim() : '',
+        mueble: mueIn ? mueIn.value.trim() : '',
+        estado: 'Diseño', 
+        progreso: 20, 
+        detalles: 'Proyecto registrado en sistema.'
+      });
+
+      guardarEnLocalStorage();
+      
+      if (codIn) codIn.value = '';
+      if (cliIn) cliIn.value = '';
+      if (mueIn) mueIn.value = '';
+      
+      renderProyectosAdmin();
+    });
   }
 });
-document.getElementById('form-login').addEventListener('submit', function(e) {
-  e.preventDefault();
-  if (document.getElementById('input-pass').value === 'hn2026') {
-    esAdmin = true;
-    document.getElementById('admin-login').classList.add('hidden');
-    document.getElementById('admin-panel').classList.remove('hidden');
-    document.getElementById('input-pass').value = '';
-    renderProyectosAdmin();
-  } else { alert('Contraseña incorrecta'); }
-});
+
 function cerrarSesionAdmin() {
   esAdmin = false;
   document.getElementById('admin-panel').classList.add('hidden');
   document.getElementById('admin-login').classList.remove('hidden');
 }
-document.getElementById('form-nuevo-proyecto').addEventListener('submit', function(e) {
-  e.preventDefault();
-  proyectos.push({
-    codigo: document.getElementById('nuevo-codigo').value.trim().toUpperCase(),
-    cliente: document.getElementById('nuevo-cliente').value.trim(),
-    mueble: document.getElementById('nuevo-mueble').value.trim(),
-    estado: 'Diseño', progreso: 20, detalles: 'Proyecto registrado en sistema.'
-  });
-  guardarEnLocalStorage();
-  document.getElementById('nuevo-codigo').value = '';
-  document.getElementById('nuevo-cliente').value = '';
-  document.getElementById('nuevo-mueble').value = '';
-  renderProyectosAdmin();
-});
+
+// --- 5. MOSTRAR TARJETAS EN PANEL ADMIN ---
 function renderProyectosAdmin() {
   const container = document.getElementById('lista-proyectos-admin');
-  document.getElementById('total-proyectos').innerText = proyectos.length;
+  const totalEl = document.getElementById('total-proyectos');
+  
+  if (totalEl) totalEl.innerText = proyectos.length;
+  if (!container) return;
+  
   container.innerHTML = '';
   const etapas = ['Diseño', 'Corte de Placas', 'Fabricación', 'Lustre / Enchapado', 'Listo para Entrega'];
+
   proyectos.forEach((p, index) => {
     const card = document.createElement('div');
     card.className = 'admin-card';
-    let botonesEtapas = etapas.map((est, idx) => `
-      <button class="btn-stage ${p.estado === est ? 'active' : ''}" onclick="cambiarEstado(${index}, '${est}', ${(idx + 1) * 20})">${est}</button>
-    `).join('');
+    card.style.cssText = 'background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 12px; padding: 1rem; margin-bottom: 1rem; display: flex; justify-content: space-between; align-items: center; gap: 1rem; flex-wrap: wrap;';
+
+    let botonesEtapas = etapas.map((est, idx) => {
+      const activeStyle = p.estado === est ? 'background: #f59e0b; color: #000; font-weight: bold;' : 'background: rgba(255,255,255,0.1); color: #fff;';
+      const porcentaje = (idx + 1) * 20;
+      return `<button type="button" style="border:none; padding: 0.4rem 0.7rem; border-radius: 6px; cursor: pointer; font-size: 0.8rem; margin: 0.2rem; ${activeStyle}" onclick="cambiarEstadoPorIndice(${index}, ${idx}, ${porcentaje})">${est}</button>`;
+    }).join('');
+
     card.innerHTML = `
-      <div>
-        <span class="badge">${p.codigo}</span><strong style="margin-left: 0.5rem;">${p.mueble}</strong>
-        <p class="subtitle" style="text-align: left; margin: 0.25rem 0;">Cliente: ${p.cliente}</p>
-        <div class="stage-buttons">${botonesEtapas}</div>
+      <div style="flex: 1; min-width: 250px;">
+        <span class="badge" style="background: #f59e0b; color: #000; padding: 0.2rem 0.5rem; border-radius: 4px; font-weight: bold; font-size: 0.85rem;">${p.codigo}</span>
+        <strong style="margin-left: 0.5rem; font-size: 1.05rem;">${p.mueble}</strong>
+        <p style="margin: 0.4rem 0; color: #a3a3a3; font-size: 0.85rem;"><i class="fa-solid fa-user"></i> Cliente: ${p.cliente}</p>
+        <div style="margin-top: 0.5rem;">${botonesEtapas}</div>
       </div>
-      <button class="btn-delete" onclick="eliminarProyecto(${index})" title="Eliminar proyecto"><i class="fa-solid fa-trash"></i></button>
+      <button type="button" onclick="eliminarProyecto(${index})" title="Eliminar proyecto" style="background: #ef4444; color: white; border: none; padding: 0.6rem 0.8rem; border-radius: 8px; cursor: pointer;">
+        <i class="fa-solid fa-trash"></i>
+      </button>
     `;
     container.appendChild(card);
   });
 }
-function cambiarEstado(index, nuevoEstado, nuevoProgreso) {
-  proyectos[index].estado = nuevoEstado;
-  proyectos[index].progreso = nuevoProgreso;
-  proyectos[index].detalles = `En etapa de ${nuevoEstado}.`;
+
+// Cambiar estado del proyecto desde el panel
+function cambiarEstadoPorIndice(proyectoIdx, etapaIdx, nuevoProgreso) {
+  const etapas = ['Diseño', 'Corte de Placas', 'Fabricación', 'Lustre / Enchapado', 'Listo para Entrega'];
+  proyectos[proyectoIdx].estado = etapas[etapaIdx];
+  proyectos[proyectoIdx].progreso = nuevoProgreso;
+  proyectos[proyectoIdx].detalles = `El proyecto ha avanzado a la etapa de: ${etapas[etapaIdx]}.`;
+  
   guardarEnLocalStorage();
   renderProyectosAdmin();
 }
+
+// Eliminar proyecto
 function eliminarProyecto(index) {
-  proyectos.splice(index, 1);
-  guardarEnLocalStorage();
-  renderProyectosAdmin();
+  if (confirm('¿Deseas eliminar este proyecto?')) {
+    proyectos.splice(index, 1);
+    guardarEnLocalStorage();
+    renderProyectosAdmin();
+  }
 }
-if (!localStorage.getItem('hn_proyectos')) { guardarEnLocalStorage(); }
+
+if (!localStorage.getItem('hn_proyectos')) { 
+  guardarEnLocalStorage(); 
+}
