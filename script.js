@@ -127,7 +127,7 @@ document.addEventListener('DOMContentLoaded', function() {
       const telIn = document.getElementById('nuevo-telefono');
       const presIn = document.getElementById('nuevo-presupuesto');
       const adelIn = document.getElementById('nuevo-adelanto');
-      const fechaIn = document.getElementById('nuevo-fecha'); // <-- CAPTURA LA FECHA CORRECTAMENTE
+      const fechaIn = document.getElementById('nuevo-fecha');
 
       proyectos.push({
         codigo: codIn ? codIn.value.trim().toUpperCase() : '',
@@ -139,7 +139,7 @@ document.addEventListener('DOMContentLoaded', function() {
         detalles: 'Diseño confirmado por WhatsApp. Listo para corte.',
         presupuesto: presIn ? parseFloat(presIn.value) || 0 : 0,
         adelanto: adelIn ? parseFloat(adelIn.value) || 0 : 0,
-        fechaEntrega: fechaIn ? fechaIn.value : '' // <-- GUARDA LA FECHA CORRECTAMENTE
+        fechaEntrega: fechaIn ? fechaIn.value : ''
       });
 
       guardarEnLocalStorage();
@@ -217,7 +217,7 @@ function renderProyectosAdmin() {
           <div style="margin-top: 0.5rem;">${botonesEtapas}</div>
           <div style="margin-top: 0.8rem;">
             <button type="button" onclick="notificarWhatsApp(${index})" style="background: #16a34a; color: white; border: none; padding: 0.4rem 0.8rem; border-radius: 6px; cursor: pointer; font-size: 0.85rem; font-weight: bold; display: inline-flex; align-items: center; gap: 0.4rem;">
-              <i class="fa-brands fa-whatsapp"></i> Notificar Avance, Saldo y Fecha por WhatsApp
+              <i class="fa-brands fa-whatsapp"></i> Notificar por WhatsApp con enlace
             </button>
           </div>
         </div>
@@ -361,8 +361,10 @@ function notificarWhatsApp(index) {
   const adelanto = Number(p.adelanto) || 0;
   const saldo = presupuesto - adelanto;
   const fechaTexto = p.fechaEntrega ? p.fechaEntrega.split('-').reverse().join('/') : 'Por coordinar';
+  
+  const linkPagina = window.location.href;
 
-  const mensaje = `Hola *${p.cliente}* 👋, desde *HN Muebles* te informamos el estado de tu proyecto *"${p.mueble}"*:\n\n🛠️ *Estado:* ${p.estado}\n📊 *Progreso:* ${p.progreso}%\n📅 *Fecha Estimada de Entrega:* ${fechaTexto}\n\n💰 *Resumen Financiero:*\n• Presupuesto Total: Bs. ${presupuesto.toFixed(2)}\n• Adelanto: Bs. ${adelanto.toFixed(2)}\n• Saldo Pendiente: Bs. ${saldo.toFixed(2)}\n\nPuedes consultar el detalle ingresando tu código *${p.codigo}* en nuestra web.`;
+  const mensaje = `Hola *${p.cliente}* 👋, desde *HN Muebles* te informamos el estado de tu proyecto *"${p.mueble}"*:\n\n🛠️ *Estado:* ${p.estado}\n📊 *Progreso:* ${p.progreso}%\n📅 *Fecha Estimada de Entrega:* ${fechaTexto}\n\n💰 *Resumen Financiero:*\n• Presupuesto Total: Bs. ${presupuesto.toFixed(2)}\n• Adelanto: Bs. ${adelanto.toFixed(2)}\n• Saldo Pendiente: Bs. ${saldo.toFixed(2)}\n\n🔍 *Puedes rastrear tu proyecto ingresando tu código (${p.codigo}) aquí:*\n${linkPagina}`;
   
   window.open(`https://wa.me/${num}?text=${encodeURIComponent(mensaje)}`, '_blank');
 }
