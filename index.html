@@ -91,9 +91,14 @@
             <input type="text" id="nuevo-mueble" placeholder="Tipo de Mueble" required />
             <input type="text" id="nuevo-telefono" placeholder="WhatsApp / Celular (Ej: 70012345)" />
             
-            <!-- CAMPOS DE FINANZAS AL CREAR -->
+            <!-- CAMPOS DE FINANZAS Y FECHA AL CREAR -->
             <input type="number" id="nuevo-presupuesto" placeholder="Presupuesto Total (Bs)" />
             <input type="number" id="nuevo-adelanto" placeholder="Adelanto Pagado (Bs)" />
+            
+            <div style="grid-column: 1 / -1; display: flex; flex-direction: column; gap: 0.3rem;">
+              <label style="font-size: 0.8rem; color: #a3a3a3;"><i class="fa-regular fa-calendar"></i> Fecha Estimada de Entrega:</label>
+              <input type="date" id="nuevo-fecha" style="padding: 0.5rem; background: #0a0a0a; border: 1px solid #404040; color: #fff; border-radius: 6px;" />
+            </div>
           </div>
           
           <!-- CÁLCULO AUTOMÁTICO EN VIVO DEL SALDO -->
