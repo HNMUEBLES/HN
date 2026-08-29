@@ -16,6 +16,14 @@ const db = firebase.firestore();
 let proyectos = [];
 let esAdmin = false;
 
+// --- FUNCIÓN PARA MOSTRAR MONTOS EXACTOS SIN CEROS INNECESARIOS ---
+function formatearMonto(valor) {
+  const num = Number(valor);
+  if (isNaN(num)) return "0";
+  // Si es un número entero, lo devuelve tal cual sin decimales. Si tiene decimales, los respeta.
+  return Number.isInteger(num) ? num.toString() : num.toString();
+}
+
 // --- FUNCIÓN PARA GENERAR CÓDIGO AL AZAR SIN GUION (Ej: HN9X4F) ---
 function generarCodigoAleatorio() {
   const caracteres = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
@@ -87,7 +95,7 @@ document.addEventListener('DOMContentLoaded', function() {
   const formBuscar = document.getElementById('form-buscar');
   if (formBuscar) {
     formBuscar.addEventListener('submit', function(e) {
-      e.preventDefault(); // Evita que el celular recargue la página
+      e.preventDefault(); 
       
       const codigoInput = document.getElementById('input-codigo');
       if (!codigoInput) return;
@@ -96,7 +104,6 @@ document.addEventListener('DOMContentLoaded', function() {
       const errorMsg = document.getElementById('mensaje-error');
       const resultBox = document.getElementById('resultado-proyecto');
 
-      // Busca instantáneamente en los proyectos descargados de Firebase
       const encontrado = proyectos.find(p => p.codigo === codigo);
 
       if (encontrado) {
@@ -147,7 +154,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const saldoFinal = pres - adel;
     const lblSaldo = document.getElementById('lbl-nuevo-saldo');
     if (lblSaldo) {
-      lblSaldo.innerText = `Bs. ${saldoFinal.toFixed(2)}`;
+      lblSaldo.innerText = `Bs. ${formatearMonto(saldoFinal)}`;
       lblSaldo.style.color = saldoFinal > 0 ? '#f87171' : '#4ade80';
     }
   }
@@ -168,7 +175,6 @@ document.addEventListener('DOMContentLoaded', function() {
       const adelIn = document.getElementById('nuevo-adelanto');
       const fechaIn = document.getElementById('nuevo-fecha');
 
-      // Si dejas el código vacío, genera automáticamente uno al azar sin guion (Ej: HN9X4F)
       let codigoGenerado = codIn ? codIn.value.trim().toUpperCase() : '';
       if (!codigoGenerado) {
         codigoGenerado = generarCodigoAleatorio();
@@ -261,9 +267,9 @@ function renderProyectosAdmin() {
 
           <!-- SECCIÓN DE FINANZAS -->
           <div style="background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.08); padding: 0.6rem 0.8rem; border-radius: 8px; margin: 0.6rem 0; display: flex; gap: 1rem; flex-wrap: wrap; font-size: 0.85rem;">
-            <div><span style="color: #a3a3a3;">Total:</span> <strong>Bs. ${presupuesto.toFixed(2)}</strong></div>
-            <div><span style="color: #a3a3a3;">Adelanto:</span> <strong style="color: #38bdf8;">Bs. ${adelanto.toFixed(2)}</strong></div>
-            <div><span style="color: #a3a3a3;">Saldo:</span> <strong style="color: ${saldo > 0 ? '#f87171' : '#4ade80'};">Bs. ${saldo.toFixed(2)}</strong></div>
+            <div><span style="color: #a3a3a3;">Total:</span> <strong>Bs. ${formatearMonto(presupuesto)}</strong></div>
+            <div><span style="color: #a3a3a3;">Adelanto:</span> <strong style="color: #38bdf8;">Bs. ${formatearMonto(adelanto)}</strong></div>
+            <div><span style="color: #a3a3a3;">Saldo:</span> <strong style="color: ${saldo > 0 ? '#f87171' : '#4ade80'};">Bs. ${formatearMonto(saldo)}</strong></div>
           </div>
 
           <div style="margin-top: 0.5rem;">${botonesEtapas}</div>
@@ -297,11 +303,11 @@ function renderProyectosAdmin() {
             <div style="display: flex; gap: 0.5rem;">
               <div style="flex: 1;">
                 <label style="font-size: 0.75rem; color: #a3a3a3;">Presupuesto Total:</label>
-                <input type="number" id="input-edit-presupuesto-${index}" value="${presupuesto}" style="width:100%; padding:0.4rem; background:#0a0a0a; border:1px solid #404040; color:#fff; border-radius:6px; font-size:0.85rem;">
+                <input type="text" id="input-edit-presupuesto-${index}" value="${formatearMonto(presupuesto)}" inputmode="decimal" style="width:100%; padding:0.4rem; background:#0a0a0a; border:1px solid #404040; color:#fff; border-radius:6px; font-size:0.85rem;">
               </div>
               <div style="flex: 1;">
                 <label style="font-size: 0.75rem; color: #a3a3a3;">Adelanto:</label>
-                <input type="number" id="input-edit-adelanto-${index}" value="${adelanto}" style="width:100%; padding:0.4rem; background:#0a0a0a; border:1px solid #404040; color:#fff; border-radius:6px; font-size:0.85rem;">
+                <input type="text" id="input-edit-adelanto-${index}" value="${formatearMonto(adelanto)}" inputmode="decimal" style="width:100%; padding:0.4rem; background:#0a0a0a; border:1px solid #404040; color:#fff; border-radius:6px; font-size:0.85rem;">
               </div>
             </div>
             <div>
@@ -434,7 +440,7 @@ function notificarWhatsApp(index) {
   
   const linkPagina = window.location.origin + window.location.pathname;
 
-  const mensaje = `Hola *${p.cliente}* 👋, desde *HN Muebles* te informamos el estado de tu proyecto *"${p.mueble}"*:\n\n🛠️ *Estado:* ${p.estado}\n📊 *Progreso:* ${p.progreso}%\n📅 *Fecha Estimada de Entrega:* ${fechaTexto}\n\n💰 *Resumen Financiero:*\n• Presupuesto Total: Bs. ${presupuesto.toFixed(2)}\n• Adelanto: Bs. ${adelanto.toFixed(2)}\n• Saldo Pendiente: Bs. ${saldo.toFixed(2)}\n\n🔍 *Puedes rastrear tu proyecto ingresando tu código (${p.codigo}) aquí:*\n${linkPagina}`;
+  const mensaje = `Hola *${p.cliente}* 👋, desde *HN Muebles* te informamos el estado de tu proyecto *"${p.mueble}"*:\n\n🛠️ *Estado:* ${p.estado}\n📊 *Progreso:* ${p.progreso}%\n📅 *Fecha Estimada de Entrega:* ${fechaTexto}\n\n💰 *Resumen Financiero:*\n• Presupuesto Total: Bs. ${formatearMonto(presupuesto)}\n• Adelanto: Bs. ${formatearMonto(adelanto)}\n• Saldo Pendiente: Bs. ${formatearMonto(saldo)}\n\n🔍 *Puedes rastrear tu proyecto ingresando tu código (${p.codigo}) aquí:*\n${linkPagina}`;
   
   window.open(`https://wa.me/${num}?text=${encodeURIComponent(mensaje)}`, '_blank');
 }
