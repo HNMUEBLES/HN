@@ -415,7 +415,7 @@ async function guardarEdicionInline(idFirebase, index) {
   }
 }
 
-// FUNCIÓN OPTIMIZADA PARA CAMBIO DE ESTADO INSTANTÁNEO
+// FUNCIÓN ULTRA-RÁPIDA Y DIRECTA (CAMBIO INSTANTÁNEO EN PANTALLA)
 async function cambiarEstadoPorId(idFirebase, etapaIdx, nuevoProgreso) {
   const etapas = ['Diseño Aprobado', 'Corte', 'Armado', 'Instalación', 'Finalizado'];
   const descripciones = [
@@ -429,7 +429,7 @@ async function cambiarEstadoPorId(idFirebase, etapaIdx, nuevoProgreso) {
   const nuevoEstado = etapas[etapaIdx];
   const nuevaDesc = descripciones[etapaIdx];
 
-  // 1. Actualización local inmediata para respuesta instantánea (0 segundos de espera)
+  // 1. Actualizamos el arreglo local
   const proyectoLocal = proyectos.find(p => p.id === idFirebase);
   if (proyectoLocal) {
     proyectoLocal.estado = nuevoEstado;
@@ -437,16 +437,33 @@ async function cambiarEstadoPorId(idFirebase, etapaIdx, nuevoProgreso) {
     proyectoLocal.detalles = nuevaDesc;
   }
 
-  // 2. Refrescamos la vista local al instante
-  renderProyectosAdmin();
+  // 2. ACTUALIZACIÓN ÓPTICA INMEDIATA EN EL DOM (SIN RECARGAR TODO EL PANEL)
+  const cardIndex = proyectos.findIndex(p => p.id === idFirebase);
+  if (cardIndex !== -1) {
+    const infoView = document.getElementById(`info-view-${cardIndex}`);
+    if (infoView) {
+      const botones = infoView.querySelectorAll('button[onclick*="cambiarEstadoPorId"]');
+      botones.forEach((btn, idx) => {
+        if (idx === etapaIdx) {
+          btn.style.background = '#f59e0b';
+          btn.style.color = '#000';
+          btn.style.fontWeight = 'bold';
+        } else {
+          btn.style.background = 'rgba(255,255,255,0.1)';
+          btn.style.color = '#fff';
+          btn.style.fontWeight = 'normal';
+        }
+      });
+    }
+  }
 
-  // 3. Sincronizamos con Firebase en segundo plano sin bloquear al usuario
+  // 3. Sincronizamos con Firebase en segundo plano de manera silenciosa
   db.collection("proyectos").doc(idFirebase).update({
     estado: nuevoEstado,
     progreso: nuevoProgreso,
     detalles: nuevaDesc
   }).catch(error => {
-    console.error("Error cambiando estado en segundo plano:", error);
+    console.error("Error al sincronizar con la nube en segundo plano:", error);
   });
 }
 
