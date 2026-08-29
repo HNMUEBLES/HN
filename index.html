@@ -12,15 +12,14 @@
   <div class="app-container">
     <!-- NAVBAR -->
     <header class="navbar">
-      <div class="logo-container" onclick="mostrarSeccion('inicio')">
+      <div class="logo-container" onclick="irInicio()">
         <img src="assets/logo.png" alt="HN Muebles Logo" class="logo-img" onerror="this.style.display='none'" />
       </div>
       <nav class="nav-links">
-        <button onclick="mostrarSeccion('inicio')" id="btn-inicio" class="active">Inicio</button>
+        <button onclick="irInicio()" id="btn-inicio" class="active">Inicio</button>
         <button onclick="mostrarSeccion('rastreo')" id="btn-rastreo">Rastrear Proyecto</button>
         <button onclick="mostrarSeccion('admin')" id="btn-admin"><i class="fa-solid fa-lock"></i> Admin</button>
-        <!-- Pestaña de reporte financiero (oculta por defecto, aparece al entrar a admin) -->
-        <button onclick="mostrarSeccion('reportes')" id="btn-reportes" style="display: none;"><i class="fa-solid fa-chart-pie"></i> Reporte Financiero</button>
+        <button onclick="mostrarSeccion('reportes')" id="btn-reportes" class="hidden"><i class="fa-solid fa-chart-pie"></i> Reporte Financiero</button>
       </nav>
     </header>
     
@@ -90,7 +89,7 @@
             <h2>Panel de Supervisión - HN Muebles</h2>
             <p class="subtitle">Gestiona y actualiza el avance de tus proyectos</p>
           </div>
-          <button onclick="intentarCerrarSesionAdmin()" class="btn-logout"><i class="fa-solid fa-right-from-bracket"></i> Cerrar Sesión</button>
+          <button onclick="cerrarSesionAdmin()" class="btn-logout"><i class="fa-solid fa-right-from-bracket"></i> Cerrar Sesión</button>
         </div>
       
         <form id="form-nuevo-proyecto" class="admin-form">
@@ -188,8 +187,17 @@
     </footer>
   </div>
 
-  <!-- SCRIPT PARA CONTROLAR EL MENÚ SEGÚN EL INICIO DE SESIÓN -->
+  <!-- CONTROL DE NAVEGACIÓN LIMPIO USANDO CLASES CSS -->
   <script>
+    function irInicio() {
+      if (typeof mostrarSeccion === 'function') {
+        mostrarSeccion('inicio');
+      } else {
+        document.querySelectorAll('.content-section').forEach(sec => sec.classList.add('hidden'));
+        document.getElementById('sec-inicio').classList.remove('hidden');
+      }
+    }
+
     document.addEventListener('DOMContentLoaded', function() {
       const formLogin = document.getElementById('form-login');
       if (formLogin) {
@@ -197,31 +205,27 @@
           setTimeout(function() {
             const adminPanel = document.getElementById('admin-panel');
             if (adminPanel && !adminPanel.classList.contains('hidden')) {
-              // Ocultar rastreo arriba
-              const btnRastreo = document.getElementById('btn-rastreo');
-              if (btnRastreo) btnRastreo.style.display = 'none';
-
-              // Mostrar reporte financiero arriba
-              const btnReportes = document.getElementById('btn-reportes');
-              if (btnReportes) btnReportes.style.display = 'inline-block';
+              // Ocultar rastreo y mostrar reporte usando la clase .hidden
+              document.getElementById('btn-rastreo').classList.add('hidden');
+              document.getElementById('btn-reportes').classList.remove('hidden');
             }
           }, 200);
         });
       }
     });
 
-    // Función auxiliar para restablecer el menú al cerrar sesión
-    function intentarCerrarSesionAdmin() {
-      const btnRastreo = document.getElementById('btn-rastreo');
-      if (btnRastreo) btnRastreo.style.display = 'inline-block';
+    function cerrarSesionAdmin() {
+      // Restaurar barra superior original mediante clases
+      document.getElementById('btn-rastreo').classList.remove('hidden');
+      document.getElementById('btn-reportes').classList.add('hidden');
 
-      const btnReportes = document.getElementById('btn-reportes');
-      if (btnReportes) btnReportes.style.display = 'none';
-
-      // Si tienes una función global de cerrar sesión en script.js, la llamamos también si existe
-      if (typeof cerrarSesionAdmin === 'function' && cerrarSesionAdmin !== intentarCerrarSesionAdmin) {
-        cerrarSesionAdmin();
-      }
+      // Ocultar panel admin y mostrar login o ir a inicio
+      const adminPanel = document.getElementById('admin-panel');
+      if (adminPanel) adminPanel.classList.add('hidden');
+      const adminLogin = document.getElementById('admin-login');
+      if (adminLogin) adminLogin.classList.remove('hidden');
+      
+      irInicio();
     }
   </script>
 
