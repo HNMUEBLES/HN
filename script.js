@@ -11,7 +11,6 @@ const proyectosIniciales = [
   }
 ];
 
-// Cargar desde LocalStorage o usar la inicial
 let proyectos = JSON.parse(localStorage.getItem('hn_proyectos')) || proyectosIniciales;
 
 function guardarEnLocalStorage() { 
@@ -45,7 +44,7 @@ function mostrarSeccion(seccionId) {
   if (btnDestino) btnDestino.classList.add('active');
 }
 
-// --- 2. BÚSQUEDA DEL CLIENTE ---
+// --- 2. INICIALIZACIÓN Y EVENTOS ---
 document.addEventListener('DOMContentLoaded', function() {
   const formBuscar = document.getElementById('form-buscar');
   if (formBuscar) {
@@ -77,7 +76,7 @@ document.addEventListener('DOMContentLoaded', function() {
     });
   }
 
-  // --- 3. LOGIN ADMINISTRADOR ---
+  // LOGIN ADMIN
   const formLogin = document.getElementById('form-login');
   if (formLogin) {
     formLogin.addEventListener('submit', function(e) {
@@ -96,7 +95,7 @@ document.addEventListener('DOMContentLoaded', function() {
     });
   }
 
-  // --- 4. REGISTRAR NUEVO PROYECTO ---
+  // NUEVO PROYECTO
   const formNuevo = document.getElementById('form-nuevo-proyecto');
   if (formNuevo) {
     formNuevo.addEventListener('submit', function(e) {
@@ -134,7 +133,7 @@ function cerrarSesionAdmin() {
   document.getElementById('admin-login').classList.remove('hidden');
 }
 
-// --- 5. MOSTRAR TARJETAS EN PANEL ADMIN ---
+// --- 3. MOSTRAR TARJETAS EN PANEL ADMIN ---
 function renderProyectosAdmin() {
   const container = document.getElementById('lista-proyectos-admin');
   const totalEl = document.getElementById('total-proyectos');
@@ -143,7 +142,6 @@ function renderProyectosAdmin() {
   if (!container) return;
   
   container.innerHTML = '';
-  
   const etapas = ['Diseño Aprobado', 'Corte', 'Armado', 'Instalación', 'Finalizado'];
 
   proyectos.forEach((p, index) => {
@@ -172,7 +170,7 @@ function renderProyectosAdmin() {
         </div>
       </div>
       <div style="display: flex; gap: 0.5rem;">
-        <button type="button" onclick="editarProyecto(${index})" title="Editar datos" style="background: #3b82f6; color: white; border: none; padding: 0.6rem 0.8rem; border-radius: 8px; cursor: pointer;">
+        <button type="button" onclick="abrirModalEditar(${index})" title="Editar datos" style="background: #3b82f6; color: white; border: none; padding: 0.6rem 0.8rem; border-radius: 8px; cursor: pointer;">
           <i class="fa-solid fa-pen-to-square"></i>
         </button>
         <button type="button" onclick="eliminarProyecto(${index})" title="Eliminar proyecto" style="background: #ef4444; color: white; border: none; padding: 0.6rem 0.8rem; border-radius: 8px; cursor: pointer;">
@@ -184,7 +182,77 @@ function renderProyectosAdmin() {
   });
 }
 
-// --- 6. CAMBIAR ESTADO ---
+// --- 4. VENTANA FLOTANTE DE EDICIÓN ---
+function abrirModalEditar(index) {
+  const p = proyectos[index];
+  
+  let modal = document.getElementById('modal-editar');
+  if (!modal) {
+    const div = document.createElement('div');
+    div.id = 'modal-editar';
+    div.style.cssText = 'position: fixed; inset: 0; background: rgba(0,0,0,0.85); z-index: 1000; display: flex; align-items: center; justify-content: center; backdrop-filter: blur(5px);';
+    div.innerHTML = `
+      <div style="background: #171717; border: 1px solid rgba(255,255,255,0.2); padding: 1.8rem; border-radius: 16px; width: 90%; max-width: 420px; color: white; box-shadow: 0 10px 25px rgba(0,0,0,0.8);">
+        <h3 style="margin-bottom: 1.2rem; font-size: 1.25rem; color: #f59e0b; text-align: center;">Editar Datos del Proyecto</h3>
+        <form id="form-editar">
+          <input type="hidden" id="edit-index">
+          <div style="margin-bottom: 0.8rem;">
+            <label style="display:block; font-size: 0.85rem; color: #a3a3a3; margin-bottom: 0.3rem;">Código:</label>
+            <input type="text" id="edit-codigo" style="width:100%; padding:0.6rem; background:#0a0a0a; border:1px solid #404040; color:#fff; border-radius:8px;" required>
+          </div>
+          <div style="margin-bottom: 0.8rem;">
+            <label style="display:block; font-size: 0.85rem; color: #a3a3a3; margin-bottom: 0.3rem;">Cliente:</label>
+            <input type="text" id="edit-cliente" style="width:100%; padding:0.6rem; background:#0a0a0a; border:1px solid #404040; color:#fff; border-radius:8px;" required>
+          </div>
+          <div style="margin-bottom: 0.8rem;">
+            <label style="display:block; font-size: 0.85rem; color: #a3a3a3; margin-bottom: 0.3rem;">Mueble:</label>
+            <input type="text" id="edit-mueble" style="width:100%; padding:0.6rem; background:#0a0a0a; border:1px solid #404040; color:#fff; border-radius:8px;" required>
+          </div>
+          <div style="margin-bottom: 1.4rem;">
+            <label style="display:block; font-size: 0.85rem; color: #a3a3a3; margin-bottom: 0.3rem;">Teléfono (para WhatsApp):</label>
+            <input type="text" id="edit-telefono" style="width:100%; padding:0.6rem; background:#0a0a0a; border:1px solid #404040; color:#fff; border-radius:8px;">
+          </div>
+          <div style="display:flex; justify-content:flex-end; gap:0.5rem;">
+            <button type="button" onclick="cerrarModalEditar()" style="background:#404040; color:white; border:none; padding:0.6rem 1.2rem; border-radius:8px; cursor:pointer; font-weight:600;">Cancelar</button>
+            <button type="submit" style="background:#16a34a; color:white; border:none; padding:0.6rem 1.2rem; border-radius:8px; cursor:pointer; font-weight:bold;">Guardar</button>
+          </div>
+        </form>
+      </div>
+    `;
+    document.body.appendChild(div);
+    modal = div;
+
+    document.getElementById('form-editar').addEventListener('submit', function(e) {
+      e.preventDefault();
+      const idx = document.getElementById('edit-index').value;
+      if (idx !== '' && proyectos[idx]) {
+        proyectos[idx].codigo = document.getElementById('edit-codigo').value.trim().toUpperCase();
+        proyectos[idx].cliente = document.getElementById('edit-cliente').value.trim();
+        proyectos[idx].mueble = document.getElementById('edit-mueble').value.trim();
+        proyectos[idx].telefono = document.getElementById('edit-telefono').value.trim();
+        
+        guardarEnLocalStorage();
+        cerrarModalEditar();
+        renderProyectosAdmin();
+      }
+    });
+  }
+
+  document.getElementById('edit-index').value = index;
+  document.getElementById('edit-codigo').value = p.codigo;
+  document.getElementById('edit-cliente').value = p.cliente;
+  document.getElementById('edit-mueble').value = p.mueble;
+  document.getElementById('edit-telefono').value = p.telefono || '';
+  
+  modal.style.display = 'flex';
+}
+
+function cerrarModalEditar() {
+  const modal = document.getElementById('modal-editar');
+  if (modal) modal.style.display = 'none';
+}
+
+// --- 5. OTRAS FUNCIONES ---
 function cambiarEstadoPorIndice(proyectoIdx, etapaIdx, nuevoProgreso) {
   const etapas = ['Diseño Aprobado', 'Corte', 'Armado', 'Instalación', 'Finalizado'];
   const descripciones = [
@@ -203,33 +271,6 @@ function cambiarEstadoPorIndice(proyectoIdx, etapaIdx, nuevoProgreso) {
   renderProyectosAdmin();
 }
 
-// --- 7. EDITAR DATOS DEL PROYECTO ---
-function editarProyecto(index) {
-  const p = proyectos[index];
-  
-  const nuevoCodigo = prompt("Código del proyecto:", p.codigo);
-  if (nuevoCodigo === null) return; // Si cancela
-  
-  const nuevoCliente = prompt("Nombre del cliente:", p.cliente);
-  if (nuevoCliente === null) return;
-  
-  const nuevoMueble = prompt("Descripción del mueble:", p.mueble);
-  if (nuevoMueble === null) return;
-  
-  const nuevoTelefono = prompt("Teléfono (para WhatsApp):", p.telefono || '');
-  if (nuevoTelefono === null) return;
-  
-  // Guardar cambios
-  proyectos[index].codigo = nuevoCodigo.trim().toUpperCase();
-  proyectos[index].cliente = nuevoCliente.trim();
-  proyectos[index].mueble = nuevoMueble.trim();
-  proyectos[index].telefono = nuevoTelefono.trim();
-  
-  guardarEnLocalStorage();
-  renderProyectosAdmin();
-}
-
-// --- 8. ELIMINAR PROYECTO ---
 function eliminarProyecto(index) {
   if (confirm('¿Deseas eliminar este proyecto?')) {
     proyectos.splice(index, 1);
@@ -238,11 +279,10 @@ function eliminarProyecto(index) {
   }
 }
 
-// --- 9. NOTIFICACIONES POR WHATSAPP ---
 function notificarWhatsApp(index) {
   const p = proyectos[index];
   if (!p.telefono || p.telefono.trim() === '') {
-    alert("Este cliente no tiene un número de teléfono registrado. Usa el botón azul de editar para agregarlo.");
+    alert("Este cliente no tiene un número de teléfono registrado. Usa el botón azul del lápiz para agregarlo.");
     return;
   }
   
