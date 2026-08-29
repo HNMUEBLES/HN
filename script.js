@@ -211,6 +211,20 @@ document.addEventListener('DOMContentLoaded', function() {
       }
     });
   }
+
+  // EVENTO PARA EL FILTRO DE REPORTE MENSUAL
+  const selectMes = document.getElementById('filtro-mes');
+  if (selectMes) {
+    // Poner el mes actual por defecto (YYYY-MM)
+    const fechaActual = new Date();
+    const anio = fechaActual.getFullYear();
+    const mes = String(fechaActual.getMonth() + 1).padStart(2, '0');
+    selectMes.value = `${anio}-${mes}`;
+
+    selectMes.addEventListener('change', () => {
+      renderProyectosAdmin();
+    });
+  }
 });
 
 function cerrarSesionAdmin() {
@@ -219,12 +233,48 @@ function cerrarSesionAdmin() {
   document.getElementById('admin-login').classList.remove('hidden');
 }
 
-// --- 3. MOSTRAR TARJETAS EN PANEL ADMIN ---
+// --- 3. MOSTRAR TARJETAS Y REPORTE MENSUAL EN PANEL ADMIN ---
 function renderProyectosAdmin() {
   const container = document.getElementById('lista-proyectos-admin');
   const totalEl = document.getElementById('total-proyectos');
   
   if (totalEl) totalEl.innerText = proyectos.length;
+
+  // --- CÁLCULO DE REPORTE MENSUAL ---
+  const selectMes = document.getElementById('filtro-mes');
+  const mesSeleccionado = selectMes ? selectMes.value : ''; // Formato "YYYY-MM"
+
+  let proyectosFiltradosMes = proyectos;
+  let totalPresupuestoMes = 0;
+  let totalAdelantoMes = 0;
+  let totalSaldoMes = 0;
+
+  if (mesSeleccionado) {
+    proyectosFiltradosMes = proyectos.filter(p => {
+      if (!p.fechaEntrega) return false;
+      return p.fechaEntrega.startsWith(mesSeleccionado);
+    });
+  }
+
+  proyectosFiltradosMes.forEach(p => {
+    const pres = Number(p.presupuesto) || 0;
+    const adel = Number(p.adelanto) || 0;
+    totalPresupuestoMes += pres;
+    totalAdelantoMes += adel;
+    totalSaldoMes += (pres - adel);
+  });
+
+  // Pintar valores en el DOM del reporte mensual
+  const elCantMes = document.getElementById('reporte-cant-mes');
+  const elPresMes = document.getElementById('reporte-presupuesto-mes');
+  const elAdelMes = document.getElementById('reporte-adelanto-mes');
+  const elSaldoMes = document.getElementById('reporte-saldo-mes');
+
+  if (elCantMes) elCantMes.innerText = proyectosFiltradosMes.length;
+  if (elPresMes) elPresMes.innerText = `Bs. ${formatearMonto(totalPresupuestoMes)}`;
+  if (elAdelMes) elAdelMes.innerText = `Bs. ${formatearMonto(totalAdelantoMes)}`;
+  if (elSaldoMes) elSaldoMes.innerText = `Bs. ${formatearMonto(totalSaldoMes)}`;
+
   if (!container) return;
   
   container.innerHTML = '';
