@@ -3,74 +3,74 @@ body { background-color: #0a0a0a; color: #ffffff; min-height: 100vh; position: r
 
 /* FONDO DE PANTALLA (AQUÍ ESTÁ TU FOTO) */
 .bg-overlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background-image: url('assets/fondo.jpg'), url('assets/fondo.png'), url('assets/fondo.jpeg');
-  background-size: cover;
-  background-position: center;
-  background-repeat: no-repeat;
-  z-index: 0;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-image: url('assets/fondo.jpg'), url('assets/fondo.png'), url('assets/fondo.jpeg');
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  z-index: 0;
 }
-.bg-overlay::after { 
-  content: ''; 
-  position: absolute; 
-  inset: 0; 
-  background: rgba(0, 0, 0, 0.45); 
-  backdrop-filter: blur(2px); 
+.bg-overlay::after { 
+  content: ''; 
+  position: absolute; 
+  inset: 0; 
+  background: rgba(0, 0, 0, 0.45); 
+  backdrop-filter: blur(2px); 
 }
 
 .app-container { position: relative; z-index: 10; min-height: 100vh; display: flex; flex-direction: column; justify-content: space-between; }
 
 /* BARRA Y BOTONES TRANSPARENTES */
 .navbar {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 1.2rem 2rem;
-  background: transparent !important;
-  position: sticky;
-  top: 0;
-  z-index: 50;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1.2rem 2rem;
+  background: transparent !important;
+  position: sticky;
+  top: 0;
+  z-index: 50;
 }
 
 .logo-container { display: flex; align-items: center; gap: 0.75rem; cursor: pointer; }
 .logo-img { height: 45px; width: auto; object-fit: contain; }
 
 .nav-links {
-  display: flex;
-  gap: 0.5rem;
-  background: transparent !important;
-  border: none !important;
-  padding: 0;
+  display: flex;
+  gap: 0.5rem;
+  background: transparent !important;
+  border: none !important;
+  padding: 0;
 }
 
 /* BOTONES TRANSPARENTES POR DEFECTO */
 .nav-links button {
-  background: transparent !important;
-  border: 1px solid transparent !important;
-  color: #ffffff !important;
-  padding: 0.6rem 1.2rem;
-  border-radius: 8px;
-  font-weight: 600;
-  font-size: 0.95rem;
-  cursor: pointer;
-  transition: all 0.3s ease;
+  background: transparent !important;
+  border: 1px solid transparent !important;
+  color: #ffffff !important;
+  padding: 0.6rem 1.2rem;
+  border-radius: 8px;
+  font-weight: 600;
+  font-size: 0.95rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
 }
 
 .nav-links button:hover {
-  background-color: rgba(255, 255, 255, 0.1) !important;
-  border-color: rgba(255, 255, 255, 0.2) !important;
+  background-color: rgba(255, 255, 255, 0.1) !important;
+  border-color: rgba(255, 255, 255, 0.2) !important;
 }
 
 /* BOTÓN SELECCIONADO (MARRÓN CASI TRANSPARENTE) */
 .nav-links button.active {
-  background-color: rgba(140, 75, 40, 0.35) !important;
-  color: #ffffff !important;
-  border-color: rgba(180, 100, 50, 0.5) !important;
-  box-shadow: 0 2px 10px rgba(140, 75, 40, 0.25);
+  background-color: rgba(140, 75, 40, 0.35) !important;
+  color: #ffffff !important;
+  border-color: rgba(180, 100, 50, 0.5) !important;
+  box-shadow: 0 2px 10px rgba(140, 75, 40, 0.25);
 }
 
 /* RESTO DEL SITIO */
@@ -86,14 +86,14 @@ body { background-color: #0a0a0a; color: #ffffff; min-height: 100vh; position: r
 .card-box { background: rgba(23, 23, 23, 0.85); border: 1px solid rgba(255, 255, 255, 0.1); padding: 2.5rem; border-radius: 20px; width: 100%; max-width: 800px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); backdrop-filter: blur(10px); }
 
 /* PANEL ADMINISTRADOR CON FONDO NEGRO SÓLIDO */
-.panel-box { 
-  background: #000000 !important; 
-  border: 1px solid rgba(255, 255, 255, 0.15); 
-  padding: 2.5rem; 
-  border-radius: 20px; 
-  width: 100%; 
-  max-width: 800px; 
-  box-shadow: 0 10px 30px rgba(0,0,0,0.8); 
+.panel-box { 
+  background: #000000 !important; 
+  border: 1px solid rgba(255, 255, 255, 0.15); 
+  padding: 2.5rem; 
+  border-radius: 20px; 
+  width: 100%; 
+  max-width: 800px; 
+  box-shadow: 0 10px 30px rgba(0,0,0,0.8); 
 }
 
 .card-box h2 { text-align: center; font-size: 1.6rem; margin-bottom: 0.5rem; }
@@ -104,42 +104,42 @@ input:focus { border-color: #b45309; }
 
 /* DISEÑO DEL FORMULARIO ADMINISTRADOR (4 CAJAS) */
 .admin-form {
-  background: rgba(255, 255, 255, 0.05);
-  padding: 1.5rem;
-  border-radius: 12px;
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  margin-bottom: 2rem;
+  background: rgba(255, 255, 255, 0.05);
+  padding: 1.5rem;
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  margin-bottom: 2rem;
 }
 .admin-form h3 {
-  font-size: 1.1rem;
-  margin-bottom: 1rem;
+  font-size: 1.1rem;
+  margin-bottom: 1rem;
 }
 .form-grid {
-  display: grid !important;
-  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)) !important;
-  gap: 0.75rem !important;
+  display: grid !important;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)) !important;
+  gap: 0.75rem !important;
 }
 
 /* BOTÓN CERRAR SESIÓN */
 .panel-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 1.5rem;
-  flex-wrap: wrap;
-  gap: 1rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.5rem;
+  flex-wrap: wrap;
+  gap: 1rem;
 }
 .btn-logout {
-  background: rgba(239, 68, 68, 0.2);
-  color: #ef4444;
-  border: 1px solid rgba(239, 68, 68, 0.4);
-  padding: 0.5rem 1rem;
-  border-radius: 8px;
-  cursor: pointer;
-  font-weight: 600;
+  background: rgba(239, 68, 68, 0.2);
+  color: #ef4444;
+  border: 1px solid rgba(239, 68, 68, 0.4);
+  padding: 0.5rem 1rem;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 600;
 }
 .btn-logout:hover {
-  background: rgba(239, 68, 68, 0.4);
+  background: rgba(239, 68, 68, 0.4);
 }
 
 .footer { border-top: 1px solid rgba(255,255,255,0.1); background: rgba(10, 10, 10, 0.8); padding: 2.5rem 1.5rem; text-align: center; backdrop-filter: blur(8px); }
