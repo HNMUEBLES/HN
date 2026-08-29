@@ -37,24 +37,6 @@ async function cargarProyectosDesdeNube() {
         ...docSnap.data()
       });
     });
-    
-    // Si la base de datos está vacía, creamos un proyecto inicial de prueba
-    if (proyectos.length === 0) {
-      const proyectoInicial = {
-        codigo: 'HN001',
-        cliente: 'Carlos Mendoza',
-        mueble: 'Juego de Comedor en Melamina',
-        telefono: '62037033',
-        estado: 'Diseño Aprobado',
-        progreso: 20,
-        detalles: 'Diseño confirmado por WhatsApp. Listo para corte.',
-        presupuesto: 3500,
-        adelanto: 1500,
-        fechaEntrega: '2026-03-15'
-      };
-      const docRef = await db.collection("proyectos").add(proyectoInicial);
-      proyectos.push({ id: docRef.id, ...proyectoInicial });
-    }
 
     if (esAdmin) {
       renderProyectosAdmin();
