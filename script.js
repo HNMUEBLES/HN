@@ -1,3 +1,7 @@
+// Importar Firebase y Firestore desde los servidores oficiales
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+import { getFirestore, collection, getDocs, addDoc, updateDoc, deleteDoc, doc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+
 // Configuración de Firebase (Tus llaves)
 const firebaseConfig = {
   apiKey: "AIzaSyCLrVUpGCTxFxuMR0ATlwj2t3osSP0dD7Y",
@@ -9,9 +13,9 @@ const firebaseConfig = {
   measurementId: "G-8PJGERB67Q"
 };
 
-// Inicializar Firebase (Versión compatible con script clásico)
-firebase.initializeApp(firebaseConfig);
-const db = firebase.firestore();
+// Inicializar Firebase y Base de datos Firestore
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
 
 let proyectos = [];
 let esAdmin = false;
@@ -19,16 +23,16 @@ let esAdmin = false;
 // --- CARGAR PROYECTOS DESDE FIRESTORE EN VIVO ---
 async function cargarProyectosDesdeNube() {
   try {
-    const querySnapshot = await db.collection("proyectos").get();
+    const querySnapshot = await getDocs(collection(db, "proyectos"));
     proyectos = [];
     querySnapshot.forEach((docSnap) => {
       proyectos.push({
-        id: docSnap.id,
+        id: docSnap.id, // ID único de Firebase
         ...docSnap.data()
       });
     });
     
-    // Si la base de datos está vacía, creamos uno por defecto
+    // Si la base de datos está vacía, creamos uno por defecto para que no luzca vacía
     if (proyectos.length === 0) {
       const proyectoInicial = {
         codigo: 'HN-001',
@@ -42,8 +46,8 @@ async function cargarProyectosDesdeNube() {
         adelanto: 1500,
         fechaEntrega: '2026-03-15'
       };
-      const docRef = await db.collection("proyectos").add(proyectoInicial);
-      proyectos.push({ id: docRef.id, ...proyectoInicial });
+      await addDoc(collection(db, "proyectos"), proyectoInicial);
+      proyectos.push({ id: 'temp-1', ...proyectoInicial });
     }
 
     if (esAdmin) {
@@ -54,11 +58,11 @@ async function cargarProyectosDesdeNube() {
   }
 }
 
-// Ejecutar carga inicial
+// Ejecutar carga inicial al abrir la página
 cargarProyectosDesdeNube();
 
 // --- 1. NAVEGACIÓN ENTRE SECCIONES ---
-function mostrarSeccion(seccionId) {
+window.mostrarSeccion = function(seccionId) {
   const secInicio = document.getElementById('sec-inicio');
   const secRastreo = document.getElementById('sec-rastreo');
   const secAdmin = document.getElementById('sec-admin');
@@ -80,7 +84,7 @@ function mostrarSeccion(seccionId) {
 
   if (secDestino) secDestino.classList.remove('hidden');
   if (btnDestino) btnDestino.classList.add('active');
-}
+};
 
 // --- 2. INICIALIZACIÓN Y EVENTOS ---
 document.addEventListener('DOMContentLoaded', function() {
@@ -92,6 +96,8 @@ document.addEventListener('DOMContentLoaded', function() {
       if (!codigoInput) return;
       
       const codigo = codigoInput.value.trim().toUpperCase();
+      
+      // Asegurarnos de tener los datos más frescos de la nube
       await cargarProyectosDesdeNube();
       
       const encontrado = proyectos.find(p => p.codigo === codigo);
@@ -180,7 +186,7 @@ document.addEventListener('DOMContentLoaded', function() {
       };
 
       try {
-        await db.collection("proyectos").add(nuevoProyectoObj);
+        await addDoc(collection(db, "proyectos"), nuevoProyectoObj);
         
         if (codIn) codIn.value = '';
         if (cliIn) cliIn.value = '';
@@ -201,11 +207,11 @@ document.addEventListener('DOMContentLoaded', function() {
   }
 });
 
-function cerrarSesionAdmin() {
+window.cerrarSesionAdmin = function() {
   esAdmin = false;
   document.getElementById('admin-panel').classList.add('hidden');
   document.getElementById('admin-login').classList.remove('hidden');
-}
+};
 
 // --- 3. MOSTRAR TARJETAS EN PANEL ADMIN ---
 function renderProyectosAdmin() {
@@ -237,7 +243,6 @@ function renderProyectosAdmin() {
     card.innerHTML = `
       <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 1rem; flex-wrap: wrap;">
         
-        <!-- VISTA NORMAL / INFO -->
         <div id="info-view-${index}" style="flex: 1; min-width: 280px;">
           <div style="display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap;">
             <span style="background: #f59e0b; color: #000; padding: 0.2rem 0.5rem; border-radius: 4px; font-weight: bold; font-size: 0.85rem;">${p.codigo}</span>
@@ -250,7 +255,6 @@ function renderProyectosAdmin() {
             <i class="fa-regular fa-calendar"></i> Entrega estimada: <strong>${fechaFormateada}</strong>
           </p>
 
-          <!-- SECCIÓN DE FINANZAS -->
           <div style="background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.08); padding: 0.6rem 0.8rem; border-radius: 8px; margin: 0.6rem 0; display: flex; gap: 1rem; flex-wrap: wrap; font-size: 0.85rem;">
             <div><span style="color: #a3a3a3;">Total:</span> <strong>Bs. ${presupuesto.toFixed(2)}</strong></div>
             <div><span style="color: #a3a3a3;">Adelanto:</span> <strong style="color: #38bdf8;">Bs. ${adelanto.toFixed(2)}</strong></div>
@@ -265,7 +269,6 @@ function renderProyectosAdmin() {
           </div>
         </div>
 
-        <!-- VISTA DE EDICIÓN INLINE (OCULTA POR DEFECTO) -->
         <div id="edit-view-${index}" style="flex: 1; min-width: 280px; display: none; background: rgba(0,0,0,0.4); padding: 1rem; border-radius: 8px; border: 1px solid rgba(255,255,255,0.15);">
           <h4 style="margin-bottom: 0.6rem; color: #f59e0b; font-size: 0.95rem;">Editar Proyecto, Finanzas y Fecha</h4>
           <div style="display: flex; flex-direction: column; gap: 0.5rem;">
@@ -306,7 +309,6 @@ function renderProyectosAdmin() {
           </div>
         </div>
 
-        <!-- BOTONES DE ACCIÓN PRINCIPAL (EDITAR / ELIMINAR) -->
         <div style="display: flex; gap: 0.5rem;">
           <button type="button" id="btn-edit-toggle-${index}" onclick="activarEdicionInline(${index})" title="Editar datos, finanzas y fecha" style="background: #3b82f6; color: white; border: none; padding: 0.6rem 0.8rem; border-radius: 8px; cursor: pointer;">
             <i class="fa-solid fa-pen-to-square"></i>
@@ -323,19 +325,19 @@ function renderProyectosAdmin() {
 }
 
 // --- 4. FUNCIONES DE EDICIÓN DIRECTA EN LA TARJETA ---
-function activarEdicionInline(index) {
+window.activarEdicionInline = function(index) {
   document.getElementById(`info-view-${index}`).style.display = 'none';
   document.getElementById(`edit-view-${index}`).style.display = 'block';
   document.getElementById(`btn-edit-toggle-${index}`).style.display = 'none';
-}
+};
 
-function cancelarEdicionInline(index) {
+window.cancelarEdicionInline = function(index) {
   document.getElementById(`info-view-${index}`).style.display = 'block';
   document.getElementById(`edit-view-${index}`).style.display = 'none';
   document.getElementById(`btn-edit-toggle-${index}`).style.display = 'block';
-}
+};
 
-async function guardarEdicionInline(idFirebase, index) {
+window.guardarEdicionInline = async function(idFirebase, index) {
   const nuevoCodigo = document.getElementById(`input-edit-codigo-${index}`).value.trim().toUpperCase();
   const nuevoCliente = document.getElementById(`input-edit-cliente-${index}`).value.trim();
   const nuevoMueble = document.getElementById(`input-edit-mueble-${index}`).value.trim();
@@ -350,7 +352,8 @@ async function guardarEdicionInline(idFirebase, index) {
   }
 
   try {
-    await db.collection("proyectos").doc(idFirebase).update({
+    const docRef = doc(db, "proyectos", idFirebase);
+    await updateDoc(docRef, {
       codigo: nuevoCodigo,
       cliente: nuevoCliente,
       mueble: nuevoMueble,
@@ -366,10 +369,10 @@ async function guardarEdicionInline(idFirebase, index) {
     console.error("Error al actualizar:", error);
     alert("Error al actualizar el proyecto.");
   }
-}
+};
 
 // --- 5. OTRAS ACCIONES ---
-async function cambiarEstadoPorIndice(idFirebase, etapaIdx, nuevoProgreso) {
+window.cambiarEstadoPorIndice = async function(idFirebase, etapaIdx, nuevoProgreso) {
   const etapas = ['Diseño Aprobado', 'Corte', 'Armado', 'Instalación', 'Finalizado'];
   const descripciones = [
     'El diseño ha sido aprobado por WhatsApp. El proyecto ingresa a producción.',
@@ -380,7 +383,8 @@ async function cambiarEstadoPorIndice(idFirebase, etapaIdx, nuevoProgreso) {
   ];
   
   try {
-    await db.collection("proyectos").doc(idFirebase).update({
+    const docRef = doc(db, "proyectos", idFirebase);
+    await updateDoc(docRef, {
       estado: etapas[etapaIdx],
       progreso: nuevoProgreso,
       detalles: descripciones[etapaIdx]
@@ -390,20 +394,20 @@ async function cambiarEstadoPorIndice(idFirebase, etapaIdx, nuevoProgreso) {
   } catch (error) {
     console.error("Error cambiando estado:", error);
   }
-}
+};
 
-async function eliminarProyecto(idFirebase) {
+window.eliminarProyecto = async function(idFirebase) {
   if (confirm('¿Deseas eliminar este proyecto de la nube?')) {
     try {
-      await db.collection("proyectos").doc(idFirebase).delete();
+      await deleteDoc(doc(db, "proyectos", idFirebase));
       await cargarProyectosDesdeNube();
     } catch (error) {
       console.error("Error al eliminar:", error);
     }
   }
-}
+};
 
-function notificarWhatsApp(index) {
+window.notificarWhatsApp = function(index) {
   const p = proyectos[index];
   if (!p.telefono || p.telefono.trim() === '') {
     alert("Este cliente no tiene un número de teléfono registrado. Presiona el botón azul del lápiz para agregarlo.");
@@ -425,4 +429,4 @@ function notificarWhatsApp(index) {
   const mensaje = `Hola *${p.cliente}* 👋, desde *HN Muebles* te informamos el estado de tu proyecto *"${p.mueble}"*:\n\n🛠️ *Estado:* ${p.estado}\n📊 *Progreso:* ${p.progreso}%\n📅 *Fecha Estimada de Entrega:* ${fechaTexto}\n\n💰 *Resumen Financiero:*\n• Presupuesto Total: Bs. ${presupuesto.toFixed(2)}\n• Adelanto: Bs. ${adelanto.toFixed(2)}\n• Saldo Pendiente: Bs. ${saldo.toFixed(2)}\n\n🔍 *Puedes rastrear tu proyecto ingresando tu código (${p.codigo}) aquí:*\n${linkPagina}`;
   
   window.open(`https://wa.me/${num}?text=${encodeURIComponent(mensaje)}`, '_blank');
-}
+};
