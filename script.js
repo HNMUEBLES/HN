@@ -127,7 +127,7 @@ function mostrarSeccion(seccionId) {
 }
 
 // ==========================================
-// 4. EVENTOS DEL DOM Y AUTENTICACIÓN
+// 4. EVENTOS DEL DOM Y LOGIN AUTOMATIZADO
 // ==========================================
 
 document.addEventListener('DOMContentLoaded', function() {
@@ -163,19 +163,16 @@ document.addEventListener('DOMContentLoaded', function() {
     });
   }
 
-  // LOGIN ADMIN SEGURO CON FIREBASE AUTH
+  // LOGIN ADMIN SEGURO (Usa tu correo real hn24mubles@gmail.com y tu contraseña)
   const formLogin = document.getElementById('form-login');
   if (formLogin) {
     formLogin.addEventListener('submit', async function(e) {
       e.preventDefault();
-      const emailInput = document.getElementById('input-email'); // Asegúrate de tener este campo o usa uno fijo
       const passInput = document.getElementById('input-pass');
-      
-      const email = emailInput ? emailInput.value.trim() : 'admin@hnmuebles.com'; // Puedes pedir el correo en tu HTML o dejarlo fijo
-      const password = passInput ? passInput.value.trim() : '';
+      const passwordEscrita = passInput ? passInput.value.trim() : '';
 
       try {
-        await auth.signInWithEmailAndPassword(email, password);
+        await auth.signInWithEmailAndPassword('hn24mubles@gmail.com', passwordEscrita);
         esAdmin = true;
         
         const divLogin = document.getElementById('admin-login');
@@ -187,7 +184,7 @@ document.addEventListener('DOMContentLoaded', function() {
         await cargarProyectosDesdeNube();
         renderProyectosAdmin();
       } catch (error) {
-        alert('Credenciales incorrectas o acceso no autorizado.');
+        alert('Contraseña incorrecta');
         console.error("Error de login:", error);
         if (passInput) passInput.value = '';
       }
@@ -257,7 +254,7 @@ document.addEventListener('DOMContentLoaded', function() {
         renderProyectosAdmin();
       } catch (error) {
         console.error("Error al guardar en Firebase:", error);
-        alert("No tienes permisos para realizar esta acción.");
+        alert("No tienes permisos para realizar esta acción. Verifica tu sesión.");
       }
     });
   }
