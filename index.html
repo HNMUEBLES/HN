@@ -3,142 +3,102 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>HN Muebles | Seguimiento de Proyectos</title>
+  <title>HN Muebles - Seguimiento de Proyectos</title>
   <link rel="stylesheet" href="styles.css">
-  <!-- FontAwesome Icons -->
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
 <body>
 
+  <!-- Fondo de pantalla adaptativo -->
   <div class="bg-overlay"></div>
 
   <div class="app-container">
-
-    <!-- NAVBAR -->
-    <nav class="navbar">
+    <!-- Barra de Navegación -->
+    <header class="navbar">
       <div class="logo-container" onclick="mostrarSeccion('inicio')">
-        <img src="assets/logo.jpg" alt="HN Muebles Logo" class="logo-img">
-        <span class="brand-title">HN <span class="font-amber">MUEBLES</span></span>
+        <img src="assets/logo.png" alt="HN Muebles Logo" class="logo-img" onerror="this.style.display='none'">
+        <span class="brand-title font-amber">HN MUEBLES</span>
       </div>
-      <div class="nav-links">
-        <button id="btn-inicio" class="active" onclick="mostrarSeccion('inicio')">Inicio</button>
-        <button id="btn-rastreo" onclick="mostrarSeccion('rastreo')">Seguimiento</button>
-        <button id="btn-admin" onclick="mostrarSeccion('admin')">Admin</button>
-      </div>
-    </nav>
+      <nav class="nav-links">
+        <button id="nav-inicio" class="active" onclick="mostrarSeccion('inicio')">Inicio</button>
+        <button id="nav-cliente" onclick="mostrarSeccion('cliente')">Mi Proyecto</button>
+        <button id="nav-admin" onclick="mostrarSeccion('admin')">Taller</button>
+      </nav>
+    </header>
 
-    <!-- CONTENIDO PRINCIPAL -->
-    <main class="content-section">
-
-      <!-- SECCIÓN INICIO -->
-      <section id="sec-inicio" class="hero-box">
+    <!-- SECCIÓN INICIO -->
+    <main id="sec-inicio" class="content-section">
+      <div class="hero-box">
         <h1>Diseño y Fabricación de <span class="font-amber">Muebles a Medida</span></h1>
-        <p>Sigue en tiempo real cada etapa de fabricación de tu proyecto. Calidad, precisión y transparencia en cada detalle.</p>
-        <button class="btn-primary" onclick="mostrarSeccion('rastreo')">
-          <i class="fa-solid fa-magnifying-glass"></i> Consultar mi Proyecto
+        <p>Sigue en tiempo real el proceso de corte, armado y acabado de tus muebles personalizados.</p>
+        <button class="btn-primary" onclick="mostrarSeccion('cliente')">
+          🔍 Consultar mi Estado
         </button>
-      </section>
+      </div>
+    </main>
 
-      <!-- SECCIÓN RASTREO (CLIENTE) -->
-      <section id="sec-rastreo" class="card-box hidden">
+    <!-- SECCIÓN CONSULTA CLIENTE -->
+    <main id="sec-cliente" class="content-section hidden">
+      <div class="card-box">
         <h2>Consulta el Estado de tu Mueble</h2>
-        <p class="subtitle">Ingresa el código único proporcionado por el equipo de HN Muebles</p>
-        
-        <form id="form-buscar" class="search-form">
-          <input type="text" id="input-codigo" placeholder="Ej: HN-001" required>
+        <p class="subtitle">Ingresa el código único proporcionado por el taller</p>
+
+        <form onsubmit="buscarProyecto(event)" class="search-form">
+          <input type="text" id="codigo-busqueda" placeholder="Ej: HN-101" required>
           <button type="submit" class="btn-primary">Buscar</button>
         </form>
 
-        <div id="mensaje-error" class="error-msg hidden">
-          <i class="fa-solid fa-triangle-exclamation"></i> No se encontró ningún proyecto con ese código.
-        </div>
-
-        <div id="resultado-proyecto" class="project-details hidden">
-          <div class="project-header">
-            <div>
-              <span id="res-codigo" class="badge">HN-000</span>
-              <h3 id="res-mueble" style="margin-top: 0.25rem;">Descripción del Mueble</h3>
-              <p id="res-cliente" class="subtitle" style="text-align: left; margin: 0;">Cliente</p>
-            </div>
-            <span id="res-estado" class="status-tag">Etapa</span>
-          </div>
-
-          <div class="progress-container">
-            <div class="progress-labels">
-              <span>Avance de Fabricación</span>
-              <span id="res-porcentaje">0%</span>
-            </div>
-            <div class="progress-bar">
-              <div id="res-bar-fill" class="progress-fill" style="width: 0%;"></div>
-            </div>
-          </div>
-
-          <div class="details-box">
-            <strong>Detalles del Avance:</strong>
-            <p id="res-detalles" style="color: #d4d4d4; margin-top: 0.25rem;">-</p>
-          </div>
-        </div>
-      </section>
-
-      <!-- SECCIÓN ADMIN -->
-      <section id="sec-admin" class="card-box hidden">
-        
-        <!-- LOGIN ADMIN -->
-        <div id="admin-login" class="login-box">
-          <div class="icon-lock font-amber"><i class="fa-solid fa-lock"></i></div>
-          <h2>Panel de Administración</h2>
-          <p class="subtitle">Acceso exclusivo para personal autorizado</p>
-          <form id="form-login" class="login-form">
-            <input type="password" id="input-pass" placeholder="Contraseña de acceso" required>
-            <button type="submit" class="btn-primary">Ingresar</button>
-          </form>
-        </div>
-
-        <!-- PANEL DE CONTROL ADMIN -->
-        <div id="admin-panel" class="panel-box hidden">
-          <div class="panel-header">
-            <div>
-              <h2>Gestión de Proyectos</h2>
-              <p class="subtitle" style="text-align: left; margin: 0;">Total de proyectos activos: <span id="total-proyectos" class="font-amber">0</span></p>
-            </div>
-            <button class="btn-logout" onclick="cerrarSesionAdmin()"><i class="fa-solid fa-right-from-bracket"></i> Salir</button>
-          </div>
-
-          <!-- Formulario Agregar Proyecto con WhatsApp exclusivo -->
-          <form id="form-nuevo-proyecto" class="admin-form">
-            <h3><i class="fa-solid fa-plus font-amber"></i> Registrar Nuevo Proyecto</h3>
-            <div class="form-grid">
-              <input type="text" id="nuevo-codigo" placeholder="Código (ej. HN-002)" required>
-              <input type="text" id="nuevo-cliente" placeholder="Nombre del cliente" required>
-              <input type="text" id="nuevo-mueble" placeholder="Descripción del mueble" required>
-              <input type="text" id="nuevo-telefono" placeholder="WhatsApp del cliente (ej. 70012345)">
-            </div>
-            <button type="submit" class="btn-primary" style="width: 100%; margin-top: 0.5rem;">Guardar Proyecto</button>
-          </form>
-
-          <!-- Lista de Proyectos -->
-          <h3>Proyectos en Sistema</h3>
-          <div id="lista-proyectos-admin" class="projects-list"></div>
-        </div>
-
-      </section>
-
+        <div id="resultado-cliente"></div>
+      </div>
     </main>
 
-    <!-- FOOTER ORIGINAL (Contacto General) -->
-    <footer class="footer">
-      <p>Síguenos en nuestras redes o ponte en contacto directo</p>
-      <div class="social-buttons">
-        <a href="https://wa.me/59100000000" target="_blank" class="btn-social btn-wa">
-          <i class="fa-brands fa-whatsapp"></i> Contactar por WhatsApp
-        </a>
-        <a href="https://instagram.com" target="_blank" class="btn-social btn-ig">
-          <i class="fa-brands fa-instagram"></i> Ver Galería en Instagram
-        </a>
+    <!-- SECCIÓN LOGIN ADMIN -->
+    <main id="sec-login" class="content-section hidden">
+      <div class="card-box login-box">
+        <div class="icon-lock">🔒</div>
+        <h2>Acceso al Taller</h2>
+        <p class="subtitle">Ingrese la contraseña de administración</p>
+        <form onsubmit="procesarLogin(event)" class="login-form">
+          <input type="password" id="admin-pass" placeholder="Contraseña" required>
+          <button type="submit" class="btn-primary">Ingresar</button>
+        </form>
+        <div id="login-error" class="error-msg hidden" style="margin-top: 1rem;">Contraseña incorrecta</div>
       </div>
-      <p class="copyright">&copy; 2026 HN Muebles. Todos los derechos reservados.</p>
-    </footer>
+    </main>
 
+    <!-- SECCIÓN PANEL ADMIN -->
+    <main id="sec-panel" class="content-section hidden">
+      <div class="panel-box">
+        <div class="panel-header">
+          <h2>Panel del Taller (Administración)</h2>
+          <button class="btn-logout" onclick="cerrarSesion()">Cerrar Sesión</button>
+        </div>
+
+        <!-- FORMULARIO NUEVO PROYECTO (Con campo WhatsApp) -->
+        <form onsubmit="guardarNuevoProyecto(event)" class="admin-form">
+          <h3>➕ Agregar Nuevo Mueble / Cliente</h3>
+          <div class="form-grid">
+            <input type="text" id="add-codigo" placeholder="Código (Ej: HN-101)" required>
+            <input type="text" id="add-cliente" placeholder="Nombre del Cliente" required>
+            <input type="text" id="add-mueble" placeholder="Descripción del Mueble" required>
+            <input type="text" id="add-telefono" placeholder="WhatsApp (Ej: 70012345)" required>
+            <input type="text" id="add-detalles" placeholder="Detalles de madera / melamina">
+          </div>
+          <button type="submit" class="btn-primary">Registrar Mueble</button>
+        </form>
+
+        <h3 style="margin-top: 1.5rem;">Proyectos Registrados</h3>
+        <div id="lista-proyectos-admin" class="projects-list"></div>
+      </div>
+    </main>
+
+    <!-- PIE DE PÁGINA -->
+    <footer class="footer">
+      <p>HN Muebles &copy; Todos los derechos reservados.</p>
+      <div class="social-buttons">
+        <a href="https://wa.me/59170000000" target="_blank" class="btn-social btn-wa">💬 WhatsApp Taller</a>
+      </div>
+      <p class="copyright">Carpintería y Mueblería de Alta Calidad</p>
+    </footer>
   </div>
 
   <script src="app.js"></script>
