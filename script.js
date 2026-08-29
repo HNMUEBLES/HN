@@ -127,7 +127,7 @@ document.addEventListener('DOMContentLoaded', function() {
       const telIn = document.getElementById('nuevo-telefono');
       const presIn = document.getElementById('nuevo-presupuesto');
       const adelIn = document.getElementById('nuevo-adelanto');
-      const fechaIn = document.getElementById('nuevo-fecha');
+      const fechaIn = document.getElementById('nuevo-fecha'); // <-- CAPTURA LA FECHA CORRECTAMENTE
 
       proyectos.push({
         codigo: codIn ? codIn.value.trim().toUpperCase() : '',
@@ -139,7 +139,7 @@ document.addEventListener('DOMContentLoaded', function() {
         detalles: 'Diseño confirmado por WhatsApp. Listo para corte.',
         presupuesto: presIn ? parseFloat(presIn.value) || 0 : 0,
         adelanto: adelIn ? parseFloat(adelIn.value) || 0 : 0,
-        fechaEntrega: fechaIn ? fechaIn.value : ''
+        fechaEntrega: fechaIn ? fechaIn.value : '' // <-- GUARDA LA FECHA CORRECTAMENTE
       });
 
       guardarEnLocalStorage();
