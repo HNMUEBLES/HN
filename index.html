@@ -1,68 +1,55 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>HN Muebles | Seguimiento de Proyectos</title>
-  <link rel="stylesheet" href="styles.css">
-  <!-- FontAwesome Icons -->
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>HN Muebles | Diseño y Fabricación a Medida</title>
+  <link rel="stylesheet" href="styles.css" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
 </head>
 <body>
-
   <div class="bg-overlay"></div>
-
   <div class="app-container">
-
-    <!-- NAVBAR -->
-    <nav class="navbar">
+    <header class="navbar">
       <div class="logo-container" onclick="mostrarSeccion('inicio')">
-        <img src="assets/logo.jpg" alt="HN Muebles Logo" class="logo-img">
-        <span class="brand-title">HN <span class="font-amber">MUEBLES</span></span>
-      </div>
-      <div class="nav-links">
-        <button id="btn-inicio" class="active" onclick="mostrarSeccion('inicio')">Inicio</button>
-        <button id="btn-rastreo" onclick="mostrarSeccion('rastreo')">Seguimiento</button>
-        <button id="btn-admin" onclick="mostrarSeccion('admin')">Admin</button>
-      </div>
-    </nav>
-
-    <!-- CONTENIDO PRINCIPAL -->
-    <main class="content-section">
-
-      <!-- SECCIÓN INICIO -->
-      <section id="sec-inicio" class="hero-box">
-        <h1>Diseño y Fabricación de <span class="font-amber">Muebles a Medida</span></h1>
-        <p>Sigue en tiempo real cada etapa de fabricación de tu proyecto. Calidad, precisión y transparencia en cada detalle.</p>
-        <button class="btn-primary" onclick="mostrarSeccion('rastreo')">
-          <i class="fa-solid fa-magnifying-glass"></i> Consultar mi Proyecto
-        </button>
-      </section>
-
-      <!-- SECCIÓN RASTREO (CLIENTE) -->
-      <section id="sec-rastreo" class="card-box hidden">
-        <h2>Consulta el Estado de tu Mueble</h2>
-        <p class="subtitle">Ingresa el código único proporcionado por el equipo de HN Muebles</p>
+        <img src="assets/logo.png" alt="HN Muebles Logo" class="logo-img" onerror="this.style.display='none'" />
         
+      </div>
+      <nav class="nav-links">
+        <button onclick="mostrarSeccion('inicio')" id="btn-inicio" class="active">Inicio</button>
+        <button onclick="mostrarSeccion('rastreo')" id="btn-rastreo">Rastrear Proyecto</button>
+        <button onclick="mostrarSeccion('admin')" id="btn-admin"><i class="fa-solid fa-lock"></i> Admin</button>
+      </nav>
+    </header>
+    <section id="sec-inicio" class="content-section">
+      <div class="hero-box">
+        <h1>Diseño y Fabricación de Muebles a Medida</h1>
+        <p>Transformamos tus espacios con melamina y acabados de primera calidad. Consulta el avance de tu fabricación en tiempo real o ponte en contacto directo con nosotros.</p>
+        <button class="btn-primary" onclick="mostrarSeccion('rastreo')">
+          <i class="fa-solid fa-magnifying-glass"></i> Consultar Estado de Mi Mueble
+        </button>
+      </div>
+    </section>
+    <section id="sec-rastreo" class="content-section hidden">
+      <div class="card-box">
+        <h2><i class="fa-solid fa-box font-amber"></i> Seguimiento de Proyecto</h2>
+        <p class="subtitle">Ingresa el código asignado a tu orden (Ejemplo: <strong>HN-001</strong>)</p>
         <form id="form-buscar" class="search-form">
-          <input type="text" id="input-codigo" placeholder="Ej: HN-001" required>
-          <button type="submit" class="btn-primary">Buscar</button>
+          <input type="text" id="input-codigo" placeholder="Código de tu proyecto..." required />
+          <button type="submit" class="btn-primary"><i class="fa-solid fa-search"></i> Buscar</button>
         </form>
-
         <div id="mensaje-error" class="error-msg hidden">
-          <i class="fa-solid fa-triangle-exclamation"></i> No se encontró ningún proyecto con ese código.
+          No se encontró ningún proyecto con el código ingresado. Verifica tu comprobante.
         </div>
-
         <div id="resultado-proyecto" class="project-details hidden">
           <div class="project-header">
             <div>
-              <span id="res-codigo" class="badge">HN-000</span>
-              <h3 id="res-mueble" style="margin-top: 0.25rem;">Descripción del Mueble</h3>
-              <p id="res-cliente" class="subtitle" style="text-align: left; margin: 0;">Cliente</p>
+              <span id="res-codigo" class="badge"></span>
+              <h3 id="res-mueble"></h3>
+              <p id="res-cliente" class="text-sub"></p>
             </div>
-            <span id="res-estado" class="status-tag">Etapa</span>
+            <span id="res-estado" class="status-tag"></span>
           </div>
-
           <div class="progress-container">
             <div class="progress-labels">
               <span>Avance de Fabricación</span>
@@ -72,257 +59,58 @@
               <div id="res-bar-fill" class="progress-fill" style="width: 0%;"></div>
             </div>
           </div>
-
           <div class="details-box">
-            <strong>Detalles del Avance:</strong>
-            <p id="res-detalles" style="color: #d4d4d4; margin-top: 0.25rem;">-</p>
+            <strong class="font-amber">Estado actual:</strong> <span id="res-detalles"></span>
           </div>
         </div>
-      </section>
-
-      <!-- SECCIÓN ADMIN -->
-      <section id="sec-admin" class="card-box hidden">
-        
-        <!-- LOGIN ADMIN -->
-        <div id="admin-login" class="login-box">
-          <div class="icon-lock font-amber"><i class="fa-solid fa-lock"></i></div>
-          <h2>Panel de Administración</h2>
-          <p class="subtitle">Acceso exclusivo para personal autorizado</p>
-          <form id="form-login" class="login-form">
-            <input type="password" id="input-pass" placeholder="Contraseña de acceso" required>
-            <button type="submit" class="btn-primary">Ingresar</button>
-          </form>
-        </div>
-
-        <!-- PANEL DE CONTROL ADMIN -->
-        <div id="admin-panel" class="panel-box hidden">
-          <div class="panel-header">
-            <div>
-              <h2>Gestión de Proyectos</h2>
-              <p class="subtitle" style="text-align: left; margin: 0;">Total de proyectos activos: <span id="total-proyectos" class="font-amber">0</span></p>
-            </div>
-            <button class="btn-logout" onclick="cerrarSesionAdmin()"><i class="fa-solid fa-right-from-bracket"></i> Salir</button>
+      </div>
+    </section>
+    <section id="sec-admin" class="content-section hidden">
+      <div id="admin-login" class="card-box login-box">
+        <i class="fa-solid fa-lock icon-lock font-amber"></i>
+        <h2>Acceso Administrador</h2>
+        <p class="subtitle">Ingresa tu contraseña de supervisor</p>
+        <form id="form-login" class="login-form">
+          <input type="password" id="input-pass" placeholder="Contraseña..." required />
+          <button type="submit" class="btn-primary">Ingresar al Panel</button>
+        </form>
+      </div>
+      <div id="admin-panel" class="panel-box hidden">
+        <div class="panel-header">
+          <div>
+            <h2>Panel de Supervisión - HN Muebles</h2>
+            <p class="subtitle">Gestiona y actualiza el avance de tus proyectos</p>
           </div>
-
-          <!-- Formulario Agregar Proyecto -->
-          <form id="form-nuevo-proyecto" class="admin-form">
-            <h3><i class="fa-solid fa-plus font-amber"></i> Registrar Nuevo Proyecto</h3>
-            <div class="form-grid">
-              <input type="text" id="nuevo-codigo" placeholder="Código (ej. HN-002)" required>
-              <input type="text" id="nuevo-cliente" placeholder="Nombre del cliente" required>
-              <input type="text" id="nuevo-mueble" placeholder="Descripción del mueble" required>
-              <input type="text" id="nuevo-telefono" placeholder="WhatsApp del cliente (ej. 70012345)">
-            </div>
-            <button type="submit" class="btn-primary" style="width: 100%; margin-top: 0.5rem;">Guardar Proyecto</button>
-          </form>
-
-          <!-- Lista de Proyectos -->
-          <h3>Proyectos en Sistema</h3>
+          <button onclick="cerrarSesionAdmin()" class="btn-logout"><i class="fa-solid fa-right-from-bracket"></i> Cerrar Sesión</button>
+        </div>
+        <form id="form-nuevo-proyecto" class="admin-form">
+          <h3><i class="fa-solid fa-plus font-amber"></i> Registrar Nuevo Mueble / Cliente</h3>
+          <div class="form-grid">
+            <input type="text" id="nuevo-codigo" placeholder="Código (Ej: HN-002)" required />
+            <input type="text" id="nuevo-cliente" placeholder="Nombre del Cliente" required />
+            <input type="text" id="nuevo-mueble" placeholder="Tipo de Mueble" required />
+          </div>
+          <button type="submit" class="btn-primary">Crear Proyecto</button>
+        </form>
+        <div class="projects-list-container">
+          <h3>Proyectos Registrados (<span id="total-proyectos">0</span>)</h3>
           <div id="lista-proyectos-admin" class="projects-list"></div>
         </div>
-
-      </section>
-
-    </main>
-
-    <!-- FOOTER PRINCIPAL -->
+      </div>
+    </section>
     <footer class="footer">
-      <p>Síguenos en nuestras redes o ponte en contacto directo</p>
+      <p>¿Tienes alguna consulta o quieres iniciar un proyecto? Encuéntranos en nuestras redes:</p>
       <div class="social-buttons">
-        <a href="https://wa.me/59100000000" target="_blank" class="btn-social btn-wa">
-          <i class="fa-brands fa-whatsapp"></i> Contactar por WhatsApp
+        <a href="https://wa.me/59162037033?text=Hola%20HN%20Muebles,%20quisiera%20consultar%20sobre%20un%20proyecto" target="_blank" class="btn-social btn-wa">
+          <i class="fa-brands fa-whatsapp"></i> WhatsApp (+591 62037033)
         </a>
-        <a href="https://instagram.com" target="_blank" class="btn-social btn-ig">
-          <i class="fa-brands fa-instagram"></i> Ver Galería en Instagram
+        <a href="https://www.instagram.com/hnmuebles/" target="_blank" class="btn-social btn-ig">
+          <i class="fa-brands fa-instagram"></i> Instagram (@hnmuebles)
         </a>
       </div>
-      <p class="copyright">&copy; 2026 HN Muebles. Todos los derechos reservados.</p>
+      <p class="copyright">© 2026 HN Muebles. Todos los derechos reservados.</p>
     </footer>
-
   </div>
-
-  <!-- SCRIPT DE NAVEGACIÓN Y FUNCIONALIDAD INTEGRADO -->
-  <script>
-    const proyectosIniciales = [{ 
-      codigo: 'HN-001', 
-      cliente: 'Carlos Mendoza', 
-      mueble: 'Juego de Comedor en Melamina', 
-      telefono: '70012345',
-      estado: 'Fabricación', 
-      progreso: 60, 
-      detalles: 'En proceso de fabricación.' 
-    }];
-
-    let proyectos = JSON.parse(localStorage.getItem('hn_proyectos')) || proyectosIniciales;
-
-    function guardarEnLocalStorage() { 
-      localStorage.setItem('hn_proyectos', JSON.stringify(proyectos)); 
-    }
-
-    let esAdmin = false;
-
-    // NAVEGACIÓN DE SECCIONES
-    function mostrarSeccion(seccionId) {
-      document.getElementById('sec-inicio').classList.add('hidden');
-      document.getElementById('sec-rastreo').classList.add('hidden');
-      document.getElementById('sec-admin').classList.add('hidden');
-
-      document.getElementById('btn-inicio').classList.remove('active');
-      document.getElementById('btn-rastreo').classList.remove('active');
-      document.getElementById('btn-admin').classList.remove('active');
-
-      document.getElementById(`sec-${seccionId}`).classList.remove('hidden');
-      document.getElementById(`btn-${seccionId}`).classList.add('active');
-    }
-
-    // BÚSQUEDA DEL CLIENTE
-    document.getElementById('form-buscar').addEventListener('submit', function(e) {
-      e.preventDefault();
-      const codigo = document.getElementById('input-codigo').value.trim().toUpperCase();
-      const encontrado = proyectos.find(p => p.codigo === codigo);
-      const errorMsg = document.getElementById('mensaje-error');
-      const resultBox = document.getElementById('resultado-proyecto');
-
-      if (encontrado) {
-        errorMsg.classList.add('hidden');
-        resultBox.classList.remove('hidden');
-        document.getElementById('res-codigo').innerText = encontrado.codigo;
-        document.getElementById('res-mueble').innerText = encontrado.mueble;
-        document.getElementById('res-cliente').innerText = `Cliente: ${encontrado.cliente}`;
-        document.getElementById('res-estado').innerText = encontrado.estado;
-        document.getElementById('res-porcentaje').innerText = `${encontrado.progreso}%`;
-        document.getElementById('res-bar-fill').style.width = `${encontrado.progreso}%`;
-        document.getElementById('res-detalles').innerText = encontrado.detalles || `Proyecto en etapa de ${encontrado.estado}`;
-      } else {
-        resultBox.classList.add('hidden');
-        errorMsg.classList.remove('hidden');
-      }
-    });
-
-    // LOGIN DE ADMINISTRADOR
-    document.getElementById('form-login').addEventListener('submit', function(e) {
-      e.preventDefault();
-      if (document.getElementById('input-pass').value === 'hn2026') {
-        esAdmin = true;
-        document.getElementById('admin-login').classList.add('hidden');
-        document.getElementById('admin-panel').classList.remove('hidden');
-        document.getElementById('input-pass').value = '';
-        renderProyectosAdmin();
-      } else { 
-        alert('Contraseña incorrecta'); 
-      }
-    });
-
-    function cerrarSesionAdmin() {
-      esAdmin = false;
-      document.getElementById('admin-panel').classList.add('hidden');
-      document.getElementById('admin-login').classList.remove('hidden');
-    }
-
-    // REGISTRAR PROYECTO
-    document.getElementById('form-nuevo-proyecto').addEventListener('submit', function(e) {
-      e.preventDefault();
-      const telInput = document.getElementById('nuevo-telefono');
-
-      proyectos.push({
-        codigo: document.getElementById('nuevo-codigo').value.trim().toUpperCase(),
-        cliente: document.getElementById('nuevo-cliente').value.trim(),
-        mueble: document.getElementById('nuevo-mueble').value.trim(),
-        telefono: telInput ? telInput.value.trim() : '',
-        estado: 'Diseño', 
-        progreso: 20, 
-        detalles: 'Proyecto registrado en sistema.'
-      });
-
-      guardarEnLocalStorage();
-      document.getElementById('nuevo-codigo').value = '';
-      document.getElementById('nuevo-cliente').value = '';
-      document.getElementById('nuevo-mueble').value = '';
-      if (telInput) telInput.value = '';
-      renderProyectosAdmin();
-    });
-
-    // RENDERIZAR PANEL ADMIN
-    function renderProyectosAdmin() {
-      const container = document.getElementById('lista-proyectos-admin');
-      document.getElementById('total-proyectos').innerText = proyectos.length;
-      container.innerHTML = '';
-      
-      const etapas = ['Diseño', 'Corte de Placas', 'Fabricación', 'Lustre / Enchapado', 'Listo para Entrega'];
-
-      proyectos.forEach((p, index) => {
-        const card = document.createElement('div');
-        card.className = 'admin-card';
-
-        let botonesEtapas = etapas.map((est, idx) => {
-          const activeClass = p.estado === est ? 'active' : '';
-          const porcentaje = (idx + 1) * 20;
-          return `<button type="button" class="btn-stage ${activeClass}" onclick="cambiarEstadoPorIndice(${index}, ${idx}, ${porcentaje})">${est}</button>`;
-        }).join('');
-
-        card.innerHTML = `
-          <div style="flex: 1; min-width: 250px;">
-            <span class="badge">${p.codigo}</span><strong style="margin-left: 0.5rem; font-size: 1.1rem;">${p.mueble}</strong>
-            <p style="text-align: left; margin: 0.4rem 0; color: #a3a3a3; font-size: 0.85rem;">
-              <i class="fa-solid fa-user"></i> ${p.cliente} | <i class="fa-solid fa-phone"></i> ${p.telefono || 'Sin teléfono'}
-            </p>
-            <div class="stage-buttons" style="margin-top: 0.5rem;">${botonesEtapas}</div>
-            
-            <div style="margin-top: 0.8rem;">
-              <button type="button" class="btn-wa-notif" onclick="notificarWhatsApp(${index})" style="background:#16a34a; color:#ffffff; border:none; padding:0.5rem 1rem; border-radius:8px; cursor:pointer; font-size:0.85rem; font-weight:bold; display:inline-flex; align-items:center; gap:0.5rem;">
-                <i class="fa-brands fa-whatsapp" style="font-size: 1rem;"></i> Enviar Avance por WhatsApp
-              </button>
-            </div>
-          </div>
-          <button type="button" class="btn-delete" onclick="eliminarProyecto(${index})" title="Eliminar proyecto">
-            <i class="fa-solid fa-trash"></i>
-          </button>
-        `;
-        container.appendChild(card);
-      });
-    }
-
-    // CAMBIAR ETAPA
-    function cambiarEstadoPorIndice(proyectoIdx, etapaIdx, nuevoProgreso) {
-      const etapas = ['Diseño', 'Corte de Placas', 'Fabricación', 'Lustre / Enchapado', 'Listo para Entrega'];
-      proyectos[proyectoIdx].estado = etapas[etapaIdx];
-      proyectos[proyectoIdx].progreso = nuevoProgreso;
-      proyectos[proyectoIdx].detalles = `El proyecto ha avanzado a la etapa de: ${etapas[etapaIdx]}.`;
-      
-      guardarEnLocalStorage();
-      renderProyectosAdmin();
-    }
-
-    // ELIMINAR PROYECTO
-    function eliminarProyecto(index) {
-      if (confirm('¿Deseas eliminar este proyecto?')) {
-        proyectos.splice(index, 1);
-        guardarEnLocalStorage();
-        renderProyectosAdmin();
-      }
-    }
-
-    // ENVIAR POR WHATSAPP AL CLIENTE (ADMIN ONLY)
-    function notificarWhatsApp(index) {
-      const p = proyectos[index];
-      if (!p.telefono || p.telefono.trim() === '') {
-        alert("Este cliente no tiene un número de teléfono ingresado.");
-        return;
-      }
-      
-      let num = p.telefono.toString().replace(/\D/g, '');
-      if (!num.startsWith('591') && num.length === 8) {
-        num = '591' + num;
-      }
-      
-      const mensaje = `Hola *${p.cliente}* 👋, desde *HN Muebles* te enviamos el estado de tu proyecto *"${p.mueble}"*:\n\n🛠️ *Estado actual:* ${p.estado}\n📊 *Avance:* ${p.progreso}%\n\nPuedes consultar el detalle en la web con tu código: *${p.codigo}*`;
-      
-      window.open(`https://wa.me/${num}?text=${encodeURIComponent(mensaje)}`, '_blank');
-    }
-
-    if (!localStorage.getItem('hn_proyectos')) { 
-      guardarEnLocalStorage(); 
-    }
-  </script>
+  <script src="script.js"></script>
 </body>
 </html>
