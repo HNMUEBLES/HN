@@ -13,7 +13,6 @@
     <header class="navbar">
       <div class="logo-container" onclick="mostrarSeccion('inicio')">
         <img src="assets/logo.png" alt="HN Muebles Logo" class="logo-img" onerror="this.style.display='none'" />
-        
       </div>
       <nav class="nav-links">
         <button onclick="mostrarSeccion('inicio')" id="btn-inicio" class="active">Inicio</button>
@@ -89,8 +88,9 @@
             <input type="text" id="nuevo-codigo" placeholder="Código (Ej: HN-002)" required />
             <input type="text" id="nuevo-cliente" placeholder="Nombre del Cliente" required />
             <input type="text" id="nuevo-mueble" placeholder="Tipo de Mueble" required />
+            <input type="text" id="nuevo-telefono" placeholder="WhatsApp / Celular (Ej: 70012345)" />
           </div>
-          <button type="submit" class="btn-primary">Crear Proyecto</button>
+          <button type="submit" class="btn-primary" style="margin-top: 1rem;">Crear Proyecto</button>
         </form>
         <div class="projects-list-container">
           <h3>Proyectos Registrados (<span id="total-proyectos">0</span>)</h3>
