@@ -95,11 +95,11 @@
         <form id="form-nuevo-proyecto" class="admin-form">
           <h3><i class="fa-solid fa-plus font-amber"></i> Registrar Nuevo Mueble / Cliente</h3>
           
-          <div style="background: transparent; border: 1px solid rgba(255,255,255,0.15); padding: 12px; border-radius: 8px; margin-bottom: 12px;">
-            <label style="display: block; font-size: 0.8rem; color: #a3a3a3; margin-bottom: 4px;">Código del Proyecto:</label>
+          <div style="background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.08); padding: 14px; border-radius: 10px; margin-bottom: 1rem;">
+            <label style="display: block; font-size: 0.85rem; color: #a3a3a3; margin-bottom: 6px;">Código del Proyecto:</label>
             <div style="display: flex; gap: 8px; width: 100%;">
-              <input type="text" id="nuevo-codigo" placeholder="Dejar vacío para autogenerar (Ej: HN9X4F)" style="flex: 1; padding: 0.6rem; background: transparent; border: 1px solid #525252; color: #fff; border-radius: 6px; box-sizing: border-box;" />
-              <button type="button" onclick="llenarCodigoAutomatico()" title="Generar código automático" style="background: #f59e0b; color: #000; border: none; padding: 0 16px; border-radius: 6px; cursor: pointer; font-weight: bold; font-size: 0.85rem; white-space: nowrap; height: 38px;">
+              <input type="text" id="nuevo-codigo" placeholder="Dejar vacío para autogenerar (Ej: HN9X4F)" style="flex: 1;" />
+              <button type="button" onclick="llenarCodigoAutomatico()" title="Generar código automático" class="btn-primary" style="padding: 0 1.25rem; font-size: 0.85rem; height: auto; white-space: nowrap;">
                 Generar
               </button>
             </div>
@@ -110,20 +110,20 @@
             <input type="text" id="nuevo-mueble" placeholder="Tipo de Mueble" required />
             <input type="text" id="nuevo-telefono" placeholder="WhatsApp / Celular (Ej: 70012345)" />
             
-            <input type="text" id="nuevo-presupuesto" placeholder="Presupuesto Total (Bs)" inputmode="decimal" style="background: transparent; border: 1px solid #525252; color: #fff; padding: 0.6rem; border-radius: 6px; box-sizing: border-box;" />
-            <input type="text" id="nuevo-adelanto" placeholder="Adelanto Pagado (Bs)" inputmode="decimal" style="background: transparent; border: 1px solid #525252; color: #fff; padding: 0.6rem; border-radius: 6px; box-sizing: border-box;" />
+            <input type="text" id="nuevo-presupuesto" placeholder="Presupuesto Total (Bs)" inputmode="decimal" />
+            <input type="text" id="nuevo-adelanto" placeholder="Adelanto Pagado (Bs)" inputmode="decimal" />
             
-            <div style="grid-column: 1 / -1; display: flex; flex-direction: column; gap: 0.3rem;">
-              <label style="font-size: 0.8rem; color: #a3a3a3;"><i class="fa-regular fa-calendar"></i> Fecha Estimada de Entrega:</label>
-              <input type="date" id="nuevo-fecha" style="padding: 0.5rem; background: transparent; border: 1px solid #525252; color: #fff; border-radius: 6px; box-sizing: border-box;" />
+            <div style="grid-column: 1 / -1; display: flex; flex-direction: column; gap: 0.4rem;">
+              <label style="font-size: 0.85rem; color: #a3a3a3;"><i class="fa-regular fa-calendar"></i> Fecha Estimada de Entrega:</label>
+              <input type="date" id="nuevo-fecha" />
             </div>
           </div>
           
-          <div style="margin-top: 0.8rem; font-size: 0.9rem; color: #a3a3a3;">
+          <div style="margin-top: 1rem; font-size: 0.92rem; color: #a3a3a3;">
             Saldo restante calculado: <strong id="lbl-nuevo-saldo" style="color: #f87171;">Bs. 0.00</strong>
           </div>
 
-          <button type="submit" class="btn-primary" style="margin-top: 1rem;">Crear Proyecto</button>
+          <button type="submit" class="btn-primary" style="margin-top: 1.25rem;">Crear Proyecto</button>
         </form>
 
         <div class="projects-list-container">
@@ -143,28 +143,28 @@
           </div>
         </div>
 
-        <div style="background: transparent; border: 1px solid rgba(255,255,255,0.15); border-radius: 8px; padding: 20px; margin-top: 20px;">
+        <div style="background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.08); border-radius: 12px; padding: 20px; margin-top: 20px;">
           <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem; margin-bottom: 16px;">
-            <h3 style="color: #f59e0b; margin: 0; font-size: 1.2rem;"><i class="fa-solid fa-calendar-days"></i> Filtrar por Mes</h3>
+            <h3 style="color: #fbbf24; margin: 0; font-size: 1.1rem; font-weight: 500;"><i class="fa-solid fa-calendar-days"></i> Filtrar por Mes</h3>
             <div>
-              <input type="month" id="filtro-mes" style="padding: 0.5rem; background: transparent; border: 1px solid #525252; color: #fff; border-radius: 6px;">
+              <input type="month" id="filtro-mes">
             </div>
           </div>
 
           <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 1rem;">
-            <div style="background: rgba(0,0,0,0.3); padding: 1rem; border-radius: 8px; text-align: center; border: 1px solid rgba(255,255,255,0.08);">
+            <div style="background: rgba(0,0,0,0.4); padding: 1.1rem; border-radius: 10px; text-align: center; border: 1px solid rgba(255,255,255,0.06);">
               <span style="color: #a3a3a3; font-size: 0.8rem; display: block; margin-bottom: 4px;">Proyectos del Mes</span>
               <strong id="reporte-cant-mes" style="font-size: 1.3rem; color: #fff;">0</strong>
             </div>
-            <div style="background: rgba(0,0,0,0.3); padding: 1rem; border-radius: 8px; text-align: center; border: 1px solid rgba(255,255,255,0.08);">
+            <div style="background: rgba(0,0,0,0.4); padding: 1.1rem; border-radius: 10px; text-align: center; border: 1px solid rgba(255,255,255,0.06);">
               <span style="color: #a3a3a3; font-size: 0.8rem; display: block; margin-bottom: 4px;">Presupuesto Total</span>
               <strong id="reporte-presupuesto-mes" style="font-size: 1.2rem; color: #38bdf8;">Bs. 0</strong>
             </div>
-            <div style="background: rgba(0,0,0,0.3); padding: 1rem; border-radius: 8px; text-align: center; border: 1px solid rgba(255,255,255,0.08);">
+            <div style="background: rgba(0,0,0,0.4); padding: 1.1rem; border-radius: 10px; text-align: center; border: 1px solid rgba(255,255,255,0.06);">
               <span style="color: #a3a3a3; font-size: 0.8rem; display: block; margin-bottom: 4px;">Adelantos Recibidos</span>
               <strong id="reporte-adelanto-mes" style="font-size: 1.2rem; color: #4ade80;">Bs. 0</strong>
             </div>
-            <div style="background: rgba(0,0,0,0.3); padding: 1rem; border-radius: 8px; text-align: center; border: 1px solid rgba(255,255,255,0.08);">
+            <div style="background: rgba(0,0,0,0.4); padding: 1.1rem; border-radius: 10px; text-align: center; border: 1px solid rgba(255,255,255,0.06);">
               <span style="color: #a3a3a3; font-size: 0.8rem; display: block; margin-bottom: 4px;">Saldos por Cobrar</span>
               <strong id="reporte-saldo-mes" style="font-size: 1.2rem; color: #f87171;">Bs. 0</strong>
             </div>
