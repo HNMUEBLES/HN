@@ -187,16 +187,34 @@
     </footer>
   </div>
 
-  <!-- CONTROL DE NAVEGACIÓN LIMPIO USANDO CLASES CSS -->
+  <!-- CONTROL DE NAVEGACIÓN BLINDADO -->
   <script>
     function irInicio() {
-      if (typeof mostrarSeccion === 'function') {
-        mostrarSeccion('inicio');
-      } else {
-        document.querySelectorAll('.content-section').forEach(sec => sec.classList.add('hidden'));
-        document.getElementById('sec-inicio').classList.remove('hidden');
-      }
+      // Oculta absolutamente todas las secciones de la página
+      document.querySelectorAll('.content-section').forEach(sec => sec.classList.add('hidden'));
+      
+      // Muestra únicamente la sección de inicio
+      const secInicio = document.getElementById('sec-inicio');
+      if (secInicio) secInicio.classList.remove('hidden');
+
+      // Actualiza los botones de la barra superior para marcar "Inicio" como activo
+      document.querySelectorAll('.nav-links button').forEach(btn => btn.classList.remove('active'));
+      const btnInicio = document.getElementById('btn-inicio');
+      if (btnInicio) btnInicio.classList.add('active');
     }
+
+    // Asegurar que la función mostrarSeccion también oculte todo limpiamente si viene desde script.js
+    const originalMostrarSeccion = window.mostrarSeccion;
+    window.mostrarSeccion = function(seccion) {
+      document.querySelectorAll('.content-section').forEach(sec => sec.classList.add('hidden'));
+      document.querySelectorAll('.nav-links button').forEach(btn => btn.classList.remove('active'));
+
+      const target = document.getElementById('sec-' + seccion);
+      if (target) target.classList.remove('hidden');
+
+      const btn = document.getElementById('btn-' + seccion);
+      if (btn) btn.classList.add('active');
+    };
 
     document.addEventListener('DOMContentLoaded', function() {
       const formLogin = document.getElementById('form-login');
@@ -205,7 +223,7 @@
           setTimeout(function() {
             const adminPanel = document.getElementById('admin-panel');
             if (adminPanel && !adminPanel.classList.contains('hidden')) {
-              // Ocultar rastreo y mostrar reporte usando la clase .hidden
+              // Ocultar rastreo arriba y mostrar reporte financiero al loguearse como admin
               document.getElementById('btn-rastreo').classList.add('hidden');
               document.getElementById('btn-reportes').classList.remove('hidden');
             }
@@ -215,16 +233,21 @@
     });
 
     function cerrarSesionAdmin() {
-      // Restaurar barra superior original mediante clases
+      // Restablecer barra superior
       document.getElementById('btn-rastreo').classList.remove('hidden');
       document.getElementById('btn-reportes').classList.add('hidden');
 
-      // Ocultar panel admin y mostrar login o ir a inicio
+      // Ocultar panel admin y mostrar login
       const adminPanel = document.getElementById('admin-panel');
       if (adminPanel) adminPanel.classList.add('hidden');
       const adminLogin = document.getElementById('admin-login');
       if (adminLogin) adminLogin.classList.remove('hidden');
       
+      // Limpiar contraseña escrita
+      const inputPass = document.getElementById('input-pass');
+      if (inputPass) inputPass.value = '';
+
+      // Volver al inicio limpiando todo
       irInicio();
     }
   </script>
