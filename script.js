@@ -1,116 +1,99 @@
-<!DOCTYPE html>
-<html lang="es">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>HN Muebles | Diseño y Fabricación a Medida</title>
-  <link rel="stylesheet" href="styles.css" />
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
-</head>
-<body>
-  <div class="bg-overlay"></div>
-  <div class="app-container">
-    <header class="navbar">
-      <div class="logo-container" onclick="mostrarSeccion('inicio')">
-        <img src="assets/logo.png" alt="HN Muebles Logo" class="logo-img" onerror="this.style.display='none'" />
-        <span class="brand-title">HN MUEBLES</span>
+const proyectosIniciales = [{ codigo: 'HN-001', cliente: 'Carlos Mendoza', mueble: 'Juego de Comedor en Melamina', estado: 'Fabricación', progreso: 60, detalles: 'Corte de piezas terminado. En proceso de armado y enchapado de tapacantos.' }];
+let proyectos = JSON.parse(localStorage.getItem('hn_proyectos')) || proyectosIniciales;
+function guardarEnLocalStorage() { localStorage.setItem('hn_proyectos', JSON.stringify(proyectos)); }
+let esAdmin = false;
+function mostrarSeccion(seccionId) {
+  document.getElementById('sec-inicio').classList.add('hidden');
+  document.getElementById('sec-rastreo').classList.add('hidden');
+  document.getElementById('sec-admin').classList.add('hidden');
+  document.getElementById('btn-inicio').classList.remove('active');
+  document.getElementById('btn-rastreo').classList.remove('active');
+  document.getElementById('btn-admin').classList.remove('active');
+  document.getElementById(`sec-${seccionId}`).classList.remove('hidden');
+  document.getElementById(`btn-${seccionId}`).classList.add('active');
+}
+document.getElementById('form-buscar').addEventListener('submit', function(e) {
+  e.preventDefault();
+  const codigo = document.getElementById('input-codigo').value.trim().toUpperCase();
+  const encontrado = proyectos.find(p => p.codigo === codigo);
+  const errorMsg = document.getElementById('mensaje-error');
+  const resultBox = document.getElementById('resultado-proyecto');
+  if (encontrado) {
+    errorMsg.classList.add('hidden');
+    resultBox.classList.remove('hidden');
+    document.getElementById('res-codigo').innerText = encontrado.codigo;
+    document.getElementById('res-mueble').innerText = encontrado.mueble;
+    document.getElementById('res-cliente').innerText = `Cliente: ${encontrado.cliente}`;
+    document.getElementById('res-estado').innerText = encontrado.estado;
+    document.getElementById('res-porcentaje').innerText = `${encontrado.progreso}%`;
+    document.getElementById('res-bar-fill').style.width = `${encontrado.progreso}%`;
+    document.getElementById('res-detalles').innerText = encontrado.detalles;
+  } else {
+    resultBox.classList.add('hidden');
+    errorMsg.classList.remove('hidden');
+  }
+});
+document.getElementById('form-login').addEventListener('submit', function(e) {
+  e.preventDefault();
+  if (document.getElementById('input-pass').value === 'hn2026') {
+    esAdmin = true;
+    document.getElementById('admin-login').classList.add('hidden');
+    document.getElementById('admin-panel').classList.remove('hidden');
+    document.getElementById('input-pass').value = '';
+    renderProyectosAdmin();
+  } else { alert('Contraseña incorrecta'); }
+});
+function cerrarSesionAdmin() {
+  esAdmin = false;
+  document.getElementById('admin-panel').classList.add('hidden');
+  document.getElementById('admin-login').classList.remove('hidden');
+}
+document.getElementById('form-nuevo-proyecto').addEventListener('submit', function(e) {
+  e.preventDefault();
+  proyectos.push({
+    codigo: document.getElementById('nuevo-codigo').value.trim().toUpperCase(),
+    cliente: document.getElementById('nuevo-cliente').value.trim(),
+    mueble: document.getElementById('nuevo-mueble').value.trim(),
+    estado: 'Diseño', progreso: 20, detalles: 'Proyecto registrado en sistema.'
+  });
+  guardarEnLocalStorage();
+  document.getElementById('nuevo-codigo').value = '';
+  document.getElementById('nuevo-cliente').value = '';
+  document.getElementById('nuevo-mueble').value = '';
+  renderProyectosAdmin();
+});
+function renderProyectosAdmin() {
+  const container = document.getElementById('lista-proyectos-admin');
+  document.getElementById('total-proyectos').innerText = proyectos.length;
+  container.innerHTML = '';
+  const etapas = ['Diseño', 'Corte de Placas', 'Fabricación', 'Lustre / Enchapado', 'Listo para Entrega'];
+  proyectos.forEach((p, index) => {
+    const card = document.createElement('div');
+    card.className = 'admin-card';
+    let botonesEtapas = etapas.map((est, idx) => `
+      <button class="btn-stage ${p.estado === est ? 'active' : ''}" onclick="cambiarEstado(${index}, '${est}', ${(idx + 1) * 20})">${est}</button>
+    `).join('');
+    card.innerHTML = `
+      <div>
+        <span class="badge">${p.codigo}</span><strong style="margin-left: 0.5rem;">${p.mueble}</strong>
+        <p class="subtitle" style="text-align: left; margin: 0.25rem 0;">Cliente: ${p.cliente}</p>
+        <div class="stage-buttons">${botonesEtapas}</div>
       </div>
-      <nav class="nav-links">
-        <button onclick="mostrarSeccion('inicio')" id="btn-inicio" class="active">Inicio</button>
-        <button onclick="mostrarSeccion('rastreo')" id="btn-rastreo">Rastrear Proyecto</button>
-        <button onclick="mostrarSeccion('admin')" id="btn-admin"><i class="fa-solid fa-lock"></i> Admin</button>
-      </nav>
-    </header>
-    <section id="sec-inicio" class="content-section">
-      <div class="hero-box">
-        <h1>Diseño y Fabricación de Muebles a Medida</h1>
-        <p>Transformamos tus espacios con melamina y acabados de primera calidad. Consulta el avance de tu fabricación en tiempo real o ponte en contacto directo con nosotros.</p>
-        <button class="btn-primary" onclick="mostrarSeccion('rastreo')">
-          <i class="fa-solid fa-magnifying-glass"></i> Consultar Estado de Mi Mueble
-        </button>
-      </div>
-    </section>
-    <section id="sec-rastreo" class="content-section hidden">
-      <div class="card-box">
-        <h2><i class="fa-solid fa-box font-amber"></i> Seguimiento de Proyecto</h2>
-        <p class="subtitle">Ingresa el código asignado a tu orden (Ejemplo: <strong>HN-001</strong>)</p>
-        <form id="form-buscar" class="search-form">
-          <input type="text" id="input-codigo" placeholder="Código de tu proyecto..." required />
-          <button type="submit" class="btn-primary"><i class="fa-solid fa-search"></i> Buscar</button>
-        </form>
-        <div id="mensaje-error" class="error-msg hidden">
-          No se encontró ningún proyecto con el código ingresado. Verifica tu comprobante.
-        </div>
-        <div id="resultado-proyecto" class="project-details hidden">
-          <div class="project-header">
-            <div>
-              <span id="res-codigo" class="badge"></span>
-              <h3 id="res-mueble"></h3>
-              <p id="res-cliente" class="text-sub"></p>
-            </div>
-            <span id="res-estado" class="status-tag"></span>
-          </div>
-          <div class="progress-container">
-            <div class="progress-labels">
-              <span>Avance de Fabricación</span>
-              <span id="res-porcentaje">0%</span>
-            </div>
-            <div class="progress-bar">
-              <div id="res-bar-fill" class="progress-fill" style="width: 0%;"></div>
-            </div>
-          </div>
-          <div class="details-box">
-            <strong class="font-amber">Estado actual:</strong> <span id="res-detalles"></span>
-          </div>
-        </div>
-      </div>
-    </section>
-    <section id="sec-admin" class="content-section hidden">
-      <div id="admin-login" class="card-box login-box">
-        <i class="fa-solid fa-lock icon-lock font-amber"></i>
-        <h2>Acceso Administrador</h2>
-        <p class="subtitle">Ingresa tu contraseña de supervisor</p>
-        <form id="form-login" class="login-form">
-          <input type="password" id="input-pass" placeholder="Contraseña..." required />
-          <button type="submit" class="btn-primary">Ingresar al Panel</button>
-        </form>
-      </div>
-      <div id="admin-panel" class="panel-box hidden">
-        <div class="panel-header">
-          <div>
-            <h2>Panel de Supervisión - HN Muebles</h2>
-            <p class="subtitle">Gestiona y actualiza el avance de tus proyectos</p>
-          </div>
-          <button onclick="cerrarSesionAdmin()" class="btn-logout"><i class="fa-solid fa-right-from-bracket"></i> Cerrar Sesión</button>
-        </div>
-        <form id="form-nuevo-proyecto" class="admin-form">
-          <h3><i class="fa-solid fa-plus font-amber"></i> Registrar Nuevo Mueble / Cliente</h3>
-          <div class="form-grid">
-            <input type="text" id="nuevo-codigo" placeholder="Código (Ej: HN-002)" required />
-            <input type="text" id="nuevo-cliente" placeholder="Nombre del Cliente" required />
-            <input type="text" id="nuevo-mueble" placeholder="Tipo de Mueble" required />
-          </div>
-          <button type="submit" class="btn-primary">Crear Proyecto</button>
-        </form>
-        <div class="projects-list-container">
-          <h3>Proyectos Registrados (<span id="total-proyectos">0</span>)</h3>
-          <div id="lista-proyectos-admin" class="projects-list"></div>
-        </div>
-      </div>
-    </section>
-    <footer class="footer">
-      <p>¿Tienes alguna consulta o quieres iniciar un proyecto? Encuéntranos en nuestras redes:</p>
-      <div class="social-buttons">
-        <a href="https://wa.me/59162037033?text=Hola%20HN%20Muebles,%20quisiera%20consultar%20sobre%20un%20proyecto" target="_blank" class="btn-social btn-wa">
-          <i class="fa-brands fa-whatsapp"></i> WhatsApp (+591 62037033)
-        </a>
-        <a href="https://www.instagram.com/hnmuebles/" target="_blank" class="btn-social btn-ig">
-          <i class="fa-brands fa-instagram"></i> Instagram (@hnmuebles)
-        </a>
-      </div>
-      <p class="copyright">© 2026 HN Muebles. Todos los derechos reservados.</p>
-    </footer>
-  </div>
-  <script src="script.js"></script>
-</body>
-</html>
+      <button class="btn-delete" onclick="eliminarProyecto(${index})" title="Eliminar proyecto"><i class="fa-solid fa-trash"></i></button>
+    `;
+    container.appendChild(card);
+  });
+}
+function cambiarEstado(index, nuevoEstado, nuevoProgreso) {
+  proyectos[index].estado = nuevoEstado;
+  proyectos[index].progreso = nuevoProgreso;
+  proyectos[index].detalles = `En etapa de ${nuevoEstado}.`;
+  guardarEnLocalStorage();
+  renderProyectosAdmin();
+}
+function eliminarProyecto(index) {
+  proyectos.splice(index, 1);
+  guardarEnLocalStorage();
+  renderProyectosAdmin();
+}
+if (!localStorage.getItem('hn_proyectos')) { guardarEnLocalStorage(); }
