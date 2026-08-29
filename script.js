@@ -26,6 +26,14 @@ function generarCodigoAleatorio() {
   return `HN${aleatorio}`;
 }
 
+// --- FUNCIÓN PARA AUTO-RELLENAR EL INPUT DE CÓDIGO CON EL BOTÓN ---
+function llenarCodigoAutomatico() {
+  const inputCod = document.getElementById('nuevo-codigo');
+  if (inputCod) {
+    inputCod.value = generarCodigoAleatorio();
+  }
+}
+
 // --- CARGAR PROYECTOS DESDE FIRESTORE EN VIVO ---
 async function cargarProyectosDesdeNube() {
   try {
