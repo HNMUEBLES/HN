@@ -21,46 +21,54 @@
     </nav>
   </header>
 
-  <!-- SECCIÓN SUPERIOR: FOTO FIJA CON DOS COLUMNAS (QUIÉNES SOMOS + RASTREO) -->
+  <!-- SECCIÓN SUPERIOR: FOTO FIJA CON DOS COLUMNAS -->
   <section class="hero-fixed-banner">
     <div class="hero-split-container">
       
-      <!-- COLUMNA IZQUIERDA: QUIÉNES SOMOS -->
+      <!-- COLUMNA IZQUIERDA: TÍTULO MÁS GRANDE Y QUIÉNES SOMOS -->
       <div class="hero-about-col">
-        <h1>HN Muebles</h1>
+        <span class="badge-brand">Taller de Melamina</span>
+        <h1 class="hero-title-big">HN Muebles</h1>
         <p class="tagline">Diseño y Fabricación a Medida</p>
         <p class="about-text">
-          Somos especialistas en transformar espacios con melamina de alta calidad y acabados de primera. Cada proyecto es único, diseñado con precisión milimétrica, canto de PVC coordinado y la garantía de un trabajo artesanal e industrial impecable.
+          Somos especialistas en transformar tus espacios con melamina de alta calidad y acabados de primera. Cada proyecto es único, diseñado con precisión milimétrica, canto de PVC coordinado y la garantía de un trabajo impecable.
         </p>
         <div class="hero-highlights">
-          <span><i class="fa-solid fa-check font-amber"></i> Melamina premium</span>
-          <span><i class="fa-solid fa-check font-amber"></i> Diseños personalizados</span>
+          <span><i class="fa-solid fa-circle-check font-amber"></i> Melamina premium</span>
+          <span><i class="fa-solid fa-circle-check font-amber"></i> Diseños personalizados</span>
         </div>
       </div>
 
-      <!-- COLUMNA DERECHA: SEGUIMIENTO DE PEDIDO -->
+      <!-- COLUMNA DERECHA: VENTANITA DE SEGUIMIENTO MÁS LINDA -->
       <div class="hero-tracking-col">
-        <div class="mini-card-box">
-          <h2><i class="fa-solid fa-magnifying-glass font-amber"></i> Rastrear Pedido</h2>
-          <p class="subtitle">Consulta el estado actual de tu mueble</p>
+        <div class="modern-tracking-card">
+          <div class="card-icon-header">
+            <i class="fa-solid fa-box-open font-amber"></i>
+          </div>
+          <h2>Seguimiento de Pedido</h2>
+          <p class="subtitle">Ingresa tu código único para revisar el estado actual de tu mueble en el taller.</p>
           
-          <form id="form-buscar" class="search-form">
-            <input type="text" id="input-codigo" placeholder="Ej: HN-001" required />
-            <button type="submit" class="btn-primary">Buscar</button>
+          <form id="form-buscar" class="search-form-modern">
+            <div class="input-wrapper">
+              <i class="fa-solid fa-magnifying-glass"></i>
+              <input type="text" id="input-codigo" placeholder="Ej: HN-001" required />
+            </div>
+            <button type="submit" class="btn-primary-modern">Consultar Estado</button>
           </form>
 
           <div id="mensaje-error" class="error-msg hidden">
-            Código no encontrado. Verifica tu comprobante.
+            <i class="fa-solid fa-circle-exclamation"></i> No se encontró ningún proyecto con ese código.
           </div>
 
-          <div id="resultado-proyecto" class="hidden" style="margin-top: 1rem; text-align: left;">
-            <div style="background: rgba(0,0,0,0.6); padding: 12px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.1);">
+          <div id="resultado-proyecto" class="hidden result-box-modern">
+            <div>
               <span id="res-codigo" class="badge"></span>
-              <h3 id="res-mueble" style="font-size: 1rem; margin-top: 4px; color:#fff;"></h3>
-              <p id="res-cliente" style="font-size: 0.8rem; color: #a3a3a3;"></p>
-              <div style="margin-top: 8px; font-size: 0.85rem;">
-                Estado: <span id="res-estado" class="font-amber" style="font-weight:bold;"></span> (<strong id="res-porcentaje">0%</strong>)
-              </div>
+              <h3 id="res-mueble" style="font-size: 1.1rem; margin-top: 6px; color:#fff;"></h3>
+              <p id="res-cliente" style="font-size: 0.85rem; color: #a3a3a3;"></p>
+            </div>
+            <div class="result-status-row">
+              <span>Estado: <strong id="res-estado" class="font-amber"></strong></span>
+              <span class="progress-pill"><strong id="res-porcentaje">0%</strong></span>
             </div>
           </div>
         </div>
@@ -69,7 +77,7 @@
     </div>
   </section>
 
-  <!-- CONTENIDO INFERIOR: FONDO NEGRO SÓLIDO (EXPLICACIÓN DE LA RUTA) -->
+  <!-- CONTENIDO INFERIOR: FONDO NEGRO SÓLIDO (RUTA EXPLICATIVA) -->
   <main class="black-content-container">
     
     <section id="sec-ruta-explicativa" class="content-section">
@@ -135,11 +143,11 @@
         <p class="subtitle">Introduce la contraseña de supervisor</p>
         <form id="form-login" class="login-form" style="display: flex; gap: 8px; flex-direction: column;">
           <input type="password" id="input-pass" placeholder="Contraseña..." required style="width:100%;" />
-          <button type="submit" class="btn-primary" style="width:100%;">Ingresar al Panel</button>
+          <button type="submit" class="btn-primary-modern" style="width:100%; border-radius: 8px; padding: 0.75rem;">Ingresar al Panel</button>
         </form>
       </div>
 
-      <!-- PANEL DE CONTROL ADMIN (Se muestra tras iniciar sesión) -->
+      <!-- PANEL DE CONTROL ADMIN -->
       <div id="admin-panel" class="hidden">
         <h2 style="margin-bottom: 1rem;"><i class="fa-solid fa-sliders font-amber"></i> Gestión de Proyectos</h2>
         
@@ -147,7 +155,7 @@
           <h3 style="font-size: 1rem; margin-bottom: 0.75rem;"><i class="fa-solid fa-plus font-amber"></i> Nuevo Proyecto</h3>
           <div style="display: flex; gap: 6px; margin-bottom: 8px;">
             <input type="text" id="nuevo-codigo" placeholder="Código (Ej: HN-001)" style="flex:1;" />
-            <button type="button" onclick="llenarCodigoAutomatico()" class="btn-primary" style="padding: 0 10px; font-size: 0.8rem;">Generar</button>
+            <button type="button" onclick="llenarCodigoAutomatico()" class="btn-primary-modern" style="padding: 0 10px; font-size: 0.8rem;">Generar</button>
           </div>
           <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 6px; margin-bottom: 8px;">
             <input type="text" id="nuevo-cliente" placeholder="Cliente" required />
@@ -157,7 +165,7 @@
             <input type="text" id="nuevo-adelanto" placeholder="Adelanto (Bs)" />
             <input type="date" id="nuevo-fecha" style="background:#0a0a0a; border:1px solid #333; color:#fff; padding:8px; border-radius:8px;" />
           </div>
-          <button type="submit" class="btn-primary" style="width:100%;">Guardar Proyecto</button>
+          <button type="submit" class="btn-primary-modern" style="width:100%;">Guardar Proyecto</button>
         </form>
 
         <h3 style="font-size: 1rem; margin-bottom: 0.5rem;">Registrados (<span id="total-proyectos">0</span>)</h3>
