@@ -82,16 +82,29 @@ body { background-color: #0a0a0a; color: #ffffff; min-height: 100vh; position: r
 .hero-box p { color: #d4d4d4; font-size: 1.15rem; margin-bottom: 2rem; line-height: 1.6; }
 .btn-primary { background-color: rgba(140, 75, 40, 0.85); color: #ffffff; border: none; padding: 0.85rem 1.75rem; font-size: 1rem; font-weight: 700; border-radius: 12px; cursor: pointer; transition: transform 0.2s ease, background-color 0.2s ease; display: inline-flex; align-items: center; gap: 0.5rem; justify-content: center; }
 .btn-primary:hover { background-color: rgba(110, 55, 30, 0.95); transform: scale(1.03); }
-.card-box, .panel-box { background: rgba(23, 23, 23, 0.85); border: 1px solid rgba(255, 255, 255, 0.1); padding: 2.5rem; border-radius: 20px; width: 100%; max-width: 800px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); backdrop-filter: blur(10px); }
+
+.card-box { background: rgba(23, 23, 23, 0.85); border: 1px solid rgba(255, 255, 255, 0.1); padding: 2.5rem; border-radius: 20px; width: 100%; max-width: 800px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); backdrop-filter: blur(10px); }
+
+/* PANEL ADMINISTRADOR CON FONDO NEGRO SÓLIDO */
+.panel-box { 
+  background: #000000 !important; 
+  border: 1px solid rgba(255, 255, 255, 0.15); 
+  padding: 2.5rem; 
+  border-radius: 20px; 
+  width: 100%; 
+  max-width: 800px; 
+  box-shadow: 0 10px 30px rgba(0,0,0,0.8); 
+}
+
 .card-box h2 { text-align: center; font-size: 1.6rem; margin-bottom: 0.5rem; }
 .subtitle { text-align: center; color: #a3a3a3; font-size: 0.9rem; margin-bottom: 1.5rem; }
 .search-form { display: flex; gap: 0.5rem; margin-bottom: 1.5rem; }
 input[type="text"], input[type="password"] { flex-grow: 1; background-color: #0a0a0a; border: 1px solid #404040; border-radius: 10px; padding: 0.75rem 1rem; color: #fff; outline: none; }
 input:focus { border-color: #b45309; }
 
-/* DISEÑO DEL FORMULARIO ADMINISTRADOR (AQUÍ ESTÁN LAS 4 CAJAS) */
+/* DISEÑO DEL FORMULARIO ADMINISTRADOR (4 CAJAS) */
 .admin-form {
-  background: rgba(0, 0, 0, 0.3);
+  background: rgba(255, 255, 255, 0.05);
   padding: 1.5rem;
   border-radius: 12px;
   border: 1px solid rgba(255, 255, 255, 0.1);
