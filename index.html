@@ -1,133 +1,212 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>HN Muebles | Diseño y Fabricación a Medida</title>
-  <link rel="stylesheet" href="styles.css" />
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>HN Muebles - Control y Seguimiento de Proyectos</title>
+  <!-- Tailwind CSS para diseño moderno -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- FontAwesome para íconos -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    body {
+      background-color: #0f172a;
+      color: #f8fafc;
+      font-family: system-ui, -apple-system, sans-serif;
+    }
+  </style>
 </head>
-<body>
-  <div class="bg-overlay"></div>
-  <div class="app-container">
-    <header class="navbar">
-      <div class="logo-container" onclick="mostrarSeccion('inicio')">
-        <img src="assets/logo.png" alt="HN Muebles Logo" class="logo-img" onerror="this.style.display='none'" />
+<body class="min-h-screen flex flex-col">
+
+  <!-- ENCABEZADO / NAVEGACIÓN -->
+  <header class="bg-slate-900 border-b border-slate-800 sticky top-0 z-50">
+    <div class="max-w-6xl mx-auto px-4 py-4 flex flex-col sm:flex-row justify-between items-center gap-4">
+      <div class="flex items-center gap-2">
+        <span class="bg-amber-500 text-slate-950 font-black px-2.5 py-1 rounded-lg text-lg">HN</span>
+        <h1 class="text-xl font-bold tracking-wide">Muebles & Proyectos</h1>
       </div>
-      <nav class="nav-links">
-        <button onclick="mostrarSeccion('inicio')" id="btn-inicio" class="active">Inicio</button>
-        <button onclick="mostrarSeccion('rastreo')" id="btn-rastreo">Rastrear Proyecto</button>
-        <button onclick="mostrarSeccion('admin')" id="btn-admin"><i class="fa-solid fa-lock"></i> Admin</button>
+      <nav class="flex gap-2 bg-slate-800/80 p-1.5 rounded-xl border border-slate-700/50">
+        <button id="btn-inicio" onclick="mostrarSeccion('inicio')" class="px-4 py-2 rounded-lg text-sm font-medium transition active bg-amber-500 text-slate-950">Inicio</button>
+        <button id="btn-rastreo" onclick="mostrarSeccion('rastreo')" class="px-4 py-2 rounded-lg text-sm font-medium transition text-slate-300 hover:text-white">Rastreo</button>
+        <button id="btn-admin" onclick="mostrarSeccion('admin')" class="px-4 py-2 rounded-lg text-sm font-medium transition text-slate-300 hover:text-white flex items-center gap-1.5">
+          <i class="fa-solid fa-lock text-xs"></i> Admin
+        </button>
       </nav>
-    </header>
-    <section id="sec-inicio" class="content-section">
-      <div class="hero-box">
-        <h1>Diseño y Fabricación de Muebles a Medida</h1>
-        <p>Transformamos tus espacios con melamina y acabados de primera calidad. Consulta el avance de tu fabricación en tiempo real o ponte en contacto directo con nosotros.</p>
-        <button class="btn-primary" onclick="mostrarSeccion('rastreo')">
-          <i class="fa-solid fa-magnifying-glass"></i> Consultar Estado de Mi Mueble
+    </div>
+  </header>
+
+  <!-- CONTENIDO PRINCIPAL -->
+  <main class="flex-grow max-w-6xl w-full mx-auto px-4 py-8">
+
+    <!-- SECCIÓN 1: INICIO -->
+    <section id="sec-inicio" class="space-y-6">
+      <div class="bg-gradient-to-br from-slate-800 to-slate-900 border border-slate-700/60 rounded-2xl p-8 shadow-xl">
+        <h2 class="text-3xl font-extrabold text-amber-400 mb-3">Bienvenido a HN Muebles</h2>
+        <p class="text-slate-300 leading-relaxed mb-6">
+          Somos especialistas en diseño, fabricación e instalación de muebles personalizados en melamina y madera. Realiza el seguimiento en tiempo real del estado de tu proyecto de carpintería desde cualquier dispositivo.
+        </p>
+        <button onclick="mostrarSeccion('rastreo')" class="bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold px-6 py-3 rounded-xl transition shadow-lg shadow-amber-500/20 inline-flex items-center gap-2">
+          <i class="fa-solid fa-magnifying-glass"></i> Rastrear mi Proyecto
         </button>
       </div>
     </section>
-    <section id="sec-rastreo" class="content-section hidden">
-      <div class="card-box">
-        <h2><i class="fa-solid fa-box font-amber"></i> Seguimiento de Proyecto</h2>
-        <p class="subtitle">Ingresa el código asignado a tu orden (Ejemplo: <strong>HN-001</strong>)</p>
-        <form id="form-buscar" class="search-form">
-          <input type="text" id="input-codigo" placeholder="Código de tu proyecto..." required />
-          <button type="submit" class="btn-primary"><i class="fa-solid fa-search"></i> Buscar</button>
-        </form>
-        <div id="mensaje-error" class="error-msg hidden">
-          No se encontró ningún proyecto con el código ingresado. Verifica tu comprobante.
-        </div>
-        <div id="resultado-proyecto" class="project-details hidden">
-          <div class="project-header">
-            <div>
-              <span id="res-codigo" class="badge"></span>
-              <h3 id="res-mueble"></h3>
-              <p id="res-cliente" class="text-sub"></p>
-            </div>
-            <span id="res-estado" class="status-tag"></span>
-          </div>
-          <div class="progress-container">
-            <div class="progress-labels">
-              <span>Avance de Fabricación</span>
-              <span id="res-porcentaje">0%</span>
-            </div>
-            <div class="progress-bar">
-              <div id="res-bar-fill" class="progress-fill" style="width: 0%;"></div>
-            </div>
-          </div>
-          <div class="details-box">
-            <strong class="font-amber">Estado actual:</strong> <span id="res-detalles"></span>
-          </div>
-        </div>
-      </div>
-    </section>
-    <section id="sec-admin" class="content-section hidden">
-      <div id="admin-login" class="card-box login-box">
-        <i class="fa-solid fa-lock icon-lock font-amber"></i>
-        <h2>Acceso Administrador</h2>
-        <p class="subtitle">Ingresa tu contraseña de supervisor</p>
-        <form id="form-login" class="login-form">
-          <input type="password" id="input-pass" placeholder="Contraseña..." required />
-          <button type="submit" class="btn-primary">Ingresar al Panel</button>
-        </form>
-      </div>
-      <div id="admin-panel" class="panel-box hidden">
-        <div class="panel-header">
-          <div>
-            <h2>Panel de Supervisión - HN Muebles</h2>
-            <p class="subtitle">Gestiona y actualiza el avance de tus proyectos</p>
-          </div>
-          <button onclick="cerrarSesionAdmin()" class="btn-logout"><i class="fa-solid fa-right-from-bracket"></i> Cerrar Sesión</button>
-        </div>
+
+    <!-- SECCIÓN 2: RASTREO DE PROYECTOS -->
+    <section id="sec-rastreo" class="hidden space-y-6 max-w-xl mx-auto">
+      <div class="bg-slate-800/80 border border-slate-700/60 rounded-2xl p-6 sm:p-8 shadow-xl">
+        <h2 class="text-2xl font-bold mb-2 text-center text-amber-400">Rastrea tu Mueble</h2>
+        <p class="text-slate-400 text-sm text-center mb-6">Ingresa el código único que te proporcionamos (ej. HN-001)</p>
         
-        <form id="form-nuevo-proyecto" class="admin-form">
-          <h3><i class="fa-solid fa-plus font-amber"></i> Registrar Nuevo Mueble / Cliente</h3>
-          <div class="form-grid">
-            <input type="text" id="nuevo-codigo" placeholder="Código (Ej: HN-002)" required />
-            <input type="text" id="nuevo-cliente" placeholder="Nombre del Cliente" required />
-            <input type="text" id="nuevo-mueble" placeholder="Tipo de Mueble" required />
-            <input type="text" id="nuevo-telefono" placeholder="WhatsApp / Celular (Ej: 70012345)" />
-            
-            <!-- CAMPOS DE FINANZAS Y FECHA AL CREAR -->
-            <input type="number" id="nuevo-presupuesto" placeholder="Presupuesto Total (Bs)" />
-            <input type="number" id="nuevo-adelanto" placeholder="Adelanto Pagado (Bs)" />
-            
-            <div style="grid-column: 1 / -1; display: flex; flex-direction: column; gap: 0.3rem;">
-              <label style="font-size: 0.8rem; color: #a3a3a3;"><i class="fa-regular fa-calendar"></i> Fecha Estimada de Entrega:</label>
-              <input type="date" id="nuevo-fecha" style="padding: 0.5rem; background: #0a0a0a; border: 1px solid #404040; color: #fff; border-radius: 6px;" />
-            </div>
-          </div>
-          
-          <!-- CÁLCULO AUTOMÁTICO EN VIVO DEL SALDO -->
-          <div style="margin-top: 0.8rem; font-size: 0.9rem; color: #a3a3a3;">
-            Saldo restante calculado: <strong id="lbl-nuevo-saldo" style="color: #f87171;">Bs. 0.00</strong>
-          </div>
-
-          <button type="submit" class="btn-primary" style="margin-top: 1rem;">Crear Proyecto</button>
+        <form id="form-buscar" class="flex gap-2">
+          <input type="text" id="input-codigo" placeholder="EJ. HN-001" required 
+            class="flex-1 bg-slate-900 border border-slate-700 rounded-xl px-4 py-3 text-white uppercase tracking-wider focus:outline-none focus:border-amber-500 font-bold">
+          <button type="submit" class="bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold px-6 py-3 rounded-xl transition">
+            Buscar
+          </button>
         </form>
 
-        <div class="projects-list-container">
-          <h3>Proyectos Registrados (<span id="total-proyectos">0</span>)</h3>
-          <div id="lista-proyectos-admin" class="projects-list"></div>
+        <!-- MENSAJE DE ERROR -->
+        <div id="mensaje-error" class="hidden mt-6 bg-red-950/50 border border-red-800/60 text-red-300 p-4 rounded-xl text-center text-sm">
+          No encontramos ningun proyecto con ese código. Verifica los datos o comunícate con nosotros.
+        </div>
+
+        <!-- RESULTADO DEL PROYECTO -->
+        <div id="resultado-proyecto" class="hidden mt-6 bg-slate-900/90 border border-slate-700/80 rounded-xl p-6 space-y-4">
+          <div class="flex justify-between items-start">
+            <div>
+              <span id="res-codigo" class="bg-amber-500 text-slate-950 font-bold px-2.5 py-1 rounded text-xs"></span>
+              <h3 id="res-mueble" class="text-lg font-bold mt-1 text-white"></h3>
+              <p id="res-cliente" class="text-slate-400 text-sm"></p>
+            </div>
+            <div class="text-right">
+              <span class="text-xs text-slate-400 block">Estado Actual</span>
+              <span id="res-estado" class="text-amber-400 font-bold text-sm"></span>
+            </div>
+          </div>
+
+          <!-- BARRA DE PROGRESO -->
+          <div class="space-y-1">
+            <div class="flex justify-between text-xs text-slate-400">
+              <span>Progreso del trabajo</span>
+              <span id="res-porcentaje" class="font-bold text-amber-400">0%</span>
+            </div>
+            <div class="w-full bg-slate-800 h-3 rounded-full overflow-hidden border border-slate-700">
+              <div id="res-bar-fill" class="bg-gradient-to-r from-amber-600 to-amber-400 h-full w-0 transition-all duration-500"></div>
+            </div>
+          </div>
+
+          <div class="bg-slate-800/50 p-3.5 rounded-lg border border-slate-800 text-sm">
+            <span class="text-xs text-amber-400 font-semibold block mb-1">Detalles de producción:</span>
+            <p id="res-detalles" class="text-slate-300"></p>
+          </div>
         </div>
       </div>
     </section>
-    <footer class="footer">
-      <p>¿Tienes alguna consulta o quieres iniciar un proyecto? Encuéntranos en nuestras redes:</p>
-      <div class="social-buttons">
-        <a href="https://wa.me/59162037033?text=Hola%20HN%20Muebles,%20quisiera%20consultar%20sobre%20un%20proyecto" target="_blank" class="btn-social btn-wa">
-          <i class="fa-brands fa-whatsapp"></i> WhatsApp (+591 62037033)
-        </a>
-        <a href="https://www.instagram.com/hnmuebles/" target="_blank" class="btn-social btn-ig">
-          <i class="fa-brands fa-instagram"></i> Instagram (@hnmuebles)
-        </a>
+
+    <!-- SECCIÓN 3: ADMINISTRACIÓN -->
+    <section id="sec-admin" class="hidden space-y-6">
+      
+      <!-- LOGIN ADMIN -->
+      <div id="admin-login" class="max-w-md mx-auto bg-slate-800/80 border border-slate-700/60 rounded-2xl p-8 shadow-xl">
+        <h2 class="text-2xl font-bold mb-2 text-center text-amber-400">Panel de Administración</h2>
+        <p class="text-slate-400 text-sm text-center mb-6">Ingresa tu contraseña de acceso</p>
+        <form id="form-login" class="space-y-4">
+          <div>
+            <label class="block text-xs font-medium text-slate-400 mb-1">Contraseña</label>
+            <input type="password" id="input-pass" placeholder="••••••••" required 
+              class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-amber-500">
+          </div>
+          <button type="submit" class="w-full bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold py-3 rounded-xl transition shadow-lg shadow-amber-500/20">
+            Ingresar al Panel
+          </button>
+        </form>
       </div>
-      <p class="copyright">© 2026 HN Muebles. Todos los derechos reservados.</p>
-    </footer>
-  </div>
+
+      <!-- PANEL ADMIN PRINCIPAL -->
+      <div id="admin-panel" class="hidden space-y-8">
+        <div class="flex justify-between items-center bg-slate-800/80 border border-slate-700/60 p-6 rounded-2xl">
+          <div>
+            <h2 class="text-2xl font-bold text-amber-400">Gestión de Proyectos</h2>
+            <p class="text-slate-400 text-sm">Total de proyectos en la nube: <span id="total-proyectos" class="font-bold text-white">0</span></p>
+          </div>
+          <button onclick="cerrarSesionAdmin()" class="bg-red-500/20 hover:bg-red-500/30 text-red-400 border border-red-500/50 px-4 py-2 rounded-xl text-sm font-semibold transition">
+            Cerrar Sesión
+          </button>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          <!-- FORMULARIO NUEVO PROYECTO -->
+          <div class="bg-slate-800/80 border border-slate-700/60 rounded-2xl p-6 h-fit shadow-xl">
+            <h3 class="text-lg font-bold mb-4 text-amber-400 border-b border-slate-700 pb-2">Registrar Nuevo Proyecto</h3>
+            <form id="form-nuevo-proyecto" class="space-y-4 text-sm">
+              <div>
+                <label class="block text-xs font-medium text-slate-400 mb-1">Código del Proyecto *</label>
+                <input type="text" id="nuevo-codigo" placeholder="EJ. HN-002" required class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-white uppercase focus:outline-none focus:border-amber-500">
+              </div>
+              <div>
+                <label class="block text-xs font-medium text-slate-400 mb-1">Nombre del Cliente *</label>
+                <input type="text" id="nuevo-cliente" placeholder="Ej. Ana Pérez" required class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-white focus:outline-none focus:border-amber-500">
+              </div>
+              <div>
+                <label class="block text-xs font-medium text-slate-400 mb-1">Descripción del Mueble *</label>
+                <input type="text" id="nuevo-mueble" placeholder="Ej. Ropero empotrado 3 cuerpos" required class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-white focus:outline-none focus:border-amber-500">
+              </div>
+              <div>
+                <label class="block text-xs font-medium text-slate-400 mb-1">Teléfono (WhatsApp)</label>
+                <input type="text" id="nuevo-telefono" placeholder="Ej. 62037033" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-white focus:outline-none focus:border-amber-500">
+              </div>
+              
+              <!-- CAMPOS FINANCIEROS -->
+              <div class="grid grid-cols-2 gap-3">
+                <div>
+                  <label class="block text-xs font-medium text-slate-400 mb-1">Presupuesto (Bs.)</label>
+                  <input type="number" id="nuevo-presupuesto" placeholder="0.00" step="0.01" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-white focus:outline-none focus:border-amber-500">
+                </div>
+                <div>
+                  <label class="block text-xs font-medium text-slate-400 mb-1">Adelanto (Bs.)</label>
+                  <input type="number" id="nuevo-adelanto" placeholder="0.00" step="0.01" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-white focus:outline-none focus:border-amber-500">
+                </div>
+              </div>
+
+              <div class="bg-slate-900 p-3 rounded-lg border border-slate-800 flex justify-between items-center text-xs">
+                <span class="text-slate-400">Saldo Pendiente:</span>
+                <span id="lbl-nuevo-saldo" class="font-bold text-amber-400">Bs. 0.00</span>
+              </div>
+
+              <div>
+                <label class="block text-xs font-medium text-slate-400 mb-1">Fecha Estimada de Entrega</label>
+                <input type="date" id="nuevo-fecha" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-white focus:outline-none focus:border-amber-500">
+              </div>
+
+              <button type="submit" class="w-full bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold py-2.5 rounded-lg transition">
+                Guardar Proyecto
+              </button>
+            </form>
+          </div>
+
+          <!-- LISTA DE PROYECTOS ADMIN -->
+          <div class="lg:col-span-2 space-y-4">
+            <h3 class="text-lg font-bold text-amber-400">Proyectos Registrados</h3>
+            <div id="lista-proyectos-admin" class="space-y-4">
+              <!-- Las tarjetas se cargan dinámicamente mediante script.js -->
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- PIE DE PÁGINA -->
+  <footer class="bg-slate-900 border-t border-slate-800 text-center py-6 text-xs text-slate-500 mt-12">
+    <p>© 2026 HN Muebles - Todos los derechos reservados.</p>
+  </footer>
+
+  <!-- SDKs de Firebase de compatibilidad -->
+  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+  
+  <!-- Tu archivo de script -->
   <script src="script.js"></script>
 </body>
 </html>
