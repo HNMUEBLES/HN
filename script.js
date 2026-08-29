@@ -9,15 +9,16 @@ const firebaseConfig = {
   measurementId: "G-8PJGERB67Q"
 };
 
-// Inicializar Firebase (Versión compatible con script clásico)
+// Inicializar Firebase
 firebase.initializeApp(firebaseConfig);
 const db = firebase.firestore();
+const auth = firebase.auth();
 
 let proyectos = [];
 let esAdmin = false;
 
 // ==========================================
-// 1. FUNCIONES UTILITARIAS Y AUXILIARES
+// 1. FUNCIONES UTILITARIAS
 // ==========================================
 
 function formatearMonto(valor) {
@@ -69,24 +70,20 @@ async function cargarProyectosDesdeNube() {
       renderProyectosAdmin();
     }
     
-    // Una vez descargados los datos, procesa si hay un enlace directo en la URL
     procesarEnlaceDirectoUrl();
   } catch (error) {
     console.error("Error al cargar proyectos de la nube: ", error);
   }
 }
 
-// Ejecutar carga inicial al abrir la página
 cargarProyectosDesdeNube();
 
-// Función inteligente para cambiar de sección y activar el enlace de WhatsApp
 function procesarEnlaceDirectoUrl() {
   const urlParams = new URLSearchParams(window.location.search);
   const codigoUrl = urlParams.get('codigo');
   
   if (codigoUrl) {
     setTimeout(() => {
-      // 1. Muestra la sección de rastreo obligatoriamente
       if (typeof mostrarSeccion === 'function') {
         mostrarSeccion('rastreo');
       } else {
@@ -96,45 +93,31 @@ function procesarEnlaceDirectoUrl() {
         if (secRastreo) secRastreo.classList.remove('hidden');
       }
 
-      // 2. Rellena el input y ejecuta la búsqueda
       const inputCodigo = document.getElementById('input-codigo');
       const formBuscar = document.getElementById('form-buscar');
       
-      if (inputCodigo) {
-        inputCodigo.value = codigoUrl;
-      }
-      
-      if (formBuscar) {
-        formBuscar.dispatchEvent(new Event('submit', { cancelable: true, bubbles: true }));
-      }
+      if (inputCodigo) inputCodigo.value = codigoUrl;
+      if (formBuscar) formBuscar.dispatchEvent(new Event('submit', { cancelable: true, bubbles: true }));
     }, 400);
   }
 }
 
 // ==========================================
-// 3. NAVEGACIÓN ENTRE SECCIONES
+// 3. NAVEGACIÓN
 // ==========================================
 
 function mostrarSeccion(seccionId) {
-  const secInicio = document.getElementById('sec-inicio');
-  const secRastreo = document.getElementById('sec-rastreo');
-  const secAdmin = document.getElementById('sec-admin');
-  const secReportes = document.getElementById('sec-reportes');
+  const secciones = ['sec-inicio', 'sec-rastreo', 'sec-admin', 'sec-reportes'];
+  secciones.forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.classList.add('hidden');
+  });
 
-  if (secInicio) secInicio.classList.add('hidden');
-  if (secRastreo) secRastreo.classList.add('hidden');
-  if (secAdmin) secAdmin.classList.add('hidden');
-  if (secReportes) secReportes.classList.add('hidden');
-
-  const btnInicio = document.getElementById('btn-inicio');
-  const btnRastreo = document.getElementById('btn-rastreo');
-  const btnAdmin = document.getElementById('btn-admin');
-  const btnReportes = document.getElementById('btn-reportes');
-
-  if (btnInicio) btnInicio.classList.remove('active');
-  if (btnRastreo) btnRastreo.classList.remove('active');
-  if (btnAdmin) btnAdmin.classList.remove('active');
-  if (btnReportes) btnReportes.classList.remove('active');
+  const botones = ['btn-inicio', 'btn-rastreo', 'btn-admin', 'btn-reportes'];
+  botones.forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.classList.remove('active');
+  });
 
   const secDestino = document.getElementById(`sec-${seccionId}`);
   const btnDestino = document.getElementById(`btn-${seccionId}`);
@@ -144,7 +127,7 @@ function mostrarSeccion(seccionId) {
 }
 
 // ==========================================
-// 4. INICIALIZACIÓN Y EVENTOS DEL DOM
+// 4. EVENTOS DEL DOM Y AUTENTICACIÓN
 // ==========================================
 
 document.addEventListener('DOMContentLoaded', function() {
@@ -154,14 +137,12 @@ document.addEventListener('DOMContentLoaded', function() {
   if (formBuscar) {
     formBuscar.addEventListener('submit', function(e) {
       e.preventDefault(); 
-      
       const codigoInput = document.getElementById('input-codigo');
       if (!codigoInput) return;
       
       const codigo = codigoInput.value.trim().toUpperCase();
       const errorMsg = document.getElementById('mensaje-error');
       const resultBox = document.getElementById('resultado-proyecto');
-
       const encontrado = proyectos.find(p => p.codigo === codigo);
 
       if (encontrado) {
@@ -182,32 +163,38 @@ document.addEventListener('DOMContentLoaded', function() {
     });
   }
 
-  // LOGIN ADMIN
+  // LOGIN ADMIN SEGURO CON FIREBASE AUTH
   const formLogin = document.getElementById('form-login');
   if (formLogin) {
     formLogin.addEventListener('submit', async function(e) {
       e.preventDefault();
+      const emailInput = document.getElementById('input-email'); // Asegúrate de tener este campo o usa uno fijo
       const passInput = document.getElementById('input-pass');
       
-      if (passInput && passInput.value.trim() === 'hn2026') {
+      const email = emailInput ? emailInput.value.trim() : 'admin@hnmuebles.com'; // Puedes pedir el correo en tu HTML o dejarlo fijo
+      const password = passInput ? passInput.value.trim() : '';
+
+      try {
+        await auth.signInWithEmailAndPassword(email, password);
         esAdmin = true;
+        
         const divLogin = document.getElementById('admin-login');
         const divPanel = document.getElementById('admin-panel');
-        
         if (divLogin) divLogin.classList.add('hidden');
         if (divPanel) divPanel.classList.remove('hidden');
         
-        passInput.value = '';
+        if (passInput) passInput.value = '';
         await cargarProyectosDesdeNube();
         renderProyectosAdmin();
-      } else { 
-        alert('Contraseña incorrecta'); 
+      } catch (error) {
+        alert('Credenciales incorrectas o acceso no autorizado.');
+        console.error("Error de login:", error);
         if (passInput) passInput.value = '';
       }
     });
   }
 
-  // CÁLCULO EN VIVO DEL SALDO AL CREAR PROYECTO
+  // CÁLCULO EN VIVO
   const inputPresupuestoNuevo = document.getElementById('nuevo-presupuesto');
   const inputAdelantoNuevo = document.getElementById('nuevo-adelanto');
   
@@ -225,7 +212,7 @@ document.addEventListener('DOMContentLoaded', function() {
   if (inputPresupuestoNuevo) inputPresupuestoNuevo.addEventListener('input', calcularSaldoEnVivo);
   if (inputAdelantoNuevo) inputAdelantoNuevo.addEventListener('input', calcularSaldoEnVivo);
 
-  // NUEVO PROYECTO (GUARDAR EN FIRESTORE)
+  // NUEVO PROYECTO
   const formNuevo = document.getElementById('form-nuevo-proyecto');
   if (formNuevo) {
     formNuevo.addEventListener('submit', async function(e) {
@@ -239,9 +226,7 @@ document.addEventListener('DOMContentLoaded', function() {
       const fechaIn = document.getElementById('nuevo-fecha');
 
       let codigoGenerado = codIn ? codIn.value.trim().toUpperCase() : '';
-      if (!codigoGenerado) {
-        codigoGenerado = generarCodigoAleatorio();
-      }
+      if (!codigoGenerado) codigoGenerado = generarCodigoAleatorio();
 
       const nuevoProyectoObj = {
         codigo: codigoGenerado,
@@ -272,59 +257,58 @@ document.addEventListener('DOMContentLoaded', function() {
         renderProyectosAdmin();
       } catch (error) {
         console.error("Error al guardar en Firebase:", error);
+        alert("No tienes permisos para realizar esta acción.");
       }
     });
   }
 
-  // EVENTO PARA EL FILTRO DE REPORTE MENSUAL
+  // FILTRO MENSUAL
   const selectMes = document.getElementById('filtro-mes');
   if (selectMes) {
     const fechaActual = new Date();
     const anio = fechaActual.getFullYear();
     const mes = String(fechaActual.getMonth() + 1).padStart(2, '0');
     selectMes.value = `${anio}-${mes}`;
-
-    selectMes.addEventListener('change', () => {
-      renderProyectosAdmin();
-    });
+    selectMes.addEventListener('change', () => { renderProyectosAdmin(); });
   }
 });
 
-function cerrarSesionAdmin() {
-  esAdmin = false;
-  const divPanel = document.getElementById('admin-panel');
-  const divLogin = document.getElementById('admin-login');
-  if (divPanel) divPanel.classList.add('hidden');
-  if (divLogin) divLogin.classList.remove('hidden');
+async function cerrarSesionAdmin() {
+  try {
+    await auth.signOut();
+    esAdmin = false;
+    const divPanel = document.getElementById('admin-panel');
+    const divLogin = document.getElementById('admin-login');
+    if (divPanel) divPanel.classList.add('hidden');
+    if (divLogin) divLogin.classList.remove('hidden');
+
+    document.getElementById('btn-rastreo').classList.remove('hidden');
+    document.getElementById('btn-reportes').classList.add('hidden');
+    irInicio();
+  } catch (error) {
+    console.error("Error al cerrar sesión:", error);
+  }
 }
 
 // ==========================================
-// 5. RENDERIZADO Y REPORTE MENSUAL EN PANEL ADMIN
+// 5. RENDERIZADO Y ACCIONES DE ADMIN
 // ==========================================
 
 function renderProyectosAdmin() {
   const container = document.getElementById('lista-proyectos-admin');
   const totalEl = document.getElementById('total-proyectos');
-  
   if (totalEl) totalEl.innerText = proyectos.length;
 
   const selectMes = document.getElementById('filtro-mes');
   const mesSeleccionado = selectMes ? selectMes.value : ''; 
 
   let proyectosFiltradosMes = proyectos.filter(p => {
-    if (!p.fechaEntrega || p.fechaEntrega.trim() === '') {
-      return true; 
-    }
-    if (mesSeleccionado) {
-      return p.fechaEntrega.startsWith(mesSeleccionado);
-    }
+    if (!p.fechaEntrega || p.fechaEntrega.trim() === '') return true; 
+    if (mesSeleccionado) return p.fechaEntrega.startsWith(mesSeleccionado);
     return true;
   });
 
-  let totalPresupuestoMes = 0;
-  let totalAdelantoMes = 0;
-  let totalSaldoMes = 0;
-
+  let totalPresupuestoMes = 0, totalAdelantoMes = 0, totalSaldoMes = 0;
   proyectosFiltradosMes.forEach(p => {
     const pres = Number(p.presupuesto) || 0;
     const adel = Number(p.adelanto) || 0;
@@ -333,18 +317,12 @@ function renderProyectosAdmin() {
     totalSaldoMes += (pres - adel);
   });
 
-  const elCantMes = document.getElementById('reporte-cant-mes');
-  const elPresMes = document.getElementById('reporte-presupuesto-mes');
-  const elAdelMes = document.getElementById('reporte-adelanto-mes');
-  const elSaldoMes = document.getElementById('reporte-saldo-mes');
-
-  if (elCantMes) elCantMes.innerText = proyectosFiltradosMes.length;
-  if (elPresMes) elPresMes.innerText = `Bs. ${formatearMonto(totalPresupuestoMes)}`;
-  if (elAdelMes) elAdelMes.innerText = `Bs. ${formatearMonto(totalAdelantoMes)}`;
-  if (elSaldoMes) elSaldoMes.innerText = `Bs. ${formatearMonto(totalSaldoMes)}`;
+  if (document.getElementById('reporte-cant-mes')) document.getElementById('reporte-cant-mes').innerText = proyectosFiltradosMes.length;
+  if (document.getElementById('reporte-presupuesto-mes')) document.getElementById('reporte-presupuesto-mes').innerText = `Bs. ${formatearMonto(totalPresupuestoMes)}`;
+  if (document.getElementById('reporte-adelanto-mes')) document.getElementById('reporte-adelanto-mes').innerText = `Bs. ${formatearMonto(totalAdelantoMes)}`;
+  if (document.getElementById('reporte-saldo-mes')) document.getElementById('reporte-saldo-mes').innerText = `Bs. ${formatearMonto(totalSaldoMes)}`;
 
   if (!container) return;
-  
   container.innerHTML = '';
   const etapas = ['Diseño Aprobado', 'Corte', 'Armado', 'Instalación', 'Finalizado'];
 
@@ -366,96 +344,53 @@ function renderProyectosAdmin() {
 
     card.innerHTML = `
       <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 1rem; flex-wrap: wrap;">
-        
         <div id="info-view-${index}" style="flex: 1; min-width: 280px;">
           <div style="display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap;">
             <div style="display: flex; align-items: center; gap: 0.4rem;">
               <span style="background: #f59e0b; color: #000; padding: 0.2rem 0.6rem; border-radius: 4px; font-weight: bold; font-size: 0.85rem;">${p.codigo}</span>
-              <button type="button" onclick="copiarCodigoAlPortapapeles('${p.codigo}')" title="Copiar código" style="background: rgba(255,255,255,0.1); color: #fff; border: 1px solid rgba(255,255,255,0.2); padding: 0.2rem 0.5rem; border-radius: 4px; cursor: pointer; font-size: 0.75rem;">
-                <i class="fa-regular fa-copy"></i> Copiar
-              </button>
+              <button type="button" onclick="copiarCodigoAlPortapapeles('${p.codigo}')" style="background: rgba(255,255,255,0.1); color: #fff; border: 1px solid rgba(255,255,255,0.2); padding: 0.2rem 0.5rem; border-radius: 4px; cursor: pointer; font-size: 0.75rem;"><i class="fa-regular fa-copy"></i> Copiar</button>
             </div>
             <strong style="font-size: 1.05rem;">${p.mueble}</strong>
           </div>
-          <p style="margin: 0.4rem 0; color: #a3a3a3; font-size: 0.85rem;">
-            <i class="fa-solid fa-user"></i> Cliente: ${p.cliente} | <i class="fa-solid fa-phone"></i> Tel: ${p.telefono || 'Sin registrar'}
-          </p>
-          <p style="margin: 0.2rem 0 0.5rem 0; color: #38bdf8; font-size: 0.85rem;">
-            <i class="fa-regular fa-calendar"></i> Entrega estimada: <strong>${fechaFormateada}</strong>
-          </p>
-
+          <p style="margin: 0.4rem 0; color: #a3a3a3; font-size: 0.85rem;"><i class="fa-solid fa-user"></i> Cliente: ${p.cliente} | <i class="fa-solid fa-phone"></i> Tel: ${p.telefono || 'Sin registrar'}</p>
+          <p style="margin: 0.2rem 0 0.5rem 0; color: #38bdf8; font-size: 0.85rem;"><i class="fa-regular fa-calendar"></i> Entrega estimada: <strong>${fechaFormateada}</strong></p>
           <div style="background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.08); padding: 0.6rem 0.8rem; border-radius: 8px; margin: 0.6rem 0; display: flex; gap: 1rem; flex-wrap: wrap; font-size: 0.85rem;">
             <div><span style="color: #a3a3a3;">Total:</span> <strong>Bs. ${formatearMonto(presupuesto)}</strong></div>
             <div><span style="color: #a3a3a3;">Adelanto:</span> <strong style="color: #38bdf8;">Bs. ${formatearMonto(adelanto)}</strong></div>
             <div><span style="color: #a3a3a3;">Saldo:</span> <strong style="color: ${saldo > 0 ? '#f87171' : '#4ade80'};">Bs. ${formatearMonto(saldo)}</strong></div>
           </div>
-
           <div style="margin-top: 0.5rem;">${botonesEtapas}</div>
           <div style="margin-top: 0.8rem;">
-            <button type="button" onclick="notificarWhatsApp(${index})" style="background: #16a34a; color: white; border: none; padding: 0.4rem 0.8rem; border-radius: 6px; cursor: pointer; font-size: 0.85rem; font-weight: bold; display: inline-flex; align-items: center; gap: 0.4rem;">
-              <i class="fa-brands fa-whatsapp"></i> Notificar por WhatsApp con enlace
-            </button>
+            <button type="button" onclick="notificarWhatsApp(${index})" style="background: #16a34a; color: white; border: none; padding: 0.4rem 0.8rem; border-radius: 6px; cursor: pointer; font-size: 0.85rem; font-weight: bold; display: inline-flex; align-items: center; gap: 0.4rem;"><i class="fa-brands fa-whatsapp"></i> Notificar por WhatsApp con enlace</button>
           </div>
         </div>
-
         <div id="edit-view-${index}" style="flex: 1; min-width: 280px; display: none; background: rgba(0,0,0,0.4); padding: 1rem; border-radius: 8px; border: 1px solid rgba(255,255,255,0.15);">
-          <h4 style="margin-bottom: 0.6rem; color: #f59e0b; font-size: 0.95rem;">Editar Proyecto, Finanzas y Fecha</h4>
+          <h4 style="margin-bottom: 0.6rem; color: #f59e0b; font-size: 0.95rem;">Editar Proyecto</h4>
           <div style="display: flex; flex-direction: column; gap: 0.5rem;">
-            <div>
-              <label style="font-size: 0.75rem; color: #a3a3a3;">Código:</label>
-              <input type="text" id="input-edit-codigo-${index}" value="${p.codigo}" style="width:100%; padding:0.4rem; background:#0a0a0a; border:1px solid #404040; color:#fff; border-radius:6px; font-size:0.85rem;">
-            </div>
-            <div>
-              <label style="font-size: 0.75rem; color: #a3a3a3;">Cliente:</label>
-              <input type="text" id="input-edit-cliente-${index}" value="${p.cliente}" style="width:100%; padding:0.4rem; background:#0a0a0a; border:1px solid #404040; color:#fff; border-radius:6px; font-size:0.85rem;">
-            </div>
-            <div>
-              <label style="font-size: 0.75rem; color: #a3a3a3;">Mueble:</label>
-              <input type="text" id="input-edit-mueble-${index}" value="${p.mueble}" style="width:100%; padding:0.4rem; background:#0a0a0a; border:1px solid #404040; color:#fff; border-radius:6px; font-size:0.85rem;">
-            </div>
-            <div>
-              <label style="font-size: 0.75rem; color: #a3a3a3;">Teléfono:</label>
-              <input type="text" id="input-edit-telefono-${index}" value="${p.telefono || ''}" style="width:100%; padding:0.4rem; background:#0a0a0a; border:1px solid #404040; color:#fff; border-radius:6px; font-size:0.85rem;">
-            </div>
+            <input type="text" id="input-edit-codigo-${index}" value="${p.codigo}" style="width:100%; padding:0.4rem; background:#0a0a0a; border:1px solid #404040; color:#fff; border-radius:6px; font-size:0.85rem;">
+            <input type="text" id="input-edit-cliente-${index}" value="${p.cliente}" style="width:100%; padding:0.4rem; background:#0a0a0a; border:1px solid #404040; color:#fff; border-radius:6px; font-size:0.85rem;">
+            <input type="text" id="input-edit-mueble-${index}" value="${p.mueble}" style="width:100%; padding:0.4rem; background:#0a0a0a; border:1px solid #404040; color:#fff; border-radius:6px; font-size:0.85rem;">
+            <input type="text" id="input-edit-telefono-${index}" value="${p.telefono || ''}" style="width:100%; padding:0.4rem; background:#0a0a0a; border:1px solid #404040; color:#fff; border-radius:6px; font-size:0.85rem;">
             <div style="display: flex; gap: 0.5rem;">
-              <div style="flex: 1;">
-                <label style="font-size: 0.75rem; color: #a3a3a3;">Presupuesto Total:</label>
-                <input type="text" id="input-edit-presupuesto-${index}" value="${formatearMonto(presupuesto)}" inputmode="decimal" style="width:100%; padding:0.4rem; background:#0a0a0a; border:1px solid #404040; color:#fff; border-radius:6px; font-size:0.85rem;">
-              </div>
-              <div style="flex: 1;">
-                <label style="font-size: 0.75rem; color: #a3a3a3;">Adelanto:</label>
-                <input type="text" id="input-edit-adelanto-${index}" value="${formatearMonto(adelanto)}" inputmode="decimal" style="width:100%; padding:0.4rem; background:#0a0a0a; border:1px solid #404040; color:#fff; border-radius:6px; font-size:0.85rem;">
-              </div>
+              <input type="text" id="input-edit-presupuesto-${index}" value="${formatearMonto(presupuesto)}" style="width:100%; padding:0.4rem; background:#0a0a0a; border:1px solid #404040; color:#fff; border-radius:6px; font-size:0.85rem;">
+              <input type="text" id="input-edit-adelanto-${index}" value="${formatearMonto(adelanto)}" style="width:100%; padding:0.4rem; background:#0a0a0a; border:1px solid #404040; color:#fff; border-radius:6px; font-size:0.85rem;">
             </div>
-            <div>
-              <label style="font-size: 0.75rem; color: #a3a3a3;">Fecha de Entrega:</label>
-              <input type="date" id="input-edit-fecha-${index}" value="${p.fechaEntrega || ''}" style="width:100%; padding:0.4rem; background:#0a0a0a; border:1px solid #404040; color:#fff; border-radius:6px; font-size:0.85rem;">
-            </div>
+            <input type="date" id="input-edit-fecha-${index}" value="${p.fechaEntrega || ''}" style="width:100%; padding:0.4rem; background:#0a0a0a; border:1px solid #404040; color:#fff; border-radius:6px; font-size:0.85rem;">
             <div style="display: flex; gap: 0.5rem; margin-top: 0.4rem;">
               <button type="button" onclick="guardarEdicionInline('${p.id}', ${index})" style="background: #16a34a; color: white; border: none; padding: 0.4rem 0.8rem; border-radius: 6px; cursor: pointer; font-size: 0.8rem; font-weight: bold;">Guardar</button>
               <button type="button" onclick="cancelarEdicionInline(${index})" style="background: #404040; color: white; border: none; padding: 0.4rem 0.8rem; border-radius: 6px; cursor: pointer; font-size: 0.8rem;">Cancelar</button>
             </div>
           </div>
         </div>
-
         <div style="display: flex; gap: 0.5rem;">
-          <button type="button" id="btn-edit-toggle-${index}" onclick="activarEdicionInline(${index})" title="Editar" style="background: #3b82f6; color: white; border: none; padding: 0.6rem 0.8rem; border-radius: 8px; cursor: pointer;">
-            <i class="fa-solid fa-pen-to-square"></i>
-          </button>
-          <button type="button" onclick="eliminarProyecto('${p.id}')" title="Eliminar" style="background: #ef4444; color: white; border: none; padding: 0.6rem 0.8rem; border-radius: 8px; cursor: pointer;">
-            <i class="fa-solid fa-trash"></i>
-          </button>
+          <button type="button" id="btn-edit-toggle-${index}" onclick="activarEdicionInline(${index})" style="background: #3b82f6; color: white; border: none; padding: 0.6rem 0.8rem; border-radius: 8px; cursor: pointer;"><i class="fa-solid fa-pen-to-square"></i></button>
+          <button type="button" onclick="eliminarProyecto('${p.id}')" style="background: #ef4444; color: white; border: none; padding: 0.6rem 0.8rem; border-radius: 8px; cursor: pointer;"><i class="fa-solid fa-trash"></i></button>
         </div>
-
       </div>
     `;
     container.appendChild(card);
   });
 }
-
-// ==========================================
-// 6. ACCIONES DE EDICIÓN, ESTADOS Y WHATSAPP
-// ==========================================
 
 function activarEdicionInline(index) {
   document.getElementById(`info-view-${index}`).style.display = 'none';
@@ -478,26 +413,16 @@ async function guardarEdicionInline(idFirebase, index) {
   const nuevoAdelanto = parseFloat(document.getElementById(`input-edit-adelanto-${index}`).value) || 0;
   const nuevaFecha = document.getElementById(`input-edit-fecha-${index}`).value;
 
-  if (!nuevoCodigo || !nuevoCliente || !nuevoMueble) {
-    alert("Los campos Código, Cliente y Mueble son obligatorios.");
-    return;
-  }
-
   try {
     await db.collection("proyectos").doc(idFirebase).update({
-      codigo: nuevoCodigo,
-      cliente: nuevoCliente,
-      mueble: nuevoMueble,
-      telefono: nuevoTelefono,
-      presupuesto: nuevoPresupuesto,
-      adelanto: nuevoAdelanto,
-      fechaEntrega: nuevaFecha
+      codigo: nuevoCodigo, cliente: nuevoCliente, mueble: nuevoMueble,
+      telefono: nuevoTelefono, presupuesto: nuevoPresupuesto, adelanto: nuevoAdelanto, fechaEntrega: nuevaFecha
     });
-
     await cargarProyectosDesdeNube();
     renderProyectosAdmin();
   } catch (error) {
     console.error("Error al actualizar:", error);
+    alert("No tienes permisos para modificar este proyecto.");
   }
 }
 
@@ -510,18 +435,15 @@ async function cambiarEstadoPorId(idFirebase, etapaIdx, nuevoProgreso) {
     'El mueble está en proceso de traslado e instalación en sitio.',
     '¡El proyecto ha sido completado e instalado con éxito!'
   ];
-  
   try {
     await db.collection("proyectos").doc(idFirebase).update({
-      estado: etapas[etapaIdx],
-      progreso: nuevoProgreso,
-      detalles: descripciones[etapaIdx]
+      estado: etapas[etapaIdx], progreso: nuevoProgreso, detalles: descripciones[etapaIdx]
     });
-    
     await cargarProyectosDesdeNube();
     renderProyectosAdmin();
   } catch (error) {
     console.error("Error cambiando estado:", error);
+    alert("No tienes permisos para cambiar estados.");
   }
 }
 
@@ -533,6 +455,7 @@ async function eliminarProyecto(idFirebase) {
       renderProyectosAdmin();
     } catch (error) {
       console.error("Error al eliminar:", error);
+      alert("No tienes permisos para eliminar proyectos.");
     }
   }
 }
@@ -543,11 +466,8 @@ function notificarWhatsApp(index) {
     alert("Este cliente no tiene un número de teléfono registrado.");
     return;
   }
-  
   let num = p.telefono.toString().replace(/\D/g, '');
-  if (!num.startsWith('591') && num.length === 8) {
-    num = '591' + num;
-  }
+  if (!num.startsWith('591') && num.length === 8) num = '591' + num;
   
   const presupuesto = Number(p.presupuesto) || 0;
   const adelanto = Number(p.adelanto) || 0;
@@ -556,58 +476,7 @@ function notificarWhatsApp(index) {
   
   const linkBase = window.location.origin + window.location.pathname;
   const linkDirecto = `${linkBase}?codigo=${p.codigo}`;
-
   const mensaje = `Hola *${p.cliente}* 👋, desde *HN Muebles* te informamos el estado de tu proyecto *"${p.mueble}"*:\n\n🛠️ *Estado:* ${p.estado}\n📊 *Progreso:* ${p.progreso}%\n📅 *Fecha Estimada de Entrega:* ${fechaTexto}\n\n💰 *Resumen Financiero:*\n• Presupuesto Total: Bs. ${formatearMonto(presupuesto)}\n• Adelanto: Bs. ${formatearMonto(adelanto)}\n• Saldo Pendiente: Bs. ${formatearMonto(saldo)}\n\n🔍 *Haz clic en el siguiente enlace para ver el estado de tu proyecto (Código: ${p.codigo}):*\n${linkDirecto}`;
   
   window.open(`https://wa.me/${num}?text=${encodeURIComponent(mensaje)}`, '_blank');
-}
-
-// ==========================================
-// 7. EXPORTACIÓN A EXCEL (CSV)
-// ==========================================
-
-function exportarReporteExcel() {
-  const selectMes = document.getElementById('filtro-mes');
-  const mesSeleccionado = selectMes ? selectMes.value : 'Todos';
-
-  let proyectosFiltrados = proyectos.filter(p => {
-    if (!p.fechaEntrega || p.fechaEntrega.trim() === '') {
-      return true; 
-    }
-    if (mesSeleccionado) {
-      return p.fechaEntrega.startsWith(mesSeleccionado);
-    }
-    return true;
-  });
-
-  if (proyectosFiltrados.length === 0) {
-    alert("No hay proyectos en este período para exportar.");
-    return;
-  }
-
-  let csvContent = "\uFEFF"; 
-  csvContent += "Codigo;Cliente;Mueble;Telefono;Estado;Fecha Entrega;Presupuesto (Bs);Adelanto (Bs);Saldo Pendiente (Bs)\n";
-
-  proyectosFiltrados.forEach(p => {
-    const presupuesto = Number(p.presupuesto) || 0;
-    const adelanto = Number(p.adelanto) || 0;
-    const saldo = presupuesto - adelanto;
-    const fecha = p.fechaEntrega ? p.fechaEntrega.split('-').reverse().join('/') : 'Sin definir';
-    
-    const cliente = (p.cliente || '').replace(/;/g, ',');
-    const mueble = (p.mueble || '').replace(/;/g, ',');
-    const telefono = p.telefono || 'Sin registrar';
-    const estado = p.estado || '';
-
-    csvContent += `${p.codigo};"${cliente}";"${mueble}";"${telefono}";"${estado}";${fecha};${presupuesto};${adelanto};${saldo}\n`;
-  });
-
-  const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-  const url = URL.createObjectURL(blob);
-  const link = document.createElement("a");
-  link.setAttribute("href", url);
-  link.setAttribute("download", `Reporte_Financiero_HN_${mesSeleccionado || 'General'}.csv`);
-  document.body.appendChild(link);
-  link.click();
-  document.body.removeChild(link);
 }
