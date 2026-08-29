@@ -12,7 +12,6 @@ const firebaseConfig = {
 // Inicializar Firebase
 firebase.initializeApp(firebaseConfig);
 const db = firebase.firestore();
-const auth = firebase.auth();
 
 let proyectos = [];
 let esAdmin = false;
@@ -127,7 +126,7 @@ function mostrarSeccion(seccionId) {
 }
 
 // ==========================================
-// 4. EVENTOS DEL DOM Y LOGIN AUTOMATIZADO
+// 4. EVENTOS DEL DOM Y LOGIN DIRECTO
 // ==========================================
 
 document.addEventListener('DOMContentLoaded', function() {
@@ -163,16 +162,15 @@ document.addEventListener('DOMContentLoaded', function() {
     });
   }
 
-  // LOGIN ADMIN SEGURO (Usa tu correo real hn24mubles@gmail.com y tu contraseña)
+  // LOGIN ADMIN CON TU CONTRASEÑA CLÁSICA
   const formLogin = document.getElementById('form-login');
   if (formLogin) {
-    formLogin.addEventListener('submit', async function(e) {
+    formLogin.addEventListener('submit', function(e) {
       e.preventDefault();
       const passInput = document.getElementById('input-pass');
       const passwordEscrita = passInput ? passInput.value.trim() : '';
 
-      try {
-        await auth.signInWithEmailAndPassword('hn24mubles@gmail.com', passwordEscrita);
+      if (passwordEscrita === '2803HDabril') {
         esAdmin = true;
         
         const divLogin = document.getElementById('admin-login');
@@ -181,11 +179,10 @@ document.addEventListener('DOMContentLoaded', function() {
         if (divPanel) divPanel.classList.remove('hidden');
         
         if (passInput) passInput.value = '';
-        await cargarProyectosDesdeNube();
+        cargarProyectosDesdeNube();
         renderProyectosAdmin();
-      } catch (error) {
+      } else {
         alert('Contraseña incorrecta');
-        console.error("Error de login:", error);
         if (passInput) passInput.value = '';
       }
     });
@@ -254,7 +251,7 @@ document.addEventListener('DOMContentLoaded', function() {
         renderProyectosAdmin();
       } catch (error) {
         console.error("Error al guardar en Firebase:", error);
-        alert("No tienes permisos para realizar esta acción. Verifica tu sesión.");
+        alert("Error al guardar el proyecto.");
       }
     });
   }
@@ -270,21 +267,16 @@ document.addEventListener('DOMContentLoaded', function() {
   }
 });
 
-async function cerrarSesionAdmin() {
-  try {
-    await auth.signOut();
-    esAdmin = false;
-    const divPanel = document.getElementById('admin-panel');
-    const divLogin = document.getElementById('admin-login');
-    if (divPanel) divPanel.classList.add('hidden');
-    if (divLogin) divLogin.classList.remove('hidden');
+function cerrarSesionAdmin() {
+  esAdmin = false;
+  const divPanel = document.getElementById('admin-panel');
+  const divLogin = document.getElementById('admin-login');
+  if (divPanel) divPanel.classList.add('hidden');
+  if (divLogin) divLogin.classList.remove('hidden');
 
-    document.getElementById('btn-rastreo').classList.remove('hidden');
-    document.getElementById('btn-reportes').classList.add('hidden');
-    irInicio();
-  } catch (error) {
-    console.error("Error al cerrar sesión:", error);
-  }
+  document.getElementById('btn-rastreo').classList.remove('hidden');
+  document.getElementById('btn-reportes').classList.add('hidden');
+  irInicio();
 }
 
 // ==========================================
@@ -419,7 +411,7 @@ async function guardarEdicionInline(idFirebase, index) {
     renderProyectosAdmin();
   } catch (error) {
     console.error("Error al actualizar:", error);
-    alert("No tienes permisos para modificar este proyecto.");
+    alert("Error al actualizar el proyecto.");
   }
 }
 
@@ -440,7 +432,7 @@ async function cambiarEstadoPorId(idFirebase, etapaIdx, nuevoProgreso) {
     renderProyectosAdmin();
   } catch (error) {
     console.error("Error cambiando estado:", error);
-    alert("No tienes permisos para cambiar estados.");
+    alert("Error al cambiar estado.");
   }
 }
 
@@ -452,7 +444,7 @@ async function eliminarProyecto(idFirebase) {
       renderProyectosAdmin();
     } catch (error) {
       console.error("Error al eliminar:", error);
-      alert("No tienes permisos para eliminar proyectos.");
+      alert("Error al eliminar proyecto.");
     }
   }
 }
