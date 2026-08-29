@@ -16,6 +16,16 @@ const db = firebase.firestore();
 let proyectos = [];
 let esAdmin = false;
 
+// --- FUNCIÓN PARA GENERAR CÓDIGO AL AZAR SIN GUION (Ej: HN9X4F) ---
+function generarCodigoAleatorio() {
+  const caracteres = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+  let aleatorio = '';
+  for (let i = 0; i < 5; i++) {
+    aleatorio += caracteres.charAt(Math.floor(Math.random() * caracteres.length));
+  }
+  return `HN${aleatorio}`;
+}
+
 // --- CARGAR PROYECTOS DESDE FIRESTORE EN VIVO ---
 async function cargarProyectosDesdeNube() {
   try {
@@ -31,7 +41,7 @@ async function cargarProyectosDesdeNube() {
     // Si la base de datos está vacía, creamos un proyecto inicial de prueba
     if (proyectos.length === 0) {
       const proyectoInicial = {
-        codigo: 'HN-001',
+        codigo: 'HN001',
         cliente: 'Carlos Mendoza',
         mueble: 'Juego de Comedor en Melamina',
         telefono: '62037033',
@@ -168,8 +178,14 @@ document.addEventListener('DOMContentLoaded', function() {
       const adelIn = document.getElementById('nuevo-adelanto');
       const fechaIn = document.getElementById('nuevo-fecha');
 
+      // Si dejas el código vacío, genera automáticamente uno al azar sin guion (Ej: HN9X4F)
+      let codigoGenerado = codIn ? codIn.value.trim().toUpperCase() : '';
+      if (!codigoGenerado) {
+        codigoGenerado = generarCodigoAleatorio();
+      }
+
       const nuevoProyectoObj = {
-        codigo: codIn ? codIn.value.trim().toUpperCase() : '',
+        codigo: codigoGenerado,
         cliente: cliIn ? cliIn.value.trim() : '',
         mueble: mueIn ? mueIn.value.trim() : '',
         telefono: telIn ? telIn.value.trim() : '',
@@ -195,7 +211,7 @@ document.addEventListener('DOMContentLoaded', function() {
         
         await cargarProyectosDesdeNube();
         renderProyectosAdmin();
-        alert("¡Proyecto guardado en la nube con éxito!");
+        alert(`¡Proyecto guardado con éxito! Código asignado: ${codigoGenerado}`);
       } catch (error) {
         console.error("Error al guardar en Firebase:", error);
         alert("Hubo un error al guardar el proyecto en la nube.");
