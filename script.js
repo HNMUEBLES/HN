@@ -144,7 +144,6 @@ function renderProyectosAdmin() {
   
   container.innerHTML = '';
   
-  // Etapas del proceso requeridas
   const etapas = ['Diseño Aprobado', 'Corte', 'Armado', 'Instalación', 'Finalizado'];
 
   proyectos.forEach((p, index) => {
@@ -172,14 +171,20 @@ function renderProyectosAdmin() {
           </button>
         </div>
       </div>
-      <button type="button" onclick="eliminarProyecto(${index})" title="Eliminar proyecto" style="background: #ef4444; color: white; border: none; padding: 0.6rem 0.8rem; border-radius: 8px; cursor: pointer;">
-        <i class="fa-solid fa-trash"></i>
-      </button>
+      <div style="display: flex; gap: 0.5rem;">
+        <button type="button" onclick="editarProyecto(${index})" title="Editar datos" style="background: #3b82f6; color: white; border: none; padding: 0.6rem 0.8rem; border-radius: 8px; cursor: pointer;">
+          <i class="fa-solid fa-pen-to-square"></i>
+        </button>
+        <button type="button" onclick="eliminarProyecto(${index})" title="Eliminar proyecto" style="background: #ef4444; color: white; border: none; padding: 0.6rem 0.8rem; border-radius: 8px; cursor: pointer;">
+          <i class="fa-solid fa-trash"></i>
+        </button>
+      </div>
     `;
     container.appendChild(card);
   });
 }
 
+// --- 6. CAMBIAR ESTADO ---
 function cambiarEstadoPorIndice(proyectoIdx, etapaIdx, nuevoProgreso) {
   const etapas = ['Diseño Aprobado', 'Corte', 'Armado', 'Instalación', 'Finalizado'];
   const descripciones = [
@@ -198,6 +203,33 @@ function cambiarEstadoPorIndice(proyectoIdx, etapaIdx, nuevoProgreso) {
   renderProyectosAdmin();
 }
 
+// --- 7. EDITAR DATOS DEL PROYECTO ---
+function editarProyecto(index) {
+  const p = proyectos[index];
+  
+  const nuevoCodigo = prompt("Código del proyecto:", p.codigo);
+  if (nuevoCodigo === null) return; // Si cancela
+  
+  const nuevoCliente = prompt("Nombre del cliente:", p.cliente);
+  if (nuevoCliente === null) return;
+  
+  const nuevoMueble = prompt("Descripción del mueble:", p.mueble);
+  if (nuevoMueble === null) return;
+  
+  const nuevoTelefono = prompt("Teléfono (para WhatsApp):", p.telefono || '');
+  if (nuevoTelefono === null) return;
+  
+  // Guardar cambios
+  proyectos[index].codigo = nuevoCodigo.trim().toUpperCase();
+  proyectos[index].cliente = nuevoCliente.trim();
+  proyectos[index].mueble = nuevoMueble.trim();
+  proyectos[index].telefono = nuevoTelefono.trim();
+  
+  guardarEnLocalStorage();
+  renderProyectosAdmin();
+}
+
+// --- 8. ELIMINAR PROYECTO ---
 function eliminarProyecto(index) {
   if (confirm('¿Deseas eliminar este proyecto?')) {
     proyectos.splice(index, 1);
@@ -206,11 +238,11 @@ function eliminarProyecto(index) {
   }
 }
 
-// --- 6. NOTIFICACIONES POR WHATSAPP ---
+// --- 9. NOTIFICACIONES POR WHATSAPP ---
 function notificarWhatsApp(index) {
   const p = proyectos[index];
   if (!p.telefono || p.telefono.trim() === '') {
-    alert("Este cliente no tiene un número de teléfono registrado.");
+    alert("Este cliente no tiene un número de teléfono registrado. Usa el botón azul de editar para agregarlo.");
     return;
   }
   
