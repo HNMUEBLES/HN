@@ -27,12 +27,12 @@ async function cargarProyectosDesdeNube() {
     proyectos = [];
     querySnapshot.forEach((docSnap) => {
       proyectos.push({
-        id: docSnap.id, // ID único de Firebase
+        id: docSnap.id,
         ...docSnap.data()
       });
     });
     
-    // Si la base de datos está vacía, creamos uno por defecto para que no luzca vacía
+    // Si la base de datos está vacía, creamos uno por defecto
     if (proyectos.length === 0) {
       const proyectoInicial = {
         codigo: 'HN-001',
@@ -58,7 +58,7 @@ async function cargarProyectosDesdeNube() {
   }
 }
 
-// Ejecutar carga inicial al abrir la página
+// Ejecutar carga inicial
 cargarProyectosDesdeNube();
 
 // --- 1. NAVEGACIÓN ENTRE SECCIONES ---
@@ -96,8 +96,6 @@ document.addEventListener('DOMContentLoaded', function() {
       if (!codigoInput) return;
       
       const codigo = codigoInput.value.trim().toUpperCase();
-      
-      // Asegurarnos de tener los datos más frescos de la nube
       await cargarProyectosDesdeNube();
       
       const encontrado = proyectos.find(p => p.codigo === codigo);
@@ -237,12 +235,13 @@ function renderProyectosAdmin() {
     let botonesEtapas = etapas.map((est, idx) => {
       const activeStyle = p.estado === est ? 'background: #f59e0b; color: #000; font-weight: bold;' : 'background: rgba(255,255,255,0.1); color: #fff;';
       const porcentaje = (idx + 1) * 20;
-      return `<button type="button" style="border:none; padding: 0.4rem 0.7rem; border-radius: 6px; cursor: pointer; font-size: 0.8rem; margin: 0.2rem; ${activeStyle}" onclick="cambiarEstadoPorIndice('${p.id}', ${idx}, ${porcentaje})">${est}</button>`;
+      return `<button type="button" style="border:none; padding: 0.4rem 0.7rem; border-radius: 6px; cursor: pointer; font-size: 0.8rem; margin: 0.2rem; ${activeStyle}" onclick="window.cambiarEstadoPorIndice('${p.id}', ${idx}, ${porcentaje})">${est}</button>`;
     }).join('');
 
     card.innerHTML = `
       <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 1rem; flex-wrap: wrap;">
         
+        <!-- VISTA NORMAL / INFO -->
         <div id="info-view-${index}" style="flex: 1; min-width: 280px;">
           <div style="display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap;">
             <span style="background: #f59e0b; color: #000; padding: 0.2rem 0.5rem; border-radius: 4px; font-weight: bold; font-size: 0.85rem;">${p.codigo}</span>
@@ -255,6 +254,7 @@ function renderProyectosAdmin() {
             <i class="fa-regular fa-calendar"></i> Entrega estimada: <strong>${fechaFormateada}</strong>
           </p>
 
+          <!-- SECCIÓN DE FINANZAS -->
           <div style="background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.08); padding: 0.6rem 0.8rem; border-radius: 8px; margin: 0.6rem 0; display: flex; gap: 1rem; flex-wrap: wrap; font-size: 0.85rem;">
             <div><span style="color: #a3a3a3;">Total:</span> <strong>Bs. ${presupuesto.toFixed(2)}</strong></div>
             <div><span style="color: #a3a3a3;">Adelanto:</span> <strong style="color: #38bdf8;">Bs. ${adelanto.toFixed(2)}</strong></div>
@@ -263,12 +263,13 @@ function renderProyectosAdmin() {
 
           <div style="margin-top: 0.5rem;">${botonesEtapas}</div>
           <div style="margin-top: 0.8rem;">
-            <button type="button" onclick="notificarWhatsApp(${index})" style="background: #16a34a; color: white; border: none; padding: 0.4rem 0.8rem; border-radius: 6px; cursor: pointer; font-size: 0.85rem; font-weight: bold; display: inline-flex; align-items: center; gap: 0.4rem;">
+            <button type="button" onclick="window.notificarWhatsApp(${index})" style="background: #16a34a; color: white; border: none; padding: 0.4rem 0.8rem; border-radius: 6px; cursor: pointer; font-size: 0.85rem; font-weight: bold; display: inline-flex; align-items: center; gap: 0.4rem;">
               <i class="fa-brands fa-whatsapp"></i> Notificar por WhatsApp con enlace
             </button>
           </div>
         </div>
 
+        <!-- VISTA DE EDICIÓN INLINE (OCULTA POR DEFECTO) -->
         <div id="edit-view-${index}" style="flex: 1; min-width: 280px; display: none; background: rgba(0,0,0,0.4); padding: 1rem; border-radius: 8px; border: 1px solid rgba(255,255,255,0.15);">
           <h4 style="margin-bottom: 0.6rem; color: #f59e0b; font-size: 0.95rem;">Editar Proyecto, Finanzas y Fecha</h4>
           <div style="display: flex; flex-direction: column; gap: 0.5rem;">
@@ -303,17 +304,18 @@ function renderProyectosAdmin() {
               <input type="date" id="input-edit-fecha-${index}" value="${p.fechaEntrega || ''}" style="width:100%; padding:0.4rem; background:#0a0a0a; border:1px solid #404040; color:#fff; border-radius:6px; font-size:0.85rem;">
             </div>
             <div style="display: flex; gap: 0.5rem; margin-top: 0.4rem;">
-              <button type="button" onclick="guardarEdicionInline('${p.id}', ${index})" style="background: #16a34a; color: white; border: none; padding: 0.4rem 0.8rem; border-radius: 6px; cursor: pointer; font-size: 0.8rem; font-weight: bold;">Guardar</button>
-              <button type="button" onclick="cancelarEdicionInline(${index})" style="background: #404040; color: white; border: none; padding: 0.4rem 0.8rem; border-radius: 6px; cursor: pointer; font-size: 0.8rem;">Cancelar</button>
+              <button type="button" onclick="window.guardarEdicionInline('${p.id}', ${index})" style="background: #16a34a; color: white; border: none; padding: 0.4rem 0.8rem; border-radius: 6px; cursor: pointer; font-size: 0.8rem; font-weight: bold;">Guardar</button>
+              <button type="button" onclick="window.cancelarEdicionInline(${index})" style="background: #404040; color: white; border: none; padding: 0.4rem 0.8rem; border-radius: 6px; cursor: pointer; font-size: 0.8rem;">Cancelar</button>
             </div>
           </div>
         </div>
 
+        <!-- BOTONES DE ACCIÓN PRINCIPAL (EDITAR / ELIMINAR) -->
         <div style="display: flex; gap: 0.5rem;">
-          <button type="button" id="btn-edit-toggle-${index}" onclick="activarEdicionInline(${index})" title="Editar datos, finanzas y fecha" style="background: #3b82f6; color: white; border: none; padding: 0.6rem 0.8rem; border-radius: 8px; cursor: pointer;">
+          <button type="button" id="btn-edit-toggle-${index}" onclick="window.activarEdicionInline(${index})" title="Editar datos, finanzas y fecha" style="background: #3b82f6; color: white; border: none; padding: 0.6rem 0.8rem; border-radius: 8px; cursor: pointer;">
             <i class="fa-solid fa-pen-to-square"></i>
           </button>
-          <button type="button" onclick="eliminarProyecto('${p.id}')" title="Eliminar proyecto" style="background: #ef4444; color: white; border: none; padding: 0.6rem 0.8rem; border-radius: 8px; cursor: pointer;">
+          <button type="button" onclick="window.eliminarProyecto('${p.id}')" title="Eliminar proyecto" style="background: #ef4444; color: white; border: none; padding: 0.6rem 0.8rem; border-radius: 8px; cursor: pointer;">
             <i class="fa-solid fa-trash"></i>
           </button>
         </div>
