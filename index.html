@@ -124,6 +124,36 @@
           <button type="submit" class="btn-primary" style="margin-top: 1rem;">Crear Proyecto</button>
         </form>
 
+        <!-- REPORTE FINANCIERO MENSUAL (NUEVO) -->
+        <div style="background: transparent; border: 1px solid rgba(255,255,255,0.15); border-radius: 8px; padding: 16px; margin: 20px 0;">
+          <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem; margin-bottom: 12px;">
+            <h3 style="color: #f59e0b; margin: 0; font-size: 1.1rem;"><i class="fa-solid fa-chart-pie"></i> Reporte Financiero Mensual</h3>
+            <div>
+              <label style="color: #a3a3a3; font-size: 0.8rem; margin-right: 0.5rem;">Mes:</label>
+              <input type="month" id="filtro-mes" style="padding: 0.4rem; background: transparent; border: 1px solid #525252; color: #fff; border-radius: 6px;">
+            </div>
+          </div>
+
+          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 0.8rem;">
+            <div style="background: rgba(0,0,0,0.2); padding: 0.8rem; border-radius: 6px; text-align: center; border: 1px solid rgba(255,255,255,0.05);">
+              <span style="color: #a3a3a3; font-size: 0.75rem; display: block;">Proyectos del Mes</span>
+              <strong id="reporte-cant-mes" style="font-size: 1.1rem; color: #fff;">0</strong>
+            </div>
+            <div style="background: rgba(0,0,0,0.2); padding: 0.8rem; border-radius: 6px; text-align: center; border: 1px solid rgba(255,255,255,0.05);">
+              <span style="color: #a3a3a3; font-size: 0.75rem; display: block;">Presupuesto Total</span>
+              <strong id="reporte-presupuesto-mes" style="font-size: 1rem; color: #38bdf8;">Bs. 0</strong>
+            </div>
+            <div style="background: rgba(0,0,0,0.2); padding: 0.8rem; border-radius: 6px; text-align: center; border: 1px solid rgba(255,255,255,0.05);">
+              <span style="color: #a3a3a3; font-size: 0.75rem; display: block;">Adelantos Recibidos</span>
+              <strong id="reporte-adelanto-mes" style="font-size: 1rem; color: #4ade80;">Bs. 0</strong>
+            </div>
+            <div style="background: rgba(0,0,0,0.2); padding: 0.8rem; border-radius: 6px; text-align: center; border: 1px solid rgba(255,255,255,0.05);">
+              <span style="color: #a3a3a3; font-size: 0.75rem; display: block;">Saldos por Cobrar</span>
+              <strong id="reporte-saldo-mes" style="font-size: 1rem; color: #f87171;">Bs. 0</strong>
+            </div>
+          </div>
+        </div>
+
         <div class="projects-list-container">
           <h3>Proyectos Registrados (<span id="total-proyectos">0</span>)</h3>
           <div id="lista-proyectos-admin" class="projects-list"></div>
