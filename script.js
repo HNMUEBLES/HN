@@ -20,7 +20,6 @@ let esAdmin = false;
 function formatearMonto(valor) {
   const num = Number(valor);
   if (isNaN(num)) return "0";
-  // Si es un número entero, lo devuelve tal cual sin decimales. Si tiene decimales, los respeta.
   return Number.isInteger(num) ? num.toString() : num.toString();
 }
 
@@ -162,7 +161,7 @@ document.addEventListener('DOMContentLoaded', function() {
   if (inputPresupuestoNuevo) inputPresupuestoNuevo.addEventListener('input', calcularSaldoEnVivo);
   if (inputAdelantoNuevo) inputAdelantoNuevo.addEventListener('input', calcularSaldoEnVivo);
 
-  // NUEVO PROYECTO (GUARDAR EN FIRESTORE)
+  // NUEVO PROYECTO (GUARDAR EN FIRESTORE) - 100% SILENCIOSO
   const formNuevo = document.getElementById('form-nuevo-proyecto');
   if (formNuevo) {
     formNuevo.addEventListener('submit', async function(e) {
@@ -207,7 +206,7 @@ document.addEventListener('DOMContentLoaded', function() {
         
         await cargarProyectosDesdeNube();
         renderProyectosAdmin();
-        // Guardado silencioso y limpio sin alertas
+        // Sin ventanas emergentes
       } catch (error) {
         console.error("Error al guardar en Firebase:", error);
       }
@@ -376,7 +375,6 @@ async function guardarEdicionInline(idFirebase, index) {
 
     await cargarProyectosDesdeNube();
     renderProyectosAdmin();
-    // Guardado silencioso y limpio sin alertas
   } catch (error) {
     console.error("Error al actualizar:", error);
   }
