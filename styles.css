@@ -171,26 +171,28 @@ body { background-color: #000000; color: #ffffff; min-height: 100vh; }
 
 .input-wrapper i {
   position: absolute;
-  left: 16px;
+  left: 14px;
   top: 50%;
   transform: translateY(-50%);
   color: #a3a3a3;
   font-size: 0.95rem;
   pointer-events: none;
+  z-index: 5;
 }
 
-.input-wrapper input {
+/* Corrección Definitiva: Mayor prioridad y !important para que nada lo sobreescriba */
+.input-wrapper input[type="text"] {
   width: 100%;
   background-color: rgba(0, 0, 0, 0.6);
   border: 1px solid #333;
   border-radius: 10px;
-  padding: 0.75rem 1rem 0.75rem 3.2rem; /* Espacio amplio para que la lupa y el texto no se encimen */
+  padding: 0.75rem 1rem 0.75rem 2.6rem !important; /* El padding-left asegurado */
   color: #fff;
   outline: none;
   font-size: 0.95rem;
   transition: all 0.3s;
 }
-.input-wrapper input:focus {
+.input-wrapper input[type="text"]:focus {
   border-color: #f59e0b;
   box-shadow: 0 0 0 3px rgba(245, 158, 11, 0.15);
 }
@@ -342,7 +344,7 @@ input[type="text"], input[type="password"] {
   background-color: #0a0a0a;
   border: 1px solid #333;
   border-radius: 8px;
-  padding: 0.7rem 0.9rem;
+  padding: 0.7rem 0.9rem; /* Este era el que causaba el conflicto */
   color: #fff;
   outline: none;
   font-size: 0.9rem;
