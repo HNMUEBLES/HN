@@ -146,20 +146,25 @@
     <div class="modal-box">
       <button class="modal-close" onclick="cerrarModalAdmin()">&times;</button>
       
-      <!-- LOGIN ADMIN -->
+      <!-- LOGIN ADMIN (MODIFICADO PARA USAR CREDENCIALES SEGURAS DE FIREBASE AUTH) -->
       <div id="admin-login">
         <i class="fa-solid fa-lock font-amber" style="font-size: 2rem; margin-bottom: 0.5rem; display:block; text-align:center;"></i>
         <h2 style="text-align: center; margin-bottom: 0.5rem;">Panel Administrador</h2>
-        <p class="subtitle">Introduce la contraseña de supervisor</p>
-        <form id="form-login" class="login-form" style="display: flex; gap: 8px; flex-direction: column;">
-          <input type="password" id="input-pass" placeholder="Contraseña..." required style="width:100%;" />
-          <button type="submit" class="btn-primary-modern" style="width:100%; border-radius: 8px; padding: 0.75rem;">Ingresar al Panel</button>
+        <p class="subtitle" style="text-align:center;">Ingresa tus credenciales seguras</p>
+        <form id="form-login" class="login-form" style="display: flex; gap: 10px; flex-direction: column;">
+          <input type="email" id="input-email" placeholder="Correo electrónico..." required style="width:100%; padding:10px; background:#0a0a0a; border:1px solid #333; color:#fff; border-radius:8px;" />
+          <input type="password" id="input-pass" placeholder="Contraseña..." required style="width:100%; padding:10px; background:#0a0a0a; border:1px solid #333; color:#fff; border-radius:8px;" />
+          <button type="submit" class="btn-primary-modern" style="width:100%; border-radius: 8px; padding: 0.75rem;">Iniciar Sesión</button>
         </form>
+        <div id="login-error-msg" class="hidden" style="color: #ef4444; font-size: 0.85rem; text-align: center; margin-top: 8px;"></div>
       </div>
 
       <!-- PANEL DE CONTROL ADMIN -->
       <div id="admin-panel" class="hidden">
-        <h2 style="margin-bottom: 1rem;"><i class="fa-solid fa-sliders font-amber"></i> Gestión de Proyectos</h2>
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+          <h2 style="margin: 0;"><i class="fa-solid fa-sliders font-amber"></i> Gestión</h2>
+          <button onclick="cerrarSesionAdmin()" style="background: transparent; border: 1px solid #ef4444; color: #ef4444; padding: 4px 8px; border-radius: 6px; cursor: pointer; font-size: 0.8rem;"><i class="fa-solid fa-right-from-bracket"></i> Salir</button>
+        </div>
         
         <form id="form-nuevo-proyecto" class="admin-form" style="background: rgba(255,255,255,0.03); padding: 1rem; border-radius: 8px; margin-bottom: 1.5rem;">
           <h3 style="font-size: 1rem; margin-bottom: 0.75rem;"><i class="fa-solid fa-plus font-amber"></i> Nuevo Proyecto</h3>
@@ -173,7 +178,7 @@
             <input type="text" id="nuevo-telefono" placeholder="WhatsApp" />
             <input type="text" id="nuevo-presupuesto" placeholder="Total (Bs)" />
             <input type="text" id="nuevo-adelanto" placeholder="Adelanto (Bs)" />
-            <input type5="date" id="nuevo-fecha" style="background:#0a0a0a; border:1px solid #333; color:#fff; padding:8px; border-radius:8px;" />
+            <input type="date" id="nuevo-fecha" style="background:#0a0a0a; border:1px solid #333; color:#fff; padding:8px; border-radius:8px;" />
           </div>
           <button type="submit" class="btn-primary-modern" style="width:100%;">Guardar Proyecto</button>
         </form>
@@ -185,7 +190,7 @@
     </div>
   </div>
 
-  <!-- SCRIPTS DE CONTROL -->
+  <!-- SCRIPTS DE CONTROL BÁSICO DE LA UI -->
   <script>
     function irASeccion(id) {
       document.getElementById(id).scrollIntoView({ behavior: 'smooth' });
@@ -197,27 +202,12 @@
 
     function cerrarModalAdmin() {
       document.getElementById('modal-admin').classList.add('hidden');
-      document.getElementById('admin-panel').classList.add('hidden');
-      document.getElementById('admin-login').classList.remove('hidden');
-      document.getElementById('input-pass').value = '';
     }
-
-    document.addEventListener('DOMContentLoaded', function() {
-      const formLogin = document.getElementById('form-login');
-      if (formLogin) {
-        formLogin.addEventListener('submit', function(e) {
-          setTimeout(function() {
-            const adminPanel = document.getElementById('admin-panel');
-            if (adminPanel && !adminPanel.classList.contains('hidden')) {
-              document.getElementById('admin-login').classList.add('hidden');
-            }
-          }, 200);
-        });
-      }
-    });
   </script>
 
+  <!-- SCRIPTS DE FIREBASE (Asegúrate de incluir auth-compat) -->
   <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
   <script src="script.js"></script>
 </body>
