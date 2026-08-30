@@ -69,35 +69,12 @@ body { background-color: #000000; color: #ffffff; min-height: 100vh; }
   align-items: center;
 }
 
-/* Columna Izquierda: Título limpio con fuente normal */
-.badge-brand {
-  background: rgba(217, 119, 6, 0.15);
-  color: #f59e0b;
-  border: 1px solid rgba(217, 119, 6, 0.3);
-  padding: 4px 12px;
-  border-radius: 20px;
-  font-size: 0.8rem;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 1px;
-  display: inline-block;
-  margin-bottom: 1rem;
-}
-
+/* Columna Izquierda: Título Mont */
 .hero-title-big {
-  font-size: 4rem;
-  font-weight: 900;
+  font-size: 3.5rem;
   line-height: 1.1;
   margin-bottom: 0.5rem;
   color: #ffffff;
-  letter-spacing: -1px;
-}
-
-.tagline {
-  color: #f59e0b;
-  font-size: 1.25rem;
-  font-weight: 600;
-  margin-bottom: 1.2rem;
 }
 
 .about-text {
@@ -406,7 +383,7 @@ select:focus, .admin-select:focus, input:focus {
   }
   
   .hero-title-big { 
-    font-size: 3rem !important; 
+    font-size: 2.8rem !important; 
     line-height: 1.15;
   } 
 
