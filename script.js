@@ -1,3 +1,4 @@
+```javascript
 // ==========================================
 // CONFIGURACIÓN DE FIREBASE
 // ==========================================
@@ -17,11 +18,6 @@ firebase.initializeApp(firebaseConfig);
 const db = firebase.firestore();
 const auth = firebase.auth();
 
-
-// ==========================================
-// CONFIGURACIÓN DEL ADMINISTRADOR
-// ==========================================
-
 const ADMIN_EMAIL = "hn24muebles@gmail.com";
 
 let proyectos = [];
@@ -29,23 +25,17 @@ let esAdmin = false;
 
 
 // ==========================================
-// FUNCIONES UTILITARIAS
+// 1. FUNCIONES UTILITARIAS
 // ==========================================
 
 function formatearMonto(valor) {
   const num = Number(valor);
-
   if (isNaN(num)) return "0";
-
-  return Number.isInteger(num)
-    ? num.toString()
-    : num.toString();
+  return Number.isInteger(num) ? num.toString() : num.toString();
 }
-
 
 function generarCodigoAleatorio() {
   const caracteres = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
-
   let aleatorio = "";
 
   for (let i = 0; i < 5; i++) {
@@ -57,7 +47,6 @@ function generarCodigoAleatorio() {
   return `HN${aleatorio}`;
 }
 
-
 function llenarCodigoAutomatico() {
   const inputCod = document.getElementById("nuevo-codigo");
 
@@ -66,137 +55,191 @@ function llenarCodigoAutomatico() {
   }
 }
 
-
 function copiarCodigoAlPortapapeles(codigo) {
   navigator.clipboard.writeText(codigo)
     .then(() => {
       alert(`¡Código "${codigo}" copiado al portapapeles!`);
     })
     .catch(error => {
-      console.error("Error al copiar:", error);
+      console.error("Error al copiar código:", error);
     });
 }
 
-
 function irInicio() {
-  if (typeof mostrarSeccion === "function") {
-    mostrarSeccion("inicio");
-  }
+  mostrarSeccion("inicio");
 }
 
 
 // ==========================================
-// VERIFICAR ADMINISTRADOR
+// 2. AUTENTICACIÓN SEGURA
 // ==========================================
 
-function verificarAdministrador(user) {
+auth.onAuthStateChanged(async user => {
 
-  if (!user) {
-    esAdmin = false;
-    return false;
-  }
-
-  const email = (user.email || "").toLowerCase().trim();
-
-  if (email !== ADMIN_EMAIL.toLowerCase()) {
-    esAdmin = false;
-
-    console.warn("Usuario autenticado sin permisos:", email);
-
-    auth.signOut();
-
-    alert("Esta cuenta no tiene permisos de administrador.");
-
-    return false;
-  }
-
-  esAdmin = true;
-
-  return true;
-}
-
-
-// ==========================================
-// ESTADO DE AUTENTICACIÓN
-// ==========================================
-
-auth.onAuthStateChanged(async function(user) {
-
-  if (user && verificarAdministrador(user)) {
+  if (user && user.email === ADMIN_EMAIL) {
 
     esAdmin = true;
 
-    mostrarPanelAdministrador();
+    const divLogin = document.getElementById("admin-login");
+    const divPanel = document.getElementById("admin-panel");
 
-    await cargarProyectosPrivados();
+    if (divLogin) divLogin.classList.add("hidden");
+    if (divPanel) divPanel.classList.remove("hidden");
+
+    const btnReportes = document.getElementById("btn-reportes");
+
+    if (btnReportes) {
+      btnReportes.classList.remove("hidden");
+    }
+
+    await cargarProyectosDesdeNube();
+    renderProyectosAdmin();
 
   } else {
 
     esAdmin = false;
 
-    ocultarPanelAdministrador();
-  }
+    const divLogin = document.getElementById("admin-login");
+    const divPanel = document.getElementById("admin-panel");
 
+    if (divLogin) divLogin.classList.remove("hidden");
+    if (divPanel) divPanel.classList.add("hidden");
+
+    const btnReportes = document.getElementById("btn-reportes");
+
+    if (btnReportes) {
+      btnReportes.classList.add("hidden");
+    }
+  }
 });
 
 
 // ==========================================
-// MOSTRAR / OCULTAR PANEL ADMIN
+// LOGIN CON FIREBASE AUTH
 // ==========================================
 
-function mostrarPanelAdministrador() {
+document.addEventListener("DOMContentLoaded", function () {
 
-  const login = document.getElementById("admin-login");
-  const panel = document.getElementById("admin-panel");
+  const formLogin = document.getElementById("form-login");
 
-  if (login) {
-    login.classList.add("hidden");
+  if (formLogin) {
+
+    formLogin.addEventListener("submit", async function (e) {
+
+      e.preventDefault();
+
+      const emailInput = document.getElementById("input-email");
+      const passInput = document.getElementById("input-pass");
+      const errorMsg = document.getElementById("login-error-msg");
+
+      const email = emailInput
+        ? emailInput.value.trim().toLowerCase()
+        : "";
+
+      const password = passInput
+        ? passInput.value
+        : "";
+
+      if (errorMsg) {
+        errorMsg.classList.add("hidden");
+        errorMsg.innerText = "";
+      }
+
+      // Solo permitimos el correo administrador
+      if (email !== ADMIN_EMAIL) {
+
+        if (errorMsg) {
+          errorMsg.innerText = "Este correo no tiene permisos de administrador.";
+          errorMsg.classList.remove("hidden");
+        }
+
+        if (passInput) passInput.value = "";
+
+        return;
+      }
+
+      try {
+
+        await auth.signInWithEmailAndPassword(email, password);
+
+        if (passInput) {
+          passInput.value = "";
+        }
+
+        cerrarModalAdmin();
+
+      } catch (error) {
+
+        console.error("Error de autenticación:", error);
+
+        let mensaje = "No se pudo iniciar sesión.";
+
+        if (
+          error.code === "auth/invalid-credential" ||
+          error.code === "auth/wrong-password" ||
+          error.code === "auth/user-not-found"
+        ) {
+          mensaje = "Correo o contraseña incorrectos.";
+        }
+
+        if (error.code === "auth/too-many-requests") {
+          mensaje = "Demasiados intentos. Intenta nuevamente más tarde.";
+        }
+
+        if (errorMsg) {
+          errorMsg.innerText = mensaje;
+          errorMsg.classList.remove("hidden");
+        }
+
+        if (passInput) {
+          passInput.value = "";
+        }
+      }
+    });
   }
+});
 
-  if (panel) {
-    panel.classList.remove("hidden");
-  }
 
-  const btnReportes = document.getElementById("btn-reportes");
+// ==========================================
+// CERRAR SESIÓN
+// ==========================================
 
-  if (btnReportes) {
-    btnReportes.classList.remove("hidden");
+async function cerrarSesionAdmin() {
+
+  try {
+
+    await auth.signOut();
+
+    esAdmin = false;
+    proyectos = [];
+
+    const divPanel = document.getElementById("admin-panel");
+    const divLogin = document.getElementById("admin-login");
+
+    if (divPanel) divPanel.classList.add("hidden");
+    if (divLogin) divLogin.classList.remove("hidden");
+
+    const btnReportes = document.getElementById("btn-reportes");
+
+    if (btnReportes) {
+      btnReportes.classList.add("hidden");
+    }
+
+    irInicio();
+
+  } catch (error) {
+
+    console.error("Error al cerrar sesión:", error);
+
   }
 }
 
 
-function ocultarPanelAdministrador() {
-
-  const login = document.getElementById("admin-login");
-  const panel = document.getElementById("admin-panel");
-
-  if (panel) {
-    panel.classList.add("hidden");
-  }
-
-  if (login) {
-    login.classList.remove("hidden");
-  }
-
-  const btnReportes = document.getElementById("btn-reportes");
-
-  if (btnReportes) {
-    btnReportes.classList.add("hidden");
-  }
-}
-
-
 // ==========================================
-// CARGAR PROYECTOS PRIVADOS
-// SOLO ADMIN
+// 3. CARGA DE DATOS
 // ==========================================
 
-async function cargarProyectosPrivados() {
-
-  if (!esAdmin) {
-    console.warn("Intento de cargar proyectos sin permisos.");
-    return;
-  }
+async function cargarProyectosDesdeNube() {
 
   try {
 
@@ -215,103 +258,131 @@ async function cargarProyectosPrivados() {
 
     });
 
-    renderProyectosAdmin();
-
-  } catch (error) {
-
-    console.error(
-      "Error al cargar proyectos privados:",
-      error
-    );
-
-  }
-}
-
-
-// ==========================================
-// CARGAR PROYECTOS PÚBLICOS
-// ==========================================
-
-async function buscarProyectoPublico(codigo) {
-
-  try {
-
-    const querySnapshot = await db
-      .collection("proyectos_publicos")
-      .where("codigo", "==", codigo)
-      .limit(1)
-      .get();
-
-    if (querySnapshot.empty) {
-      return null;
+    if (esAdmin) {
+      renderProyectosAdmin();
     }
 
-    const doc = querySnapshot.docs[0];
-
-    return {
-      id: doc.id,
-      ...doc.data()
-    };
+    procesarEnlaceDirectoUrl();
 
   } catch (error) {
 
-    console.error(
-      "Error buscando proyecto público:",
-      error
-    );
+    console.error("Error al cargar proyectos:", error);
 
-    return null;
   }
 }
 
 
 // ==========================================
-// PROCESAR ENLACE DIRECTO
+// 4. ENLACE DIRECTO
 // ==========================================
 
 function procesarEnlaceDirectoUrl() {
 
-  const urlParams =
-    new URLSearchParams(window.location.search);
+  const urlParams = new URLSearchParams(
+    window.location.search
+  );
 
-  const codigoUrl =
-    urlParams.get("codigo");
+  const codigoUrl = urlParams.get("codigo");
 
   if (!codigoUrl) return;
 
   setTimeout(() => {
 
-    const inputCodigo =
-      document.getElementById("input-codigo");
+    if (typeof mostrarSeccion === "function") {
 
-    if (inputCodigo) {
-      inputCodigo.value =
-        codigoUrl.toUpperCase();
+      mostrarSeccion("rastreo");
+
+    } else {
+
+      const secInicio = document.getElementById("sec-inicio");
+      const secRastreo = document.getElementById("sec-rastreo");
+
+      if (secInicio) secInicio.classList.add("hidden");
+      if (secRastreo) secRastreo.classList.remove("hidden");
+
     }
 
-    const formBuscar =
-      document.getElementById("form-buscar");
+    const inputCodigo = document.getElementById("input-codigo");
+    const formBuscar = document.getElementById("form-buscar");
+
+    if (inputCodigo) {
+      inputCodigo.value = codigoUrl;
+    }
 
     if (formBuscar) {
-
       formBuscar.dispatchEvent(
         new Event("submit", {
           cancelable: true,
           bubbles: true
         })
       );
-
     }
 
-  }, 500);
+  }, 400);
 }
 
 
 // ==========================================
-// BÚSQUEDA PÚBLICA DEL PROYECTO
+// 5. NAVEGACIÓN
 // ==========================================
 
-document.addEventListener("DOMContentLoaded", function() {
+function mostrarSeccion(seccionId) {
+
+  const secciones = [
+    "sec-inicio",
+    "sec-rastreo",
+    "sec-admin",
+    "sec-reportes"
+  ];
+
+  secciones.forEach(id => {
+
+    const el = document.getElementById(id);
+
+    if (el) {
+      el.classList.add("hidden");
+    }
+
+  });
+
+  const botones = [
+    "btn-inicio",
+    "btn-rastreo",
+    "btn-admin",
+    "btn-reportes"
+  ];
+
+  botones.forEach(id => {
+
+    const el = document.getElementById(id);
+
+    if (el) {
+      el.classList.remove("active");
+    }
+
+  });
+
+  const secDestino =
+    document.getElementById(`sec-${seccionId}`);
+
+  const btnDestino =
+    document.getElementById(`btn-${seccionId}`);
+
+  if (secDestino) {
+    secDestino.classList.remove("hidden");
+  }
+
+  if (btnDestino) {
+    btnDestino.classList.add("active");
+  }
+}
+
+
+// ==========================================
+// 6. BÚSQUEDA PÚBLICA
+// ==========================================
+
+document.addEventListener("DOMContentLoaded", function () {
 
   const formBuscar =
     document.getElementById("form-buscar");
@@ -320,7 +391,7 @@ document.addEventListener("DOMContentLoaded", function() {
 
     formBuscar.addEventListener(
       "submit",
-      async function(e) {
+      function (e) {
 
         e.preventDefault();
 
@@ -330,24 +401,16 @@ document.addEventListener("DOMContentLoaded", function() {
         if (!codigoInput) return;
 
         const codigo =
-          codigoInput.value
-            .trim()
-            .toUpperCase();
+          codigoInput.value.trim().toUpperCase();
 
         const errorMsg =
-          document.getElementById(
-            "mensaje-error"
-          );
+          document.getElementById("mensaje-error");
 
         const resultBox =
-          document.getElementById(
-            "resultado-proyecto"
-          );
-
-        if (!codigo) return;
+          document.getElementById("resultado-proyecto");
 
         const encontrado =
-          await buscarProyectoPublico(codigo);
+          proyectos.find(p => p.codigo === codigo);
 
         if (encontrado) {
 
@@ -359,57 +422,27 @@ document.addEventListener("DOMContentLoaded", function() {
             resultBox.classList.remove("hidden");
           }
 
-          const resCodigo =
-            document.getElementById("res-codigo");
+          document.getElementById("res-codigo").innerText =
+            encontrado.codigo;
 
-          const resMueble =
-            document.getElementById("res-mueble");
+          document.getElementById("res-mueble").innerText =
+            encontrado.mueble;
 
-          const resCliente =
-            document.getElementById("res-cliente");
+          document.getElementById("res-cliente").innerText =
+            `Cliente: ${encontrado.cliente}`;
 
-          const resEstado =
-            document.getElementById("res-estado");
+          document.getElementById("res-estado").innerText =
+            encontrado.estado;
 
-          const resPorcentaje =
-            document.getElementById("res-porcentaje");
+          document.getElementById("res-porcentaje").innerText =
+            `${encontrado.progreso}%`;
 
-          const resBar =
-            document.getElementById("res-bar-fill");
+          document.getElementById("res-bar-fill").style.width =
+            `${encontrado.progreso}%`;
 
-          const resDetalles =
-            document.getElementById("res-detalles");
-
-          if (resCodigo)
-            resCodigo.innerText =
-              encontrado.codigo || "";
-
-          if (resMueble)
-            resMueble.innerText =
-              encontrado.mueble || "";
-
-          if (resCliente)
-            resCliente.innerText =
-              encontrado.cliente
-                ? `Cliente: ${encontrado.cliente}`
-                : "";
-
-          if (resEstado)
-            resEstado.innerText =
-              encontrado.estado || "";
-
-          if (resPorcentaje)
-            resPorcentaje.innerText =
-              `${encontrado.progreso || 0}%`;
-
-          if (resBar)
-            resBar.style.width =
-              `${encontrado.progreso || 0}%`;
-
-          if (resDetalles)
-            resDetalles.innerText =
-              encontrado.detalles ||
-              `El proyecto se encuentra en etapa de ${encontrado.estado}.`;
+          document.getElementById("res-detalles").innerText =
+            encontrado.detalles ||
+            `El proyecto se encuentra en etapa de ${encontrado.estado}.`;
 
         } else {
 
@@ -425,115 +458,21 @@ document.addEventListener("DOMContentLoaded", function() {
 
       }
     );
-
   }
+});
 
 
-  // ==========================================
-  // LOGIN FIREBASE AUTH
-  // ==========================================
+// ==========================================
+// 7. CÁLCULO EN VIVO
+// ==========================================
 
-  const formLogin =
-    document.getElementById("form-login");
-
-  if (formLogin) {
-
-    formLogin.addEventListener(
-      "submit",
-      async function(e) {
-
-        e.preventDefault();
-
-        const emailInput =
-          document.getElementById("input-email");
-
-        const passInput =
-          document.getElementById("input-pass");
-
-        const errorMsg =
-          document.getElementById(
-            "login-error-msg"
-          );
-
-        const email =
-          emailInput
-            ? emailInput.value.trim()
-            : "";
-
-        const password =
-          passInput
-            ? passInput.value
-            : "";
-
-        if (!email || !password) {
-          mostrarErrorLogin(
-            "Completa el correo y la contraseña."
-          );
-          return;
-        }
-
-        try {
-
-          const credential =
-            await auth.signInWithEmailAndPassword(
-              email,
-              password
-            );
-
-          const user =
-            credential.user;
-
-          if (!verificarAdministrador(user)) {
-            return;
-          }
-
-          if (passInput) {
-            passInput.value = "";
-          }
-
-          ocultarErrorLogin();
-
-          mostrarPanelAdministrador();
-
-          await cargarProyectosPrivados();
-
-        } catch (error) {
-
-          console.error(
-            "Error de autenticación:",
-            error
-          );
-
-          mostrarErrorLogin(
-            "Correo o contraseña incorrectos."
-          );
-
-          if (passInput) {
-            passInput.value = "";
-          }
-
-        }
-
-      }
-    );
-
-  }
-
-
-  // ==========================================
-  // CÁLCULO EN VIVO
-  // ==========================================
+document.addEventListener("DOMContentLoaded", function () {
 
   const inputPresupuestoNuevo =
-    document.getElementById(
-      "nuevo-presupuesto"
-    );
+    document.getElementById("nuevo-presupuesto");
 
   const inputAdelantoNuevo =
-    document.getElementById(
-      "nuevo-adelanto"
-    );
-
+    document.getElementById("nuevo-adelanto");
 
   function calcularSaldoEnVivo() {
 
@@ -551,371 +490,198 @@ document.addEventListener("DOMContentLoaded", function() {
           : 0
       ) || 0;
 
-    const saldoFinal =
-      pres - adel;
+    const saldoFinal = pres - adel;
 
     const lblSaldo =
-      document.getElementById(
-        "lbl-nuevo-saldo"
-      );
+      document.getElementById("lbl-nuevo-saldo");
 
     if (lblSaldo) {
 
       lblSaldo.innerText =
         `Bs. ${formatearMonto(saldoFinal)}`;
 
+      lblSaldo.style.color =
+        saldoFinal > 0
+          ? "#f87171"
+          : "#4ade80";
     }
-
   }
 
-
-  if (inputPresupuestoNuevo)
+  if (inputPresupuestoNuevo) {
     inputPresupuestoNuevo.addEventListener(
       "input",
       calcularSaldoEnVivo
     );
+  }
 
-  if (inputAdelantoNuevo)
+  if (inputAdelantoNuevo) {
     inputAdelantoNuevo.addEventListener(
       "input",
       calcularSaldoEnVivo
     );
+  }
+});
 
 
-  // ==========================================
-  // NUEVO PROYECTO
-  // ==========================================
+// ==========================================
+// 8. CREAR PROYECTO
+// ==========================================
+
+document.addEventListener("DOMContentLoaded", function () {
 
   const formNuevo =
-    document.getElementById(
-      "form-nuevo-proyecto"
-    );
+    document.getElementById("form-nuevo-proyecto");
 
-  if (formNuevo) {
+  if (!formNuevo) return;
 
-    formNuevo.addEventListener(
-      "submit",
-      async function(e) {
+  formNuevo.addEventListener(
+    "submit",
+    async function (e) {
 
-        e.preventDefault();
+      e.preventDefault();
 
-        if (!esAdmin || !auth.currentUser) {
+      if (!esAdmin || !auth.currentUser) {
 
-          alert(
-            "No tienes permisos de administrador."
-          );
-
-          return;
-        }
-
-        const codIn =
-          document.getElementById(
-            "nuevo-codigo"
-          );
-
-        const cliIn =
-          document.getElementById(
-            "nuevo-cliente"
-          );
-
-        const mueIn =
-          document.getElementById(
-            "nuevo-mueble"
-          );
-
-        const telIn =
-          document.getElementById(
-            "nuevo-telefono"
-          );
-
-        const presIn =
-          document.getElementById(
-            "nuevo-presupuesto"
-          );
-
-        const adelIn =
-          document.getElementById(
-            "nuevo-adelanto"
-          );
-
-        const fechaIn =
-          document.getElementById(
-            "nuevo-fecha"
-          );
-
-
-        let codigoGenerado =
-          codIn
-            ? codIn.value.trim().toUpperCase()
-            : "";
-
-
-        if (!codigoGenerado) {
-          codigoGenerado =
-            generarCodigoAleatorio();
-        }
-
-
-        const nuevoProyectoObj = {
-
-          codigo: codigoGenerado,
-
-          cliente:
-            cliIn
-              ? cliIn.value.trim()
-              : "",
-
-          mueble:
-            mueIn
-              ? mueIn.value.trim()
-              : "",
-
-          telefono:
-            telIn
-              ? telIn.value.trim()
-              : "",
-
-          estado:
-            "Diseño Aprobado",
-
-          progreso: 20,
-
-          detalles:
-            "Diseño confirmado por WhatsApp. Listo para corte.",
-
-          presupuesto:
-            presIn
-              ? parseFloat(presIn.value) || 0
-              : 0,
-
-          adelanto:
-            adelIn
-              ? parseFloat(adelIn.value) || 0
-              : 0,
-
-          fechaEntrega:
-            fechaIn
-              ? fechaIn.value
-              : ""
-        };
-
-
-        try {
-
-          // Guardamos datos privados
-          const docRef =
-            await db
-              .collection("proyectos")
-              .add(nuevoProyectoObj);
-
-
-          // Creamos únicamente los datos públicos
-          await db
-            .collection("proyectos_publicos")
-            .doc(docRef.id)
-            .set({
-
-              codigo:
-                nuevoProyectoObj.codigo,
-
-              // Solo mostramos el nombre del mueble
-              mueble:
-                nuevoProyectoObj.mueble,
-
-              // Se puede mostrar el nombre del cliente
-              // porque es parte del seguimiento
-              cliente:
-                nuevoProyectoObj.cliente,
-
-              estado:
-                nuevoProyectoObj.estado,
-
-              progreso:
-                nuevoProyectoObj.progreso,
-
-              detalles:
-                nuevoProyectoObj.detalles,
-
-              fechaEntrega:
-                nuevoProyectoObj.fechaEntrega
-
-            });
-
-
-          limpiarFormularioNuevoProyecto();
-
-          await cargarProyectosPrivados();
-
-        } catch (error) {
-
-          console.error(
-            "Error al guardar proyecto:",
-            error
-          );
-
-          alert(
-            "No se pudo guardar el proyecto."
-          );
-
-        }
+        alert("No tienes permisos de administrador.");
+        return;
 
       }
-    );
 
-  }
+      const codIn =
+        document.getElementById("nuevo-codigo");
+
+      const cliIn =
+        document.getElementById("nuevo-cliente");
+
+      const mueIn =
+        document.getElementById("nuevo-mueble");
+
+      const telIn =
+        document.getElementById("nuevo-telefono");
+
+      const presIn =
+        document.getElementById("nuevo-presupuesto");
+
+      const adelIn =
+        document.getElementById("nuevo-adelanto");
+
+      const fechaIn =
+        document.getElementById("nuevo-fecha");
+
+      let codigoGenerado =
+        codIn
+          ? codIn.value.trim().toUpperCase()
+          : "";
+
+      if (!codigoGenerado) {
+        codigoGenerado = generarCodigoAleatorio();
+      }
+
+      const nuevoProyectoObj = {
+
+        codigo: codigoGenerado,
+
+        cliente:
+          cliIn ? cliIn.value.trim() : "",
+
+        mueble:
+          mueIn ? mueIn.value.trim() : "",
+
+        telefono:
+          telIn ? telIn.value.trim() : "",
+
+        estado: "Diseño Aprobado",
+
+        progreso: 20,
+
+        detalles:
+          "Diseño confirmado por WhatsApp. Listo para corte.",
+
+        presupuesto:
+          presIn
+            ? parseFloat(presIn.value) || 0
+            : 0,
+
+        adelanto:
+          adelIn
+            ? parseFloat(adelIn.value) || 0
+            : 0,
+
+        fechaEntrega:
+          fechaIn ? fechaIn.value : ""
+      };
+
+      try {
+
+        await db
+          .collection("proyectos")
+          .add(nuevoProyectoObj);
+
+        if (codIn) codIn.value = "";
+        if (cliIn) cliIn.value = "";
+        if (mueIn) mueIn.value = "";
+        if (telIn) telIn.value = "";
+        if (presIn) presIn.value = "";
+        if (adelIn) adelIn.value = "";
+        if (fechaIn) fechaIn.value = "";
+
+        await cargarProyectosDesdeNube();
+
+        renderProyectosAdmin();
+
+      } catch (error) {
+
+        console.error(
+          "Error al guardar:",
+          error
+        );
+
+        alert("Error al guardar el proyecto.");
+
+      }
+
+    }
+  );
+});
 
 
-  // ==========================================
-  // FILTRO MENSUAL
-  // ==========================================
+// ==========================================
+// 9. FILTRO MENSUAL
+// ==========================================
+
+document.addEventListener("DOMContentLoaded", function () {
 
   const selectMes =
-    document.getElementById(
-      "filtro-mes"
-    );
+    document.getElementById("filtro-mes");
 
-  if (selectMes) {
+  if (!selectMes) return;
 
-    const fechaActual =
-      new Date();
+  const fechaActual = new Date();
 
-    const anio =
-      fechaActual.getFullYear();
+  const anio =
+    fechaActual.getFullYear();
 
-    const mes =
-      String(
-        fechaActual.getMonth() + 1
-      ).padStart(2, "0");
+  const mes =
+    String(
+      fechaActual.getMonth() + 1
+    ).padStart(2, "0");
 
-    selectMes.value =
-      `${anio}-${mes}`;
+  selectMes.value =
+    `${anio}-${mes}`;
 
-    selectMes.addEventListener(
-      "change",
-      () => renderProyectosAdmin()
-    );
-
-  }
-
-
-  // Procesar enlace directo
-  procesarEnlaceDirectoUrl();
+  selectMes.addEventListener(
+    "change",
+    () => renderProyectosAdmin()
+  );
 
 });
 
 
 // ==========================================
-// MENSAJES DE LOGIN
-// ==========================================
-
-function mostrarErrorLogin(mensaje) {
-
-  const errorMsg =
-    document.getElementById(
-      "login-error-msg"
-    );
-
-  if (errorMsg) {
-
-    errorMsg.innerText =
-      mensaje;
-
-    errorMsg.classList.remove(
-      "hidden"
-    );
-
-  }
-}
-
-
-function ocultarErrorLogin() {
-
-  const errorMsg =
-    document.getElementById(
-      "login-error-msg"
-    );
-
-  if (errorMsg) {
-
-    errorMsg.innerText = "";
-
-    errorMsg.classList.add(
-      "hidden"
-    );
-
-  }
-}
-
-
-// ==========================================
-// LIMPIAR FORMULARIO
-// ==========================================
-
-function limpiarFormularioNuevoProyecto() {
-
-  const ids = [
-    "nuevo-codigo",
-    "nuevo-cliente",
-    "nuevo-mueble",
-    "nuevo-telefono",
-    "nuevo-presupuesto",
-    "nuevo-adelanto",
-    "nuevo-fecha"
-  ];
-
-  ids.forEach(id => {
-
-    const el =
-      document.getElementById(id);
-
-    if (el) {
-      el.value = "";
-    }
-
-  });
-
-}
-
-
-// ==========================================
-// CERRAR SESIÓN
-// ==========================================
-
-async function cerrarSesionAdmin() {
-
-  try {
-
-    await auth.signOut();
-
-    esAdmin = false;
-
-    proyectos = [];
-
-    ocultarPanelAdministrador();
-
-    cerrarModalAdmin();
-
-    irInicio();
-
-  } catch (error) {
-
-    console.error(
-      "Error al cerrar sesión:",
-      error
-    );
-
-  }
-
-}
-
-
-// ==========================================
-// RENDER ADMIN
+// 10. RENDER ADMIN
 // ==========================================
 
 function renderProyectosAdmin() {
-
-  if (!esAdmin) return;
 
   const container =
     document.getElementById(
@@ -932,6 +698,90 @@ function renderProyectosAdmin() {
       proyectos.length;
   }
 
+  const selectMes =
+    document.getElementById("filtro-mes");
+
+  const mesSeleccionado =
+    selectMes ? selectMes.value : "";
+
+  const proyectosFiltradosMes =
+    proyectos.filter(p => {
+
+      if (
+        !p.fechaEntrega ||
+        p.fechaEntrega.trim() === ""
+      ) {
+        return true;
+      }
+
+      if (mesSeleccionado) {
+        return p.fechaEntrega.startsWith(
+          mesSeleccionado
+        );
+      }
+
+      return true;
+
+    });
+
+  let totalPresupuestoMes = 0;
+  let totalAdelantoMes = 0;
+  let totalSaldoMes = 0;
+
+  proyectosFiltradosMes.forEach(p => {
+
+    const pres =
+      Number(p.presupuesto) || 0;
+
+    const adel =
+      Number(p.adelanto) || 0;
+
+    totalPresupuestoMes += pres;
+    totalAdelantoMes += adel;
+    totalSaldoMes += pres - adel;
+
+  });
+
+  const reporteCant =
+    document.getElementById(
+      "reporte-cant-mes"
+    );
+
+  const reportePres =
+    document.getElementById(
+      "reporte-presupuesto-mes"
+    );
+
+  const reporteAdel =
+    document.getElementById(
+      "reporte-adelanto-mes"
+    );
+
+  const reporteSaldo =
+    document.getElementById(
+      "reporte-saldo-mes"
+    );
+
+  if (reporteCant) {
+    reporteCant.innerText =
+      proyectosFiltradosMes.length;
+  }
+
+  if (reportePres) {
+    reportePres.innerText =
+      `Bs. ${formatearMonto(totalPresupuestoMes)}`;
+  }
+
+  if (reporteAdel) {
+    reporteAdel.innerText =
+      `Bs. ${formatearMonto(totalAdelantoMes)}`;
+  }
+
+  if (reporteSaldo) {
+    reporteSaldo.innerText =
+      `Bs. ${formatearMonto(totalSaldoMes)}`;
+  }
+
   if (!container) return;
 
   container.innerHTML = "";
@@ -943,7 +793,6 @@ function renderProyectosAdmin() {
     "Instalación",
     "Finalizado"
   ];
-
 
   proyectos.forEach((p, index) => {
 
@@ -964,42 +813,43 @@ function renderProyectosAdmin() {
             .join("/")
         : "Sin definir";
 
-
     const card =
       document.createElement("div");
 
     card.className =
       "admin-card";
 
+    card.style.cssText =
+      "background: rgba(255,255,255,0.05);" +
+      "border:1px solid rgba(255,255,255,0.1);" +
+      "border-radius:12px;" +
+      "padding:1.2rem;" +
+      "margin-bottom:1rem;";
 
     let botonesEtapas =
       etapas.map((est, idx) => {
 
-        const active =
-          p.estado === est;
+        const activeStyle =
+          p.estado === est
+            ? "background:#f59e0b;color:#000;font-weight:bold;"
+            : "background:rgba(255,255,255,0.1);color:#fff;";
+
+        const porcentaje =
+          (idx + 1) * 20;
 
         return `
           <button
             type="button"
-            style="
-              border:none;
-              padding:0.4rem 0.7rem;
-              border-radius:6px;
-              cursor:pointer;
-              font-size:0.8rem;
-              margin:0.2rem;
-              background:${active ? "#f59e0b" : "rgba(255,255,255,0.1)"};
-              color:${active ? "#000" : "#fff"};
-              font-weight:${active ? "bold" : "normal"};
-            "
-            onclick="cambiarEstadoPorId('${p.id}', ${idx}, ${(idx + 1) * 20})"
-          >
+            style="border:none;padding:0.4rem 0.7rem;
+            border-radius:6px;cursor:pointer;
+            font-size:0.8rem;margin:0.2rem;
+            ${activeStyle}"
+            onclick="cambiarEstadoPorId('${p.id}',${idx},${porcentaje})">
             ${est}
           </button>
         `;
 
       }).join("");
-
 
     card.innerHTML = `
 
@@ -1023,49 +873,73 @@ function renderProyectosAdmin() {
             flex-wrap:wrap;
           ">
 
-            <span style="
-              background:#f59e0b;
-              color:#000;
-              padding:0.2rem 0.6rem;
-              border-radius:4px;
-              font-weight:bold;
-              font-size:0.85rem;
+            <div style="
+              display:flex;
+              align-items:center;
+              gap:0.4rem;
             ">
-              ${p.codigo}
-            </span>
 
-            <strong>
+              <span style="
+                background:#f59e0b;
+                color:#000;
+                padding:0.2rem 0.6rem;
+                border-radius:4px;
+                font-weight:bold;
+                font-size:0.85rem;
+              ">
+                ${p.codigo}
+              </span>
+
+              <button
+                type="button"
+                onclick="copiarCodigoAlPortapapeles('${p.codigo}')"
+                style="
+                  background:rgba(255,255,255,0.1);
+                  color:#fff;
+                  border:1px solid rgba(255,255,255,0.2);
+                  padding:0.2rem 0.5rem;
+                  border-radius:4px;
+                  cursor:pointer;
+                  font-size:0.75rem;
+                "
+              >
+                <i class="fa-regular fa-copy"></i>
+                Copiar
+              </button>
+
+            </div>
+
+            <strong style="font-size:1.05rem;">
               ${p.mueble}
             </strong>
 
           </div>
-
 
           <p style="
             margin:0.4rem 0;
             color:#a3a3a3;
             font-size:0.85rem;
           ">
+            <i class="fa-solid fa-user"></i>
             Cliente: ${p.cliente}
             |
+            <i class="fa-solid fa-phone"></i>
             Tel: ${p.telefono || "Sin registrar"}
           </p>
-
 
           <p style="
             margin:0.2rem 0 0.5rem;
             color:#38bdf8;
             font-size:0.85rem;
           ">
+            <i class="fa-regular fa-calendar"></i>
             Entrega estimada:
-            <strong>
-              ${fechaFormateada}
-            </strong>
+            <strong>${fechaFormateada}</strong>
           </p>
-
 
           <div style="
             background:rgba(0,0,0,0.3);
+            border:1px solid rgba(255,255,255,0.08);
             padding:0.6rem 0.8rem;
             border-radius:8px;
             margin:0.6rem 0;
@@ -1076,33 +950,39 @@ function renderProyectosAdmin() {
           ">
 
             <div>
-              Total:
+              <span style="color:#a3a3a3;">
+                Total:
+              </span>
               <strong>
                 Bs. ${formatearMonto(presupuesto)}
               </strong>
             </div>
 
             <div>
-              Adelanto:
-              <strong>
+              <span style="color:#a3a3a3;">
+                Adelanto:
+              </span>
+              <strong style="color:#38bdf8;">
                 Bs. ${formatearMonto(adelanto)}
               </strong>
             </div>
 
             <div>
-              Saldo:
-              <strong>
+              <span style="color:#a3a3a3;">
+                Saldo:
+              </span>
+              <strong style="
+                color:${saldo > 0 ? "#f87171" : "#4ade80"};
+              ">
                 Bs. ${formatearMonto(saldo)}
               </strong>
             </div>
 
           </div>
 
-
-          <div>
+          <div style="margin-top:0.5rem;">
             ${botonesEtapas}
           </div>
-
 
           <div style="margin-top:0.8rem;">
 
@@ -1116,9 +996,12 @@ function renderProyectosAdmin() {
                 padding:0.4rem 0.8rem;
                 border-radius:6px;
                 cursor:pointer;
+                font-size:0.85rem;
+                font-weight:bold;
               "
             >
-              WhatsApp
+              <i class="fa-brands fa-whatsapp"></i>
+              Notificar por WhatsApp con enlace
             </button>
 
           </div>
@@ -1126,13 +1009,111 @@ function renderProyectosAdmin() {
         </div>
 
 
-        <div style="
-          display:flex;
-          gap:0.5rem;
-        ">
+        <div
+          id="edit-view-${index}"
+          style="
+            flex:1;
+            min-width:280px;
+            display:none;
+            background:rgba(0,0,0,0.4);
+            padding:1rem;
+            border-radius:8px;
+            border:1px solid rgba(255,255,255,0.15);
+          "
+        >
+
+          <h4 style="
+            margin-bottom:0.6rem;
+            color:#f59e0b;
+            font-size:0.95rem;
+          ">
+            Editar Proyecto
+          </h4>
+
+          <div style="
+            display:flex;
+            flex-direction:column;
+            gap:0.5rem;
+          ">
+
+            <input
+              type="text"
+              id="input-edit-codigo-${index}"
+              value="${p.codigo}"
+            >
+
+            <input
+              type="text"
+              id="input-edit-cliente-${index}"
+              value="${p.cliente}"
+            >
+
+            <input
+              type="text"
+              id="input-edit-mueble-${index}"
+              value="${p.mueble}"
+            >
+
+            <input
+              type="text"
+              id="input-edit-telefono-${index}"
+              value="${p.telefono || ""}"
+            >
+
+            <div style="display:flex;gap:0.5rem;">
+
+              <input
+                type="text"
+                id="input-edit-presupuesto-${index}"
+                value="${formatearMonto(presupuesto)}"
+              >
+
+              <input
+                type="text"
+                id="input-edit-adelanto-${index}"
+                value="${formatearMonto(adelanto)}"
+              >
+
+            </div>
+
+            <input
+              type="date"
+              id="input-edit-fecha-${index}"
+              value="${p.fechaEntrega || ""}"
+            >
+
+            <div style="
+              display:flex;
+              gap:0.5rem;
+              margin-top:0.4rem;
+            ">
+
+              <button
+                type="button"
+                onclick="guardarEdicionInline('${p.id}',${index})"
+              >
+                Guardar
+              </button>
+
+              <button
+                type="button"
+                onclick="cancelarEdicionInline(${index})"
+              >
+                Cancelar
+              </button>
+
+            </div>
+
+          </div>
+
+        </div>
+
+
+        <div style="display:flex;gap:0.5rem;">
 
           <button
             type="button"
+            id="btn-edit-toggle-${index}"
             onclick="activarEdicionInline(${index})"
             style="
               background:#3b82f6;
@@ -1143,7 +1124,7 @@ function renderProyectosAdmin() {
               cursor:pointer;
             "
           >
-            ✏️
+            <i class="fa-solid fa-pen-to-square"></i>
           </button>
 
           <button
@@ -1158,7 +1139,7 @@ function renderProyectosAdmin() {
               cursor:pointer;
             "
           >
-            🗑️
+            <i class="fa-solid fa-trash"></i>
           </button>
 
         </div>
@@ -1166,16 +1147,128 @@ function renderProyectosAdmin() {
       </div>
     `;
 
-
     container.appendChild(card);
 
   });
-
 }
 
 
 // ==========================================
-// CAMBIAR ESTADO
+// 11. EDICIÓN
+// ==========================================
+
+function activarEdicionInline(index) {
+
+  document.getElementById(
+    `info-view-${index}`
+  ).style.display = "none";
+
+  document.getElementById(
+    `edit-view-${index}`
+  ).style.display = "block";
+
+  document.getElementById(
+    `btn-edit-toggle-${index}`
+  ).style.display = "none";
+}
+
+function cancelarEdicionInline(index) {
+
+  document.getElementById(
+    `info-view-${index}`
+  ).style.display = "block";
+
+  document.getElementById(
+    `edit-view-${index}`
+  ).style.display = "none";
+
+  document.getElementById(
+    `btn-edit-toggle-${index}`
+  ).style.display = "block";
+}
+
+async function guardarEdicionInline(idFirebase, index) {
+
+  if (!auth.currentUser || auth.currentUser.email !== ADMIN_EMAIL) {
+    alert("No tienes permisos.");
+    return;
+  }
+
+  const nuevoCodigo =
+    document.getElementById(
+      `input-edit-codigo-${index}`
+    ).value.trim().toUpperCase();
+
+  const nuevoCliente =
+    document.getElementById(
+      `input-edit-cliente-${index}`
+    ).value.trim();
+
+  const nuevoMueble =
+    document.getElementById(
+      `input-edit-mueble-${index}`
+    ).value.trim();
+
+  const nuevoTelefono =
+    document.getElementById(
+      `input-edit-telefono-${index}`
+    ).value.trim();
+
+  const nuevoPresupuesto =
+    parseFloat(
+      document.getElementById(
+        `input-edit-presupuesto-${index}`
+      ).value
+    ) || 0;
+
+  const nuevoAdelanto =
+    parseFloat(
+      document.getElementById(
+        `input-edit-adelanto-${index}`
+      ).value
+    ) || 0;
+
+  const nuevaFecha =
+    document.getElementById(
+      `input-edit-fecha-${index}`
+    ).value;
+
+  try {
+
+    await db
+      .collection("proyectos")
+      .doc(idFirebase)
+      .update({
+
+        codigo: nuevoCodigo,
+        cliente: nuevoCliente,
+        mueble: nuevoMueble,
+        telefono: nuevoTelefono,
+        presupuesto: nuevoPresupuesto,
+        adelanto: nuevoAdelanto,
+        fechaEntrega: nuevaFecha
+
+      });
+
+    await cargarProyectosDesdeNube();
+
+    renderProyectosAdmin();
+
+  } catch (error) {
+
+    console.error(
+      "Error al actualizar:",
+      error
+    );
+
+    alert("Error al actualizar el proyecto.");
+
+  }
+}
+
+
+// ==========================================
+// 12. CAMBIAR ESTADO
 // ==========================================
 
 async function cambiarEstadoPorId(
@@ -1184,7 +1277,10 @@ async function cambiarEstadoPorId(
   nuevoProgreso
 ) {
 
-  if (!esAdmin) {
+  if (
+    !auth.currentUser ||
+    auth.currentUser.email !== ADMIN_EMAIL
+  ) {
     alert("No tienes permisos.");
     return;
   }
@@ -1211,52 +1307,48 @@ async function cambiarEstadoPorId(
 
   ];
 
-
   const nuevoEstado =
     etapas[etapaIdx];
 
   const nuevaDesc =
     descripciones[etapaIdx];
 
+  const proyectoLocal =
+    proyectos.find(
+      p => p.id === idFirebase
+    );
+
+  if (proyectoLocal) {
+
+    proyectoLocal.estado =
+      nuevoEstado;
+
+    proyectoLocal.progreso =
+      nuevoProgreso;
+
+    proyectoLocal.detalles =
+      nuevaDesc;
+  }
 
   try {
 
-    // Actualizar privado
     await db
       .collection("proyectos")
       .doc(idFirebase)
       .update({
 
         estado: nuevoEstado,
-
         progreso: nuevoProgreso,
-
         detalles: nuevaDesc
 
       });
 
-
-    // Actualizar público
-    await db
-      .collection("proyectos_publicos")
-      .doc(idFirebase)
-      .update({
-
-        estado: nuevoEstado,
-
-        progreso: nuevoProgreso,
-
-        detalles: nuevaDesc
-
-      });
-
-
-    await cargarProyectosPrivados();
+    renderProyectosAdmin();
 
   } catch (error) {
 
     console.error(
-      "Error cambiando estado:",
+      "Error al actualizar estado:",
       error
     );
 
@@ -1264,30 +1356,33 @@ async function cambiarEstadoPorId(
       "No se pudo actualizar el estado."
     );
 
-  }
+    await cargarProyectosDesdeNube();
 
+  }
 }
 
 
 // ==========================================
-// ELIMINAR PROYECTO
+// 13. ELIMINAR
 // ==========================================
 
 async function eliminarProyecto(idFirebase) {
 
-  if (!esAdmin) {
+  if (
+    !auth.currentUser ||
+    auth.currentUser.email !== ADMIN_EMAIL
+  ) {
     alert("No tienes permisos.");
     return;
   }
 
   if (
     !confirm(
-      "¿Deseas eliminar este proyecto?"
+      "¿Deseas eliminar este proyecto de la nube?"
     )
   ) {
     return;
   }
-
 
   try {
 
@@ -1296,15 +1391,9 @@ async function eliminarProyecto(idFirebase) {
       .doc(idFirebase)
       .delete();
 
+    await cargarProyectosDesdeNube();
 
-    await db
-      .collection("proyectos_publicos")
-      .doc(idFirebase)
-      .delete();
-
-
-    await cargarProyectosPrivados();
-
+    renderProyectosAdmin();
 
   } catch (error) {
 
@@ -1318,54 +1407,40 @@ async function eliminarProyecto(idFirebase) {
     );
 
   }
-
 }
 
 
 // ==========================================
-// WHATSAPP
+// 14. WHATSAPP
 // ==========================================
 
 function notificarWhatsApp(index) {
 
-  if (!esAdmin) {
-    alert("No tienes permisos.");
-    return;
-  }
-
-  const p =
-    proyectos[index];
+  const p = proyectos[index];
 
   if (
-    !p ||
     !p.telefono ||
-    !p.telefono.trim()
+    p.telefono.trim() === ""
   ) {
 
     alert(
-      "Este cliente no tiene un número registrado."
+      "Este cliente no tiene un número de teléfono registrado."
     );
 
     return;
   }
-
 
   let num =
     p.telefono
       .toString()
       .replace(/\D/g, "");
 
-
   if (
     !num.startsWith("591") &&
     num.length === 8
   ) {
-
-    num =
-      "591" + num;
-
+    num = "591" + num;
   }
-
 
   const presupuesto =
     Number(p.presupuesto) || 0;
@@ -1376,7 +1451,6 @@ function notificarWhatsApp(index) {
   const saldo =
     presupuesto - adelanto;
 
-
   const fechaTexto =
     p.fechaEntrega
       ? p.fechaEntrega
@@ -1385,18 +1459,14 @@ function notificarWhatsApp(index) {
           .join("/")
       : "Por coordinar";
 
-
   const linkBase =
     window.location.origin +
     window.location.pathname;
 
-
   const linkDirecto =
     `${linkBase}?codigo=${p.codigo}`;
 
-
   const mensaje =
-
 `Hola *${p.cliente}* 👋, desde *HN Muebles* te informamos el estado de tu proyecto *"${p.mueble}"*:
 
 🛠️ *Estado:* ${p.estado}
@@ -1408,111 +1478,12 @@ function notificarWhatsApp(index) {
 • Adelanto: Bs. ${formatearMonto(adelanto)}
 • Saldo Pendiente: Bs. ${formatearMonto(saldo)}
 
-🔍 *Consulta el estado de tu proyecto:*
+🔍 *Haz clic en el siguiente enlace para ver el estado de tu proyecto (Código: ${p.codigo}):*
 ${linkDirecto}`;
-
 
   window.open(
     `https://wa.me/${num}?text=${encodeURIComponent(mensaje)}`,
     "_blank"
   );
-
 }
-
-
-// ==========================================
-// EDICIÓN
-// ==========================================
-
-async function activarEdicionInline(index) {
-
-  const p =
-    proyectos[index];
-
-  if (!p) return;
-
-  const nuevoCliente =
-    prompt(
-      "Cliente:",
-      p.cliente || ""
-    );
-
-  if (nuevoCliente === null) return;
-
-
-  const nuevoMueble =
-    prompt(
-      "Mueble:",
-      p.mueble || ""
-    );
-
-  if (nuevoMueble === null) return;
-
-
-  const nuevoTelefono =
-    prompt(
-      "WhatsApp:",
-      p.telefono || ""
-    );
-
-  if (nuevoTelefono === null) return;
-
-
-  try {
-
-    await db
-      .collection("proyectos")
-      .doc(p.id)
-      .update({
-
-        cliente:
-          nuevoCliente.trim(),
-
-        mueble:
-          nuevoMueble.trim(),
-
-        telefono:
-          nuevoTelefono.trim()
-
-      });
-
-
-    await db
-      .collection("proyectos_publicos")
-      .doc(p.id)
-      .update({
-
-        cliente:
-          nuevoCliente.trim(),
-
-        mueble:
-          nuevoMueble.trim()
-
-      });
-
-
-    await cargarProyectosPrivados();
-
-  } catch (error) {
-
-    console.error(
-      "Error editando:",
-      error
-    );
-
-    alert(
-      "No se pudo editar el proyecto."
-    );
-
-  }
-
-}
-
-
-// ==========================================
-// FUNCIONES DE COMPATIBILIDAD
-// ==========================================
-
-function cancelarEdicionInline() {
-  renderProyectosAdmin();
-}
+```
