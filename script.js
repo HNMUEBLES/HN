@@ -50,6 +50,10 @@ function copiarCodigoAlPortapapeles(codigo) {
   });
 }
 
+function irInicio() {
+  mostrarSeccion('inicio');
+}
+
 // ==========================================
 // 2. CARGA DE DATOS DESDE FIRESTORE
 // ==========================================
@@ -162,7 +166,7 @@ document.addEventListener('DOMContentLoaded', function() {
     });
   }
 
-  // LOGIN ADMIN CON TU CONTRASEÑA CLÁSICA
+  // LOGIN ADMIN CON CONTRASEÑA CLÁSICA
   const formLogin = document.getElementById('form-login');
   if (formLogin) {
     formLogin.addEventListener('submit', function(e) {
@@ -178,6 +182,10 @@ document.addEventListener('DOMContentLoaded', function() {
         if (divLogin) divLogin.classList.add('hidden');
         if (divPanel) divPanel.classList.remove('hidden');
         
+        // Mostrar botones de reporte y ocultar rastreo en el menú si es necesario
+        const btnReportes = document.getElementById('btn-reportes');
+        if (btnReportes) btnReportes.classList.remove('hidden');
+
         if (passInput) passInput.value = '';
         cargarProyectosDesdeNube();
         renderProyectosAdmin();
@@ -274,8 +282,9 @@ function cerrarSesionAdmin() {
   if (divPanel) divPanel.classList.add('hidden');
   if (divLogin) divLogin.classList.remove('hidden');
 
-  document.getElementById('btn-rastreo').classList.remove('hidden');
-  document.getElementById('btn-reportes').classList.add('hidden');
+  const btnReportes = document.getElementById('btn-reportes');
+  if (btnReportes) btnReportes.classList.add('hidden');
+
   irInicio();
 }
 
@@ -437,7 +446,7 @@ async function cambiarEstadoPorId(idFirebase, etapaIdx, nuevoProgreso) {
     proyectoLocal.detalles = nuevaDesc;
   }
 
-  // 2. ACTUALIZACIÓN ÓPTICA INMEDIATA EN EL DOM (SIN RECARGAR TODO EL PANEL)
+  // 2. ACTUALIZACIÓN ÓPTICA INMEDIATA EN EL DOM
   const cardIndex = proyectos.findIndex(p => p.id === idFirebase);
   if (cardIndex !== -1) {
     const infoView = document.getElementById(`info-view-${cardIndex}`);
@@ -457,7 +466,7 @@ async function cambiarEstadoPorId(idFirebase, etapaIdx, nuevoProgreso) {
     }
   }
 
-  // 3. Sincronizamos con Firebase en segundo plano de manera silenciosa
+  // 3. Sincronizamos con Firebase en segundo plano
   db.collection("proyectos").doc(idFirebase).update({
     estado: nuevoEstado,
     progreso: nuevoProgreso,
