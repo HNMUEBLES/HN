@@ -69,10 +69,10 @@ body { background-color: #000000; color: #ffffff; min-height: 100vh; }
   align-items: center;
 }
 
-/* Columna Izquierda: Título estilo industrial tipo Schwartz */
+/* Columna Izquierda: Título estilo industrial */
 .hero-title-big {
   font-family: 'Chakra Petch', sans-serif;
-  font-weight: 700;
+  font-weight: 800;
   font-size: 3.4rem;
   line-height: 1.1;
   margin-bottom: 0.5rem;
@@ -81,8 +81,10 @@ body { background-color: #000000; color: #ffffff; min-height: 100vh; }
   text-transform: uppercase;
 }
 
-.hero-title-big .text-amber {
-  color: #d97706;
+/* Color marrón cálido translúcido para reemplazar el naranja */
+.hero-title-big .text-amber,
+.font-amber {
+  color: #b07d62 !important;
 }
 
 .about-text {
@@ -99,10 +101,10 @@ body { background-color: #000000; color: #ffffff; min-height: 100vh; }
   color: #e5e7eb;
 }
 
-/* Columna Derecha: Tarjeta de Seguimiento Compacta y Optimizada */
+/* Columna Derecha: Tarjeta de Seguimiento */
 .modern-tracking-card {
   background: rgba(15, 15, 15, 0.88);
-  border: 1px solid rgba(255, 255, 255, 0.15);
+  border: 1px solid rgba(176, 125, 98, 0.3);
   padding: 1.8rem 1.5rem;
   border-radius: 16px;
   box-shadow: 0 15px 35px rgba(0, 0, 0, 0.7);
@@ -120,12 +122,13 @@ body { background-color: #000000; color: #ffffff; min-height: 100vh; }
   left: 0;
   width: 100%;
   height: 4px;
-  background: linear-gradient(90deg, #d97706, #f59e0b);
+  background: linear-gradient(90deg, #b07d62, rgba(176, 125, 98, 0.4));
 }
 
 .card-icon-header {
   font-size: 1.8rem;
   margin-bottom: 0.5rem;
+  color: #b07d62;
 }
 
 .modern-tracking-card h2 {
@@ -177,12 +180,12 @@ body { background-color: #000000; color: #ffffff; min-height: 100vh; }
   transition: all 0.3s;
 }
 .input-wrapper input[type="text"]:focus {
-  border-color: #f59e0b;
-  box-shadow: 0 0 0 3px rgba(245, 158, 11, 0.15);
+  border-color: #b07d62;
+  box-shadow: 0 0 0 3px rgba(176, 125, 98, 0.15);
 }
 
 .btn-primary-modern {
-  background: linear-gradient(135deg, #b45309, #d97706);
+  background: linear-gradient(135deg, #966348, #b07d62);
   color: #ffffff;
   border: none;
   padding: 0.7rem 1.2rem;
@@ -191,7 +194,7 @@ body { background-color: #000000; color: #ffffff; min-height: 100vh; }
   border-radius: 10px;
   cursor: pointer;
   transition: transform 0.2s, opacity 0.2s;
-  box-shadow: 0 4px 12px rgba(217, 119, 6, 0.3);
+  box-shadow: 0 4px 12px rgba(176, 125, 98, 0.25);
 }
 .btn-primary-modern:hover {
   opacity: 0.95;
@@ -204,7 +207,7 @@ body { background-color: #000000; color: #ffffff; min-height: 100vh; }
   background: rgba(0, 0, 0, 0.5);
   padding: 1rem;
   border-radius: 10px;
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(176, 125, 98, 0.2);
   text-align: left;
 }
 
@@ -219,14 +222,15 @@ body { background-color: #000000; color: #ffffff; min-height: 100vh; }
 }
 
 .progress-pill {
-  background: rgba(245, 158, 11, 0.15);
-  color: #f59e0b;
+  background: rgba(176, 125, 98, 0.15);
+  color: #b07d62;
   padding: 2px 8px;
   border-radius: 6px;
   font-size: 0.8rem;
+  border: 1px solid rgba(176, 125, 98, 0.3);
 }
 
-/* CONTENEDOR INFERIOR: NEGRO SÓLIDO */
+/* CONTENEDOR INFERIOR */
 .black-content-container {
   position: relative;
   background-color: #000000;
@@ -251,7 +255,7 @@ body { background-color: #000000; color: #ffffff; min-height: 100vh; }
   margin-bottom: 0.5rem;
 }
 
-/* GRILLA DE 5 PASOS PARA LA RUTA DEL MUEBLE */
+/* GRILLA DE 5 PASOS */
 .steps-grid-5 {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
@@ -267,11 +271,11 @@ body { background-color: #000000; color: #ffffff; min-height: 100vh; }
   padding: 1.5rem;
   transition: border-color 0.3s;
 }
-.step-box:hover { border-color: #d97706; }
+.step-box:hover { border-color: rgba(176, 125, 98, 0.5); }
 
 .step-icon {
   font-size: 1.5rem;
-  color: #d97706;
+  color: #b07d62;
   margin-bottom: 0.75rem;
 }
 
@@ -303,7 +307,7 @@ body { background-color: #000000; color: #ffffff; min-height: 100vh; }
 
 .modal-box {
   background: #121212;
-  border: 1px solid #333;
+  border: 1px solid rgba(176, 125, 98, 0.3);
   border-radius: 18px;
   padding: 2.5rem;
   width: 100%;
@@ -338,14 +342,13 @@ select, .admin-select, input[type="text"], input[type="password"] {
   transition: border-color 0.15s ease, background-color 0.15s ease;
 }
 select:focus, .admin-select:focus, input:focus { 
-  border-color: #d97706; 
+  border-color: #b07d62; 
   background-color: #111;
 }
 
 /* UTILIDADES */
 .hidden { display: none !important; }
-.font-amber { color: #d97706; }
-.badge { background: #222; padding: 2px 6px; border-radius: 4px; font-size: 0.75rem; color: #d97706; font-family: monospace; }
+.badge { background: rgba(176, 125, 98, 0.15); padding: 2px 6px; border-radius: 4px; font-size: 0.75rem; color: #b07d62; font-family: monospace; border: 1px solid rgba(176, 125, 98, 0.3); }
 .error-msg { background: rgba(239, 68, 68, 0.15); color: #f87171; border: 1px solid rgba(239, 68, 68, 0.3); padding: 8px 12px; border-radius: 8px; font-size: 0.85rem; margin-top: 10px; }
 
 /* FOOTER */
