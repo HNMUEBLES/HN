@@ -2,7 +2,7 @@
 // HN MUEBLES
 // SCRIPT PRINCIPAL
 // Firebase Authentication + Firestore
-// Proyectos + Ingresos mensuales
+// Proyectos + Gestión mensual + Ingresos
 // ============================================================
 
 
@@ -38,14 +38,11 @@ const firebaseConfig = {
 
 firebase.initializeApp(firebaseConfig);
 
-
 const db =
   firebase.firestore();
 
-
 const auth =
   firebase.auth();
-
 
 const EMAIL_ADMIN =
   "hn24muebles@gmail.com";
@@ -92,49 +89,51 @@ function obtenerMesDeFecha(fecha) {
 
   let date = null;
 
+
   if (
     fecha &&
     typeof fecha.toDate === "function"
   ) {
 
-    date = fecha.toDate();
+    date =
+      fecha.toDate();
 
   }
 
-  else if (fecha instanceof Date) {
+  else if (
+    fecha instanceof Date
+  ) {
 
-    date = fecha;
+    date =
+      fecha;
+
+  }
+
+  else if (
+    typeof fecha === "string"
+  ) {
+
+    date =
+      new Date(fecha);
 
   }
 
-  else if (typeof fecha === "string") {
-
-    date = new Date(fecha);
-
-  }
 
   if (
     !date ||
-    Number.isNaN(date.getTime())
+    Number.isNaN(
+      date.getTime()
+    )
   ) {
 
     return null;
 
   }
 
+
   return `${date.getFullYear()}-${String(
     date.getMonth() + 1
   ).padStart(2, "0")}`;
-
-}
-
-
-function convertirFechaParaMes(fecha) {
-
-  const mes =
-    obtenerMesDeFecha(fecha);
-
-  return mes || obtenerMesActual();
 
 }
 
@@ -195,6 +194,15 @@ function llenarCodigoAutomatico() {
 
 function copiarCodigoAlPortapapeles(codigo) {
 
+  if (
+    !navigator.clipboard
+  ) {
+
+    return;
+
+  }
+
+
   navigator.clipboard
     .writeText(codigo)
     .then(() => {
@@ -204,22 +212,33 @@ function copiarCodigoAlPortapapeles(codigo) {
           `[data-copy-code="${codigo}"]`
         );
 
-      if (boton) {
+      if (!boton) return;
 
-        const textoOriginal =
-          boton.innerText;
+      const textoOriginal =
+        boton.innerText;
 
-        boton.innerText =
-          "Copiado ✓";
+      boton.innerText =
+        "Copiado ✓";
 
-        setTimeout(() => {
 
-          boton.innerText =
-            textoOriginal;
+      // Sin delay visual.
+      // Se restaura al siguiente render del navegador.
+      requestAnimationFrame(() => {
 
-        }, 700);
+        requestAnimationFrame(() => {
 
-      }
+          if (
+            document.body.contains(boton)
+          ) {
+
+            boton.innerText =
+              textoOriginal;
+
+          }
+
+        });
+
+      });
 
     })
     .catch(error => {
@@ -251,47 +270,46 @@ function irInicio() {
 auth.onAuthStateChanged(
   async user => {
 
-    if (user) {
+    if (!user) {
 
-      console.log(
-        "Usuario autenticado:",
-        user.email
-      );
+      esAdmin = false;
+
+      ocultarPanelAdministrador();
+
+      return;
+
+    }
 
 
-      if (
-        user.email &&
-        user.email.toLowerCase() ===
-        EMAIL_ADMIN.toLowerCase()
-      ) {
+    console.log(
+      "Usuario autenticado:",
+      user.email
+    );
 
-        esAdmin = true;
 
-        mostrarPanelAdministrador();
+    if (
+      user.email &&
+      user.email.toLowerCase() ===
+      EMAIL_ADMIN.toLowerCase()
+    ) {
 
-        await cargarProyectosDesdeNube();
+      esAdmin = true;
 
-        await cargarIngresosDesdeNube();
+      mostrarPanelAdministrador();
 
-        renderProyectosAdmin();
+      await cargarDatosIniciales();
 
-        renderGestionIngresos();
+      renderProyectosAdmin();
 
-      }
+      renderGestionIngresos();
 
-      else {
-
-        await auth.signOut();
-
-        esAdmin = false;
-
-        ocultarPanelAdministrador();
-
-      }
+      renderHistorialMensual();
 
     }
 
     else {
+
+      await auth.signOut();
 
       esAdmin = false;
 
@@ -314,6 +332,7 @@ function mostrarPanelAdministrador() {
     ?.classList
     .add("hidden");
 
+
   document
     .getElementById("admin-panel")
     ?.classList
@@ -329,6 +348,7 @@ function ocultarPanelAdministrador() {
     ?.classList
     .add("hidden");
 
+
   document
     .getElementById("admin-login")
     ?.classList
@@ -338,12 +358,40 @@ function ocultarPanelAdministrador() {
 
 
 // ============================================================
-// 5. DOM READY
+// 5. CARGA INICIAL
+// ============================================================
+
+async function cargarDatosIniciales() {
+
+  if (
+    !auth.currentUser ||
+    !esAdmin
+  ) {
+
+    return;
+
+  }
+
+
+  await Promise.all([
+
+    cargarProyectosDesdeNube(),
+
+    cargarIngresosDesdeNube()
+
+  ]);
+
+}
+
+
+// ============================================================
+// 6. DOM READY
 // ============================================================
 
 document.addEventListener(
   "DOMContentLoaded",
   function () {
+
 
     // --------------------------------------------------------
     // LOGIN
@@ -547,7 +595,7 @@ document.addEventListener(
 
           if (codigo) {
 
-            await buscarProyectoPublico(
+            buscarProyectoPublico(
               codigo
             );
 
@@ -560,7 +608,7 @@ document.addEventListener(
 
 
     // --------------------------------------------------------
-    // MONTOS DEL NUEVO PROYECTO
+    // MONTOS NUEVO PROYECTO
     // --------------------------------------------------------
 
     const presupuestoInput =
@@ -812,7 +860,10 @@ document.addEventListener(
             fechaEntrega,
 
             creadoEn:
-              ahora
+              ahora,
+
+            mesCreacion:
+              obtenerMesDeFecha(ahora)
 
           };
 
@@ -848,7 +899,9 @@ document.addEventListener(
                 ? ahora
                 : null,
 
-            // HISTORIAL DE PAGOS
+            fechaFinalizacion:
+              null,
+
             pagos:
               adelanto > 0
                 ? [
@@ -912,52 +965,31 @@ document.addEventListener(
             await batch.commit();
 
 
-            document.getElementById(
-              "nuevo-codigo"
-            ).value = "";
+            limpiarFormularioNuevo();
 
 
-            document.getElementById(
-              "nuevo-cliente"
-            ).value = "";
+            proyectos.push({
+              id: proyectoRef.id,
+              ...proyecto
+            });
 
 
-            document.getElementById(
-              "nuevo-mueble"
-            ).value = "";
-
-
-            document.getElementById(
-              "nuevo-telefono"
-            ).value = "";
-
-
-            document.getElementById(
-              "nuevo-presupuesto"
-            ).value = "";
-
-
-            document.getElementById(
-              "nuevo-adelanto"
-            ).value = "";
-
-
-            document.getElementById(
-              "nuevo-fecha"
-            ).value = "";
-
-
-            calcularSaldoNuevo();
-
-
-            await cargarProyectosDesdeNube();
-
-            await cargarIngresosDesdeNube();
+            ingresos.push({
+              id: ingresoRef.id,
+              ...ingreso
+            });
 
 
             renderProyectosAdmin();
 
             renderGestionIngresos();
+
+            renderHistorialMensual();
+
+
+            mostrarMensajeInterno(
+              "Proyecto guardado correctamente."
+            );
 
           }
 
@@ -983,7 +1015,7 @@ document.addEventListener(
 
 
     // --------------------------------------------------------
-    // MES DE INGRESOS
+    // MES INGRESOS
     // --------------------------------------------------------
 
     const filtroIngresos =
@@ -1009,12 +1041,123 @@ document.addEventListener(
 
     }
 
+
+    // --------------------------------------------------------
+    // MES HISTORIAL
+    // --------------------------------------------------------
+
+    const filtroHistorial =
+      document.getElementById(
+        "historial-mes"
+      );
+
+
+    if (filtroHistorial) {
+
+      filtroHistorial.value =
+        obtenerMesActual();
+
+
+      filtroHistorial.addEventListener(
+        "change",
+        function () {
+
+          renderHistorialMensual();
+
+        }
+      );
+
+    }
+
   }
 );
 
 
 // ============================================================
-// 6. MENSAJE INTERNO
+// 7. LIMPIAR FORMULARIO
+// ============================================================
+
+function limpiarFormularioNuevo() {
+
+  const ids = [
+
+    "nuevo-codigo",
+
+    "nuevo-cliente",
+
+    "nuevo-mueble",
+
+    "nuevo-telefono",
+
+    "nuevo-presupuesto",
+
+    "nuevo-adelanto",
+
+    "nuevo-fecha"
+
+  ];
+
+
+  ids.forEach(id => {
+
+    const elemento =
+      document.getElementById(id);
+
+    if (elemento) {
+
+      elemento.value = "";
+
+    }
+
+  });
+
+
+  const totalPreview =
+    document.getElementById(
+      "nuevo-total-preview"
+    );
+
+
+  const adelantoPreview =
+    document.getElementById(
+      "nuevo-adelanto-preview"
+    );
+
+
+  const saldoPreview =
+    document.getElementById(
+      "nuevo-saldo-preview"
+    );
+
+
+  if (totalPreview) {
+
+    totalPreview.innerText =
+      "Bs. 0";
+
+  }
+
+
+  if (adelantoPreview) {
+
+    adelantoPreview.innerText =
+      "Bs. 0";
+
+  }
+
+
+  if (saldoPreview) {
+
+    saldoPreview.innerText =
+      "Bs. 0";
+
+  }
+
+}
+
+
+// ============================================================
+// 8. MENSAJE INTERNO
 // ============================================================
 
 function mostrarMensajeInterno(
@@ -1041,18 +1184,26 @@ function mostrarMensajeInterno(
       : "#4ade80";
 
 
-  setTimeout(() => {
+  // Se elimina automáticamente al siguiente ciclo
+  // visual, sin esperar segundos.
+  requestAnimationFrame(() => {
 
-    elemento.textContent =
-      "";
+    if (
+      elemento.textContent === mensaje
+    ) {
 
-  }, 2000);
+      elemento.textContent =
+        "";
+
+    }
+
+  });
 
 }
 
 
 // ============================================================
-// 7. CERRAR SESIÓN
+// 9. CERRAR SESIÓN
 // ============================================================
 
 async function cerrarSesionAdmin() {
@@ -1091,7 +1242,7 @@ async function cerrarSesionAdmin() {
 
 
 // ============================================================
-// 8. CARGAR PROYECTOS
+// 10. CARGAR PROYECTOS
 // ============================================================
 
 async function cargarProyectosDesdeNube() {
@@ -1114,24 +1265,17 @@ async function cargarProyectosDesdeNube() {
         .get();
 
 
-    proyectos = [];
-
-
-    snapshot.forEach(
-      doc => {
-
-        proyectos.push({
+    proyectos =
+      snapshot.docs.map(
+        doc => ({
 
           id:
             doc.id,
 
           ...doc.data()
 
-        });
-
-      }
-    );
-
+        })
+      );
 
   }
 
@@ -1148,7 +1292,7 @@ async function cargarProyectosDesdeNube() {
 
 
 // ============================================================
-// 9. CARGAR INGRESOS
+// 11. CARGAR INGRESOS
 // ============================================================
 
 async function cargarIngresosDesdeNube() {
@@ -1171,24 +1315,17 @@ async function cargarIngresosDesdeNube() {
         .get();
 
 
-    ingresos = [];
-
-
-    snapshot.forEach(
-      doc => {
-
-        ingresos.push({
+    ingresos =
+      snapshot.docs.map(
+        doc => ({
 
           id:
             doc.id,
 
           ...doc.data()
 
-        });
-
-      }
-    );
-
+        })
+      );
 
   }
 
@@ -1205,7 +1342,7 @@ async function cargarIngresosDesdeNube() {
 
 
 // ============================================================
-// 10. BÚSQUEDA PÚBLICA
+// 12. BÚSQUEDA PÚBLICA
 // ============================================================
 
 async function buscarProyectoPublico(
@@ -1246,9 +1383,11 @@ async function buscarProyectoPublico(
         "hidden"
       );
 
+
       errorMsg?.classList.remove(
         "hidden"
       );
+
 
       return;
 
@@ -1330,7 +1469,7 @@ async function buscarProyectoPublico(
 
 
 // ============================================================
-// 11. RENDER PROYECTOS ADMIN
+// 13. RENDER PROYECTOS ADMIN
 // ============================================================
 
 function renderProyectosAdmin() {
@@ -1682,7 +1821,9 @@ function renderProyectosAdmin() {
       `;
 
 
-      container.appendChild(card);
+      container.appendChild(
+        card
+      );
 
     }
   );
@@ -1691,7 +1832,7 @@ function renderProyectosAdmin() {
 
 
 // ============================================================
-// 12. CAMBIAR ESTADO
+// 14. CAMBIAR ESTADO
 // ============================================================
 
 async function cambiarEstadoPorId(
@@ -1748,6 +1889,29 @@ async function cambiarEstadoPorId(
     descripciones[etapaIdx];
 
 
+  const proyecto =
+    proyectos.find(
+      p => p.id === id
+    );
+
+
+  if (!proyecto) return;
+
+
+  // Actualización visual inmediata.
+  proyecto.estado =
+    estado;
+
+  proyecto.progreso =
+    progreso;
+
+  proyecto.detalles =
+    detalles;
+
+
+  renderProyectosAdmin();
+
+
   try {
 
     const batch =
@@ -1770,52 +1934,81 @@ async function cambiarEstadoPorId(
     );
 
 
-    const proyecto =
-      proyectos.find(
-        p => p.id === id
-      );
+    const publicoQuery =
+      await db
+        .collection(
+          "proyectos_publicos"
+        )
+        .where(
+          "codigo",
+          "==",
+          proyecto.codigo
+        )
+        .limit(1)
+        .get();
 
 
-    if (proyecto) {
+    publicoQuery.forEach(
+      doc => {
 
-      const publicoQuery =
-        await db
-          .collection(
-            "proyectos_publicos"
-          )
-          .where(
-            "codigo",
-            "==",
-            proyecto.codigo
-          )
-          .limit(1)
-          .get();
+        batch.update(
+          doc.ref,
+          {
+            estado,
+            progreso,
+            detalles
+          }
+        );
 
-
-      publicoQuery.forEach(
-        doc => {
-
-          batch.update(
-            doc.ref,
-            {
-              estado,
-              progreso,
-              detalles
-            }
-          );
-
-        }
-      );
-
-    }
+      }
+    );
 
 
     await batch.commit();
 
 
-    await cargarProyectosDesdeNube();
+    // Si se finaliza el proyecto,
+    // registramos la finalización en ingresos.
+    if (
+      estado === "Finalizado"
+    ) {
 
-    renderProyectosAdmin();
+      const ingreso =
+        ingresos.find(
+          i =>
+            i.proyectoId === id
+        );
+
+
+      if (
+        ingreso &&
+        !ingreso.fechaFinalizacion
+      ) {
+
+        const ahora =
+          firebase.firestore.Timestamp.now();
+
+
+        await db
+          .collection("ingresos")
+          .doc(ingreso.id)
+          .update({
+
+            fechaFinalizacion:
+              ahora
+
+          });
+
+
+        ingreso.fechaFinalizacion =
+          ahora;
+
+      }
+
+    }
+
+
+    renderHistorialMensual();
 
   }
 
@@ -1826,13 +2019,20 @@ async function cambiarEstadoPorId(
       error
     );
 
+
+    // Si falla Firestore,
+    // recargamos el dato real.
+    await cargarProyectosDesdeNube();
+
+    renderProyectosAdmin();
+
   }
 
 }
 
 
 // ============================================================
-// 13. ELIMINAR PROYECTO
+// 15. ELIMINAR PROYECTO
 // ============================================================
 
 async function eliminarProyecto(
@@ -1849,13 +2049,13 @@ async function eliminarProyecto(
   }
 
 
+  const proyecto =
+    proyectos.find(
+      p => p.id === id
+    );
+
+
   try {
-
-    const proyecto =
-      proyectos.find(
-        p => p.id === id
-      );
-
 
     const batch =
       db.batch();
@@ -1923,14 +2123,23 @@ async function eliminarProyecto(
     await batch.commit();
 
 
-    await cargarProyectosDesdeNube();
+    proyectos =
+      proyectos.filter(
+        p => p.id !== id
+      );
 
-    await cargarIngresosDesdeNube();
+
+    ingresos =
+      ingresos.filter(
+        i => i.proyectoId !== id
+      );
 
 
     renderProyectosAdmin();
 
     renderGestionIngresos();
+
+    renderHistorialMensual();
 
   }
 
@@ -1947,7 +2156,7 @@ async function eliminarProyecto(
 
 
 // ============================================================
-// 14. EDITAR PROYECTO
+// 16. EDITAR PROYECTO
 // ============================================================
 
 function activarEdicionInline(
@@ -2065,7 +2274,7 @@ function activarEdicionInline(
 
 
 // ============================================================
-// 15. GUARDAR EDICIÓN
+// 17. GUARDAR EDICIÓN
 // ============================================================
 
 async function guardarEdicionInline(
@@ -2148,6 +2357,15 @@ async function guardarEdicionInline(
       .value;
 
 
+  const proyecto =
+    proyectos.find(
+      p => p.id === id
+    );
+
+
+  if (!proyecto) return;
+
+
   try {
 
     await db
@@ -2207,7 +2425,8 @@ async function guardarEdicionInline(
 
       const pendiente =
         Math.max(
-          presupuesto - cobrado,
+          presupuesto -
+          cobrado,
           0
         );
 
@@ -2233,14 +2452,72 @@ async function guardarEdicionInline(
     }
 
 
-    await cargarProyectosDesdeNube();
+    proyecto.codigo =
+      codigo;
 
-    await cargarIngresosDesdeNube();
+    proyecto.cliente =
+      cliente;
+
+    proyecto.mueble =
+      mueble;
+
+    proyecto.telefono =
+      telefono;
+
+    proyecto.presupuesto =
+      presupuesto;
+
+    proyecto.adelanto =
+      adelanto;
+
+    proyecto.fechaEntrega =
+      fecha;
+
+
+    const ingresoLocal =
+      ingresos.find(
+        i => i.proyectoId === id
+      );
+
+
+    if (ingresoLocal) {
+
+      ingresoLocal.codigo =
+        codigo;
+
+      ingresoLocal.cliente =
+        cliente;
+
+      ingresoLocal.mueble =
+        mueble;
+
+      ingresoLocal.presupuesto =
+        presupuesto;
+
+      ingresoLocal.adelanto =
+        adelanto;
+
+      ingresoLocal.cobrado =
+        adelanto +
+        (Number(
+          ingresoLocal.pagosFinales
+        ) || 0);
+
+      ingresoLocal.pendiente =
+        Math.max(
+          presupuesto -
+          ingresoLocal.cobrado,
+          0
+        );
+
+    }
 
 
     renderProyectosAdmin();
 
     renderGestionIngresos();
+
+    renderHistorialMensual();
 
   }
 
@@ -2257,15 +2534,27 @@ async function guardarEdicionInline(
 
 
 // ============================================================
-// 16. PROYECTOS QUE DEBEN APARECER EN UN MES
+// 18. PROYECTOS QUE APARECEN EN UN MES
 // ============================================================
+//
+// REGLA:
+//
+// - Si nació en enero, aparece desde enero.
+// - Si sigue pendiente, aparece en febrero, marzo, abril...
+// - Si termina en marzo, aparece también en marzo.
+// - Desde abril deja de aparecer.
+// - Esto crea automáticamente el historial mensual.
+//
 
 function proyectoDebeAparecerEnMes(
   ingreso,
   mesSeleccionado
 ) {
 
-  if (!ingreso || !mesSeleccionado) {
+  if (
+    !ingreso ||
+    !mesSeleccionado
+  ) {
 
     return false;
 
@@ -2285,15 +2574,6 @@ function proyectoDebeAparecerEnMes(
   }
 
 
-  const fechaFin =
-    ingreso.fechaFinalizacion
-      ? obtenerMesDeFecha(
-          ingreso.fechaFinalizacion
-        )
-      : null;
-
-
-  // Todavía no existía en ese mes
   if (
     compararMeses(
       mesSeleccionado,
@@ -2306,8 +2586,14 @@ function proyectoDebeAparecerEnMes(
   }
 
 
-  // Si ya estaba completamente pagado,
-  // deja de arrastrarse después de ese mes.
+  const fechaFin =
+    ingreso.fechaFinalizacion
+      ? obtenerMesDeFecha(
+          ingreso.fechaFinalizacion
+        )
+      : null;
+
+
   if (
     fechaFin &&
     compararMeses(
@@ -2327,7 +2613,7 @@ function proyectoDebeAparecerEnMes(
 
 
 // ============================================================
-// 17. PAGOS DEL MES
+// 19. PAGOS DEL MES
 // ============================================================
 
 function obtenerPagosDelMes(
@@ -2336,7 +2622,9 @@ function obtenerPagosDelMes(
 ) {
 
   const pagos =
-    Array.isArray(ingreso.pagos)
+    Array.isArray(
+      ingreso.pagos
+    )
       ? ingreso.pagos
       : [];
 
@@ -2352,7 +2640,7 @@ function obtenerPagosDelMes(
 
 
 // ============================================================
-// 18. GESTIÓN DE INGRESOS
+// 20. GESTIÓN DE INGRESOS
 // ============================================================
 
 function renderGestionIngresos() {
@@ -2391,10 +2679,6 @@ function renderGestionIngresos() {
   }
 
 
-  // ----------------------------------------------------------
-  // PROYECTOS DEL MES
-  // ----------------------------------------------------------
-
   const lista =
     ingresos.filter(
       ingreso =>
@@ -2423,13 +2707,16 @@ function renderGestionIngresos() {
 
       totalPendiente +=
         Math.max(
-          Number(
-            ingreso.presupuesto
-          ) || 0
-          -
-          Number(
-            ingreso.cobrado
-          ) || 0,
+          (
+            Number(
+              ingreso.presupuesto
+            ) || 0
+          ) -
+          (
+            Number(
+              ingreso.cobrado
+            ) || 0
+          ),
           0
         );
 
@@ -2520,10 +2807,6 @@ function renderGestionIngresos() {
   }
 
 
-  // ----------------------------------------------------------
-  // ORDENAR
-  // ----------------------------------------------------------
-
   lista.sort(
     (a, b) => {
 
@@ -2546,10 +2829,6 @@ function renderGestionIngresos() {
     }
   );
 
-
-  // ----------------------------------------------------------
-  // CARDS
-  // ----------------------------------------------------------
 
   lista.forEach(
     ingreso => {
@@ -2606,9 +2885,11 @@ function renderGestionIngresos() {
         pagosMes.reduce(
           (total, pago) =>
             total +
-            (Number(
-              pago.monto
-            ) || 0),
+            (
+              Number(
+                pago.monto
+              ) || 0
+            ),
           0
         );
 
@@ -2963,7 +3244,417 @@ function renderGestionIngresos() {
 
 
 // ============================================================
-// 19. FECHA BONITA
+// 21. HISTORIAL MENSUAL DE PROYECTOS
+// ============================================================
+//
+// Esta sección funciona como un archivo mensual.
+//
+// Ejemplo:
+//
+// Agosto:
+//   Proyecto A
+//   Proyecto B
+//
+// Septiembre:
+//   Proyecto A  ← continúa
+//   Proyecto C  ← nuevo
+//
+// Octubre:
+//   Proyecto A  ← continúa
+//
+// Si Proyecto A finaliza en octubre:
+//   Octubre lo conserva.
+//   Noviembre ya no lo muestra.
+//
+
+function renderHistorialMensual() {
+
+  if (!esAdmin) return;
+
+
+  const container =
+    document.getElementById(
+      "lista-historial-mensual"
+    );
+
+
+  if (!container) return;
+
+
+  const filtroInput =
+    document.getElementById(
+      "historial-mes"
+    );
+
+
+  const filtro =
+    filtroInput?.value
+    || obtenerMesActual();
+
+
+  if (
+    filtroInput &&
+    !filtroInput.value
+  ) {
+
+    filtroInput.value =
+      filtro;
+
+  }
+
+
+  const lista =
+    ingresos.filter(
+      ingreso =>
+        proyectoDebeAparecerEnMes(
+          ingreso,
+          filtro
+        )
+    );
+
+
+  container.innerHTML =
+    "";
+
+
+  if (!lista.length) {
+
+    container.innerHTML = `
+
+      <div
+        style="
+          text-align:center;
+          padding:30px;
+          color:#777;
+        "
+      >
+
+        <i
+          class="fa-solid fa-folder-open"
+          style="
+            font-size:1.8rem;
+            margin-bottom:10px;
+          "
+        ></i>
+
+        <div>
+          No hay proyectos en este mes.
+        </div>
+
+      </div>
+
+    `;
+
+    return;
+
+  }
+
+
+  lista.sort(
+    (a, b) => {
+
+      const aFecha =
+        obtenerMesDeFecha(
+          a.fechaCreacion
+        ) || "";
+
+
+      const bFecha =
+        obtenerMesDeFecha(
+          b.fechaCreacion
+        ) || "";
+
+
+      return aFecha.localeCompare(
+        bFecha
+      );
+
+    }
+  );
+
+
+  lista.forEach(
+    ingreso => {
+
+      const proyecto =
+        proyectos.find(
+          p =>
+            p.id === ingreso.proyectoId
+        );
+
+
+      const estaFinalizado =
+        proyecto?.estado ===
+        "Finalizado";
+
+
+      const card =
+        document.createElement(
+          "div"
+        );
+
+
+      card.style.cssText = `
+        background:rgba(255,255,255,.04);
+        border:1px solid rgba(255,255,255,.1);
+        border-radius:12px;
+        padding:14px;
+        margin-bottom:9px;
+      `;
+
+
+      const total =
+        Number(
+          ingreso.presupuesto
+        ) || 0;
+
+
+      const cobrado =
+        Number(
+          ingreso.cobrado
+        ) || 0;
+
+
+      const pendiente =
+        Math.max(
+          total - cobrado,
+          0
+        );
+
+
+      const fechaCreacion =
+        obtenerFechaBonita(
+          ingreso.fechaCreacion
+        );
+
+
+      const fechaFinalizacion =
+        ingreso.fechaFinalizacion
+          ? obtenerFechaBonita(
+              ingreso.fechaFinalizacion
+            )
+          : "En proceso";
+
+
+      card.innerHTML = `
+
+        <div
+          style="
+            display:flex;
+            justify-content:space-between;
+            gap:10px;
+            flex-wrap:wrap;
+          "
+        >
+
+          <div>
+
+            <span
+              style="
+                display:inline-block;
+                background:#f59e0b;
+                color:#000;
+                padding:3px 7px;
+                border-radius:5px;
+                font-size:.72rem;
+                font-weight:bold;
+              "
+            >
+              ${ingreso.codigo || ""}
+            </span>
+
+
+            <strong
+              style="
+                display:block;
+                margin-top:6px;
+                font-size:.95rem;
+              "
+            >
+              ${ingreso.cliente || ""}
+            </strong>
+
+
+            <div
+              style="
+                color:#999;
+                font-size:.78rem;
+                margin-top:2px;
+              "
+            >
+              ${ingreso.mueble || ""}
+            </div>
+
+          </div>
+
+
+          <div
+            style="
+              color:${estaFinalizado ? "#4ade80" : "#f59e0b"};
+              font-size:.75rem;
+              font-weight:bold;
+            "
+          >
+            ${
+              estaFinalizado
+                ? "✓ FINALIZADO"
+                : "● EN PROCESO"
+            }
+          </div>
+
+        </div>
+
+
+        <div
+          style="
+            display:grid;
+            grid-template-columns:repeat(2,1fr);
+            gap:6px;
+            margin-top:10px;
+          "
+        >
+
+          <div
+            style="
+              background:rgba(56,189,248,.06);
+              border:1px solid rgba(56,189,248,.18);
+              border-radius:7px;
+              padding:7px;
+              font-size:.72rem;
+              color:#38bdf8;
+            "
+          >
+
+            Proyecto
+
+            <strong
+              style="
+                display:block;
+                color:#fff;
+                margin-top:2px;
+              "
+            >
+              ${proyecto?.estado || "En proceso"}
+            </strong>
+
+          </div>
+
+
+          <div
+            style="
+              background:rgba(245,158,11,.06);
+              border:1px solid rgba(245,158,11,.18);
+              border-radius:7px;
+              padding:7px;
+              font-size:.72rem;
+              color:#f59e0b;
+            "
+          >
+
+            Creado
+
+            <strong
+              style="
+                display:block;
+                color:#fff;
+                margin-top:2px;
+              "
+            >
+              ${fechaCreacion}
+            </strong>
+
+          </div>
+
+
+          <div
+            style="
+              background:rgba(74,222,128,.06);
+              border:1px solid rgba(74,222,128,.18);
+              border-radius:7px;
+              padding:7px;
+              font-size:.72rem;
+              color:#4ade80;
+            "
+          >
+
+            Cobrado
+
+            <strong
+              style="
+                display:block;
+                color:#fff;
+                margin-top:2px;
+              "
+            >
+              Bs. ${formatearMonto(
+                cobrado
+              )}
+            </strong>
+
+          </div>
+
+
+          <div
+            style="
+              background:rgba(239,68,68,.06);
+              border:1px solid rgba(239,68,68,.18);
+              border-radius:7px;
+              padding:7px;
+              font-size:.72rem;
+              color:#ef4444;
+            "
+          >
+
+            Pendiente
+
+            <strong
+              style="
+                display:block;
+                color:#fff;
+                margin-top:2px;
+              "
+            >
+              Bs. ${formatearMonto(
+                pendiente
+              )}
+            </strong>
+
+          </div>
+
+        </div>
+
+
+        <div
+          style="
+            margin-top:8px;
+            color:#888;
+            font-size:.72rem;
+          "
+        >
+
+          ${
+            estaFinalizado
+              ? `Finalizado: ${fechaFinalizacion}`
+              : "Este proyecto continúa automáticamente al siguiente mes mientras siga pendiente."
+          }
+
+        </div>
+
+      `;
+
+
+      container.appendChild(
+        card
+      );
+
+    }
+  );
+
+}
+
+
+// ============================================================
+// 22. FECHA BONITA
 // ============================================================
 
 function obtenerFechaBonita(
@@ -3022,7 +3713,7 @@ function obtenerFechaBonita(
 
 
 // ============================================================
-// 20. REGISTRAR PAGO
+// 23. REGISTRAR PAGO
 // ============================================================
 
 async function registrarPago(
@@ -3169,8 +3860,6 @@ async function registrarPago(
   };
 
 
-  // Cuando queda completamente pagado,
-  // guardamos el mes de finalización.
   if (
     nuevoPendiente <= 0
   ) {
@@ -3191,9 +3880,22 @@ async function registrarPago(
       );
 
 
-    await cargarIngresosDesdeNube();
+    Object.assign(
+      ingreso,
+      datosUpdate
+    );
+
+
+    if (input) {
+
+      input.value = "";
+
+    }
+
 
     renderGestionIngresos();
+
+    renderHistorialMensual();
 
 
     mostrarMensajeInterno(
@@ -3221,7 +3923,7 @@ async function registrarPago(
 
 
 // ============================================================
-// 21. EXPORTAR PDF
+// 24. EXPORTAR PDF
 // ============================================================
 
 function exportarIngresosPDF() {
@@ -3511,7 +4213,7 @@ function exportarIngresosPDF() {
 
 
 // ============================================================
-// 22. WHATSAPP
+// 25. WHATSAPP
 // ============================================================
 
 function notificarWhatsApp(
@@ -3592,5 +4294,149 @@ ${link}`;
     )}`,
     "_blank"
   );
+
+}
+
+
+// ============================================================
+// 26. COMPATIBILIDAD CON BOTONES DEL INDEX
+// ============================================================
+//
+// Estas funciones permiten que el HTML pueda abrir
+// directamente las diferentes ventanas del administrador.
+// Luego, cuando me pases tu index.html, las conectamos
+// exactamente con los nombres que ya tienes.
+//
+
+function abrirGestionProyectos() {
+
+  const elementos = [
+
+    "gestion-proyectos",
+
+    "modal-proyectos",
+
+    "seccion-gestion-proyectos"
+
+  ];
+
+
+  elementos.forEach(id => {
+
+    const elemento =
+      document.getElementById(id);
+
+
+    if (elemento) {
+
+      elemento.classList.remove(
+        "hidden"
+      );
+
+    }
+
+  });
+
+
+  renderProyectosAdmin();
+
+}
+
+
+function cerrarGestionProyectos() {
+
+  const elementos = [
+
+    "gestion-proyectos",
+
+    "modal-proyectos",
+
+    "seccion-gestion-proyectos"
+
+  ];
+
+
+  elementos.forEach(id => {
+
+    const elemento =
+      document.getElementById(id);
+
+
+    if (elemento) {
+
+      elemento.classList.add(
+        "hidden"
+      );
+
+    }
+
+  });
+
+}
+
+
+function abrirHistorialMensual() {
+
+  const elementos = [
+
+    "historial-mensual",
+
+    "modal-historial",
+
+    "seccion-historial-mensual"
+
+  ];
+
+
+  elementos.forEach(id => {
+
+    const elemento =
+      document.getElementById(id);
+
+
+    if (elemento) {
+
+      elemento.classList.remove(
+        "hidden"
+      );
+
+    }
+
+  });
+
+
+  renderHistorialMensual();
+
+}
+
+
+function cerrarHistorialMensual() {
+
+  const elementos = [
+
+    "historial-mensual",
+
+    "modal-historial",
+
+    "seccion-historial-mensual"
+
+  ];
+
+
+  elementos.forEach(id => {
+
+    const elemento =
+      document.getElementById(id);
+
+
+    if (elemento) {
+
+      elemento.classList.add(
+        "hidden"
+      );
+
+    }
+
+  });
 
 }
