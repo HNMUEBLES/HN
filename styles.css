@@ -645,3 +645,49 @@ textarea::placeholder {
   }
 
 }
+/* =========================================================
+   WHATSAPP FLOTANTE
+========================================================= */
+
+.whatsapp-floating {
+  position: fixed;
+  right: 22px;
+  bottom: 22px;
+  width: 58px;
+  height: 58px;
+  background: #25D366;
+  color: #ffffff;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-decoration: none;
+  font-size: 2rem;
+  z-index: 9999;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.45);
+  transition: transform 0.25s ease, box-shadow 0.25s ease;
+}
+
+.whatsapp-floating:hover {
+  transform: scale(1.08);
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.6);
+}
+
+.whatsapp-floating:active {
+  transform: scale(0.95);
+}
+
+
+/* CELULARES */
+
+@media (max-width: 768px) {
+
+  .whatsapp-floating {
+    width: 54px;
+    height: 54px;
+    right: 16px;
+    bottom: 16px;
+    font-size: 1.8rem;
+  }
+
+}
