@@ -1,3432 +1,651 @@
-// ============================================================
-// HN MUEBLES - SCRIPT PRINCIPAL
-// Firebase Authentication + Firestore
-// Gestión de Proyectos + Gestión de Ingresos
-// ============================================================
+@import url('https://fonts.googleapis.com/css2?family=Mont:wght@400;500;600;700;800;900&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=The+Bold+Font&display=swap');
 
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  font-family: 'Mont', sans-serif;
+}
 
-// ============================================================
-// 1. FIREBASE
-// ============================================================
+html {
+  scroll-behavior: smooth;
+}
 
-const firebaseConfig = {
-
-  apiKey: "AIzaSyCLrVUpGCTxFxuMR0ATlwj2t3osSP0dD7Y",
-
-  authDomain:
-    "hn-muebles.firebaseapp.com",
-
-  projectId:
-    "hn-muebles",
-
-  storageBucket:
-    "hn-muebles.firebasestorage.app",
-
-  messagingSenderId:
-    "175601256381",
-
-  appId:
-    "1:175601256381:web:db2031a56faa87a02bf4d4",
-
-  measurementId:
-    "G-8PJGERB67Q"
-
-};
-
-
-firebase.initializeApp(
-  firebaseConfig
-);
-
-
-const db =
-  firebase.firestore();
-
-
-const auth =
-  firebase.auth();
-
-
-const EMAIL_ADMIN =
-  "hn24muebles@gmail.com";
-
-
-let proyectos = [];
-
-let ingresos = [];
-
-let esAdmin = false;
-
-
-// ============================================================
-// 2. UTILIDADES
-// ============================================================
-
-function formatearMonto(valor) {
-
-  const num =
-    Number(valor) || 0;
-
-  return Number.isInteger(num)
-    ? num.toString()
-    : num.toFixed(2);
-
+body {
+  background-color: #0d0b0a;
+  color: #f5f3f0;
+  min-height: 100vh;
 }
 
 
-function generarCodigoAleatorio() {
+/* =========================================================
+   NAVBAR
+========================================================= */
 
-  const caracteres =
-    "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+.navbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem 2rem;
+  background: rgba(18, 15, 13, 0.92);
+  backdrop-filter: blur(8px);
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  z-index: 100;
+  border-bottom: 1px solid rgba(139, 107, 85, 0.2);
+}
 
-  let aleatorio = "";
+.logo-container {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  cursor: pointer;
+}
 
-  for (let i = 0; i < 5; i++) {
+.logo-img {
+  height: 40px;
+  width: auto;
+  object-fit: contain;
+}
 
-    aleatorio +=
-      caracteres.charAt(
-        Math.floor(
-          Math.random() *
-          caracteres.length
-        )
-      );
+.nav-links {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+  align-items: center;
+}
 
-  }
+.nav-links button {
+  background: transparent;
+  border: 1px solid transparent;
+  color: #f5f3f0;
+  padding: 0.5rem 1rem;
+  border-radius: 6px;
+  font-weight: 600;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  font-family: 'Mont', sans-serif;
+}
 
-  return `HN${aleatorio}`;
-
+.nav-links button:hover {
+  background-color: rgba(139, 107, 85, 0.15);
+  border-color: rgba(139, 107, 85, 0.3);
 }
 
 
-function llenarCodigoAutomatico() {
+/* =========================================================
+   INSTAGRAM EN LA NAVBAR
+========================================================= */
 
-  const input =
-    document.getElementById(
-      "nuevo-codigo"
-    );
+.instagram-nav {
+  width: 38px;
+  height: 38px;
 
-  if (input) {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
 
-    input.value =
-      generarCodigoAleatorio();
+  color: #ffffff;
+  text-decoration: none;
 
-  }
+  border-radius: 50%;
+  border: 1px solid transparent;
 
+  font-size: 1.3rem;
+
+  transition:
+    color 0.3s ease,
+    background-color 0.3s ease,
+    border-color 0.3s ease,
+    transform 0.3s ease;
+}
+
+.instagram-nav:hover {
+  color: #ffffff;
+  background: rgba(139, 107, 85, 0.15);
+  border-color: rgba(139, 107, 85, 0.3);
+  transform: translateY(-1px);
 }
 
 
-function copiarCodigoAlPortapapeles(
-  codigo
-) {
+/* =========================================================
+   SECCIÓN SUPERIOR
+========================================================= */
 
-  navigator.clipboard
-    .writeText(codigo)
-    .then(() => {
+.hero-fixed-banner {
+  height: 100vh;
+  width: 100%;
+  background-image:
+    url('assets/fondo.jpg'),
+    url('assets/fondo.png'),
+    url('assets/fondo.jpeg');
+  background-size: cover;
+  background-position: center;
+  background-attachment: fixed;
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 6rem 2rem 2rem 2rem;
+  z-index: 1;
+}
 
-      const boton =
-        document.querySelector(
-          `[data-copy-code="${codigo}"]`
-        );
+.hero-fixed-banner::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: rgba(13, 11, 10, 0.82);
+}
 
-      if (boton) {
-
-        const textoOriginal =
-          boton.innerText;
-
-        boton.innerText =
-          "Copiado ✓";
-
-        setTimeout(() => {
-
-          boton.innerText =
-            textoOriginal;
-
-        }, 1200);
-
-      }
-
-    })
-    .catch(error => {
-
-      console.error(
-        "Error copiando:",
-        error
-      );
-
-    });
-
+.hero-split-container {
+  position: relative;
+  z-index: 2;
+  width: 100%;
+  max-width: 1150px;
+  display: grid;
+  grid-template-columns: 1.1fr 0.9fr;
+  gap: 3.5rem;
+  align-items: center;
 }
 
 
-function irInicio() {
+/* =========================================================
+   HERO IZQUIERDA
+========================================================= */
 
-  window.scrollTo({
-    top: 0,
-    behavior: "smooth"
-  });
+.hero-title-big {
+  font-family: 'The Bold Font', sans-serif;
+  font-size: 4rem;
+  line-height: 1.05;
+  margin-bottom: 1rem;
+  color: #ffffff !important;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+}
 
+.hero-title-big .text-amber,
+.font-amber {
+  color: #9c7151 !important;
+}
+
+.about-text {
+  color: #d1c7be;
+  font-size: 1.05rem;
+  line-height: 1.6;
+  margin-bottom: 1.5rem;
+  font-weight: 400;
+}
+
+.hero-highlights {
+  display: flex;
+  gap: 1.5rem;
+  font-size: 0.95rem;
+  color: #e5ded7;
 }
 
 
-// ============================================================
-// 3. AUTENTICACIÓN
-// ============================================================
+/* =========================================================
+   TARJETA DE SEGUIMIENTO
+========================================================= */
 
-auth.onAuthStateChanged(
-  async (user) => {
+.modern-tracking-card {
+  background: rgba(22, 19, 17, 0.9);
+  border: 1px solid rgba(139, 107, 85, 0.35);
+  padding: 1.8rem 1.5rem;
+  border-radius: 12px;
+  box-shadow: 0 15px 35px rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(10px);
+  position: relative;
+  overflow: hidden;
+  max-width: 400px;
+  margin: 0 auto;
+}
 
-    console.log(
-      "CAMBIO DE AUTENTICACIÓN:",
-      user
-    );
+.modern-tracking-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 3px;
+  background: #9c7151;
+}
 
+.card-icon-header {
+  font-size: 1.8rem;
+  margin-bottom: 0.5rem;
+  color: #9c7151;
+}
 
-    if (!user) {
+.modern-tracking-card h2 {
+  font-size: 1.4rem;
+  font-weight: 700;
+  margin-bottom: 0.4rem;
+  color: #fff;
+  letter-spacing: -0.5px;
+}
 
-      esAdmin = false;
-
-      ocultarPanelAdministrador();
-
-      return;
-
-    }
-
-
-    console.log(
-      "Usuario conectado:",
-      user.email
-    );
-
-
-    const emailUsuario =
-      (user.email || "")
-        .trim()
-        .toLowerCase();
-
-
-    const emailAdmin =
-      EMAIL_ADMIN
-        .trim()
-        .toLowerCase();
-
-
-    if (
-      emailUsuario !==
-      emailAdmin
-    ) {
-
-      console.warn(
-        "Cuenta autenticada pero no es administrador:",
-        user.email
-      );
-
-      esAdmin = false;
-
-      ocultarPanelAdministrador();
-
-      return;
-
-    }
-
-
-    // ========================================================
-    // ADMINISTRADOR CORRECTO
-    // ========================================================
-
-    esAdmin = true;
-
-
-    console.log(
-      "ADMINISTRADOR AUTORIZADO"
-    );
-
-
-    mostrarPanelAdministrador();
-
-
-    try {
-
-      await cargarProyectosDesdeNube();
-
-      await cargarIngresosDesdeNube();
-
-
-      renderProyectosAdmin();
-
-      renderGestionIngresos();
-
-
-    }
-
-    catch (error) {
-
-      console.error(
-        "Error cargando panel:",
-        error
-      );
-
-    }
-
-  }
-);
-
-
-// ============================================================
-// 4. MOSTRAR / OCULTAR ADMIN
-// ============================================================
-
-function mostrarPanelAdministrador() {
-
-  const login =
-    document.getElementById(
-      "admin-login"
-    );
-
-  const panel =
-    document.getElementById(
-      "admin-panel"
-    );
-
-
-  if (login) {
-
-    login.classList.add(
-      "hidden"
-    );
-
-  }
-
-
-  if (panel) {
-
-    panel.classList.remove(
-      "hidden"
-    );
-
-  }
-
+.subtitle {
+  color: #b3a69c;
+  font-size: 0.88rem;
+  margin-bottom: 1.5rem;
+  line-height: 1.4;
 }
 
 
-function ocultarPanelAdministrador() {
+/* =========================================================
+   BUSCADOR
+========================================================= */
 
-  const login =
-    document.getElementById(
-      "admin-login"
-    );
+.search-form-modern {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
 
-  const panel =
-    document.getElementById(
-      "admin-panel"
-    );
+.input-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
 
+.input-wrapper i {
+  position: absolute;
+  left: 14px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #9e9187;
+  font-size: 0.95rem;
+  pointer-events: none;
+  z-index: 5;
+}
 
-  if (panel) {
+.input-wrapper input[type="text"] {
+  width: 100%;
+  background-color: rgba(10, 8, 7, 0.7);
+  border: 1px solid #38302b;
+  border-radius: 8px;
+  padding: 0.75rem 1rem 0.75rem 2.6rem !important;
+  color: #fff;
+  outline: none;
+  font-size: 0.95rem;
+  font-family: 'Mont', sans-serif;
+  transition: all 0.3s;
+}
 
-    panel.classList.add(
-      "hidden"
-    );
+.input-wrapper input[type="text"]:focus {
+  border-color: #9c7151;
+  box-shadow: 0 0 0 2px rgba(156, 113, 81, 0.2);
+}
 
-  }
+.btn-primary-modern {
+  background: #875f42;
+  color: #ffffff;
+  border: none;
+  padding: 0.7rem 1.2rem;
+  font-size: 0.9rem;
+  font-weight: 600;
+  font-family: 'Mont', sans-serif;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background 0.2s, transform 0.2s;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+}
 
-
-  if (login) {
-
-    login.classList.remove(
-      "hidden"
-    );
-
-  }
-
+.btn-primary-modern:hover {
+  background: #9c7151;
+  transform: translateY(-1px);
 }
 
 
-// ============================================================
-// 5. LOGIN
-// ============================================================
-
-document.addEventListener(
-  "DOMContentLoaded",
-  function () {
-
-
-    const formLogin =
-      document.getElementById(
-        "form-login"
-      );
-
-
-    if (formLogin) {
-
-      formLogin.addEventListener(
-        "submit",
-        async function (e) {
-
-          e.preventDefault();
-
-
-          const emailInput =
-            document.getElementById(
-              "input-email"
-            );
-
-
-          const passwordInput =
-            document.getElementById(
-              "input-pass"
-            );
-
-
-          const errorMsg =
-            document.getElementById(
-              "login-error-msg"
-            );
-
-
-          const boton =
-            formLogin.querySelector(
-              'button[type="submit"]'
-            );
-
-
-          const email =
-            emailInput?.value
-              .trim()
-              .toLowerCase();
-
-
-          const password =
-            passwordInput?.value
-            || "";
-
-
-          if (errorMsg) {
-
-            errorMsg.textContent =
-              "";
-
-            errorMsg.classList.add(
-              "hidden"
-            );
-
-          }
-
-
-          if (!email || !password) {
-
-            if (errorMsg) {
-
-              errorMsg.textContent =
-                "Ingresa tu correo y contraseña.";
-
-              errorMsg.classList.remove(
-                "hidden"
-              );
-
-            }
-
-            return;
-
-          }
-
-
-          try {
-
-            if (boton) {
-
-              boton.disabled =
-                true;
-
-              boton.dataset.textoOriginal =
-                boton.innerText;
-
-              boton.innerText =
-                "Ingresando...";
-
-            }
-
-
-            const resultado =
-              await auth
-                .signInWithEmailAndPassword(
-                  email,
-                  password
-                );
-
-
-            console.log(
-              "LOGIN FIREBASE EXITOSO:",
-              resultado.user.email
-            );
-
-
-            if (passwordInput) {
-
-              passwordInput.value =
-                "";
-
-            }
-
-          }
-
-          catch (error) {
-
-            console.error(
-              "ERROR COMPLETO DE FIREBASE LOGIN:",
-              error
-            );
-
-
-            let mensaje =
-              "No se pudo iniciar sesión.";
-
-
-            switch (error.code) {
-
-              case "auth/invalid-credential":
-
-                mensaje =
-                  "Correo o contraseña incorrectos.";
-
-                break;
-
-
-              case "auth/wrong-password":
-
-                mensaje =
-                  "La contraseña es incorrecta.";
-
-                break;
-
-
-              case "auth/user-not-found":
-
-                mensaje =
-                  "No existe una cuenta con ese correo.";
-
-                break;
-
-
-              case "auth/invalid-email":
-
-                mensaje =
-                  "El correo electrónico no es válido.";
-
-                break;
-
-
-              case "auth/user-disabled":
-
-                mensaje =
-                  "Esta cuenta está deshabilitada en Firebase.";
-
-                break;
-
-
-              case "auth/too-many-requests":
-
-                mensaje =
-                  "Demasiados intentos. Espera unos minutos e inténtalo nuevamente.";
-
-                break;
-
-
-              case "auth/network-request-failed":
-
-                mensaje =
-                  "No hay conexión con Firebase. Revisa tu Internet.";
-
-                break;
-
-
-              case "auth/operation-not-allowed":
-
-                mensaje =
-                  "El acceso con correo y contraseña no está habilitado en Firebase Authentication.";
-
-                break;
-
-
-              default:
-
-                mensaje =
-                  `Error de acceso: ${
-                    error.message ||
-                    error.code ||
-                    "desconocido"
-                  }`;
-
-            }
-
-
-            if (errorMsg) {
-
-              errorMsg.textContent =
-                mensaje;
-
-              errorMsg.classList.remove(
-                "hidden"
-              );
-
-            }
-
-          }
-
-          finally {
-
-            if (boton) {
-
-              boton.disabled =
-                false;
-
-              boton.innerText =
-                boton.dataset.textoOriginal
-                || "Ingresar";
-
-            }
-
-          }
-
-        }
-      );
-
-    }
-
-
-    // ========================================================
-    // BÚSQUEDA PÚBLICA
-    // ========================================================
-
-    const formBuscar =
-      document.getElementById(
-        "form-buscar"
-      );
-
-
-    if (formBuscar) {
-
-      formBuscar.addEventListener(
-        "submit",
-        async function (e) {
-
-          e.preventDefault();
-
-
-          const codigo =
-            document.getElementById(
-              "input-codigo"
-            )?.value
-              .trim()
-              .toUpperCase();
-
-
-          if (codigo) {
-
-            await buscarProyectoPublico(
-              codigo
-            );
-
-          }
-
-        }
-      );
-
-    }
-
-
-    // ========================================================
-    // CÁLCULO SALDO NUEVO PROYECTO
-    // ========================================================
-
-    const presupuestoInput =
-      document.getElementById(
-        "nuevo-presupuesto"
-      );
-
-
-    const adelantoInput =
-      document.getElementById(
-        "nuevo-adelanto"
-      );
-
-
-    function calcularSaldoNuevo() {
-
-      const total =
-        Number(
-          presupuestoInput?.value
-        ) || 0;
-
-
-      const adelanto =
-        Number(
-          adelantoInput?.value
-        ) || 0;
-
-
-      const saldo =
-        Math.max(
-          total - adelanto,
-          0
-        );
-
-
-      const totalPreview =
-        document.getElementById(
-          "nuevo-total-preview"
-        );
-
-
-      const adelantoPreview =
-        document.getElementById(
-          "nuevo-adelanto-preview"
-        );
-
-
-      const saldoPreview =
-        document.getElementById(
-          "nuevo-saldo-preview"
-        );
-
-
-      if (totalPreview) {
-
-        totalPreview.innerText =
-          `Bs. ${formatearMonto(total)}`;
-
-      }
-
-
-      if (adelantoPreview) {
-
-        adelantoPreview.innerText =
-          `Bs. ${formatearMonto(adelanto)}`;
-
-      }
-
-
-      if (saldoPreview) {
-
-        saldoPreview.innerText =
-          `Bs. ${formatearMonto(saldo)}`;
-
-      }
-
-    }
-
-
-    presupuestoInput?.addEventListener(
-      "input",
-      calcularSaldoNuevo
-    );
-
-
-    adelantoInput?.addEventListener(
-      "input",
-      calcularSaldoNuevo
-    );
-
-
-    calcularSaldoNuevo();
-
-
-    // ========================================================
-    // NUEVO PROYECTO
-    // ========================================================
-
-    const formNuevo =
-      document.getElementById(
-        "form-nuevo-proyecto"
-      );
-
-
-    if (formNuevo) {
-
-      formNuevo.addEventListener(
-        "submit",
-        async function (e) {
-
-          e.preventDefault();
-
-
-          if (
-            !esAdmin ||
-            !auth.currentUser
-          ) {
-
-            mostrarMensajeInterno(
-              "Debes iniciar sesión como administrador.",
-              true
-            );
-
-            return;
-
-          }
-
-
-          const codigo =
-            document.getElementById(
-              "nuevo-codigo"
-            )?.value
-              .trim()
-              .toUpperCase()
-            ||
-            generarCodigoAleatorio();
-
-
-          const cliente =
-            document.getElementById(
-              "nuevo-cliente"
-            )?.value.trim()
-            || "";
-
-
-          const mueble =
-            document.getElementById(
-              "nuevo-mueble"
-            )?.value.trim()
-            || "";
-
-
-          const telefono =
-            document.getElementById(
-              "nuevo-telefono"
-            )?.value.trim()
-            || "";
-
-
-          const presupuesto =
-            Number(
-              document.getElementById(
-                "nuevo-presupuesto"
-              )?.value
-            ) || 0;
-
-
-          const adelanto =
-            Number(
-              document.getElementById(
-                "nuevo-adelanto"
-              )?.value
-            ) || 0;
-
-
-          const fechaEntrega =
-            document.getElementById(
-              "nuevo-fecha"
-            )?.value
-            || "";
-
-
-          const pendiente =
-            Math.max(
-              presupuesto -
-              adelanto,
-              0
-            );
-
-
-          const proyectoRef =
-            db
-              .collection("proyectos")
-              .doc();
-
-
-          const ingresoRef =
-            db
-              .collection("ingresos")
-              .doc();
-
-
-          const publicoRef =
-            db
-              .collection("proyectos_publicos")
-              .doc(
-                proyectoRef.id
-              );
-
-
-          const proyecto = {
-
-            codigo,
-
-            cliente,
-
-            mueble,
-
-            telefono,
-
-            estado:
-              "Diseño Aprobado",
-
-            progreso:
-              20,
-
-            detalles:
-              "Diseño confirmado por WhatsApp. Listo para corte.",
-
-            presupuesto,
-
-            adelanto,
-
-            fechaEntrega,
-
-            creadoEn:
-              firebase.firestore.FieldValue.serverTimestamp()
-
-          };
-
-
-          const ingreso = {
-
-            proyectoId:
-              proyectoRef.id,
-
-            codigo,
-
-            cliente,
-
-            mueble,
-
-            presupuesto,
-
-            adelanto,
-
-            pagosFinales: 0,
-
-            cobrado:
-              adelanto,
-
-            pendiente,
-
-            fechaCreacion:
-              firebase.firestore.FieldValue.serverTimestamp(),
-
-            fechaUltimoPago:
-              adelanto > 0
-                ? firebase.firestore.FieldValue.serverTimestamp()
-                : null
-
-          };
-
-
-          const proyectoPublico = {
-
-            codigo,
-
-            cliente,
-
-            mueble,
-
-            estado:
-              "Diseño Aprobado",
-
-            progreso:
-              20,
-
-            detalles:
-              "Diseño confirmado por WhatsApp. Listo para corte.",
-
-            fechaEntrega
-
-          };
-
-
-          try {
-
-            const batch =
-              db.batch();
-
-
-            batch.set(
-              proyectoRef,
-              proyecto
-            );
-
-
-            batch.set(
-              ingresoRef,
-              ingreso
-            );
-
-
-            batch.set(
-              publicoRef,
-              proyectoPublico
-            );
-
-
-            // ==================================================
-            // GUARDAMOS LAS 3 COLECCIONES JUNTAS
-            // ==================================================
-
-            await batch.commit();
-
-
-            // ==================================================
-            // LIMPIAR FORMULARIO
-            // ==================================================
-
-            const campoCodigo =
-              document.getElementById(
-                "nuevo-codigo"
-              );
-
-            const campoCliente =
-              document.getElementById(
-                "nuevo-cliente"
-              );
-
-            const campoMueble =
-              document.getElementById(
-                "nuevo-mueble"
-              );
-
-            const campoTelefono =
-              document.getElementById(
-                "nuevo-telefono"
-              );
-
-            const campoPresupuesto =
-              document.getElementById(
-                "nuevo-presupuesto"
-              );
-
-            const campoAdelanto =
-              document.getElementById(
-                "nuevo-adelanto"
-              );
-
-            const campoFecha =
-              document.getElementById(
-                "nuevo-fecha"
-              );
-
-
-            if (campoCodigo) {
-
-              campoCodigo.value =
-                generarCodigoAleatorio();
-
-            }
-
-
-            if (campoCliente) {
-
-              campoCliente.value =
-                "";
-
-            }
-
-
-            if (campoMueble) {
-
-              campoMueble.value =
-                "";
-
-            }
-
-
-            if (campoTelefono) {
-
-              campoTelefono.value =
-                "";
-
-            }
-
-
-            if (campoPresupuesto) {
-
-              campoPresupuesto.value =
-                "";
-
-            }
-
-
-            if (campoAdelanto) {
-
-              campoAdelanto.value =
-                "";
-
-            }
-
-
-            if (campoFecha) {
-
-              campoFecha.value =
-                "";
-
-            }
-
-
-            calcularSaldoNuevo();
-
-
-            // ==================================================
-            // ACTUALIZAR TODO AUTOMÁTICAMENTE
-            // ==================================================
-
-            await cargarProyectosDesdeNube();
-
-            await cargarIngresosDesdeNube();
-
-
-            renderProyectosAdmin();
-
-            renderGestionIngresos();
-
-
-            mostrarMensajeInterno(
-              "Proyecto guardado correctamente."
-            );
-
-          }
-
-          catch (error) {
-
-            console.error(
-              "Error creando proyecto:",
-              error
-            );
-
-
-            mostrarMensajeInterno(
-              "No se pudo guardar. Revisa las Rules de Firestore.",
-              true
-            );
-
-          }
-
-        }
-      );
-
-    }
-
-
-    // ========================================================
-    // FILTRO INGRESOS
-    // ========================================================
-
-    const filtroIngresos =
-      document.getElementById(
-        "ingresos-mes"
-      );
-
-
-    if (filtroIngresos) {
-
-      const ahora =
-        new Date();
-
-
-      filtroIngresos.value =
-        `${ahora.getFullYear()}-${String(
-          ahora.getMonth() + 1
-        ).padStart(2, "0")}`;
-
-
-      filtroIngresos.addEventListener(
-        "change",
-        function () {
-
-          renderGestionIngresos();
-
-        }
-      );
-
-    }
-
-  }
-);
-
-
-// ============================================================
-// 6. MENSAJE INTERNO
-// ============================================================
-
-function mostrarMensajeInterno(
-  mensaje,
-  error = false
-) {
-
-  const elemento =
-    document.getElementById(
-      "ingreso-mensaje"
-    );
-
-
-  if (!elemento) {
-
-    console.log(mensaje);
-
-    return;
-
-  }
-
-
-  elemento.textContent =
-    mensaje;
-
-
-  elemento.style.color =
-    error
-      ? "#ef4444"
-      : "#4ade80";
-
-
-  setTimeout(() => {
-
-    elemento.textContent =
-      "";
-
-  }, 3000);
-
+/* =========================================================
+   RESULTADOS
+========================================================= */
+
+.result-box-modern {
+  margin-top: 1.2rem;
+  background: rgba(13, 11, 10, 0.6);
+  padding: 1rem;
+  border-radius: 8px;
+  border: 1px solid rgba(139, 107, 85, 0.2);
+  text-align: left;
+}
+
+.result-status-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 10px;
+  font-size: 0.85rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.05);
+  padding-top: 8px;
+}
+
+.progress-pill {
+  background: rgba(156, 113, 81, 0.15);
+  color: #c49a7a;
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-size: 0.8rem;
+  border: 1px solid rgba(156, 113, 81, 0.3);
+  font-weight: 500;
 }
 
 
-// ============================================================
-// 7. CERRAR SESIÓN
-// ============================================================
+/* =========================================================
+   CONTENEDOR INFERIOR
+========================================================= */
 
-async function cerrarSesionAdmin() {
+.black-content-container {
+  position: relative;
+  background-color: #0d0b0a;
+  z-index: 10;
+  min-height: 80vh;
+}
 
-  try {
+.content-section {
+  padding: 5rem 1.5rem;
+  display: flex;
+  justify-content: center;
+}
 
-    await auth.signOut();
+.section-inner {
+  width: 100%;
+  max-width: 900px;
+  text-align: center;
+}
 
-    esAdmin = false;
-
-    ocultarPanelAdministrador();
-
-
-    const modal =
-      document.getElementById(
-        "modal-ingresos"
-      );
-
-
-    if (modal) {
-
-      modal.classList.add(
-        "hidden"
-      );
-
-    }
-
-
-    irInicio();
-
-  }
-
-  catch (error) {
-
-    console.error(
-      "Error cerrando sesión:",
-      error
-    );
-
-  }
-
+.section-inner h2 {
+  font-size: 1.8rem;
+  margin-bottom: 0.5rem;
+  font-weight: 700;
 }
 
 
-// ============================================================
-// 8. CARGAR PROYECTOS
-// ============================================================
+/* =========================================================
+   GRILLA DE 5 PASOS
+========================================================= */
 
-async function cargarProyectosDesdeNube() {
+.steps-grid-5 {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 1rem;
+  margin-top: 2rem;
+  text-align: left;
+}
 
-  if (
-    !auth.currentUser ||
-    !esAdmin
-  ) {
+.step-box {
+  background: #14110f;
+  border: 1px solid #26211d;
+  border-radius: 10px;
+  padding: 1.5rem;
+  transition: border-color 0.3s;
+}
 
-    return;
+.step-box:hover {
+  border-color: rgba(156, 113, 81, 0.5);
+}
 
-  }
+.step-icon {
+  font-size: 1.5rem;
+  color: #9c7151;
+  margin-bottom: 0.75rem;
+}
 
+.step-title {
+  font-weight: 700;
+  font-size: 0.95rem;
+  margin-bottom: 0.4rem;
+  color: #fff;
+}
 
-  try {
-
-    const snapshot =
-      await db
-        .collection("proyectos")
-        .get();
-
-
-    proyectos = [];
-
-
-    snapshot.forEach(
-      doc => {
-
-        proyectos.push({
-
-          id:
-            doc.id,
-
-          ...doc.data()
-
-        });
-
-      }
-    );
-
-  }
-
-  catch (error) {
-
-    console.error(
-      "Error cargando proyectos:",
-      error
-    );
-
-  }
-
+.step-desc {
+  font-size: 0.8rem;
+  color: #b3a69c;
+  line-height: 1.4;
 }
 
 
-// ============================================================
-// 9. CARGAR INGRESOS
-// ============================================================
+/* =========================================================
+   MODAL ADMIN
+========================================================= */
 
-async function cargarIngresosDesdeNube() {
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.85);
+  backdrop-filter: blur(5px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 1.5rem;
+}
 
-  if (
-    !auth.currentUser ||
-    !esAdmin
-  ) {
+.modal-box {
+  background: #161311;
+  border: 1px solid rgba(156, 113, 81, 0.35);
+  border-radius: 14px;
+  padding: 2.5rem;
+  width: 100%;
+  max-width: 850px;
+  max-height: 90vh;
+  overflow-y: auto;
+  position: relative;
+  box-shadow: 0 25px 50px rgba(0,0,0,0.9);
+}
 
-    return;
+.modal-close {
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  background: transparent;
+  border: none;
+  color: #b3a69c;
+  font-size: 1.6rem;
+  cursor: pointer;
+  transition: color 0.2s;
+}
 
-  }
-
-
-  try {
-
-    const snapshot =
-      await db
-        .collection("ingresos")
-        .get();
-
-
-    ingresos = [];
-
-
-    snapshot.forEach(
-      doc => {
-
-        ingresos.push({
-
-          id:
-            doc.id,
-
-          ...doc.data()
-
-        });
-
-      }
-    );
-
-  }
-
-  catch (error) {
-
-    console.error(
-      "Error cargando ingresos:",
-      error
-    );
-
-  }
-
+.modal-close:hover {
+  color: #fff;
 }
 
 
-// ============================================================
-// 10. BÚSQUEDA PÚBLICA
-// ============================================================
+/* =========================================================
+   INPUTS ADMIN
+========================================================= */
 
-async function buscarProyectoPublico(
-  codigo
-) {
+select,
+.admin-select,
+input[type="text"],
+input[type="password"] {
+  background-color: #0d0b0a;
+  border: 1px solid #332b25;
+  border-radius: 8px;
+  padding: 0.7rem 0.9rem;
+  color: #fff;
+  outline: none;
+  font-size: 0.9rem;
+  font-family: 'Mont', sans-serif;
+  transition: border-color 0.15s ease, background-color 0.15s ease;
+}
 
-  const errorMsg =
-    document.getElementById(
-      "mensaje-error"
-    );
-
-
-  const resultBox =
-    document.getElementById(
-      "resultado-proyecto"
-    );
-
-
-  try {
-
-    const snapshot =
-      await db
-        .collection("proyectos_publicos")
-        .where(
-          "codigo",
-          "==",
-          codigo
-        )
-        .limit(1)
-        .get();
-
-
-    if (snapshot.empty) {
-
-      resultBox?.classList.add(
-        "hidden"
-      );
-
-      errorMsg?.classList.remove(
-        "hidden"
-      );
-
-      return;
-
-    }
-
-
-    const data =
-      snapshot.docs[0].data();
-
-
-    errorMsg?.classList.add(
-      "hidden"
-    );
-
-
-    resultBox?.classList.remove(
-      "hidden"
-    );
-
-
-    document.getElementById(
-      "res-codigo"
-    ).innerText =
-      data.codigo || "";
-
-
-    document.getElementById(
-      "res-mueble"
-    ).innerText =
-      data.mueble || "";
-
-
-    document.getElementById(
-      "res-cliente"
-    ).innerText =
-      `Cliente: ${data.cliente || ""}`;
-
-
-    document.getElementById(
-      "res-estado"
-    ).innerText =
-      data.estado || "";
-
-
-    document.getElementById(
-      "res-porcentaje"
-    ).innerText =
-      `${data.progreso || 0}%`;
-
-  }
-
-  catch (error) {
-
-    console.error(
-      "Error búsqueda pública:",
-      error
-    );
-
-
-    resultBox?.classList.add(
-      "hidden"
-    );
-
-
-    if (errorMsg) {
-
-      errorMsg.innerText =
-        "No se pudo consultar el proyecto.";
-
-      errorMsg.classList.remove(
-        "hidden"
-      );
-
-    }
-
-  }
-
+select:focus,
+.admin-select:focus,
+input:focus {
+  border-color: #9c7151;
+  background-color: #120f0d;
 }
 
 
-// ============================================================
-// 11. RENDER PROYECTOS ADMIN
-// ============================================================
-
-function renderProyectosAdmin() {
-
-  if (!esAdmin) return;
-
-
-  const container =
-    document.getElementById(
-      "lista-proyectos-admin"
-    );
-
-
-  const total =
-    document.getElementById(
-      "total-proyectos"
-    );
-
-
-  if (total) {
-
-    total.innerText =
-      proyectos.length;
-
-  }
-
-
-  if (!container) return;
-
-
-  container.innerHTML =
-    "";
-
-
-  const etapas = [
-
-    "Diseño Aprobado",
-
-    "Corte",
-
-    "Armado",
-
-    "Instalación",
-
-    "Finalizado"
-
-  ];
-
-
-  proyectos.forEach(
-    (p, index) => {
-
-      const presupuesto =
-        Number(
-          p.presupuesto
-        ) || 0;
-
-
-      const adelanto =
-        Number(
-          p.adelanto
-        ) || 0;
-
-
-      const saldo =
-        Math.max(
-          presupuesto -
-          adelanto,
-          0
-        );
-
-
-      const fecha =
-        p.fechaEntrega
-          ? p.fechaEntrega
-              .split("-")
-              .reverse()
-              .join("/")
-          : "Sin definir";
-
-
-      const card =
-        document.createElement(
-          "div"
-        );
-
-
-      card.className =
-        "admin-card";
-
-
-      card.style.cssText =
-        `
-        background:rgba(255,255,255,.05);
-        border:1px solid rgba(255,255,255,.1);
-        border-radius:12px;
-        padding:1.2rem;
-        margin-bottom:1rem;
-        `;
-
-
-      const botones =
-        etapas.map(
-          (estado, idx) => {
-
-            const activo =
-              p.estado === estado;
-
-
-            return `
-
-              <button
-                type="button"
-                onclick="cambiarEstadoPorId(
-                  '${p.id}',
-                  ${idx},
-                  ${(idx + 1) * 20}
-                )"
-                style="
-                  border:none;
-                  padding:.4rem .7rem;
-                  border-radius:6px;
-                  cursor:pointer;
-                  font-size:.8rem;
-                  margin:.2rem;
-
-                  ${
-                    activo
-                      ? "background:#f59e0b;color:#000;font-weight:bold;"
-                      : "background:rgba(255,255,255,.1);color:#fff;"
-                  }
-                "
-              >
-                ${estado}
-              </button>
-
-            `;
-
-          }
-        ).join("");
-
-
-      card.innerHTML =
-      `
-
-        <div id="info-view-${index}">
-
-          <div
-            style="
-              display:flex;
-              justify-content:space-between;
-              gap:10px;
-              flex-wrap:wrap;
-            "
-          >
-
-            <div style="flex:1;min-width:260px;">
-
-              <span
-                style="
-                  background:#f59e0b;
-                  color:#000;
-                  padding:.2rem .6rem;
-                  border-radius:4px;
-                  font-weight:bold;
-                  font-size:.85rem;
-                "
-              >
-                ${p.codigo || ""}
-              </span>
-
-
-              <strong style="margin-left:.4rem;">
-                ${p.mueble || ""}
-              </strong>
-
-
-              <p
-                style="
-                  margin:.4rem 0;
-                  color:#a3a3a3;
-                  font-size:.85rem;
-                "
-              >
-                Cliente:
-                ${p.cliente || ""}
-                |
-                Tel:
-                ${p.telefono || "Sin registrar"}
-              </p>
-
-
-              <p
-                style="
-                  color:#38bdf8;
-                  font-size:.85rem;
-                "
-              >
-                Entrega:
-                <strong>
-                  ${fecha}
-                </strong>
-              </p>
-
-
-              <!-- =================================================
-                   CAJAS FINANCIERAS
-                   ================================================= -->
-
-              <div
-                style="
-                  display:grid;
-                  grid-template-columns:
-                    repeat(3,minmax(0,1fr));
-                  gap:10px;
-                  margin-top:12px;
-                "
-              >
-
-                <!-- MONTO TOTAL -->
-
-                <div
-                  class="financial-box"
-                  style="
-                    background:rgba(56,189,248,.07);
-                    border:1px solid rgba(56,189,248,.25);
-                    color:#38bdf8;
-                  "
-                >
-
-                  <span
-                    style="
-                      font-size:.75rem;
-                      opacity:.85;
-                      margin-bottom:5px;
-                    "
-                  >
-                    Monto total
-                  </span>
-
-                  <strong
-                    style="
-                      font-size:1.05rem;
-                      line-height:1.2;
-                      white-space:nowrap;
-                    "
-                  >
-                    Bs. ${formatearMonto(presupuesto)}
-                  </strong>
-
-                </div>
-
-
-                <!-- ADELANTO -->
-
-                <div
-                  class="financial-box"
-                  style="
-                    background:rgba(245,158,11,.07);
-                    border:1px solid rgba(245,158,11,.25);
-                    color:#f59e0b;
-                  "
-                >
-
-                  <span
-                    style="
-                      font-size:.75rem;
-                      opacity:.85;
-                      margin-bottom:5px;
-                    "
-                  >
-                    Adelanto
-                  </span>
-
-                  <strong
-                    style="
-                      font-size:1.05rem;
-                      line-height:1.2;
-                      white-space:nowrap;
-                    "
-                  >
-                    Bs. ${formatearMonto(adelanto)}
-                  </strong>
-
-                </div>
-
-
-                <!-- PENDIENTE -->
-
-                <div
-                  class="financial-box"
-                  style="
-                    background:rgba(239,68,68,.07);
-                    border:1px solid rgba(239,68,68,.25);
-                    color:#ef4444;
-                  "
-                >
-
-                  <span
-                    style="
-                      font-size:.75rem;
-                      opacity:.85;
-                      margin-bottom:5px;
-                    "
-                  >
-                    Pendiente
-                  </span>
-
-                  <strong
-                    style="
-                      font-size:1.05rem;
-                      line-height:1.2;
-                      white-space:nowrap;
-                    "
-                  >
-                    Bs. ${formatearMonto(saldo)}
-                  </strong>
-
-                </div>
-
-              </div>
-
-
-              <!-- ETAPAS -->
-
-              <div
-                style="
-                  margin-top:.7rem;
-                "
-              >
-                ${botones}
-              </div>
-
-
-              <!-- WHATSAPP -->
-
-              <button
-                type="button"
-                onclick="notificarWhatsApp(${index})"
-                style="
-                  margin-top:.6rem;
-                  background:#16a34a;
-                  color:white;
-                  border:none;
-                  padding:.4rem .8rem;
-                  border-radius:6px;
-                  cursor:pointer;
-                  font-size:.85rem;
-                  font-weight:bold;
-                "
-              >
-                WhatsApp
-              </button>
-
-            </div>
-
-
-            <!-- =================================================
-                 ACCIONES
-                 ================================================= -->
-
-            <div
-              style="
-                display:flex;
-                gap:5px;
-                align-items:flex-start;
-              "
-            >
-
-              <button
-                type="button"
-                onclick="activarEdicionInline(${index})"
-                class="admin-action-btn"
-                style="
-                  background:#3b82f6;
-                  color:#fff;
-                "
-                title="Editar proyecto"
-              >
-                ✏️
-              </button>
-
-
-              <button
-                type="button"
-                onclick="eliminarProyecto('${p.id}')"
-                class="admin-action-btn"
-                style="
-                  background:#ef4444;
-                  color:#fff;
-                "
-                title="Eliminar proyecto"
-              >
-                🗑️
-              </button>
-
-            </div>
-
-          </div>
-
-        </div>
-
-      `;
-
-
-      container.appendChild(
-        card
-      );
-
-    }
-  );
-
+/* =========================================================
+   UTILIDADES
+========================================================= */
+
+.hidden {
+  display: none !important;
+}
+
+.badge {
+  background: rgba(156, 113, 81, 0.15);
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-size: 0.75rem;
+  color: #c49a7a;
+  font-family: monospace;
+  border: 1px solid rgba(156, 113, 81, 0.3);
+}
+
+.error-msg {
+  background: rgba(239, 68, 68, 0.15);
+  color: #f87171;
+  border: 1px solid rgba(239, 68, 68, 0.3);
+  padding: 8px 12px;
+  border-radius: 8px;
+  font-size: 0.85rem;
+  margin-top: 10px;
 }
 
 
-// ============================================================
-// 12. CAMBIAR ESTADO
-// ============================================================
+/* =========================================================
+   FOOTER
+========================================================= */
 
-async function cambiarEstadoPorId(
-  id,
-  etapaIdx,
-  progreso
-) {
+.footer {
+  border-top: 1px solid #221c18;
+  background: #090706;
+  padding: 3rem 1.5rem;
+  text-align: center;
+}
 
-  if (
-    !esAdmin ||
-    !auth.currentUser
-  ) {
+.footer p {
+  color: #b3a69c;
+  font-size: 0.9rem;
+  margin-bottom: 1rem;
+}
 
-    return;
-
-  }
-
-
-  const etapas = [
-
-    "Diseño Aprobado",
-
-    "Corte",
-
-    "Armado",
-
-    "Instalación",
-
-    "Finalizado"
-
-  ];
-
-
-  const descripciones = [
-
-    "El diseño ha sido aprobado por WhatsApp. El proyecto ingresa a producción.",
-
-    "Las placas se encuentran en proceso de corte y pegado de tapacantos.",
-
-    "Las piezas se están ensamblando en taller.",
-
-    "El mueble está en proceso de traslado e instalación en sitio.",
-
-    "¡El proyecto ha sido completado e instalado con éxito!"
-
-  ];
-
-
-  const estado =
-    etapas[etapaIdx];
-
-
-  const detalles =
-    descripciones[etapaIdx];
-
-
-  try {
-
-    const batch =
-      db.batch();
-
-
-    const proyectoRef =
-      db
-        .collection("proyectos")
-        .doc(id);
-
-
-    batch.update(
-      proyectoRef,
-      {
-        estado,
-        progreso,
-        detalles
-      }
-    );
-
-
-    const proyecto =
-      proyectos.find(
-        p => p.id === id
-      );
-
-
-    const publicoQuery =
-      await db
-        .collection("proyectos_publicos")
-        .where(
-          "codigo",
-          "==",
-          proyecto?.codigo
-        )
-        .limit(1)
-        .get();
-
-
-    publicoQuery.forEach(
-      doc => {
-
-        batch.update(
-          doc.ref,
-          {
-            estado,
-            progreso,
-            detalles
-          }
-        );
-
-      }
-    );
-
-
-    await batch.commit();
-
-
-    await cargarProyectosDesdeNube();
-
-    renderProyectosAdmin();
-
-  }
-
-  catch (error) {
-
-    console.error(
-      "Error estado:",
-      error
-    );
-
-  }
-
+.copyright {
+  color: #665b53 !important;
+  font-size: 0.75rem !important;
 }
 
 
-// ============================================================
-// 13. ELIMINAR PROYECTO
-// ============================================================
+/* =========================================================
+   WHATSAPP FLOTANTE
+========================================================= */
 
-async function eliminarProyecto(
-  id
-) {
+.whatsapp-float {
+  position: fixed;
 
-  if (
-    !esAdmin ||
-    !auth.currentUser
-  ) {
+  right: 24px;
+  bottom: 24px;
 
-    return;
+  width: 58px;
+  height: 58px;
 
-  }
+  display: flex;
+  align-items: center;
+  justify-content: center;
 
+  background: #25D366;
+  color: #ffffff;
 
-  try {
+  border-radius: 50%;
 
-    const proyecto =
-      proyectos.find(
-        p => p.id === id
-      );
+  text-decoration: none;
 
+  font-size: 1.9rem;
 
-    const batch =
-      db.batch();
+  box-shadow:
+    0 6px 20px rgba(0, 0, 0, 0.45),
+    0 0 0 0 rgba(37, 211, 102, 0.45);
 
+  z-index: 9999;
 
-    batch.delete(
-      db
-        .collection("proyectos")
-        .doc(id)
-    );
+  transition:
+    transform 0.25s ease,
+    box-shadow 0.25s ease,
+    background-color 0.25s ease;
+}
 
+.whatsapp-float:hover {
+  background: #20bd5a;
+  color: #ffffff;
+  transform: scale(1.08);
 
-    if (proyecto) {
-
-      const publicSnap =
-        await db
-          .collection("proyectos_publicos")
-          .where(
-            "codigo",
-            "==",
-            proyecto.codigo
-          )
-          .limit(1)
-          .get();
-
-
-      publicSnap.forEach(
-        doc => {
-
-          batch.delete(
-            doc.ref
-          );
-
-        }
-      );
-
-
-      const ingresoSnap =
-        await db
-          .collection("ingresos")
-          .where(
-            "proyectoId",
-            "==",
-            id
-          )
-          .limit(1)
-          .get();
-
-
-      ingresoSnap.forEach(
-        doc => {
-
-          batch.delete(
-            doc.ref
-          );
-
-        }
-      );
-
-    }
-
-
-    await batch.commit();
-
-
-    await cargarProyectosDesdeNube();
-
-    await cargarIngresosDesdeNube();
-
-
-    renderProyectosAdmin();
-
-    renderGestionIngresos();
-
-  }
-
-  catch (error) {
-
-    console.error(
-      "Error eliminando:",
-      error
-    );
-
-  }
-
+  box-shadow:
+    0 8px 25px rgba(0, 0, 0, 0.5),
+    0 0 0 8px rgba(37, 211, 102, 0.12);
 }
 
 
-// ============================================================
-// 14. EDITAR PROYECTO
-// ============================================================
+/* =========================================================
+   RESPONSIVE PARA CELULARES
+========================================================= */
 
-function activarEdicionInline(
-  index
-) {
+@media (max-width: 768px) {
 
-  const p =
-    proyectos[index];
-
-
-  const info =
-    document.getElementById(
-      `info-view-${index}`
-    );
-
-
-  if (!info || !p) return;
-
-
-  info.innerHTML =
-  `
-
-    <div
-      style="
-        display:flex;
-        flex-direction:column;
-        gap:7px;
-      "
-    >
-
-      <input
-        id="edit-codigo-${index}"
-        value="${p.codigo || ""}"
-        placeholder="Código"
-      >
-
-
-      <input
-        id="edit-cliente-${index}"
-        value="${p.cliente || ""}"
-        placeholder="Cliente"
-      >
-
-
-      <input
-        id="edit-mueble-${index}"
-        value="${p.mueble || ""}"
-        placeholder="Mueble"
-      >
-
-
-      <input
-        id="edit-telefono-${index}"
-        value="${p.telefono || ""}"
-        placeholder="WhatsApp"
-      >
-
-
-      <input
-        type="number"
-        id="edit-presupuesto-${index}"
-        value="${p.presupuesto || 0}"
-        placeholder="Presupuesto"
-        min="0"
-        step="0.01"
-      >
-
-
-      <input
-        type="number"
-        id="edit-adelanto-${index}"
-        value="${p.adelanto || 0}"
-        placeholder="Adelanto"
-        min="0"
-        step="0.01"
-      >
-
-
-      <input
-        type="date"
-        id="edit-fecha-${index}"
-        value="${p.fechaEntrega || ""}"
-      >
-
-
-      <div>
-
-        <button
-          type="button"
-          onclick="guardarEdicionInline('${p.id}',${index})"
-          style="
-            background:#16a34a;
-            color:#fff;
-            border:none;
-            padding:8px 12px;
-            border-radius:6px;
-            cursor:pointer;
-          "
-        >
-          Guardar
-        </button>
-
-
-        <button
-          type="button"
-          onclick="renderProyectosAdmin()"
-          style="
-            background:#404040;
-            color:#fff;
-            border:none;
-            padding:8px 12px;
-            border-radius:6px;
-            cursor:pointer;
-          "
-        >
-          Cancelar
-        </button>
-
-      </div>
-
-    </div>
-
-  `;
-
-}
-
-
-// ============================================================
-// 15. GUARDAR EDICIÓN
-// ============================================================
-
-async function guardarEdicionInline(
-  id,
-  index
-) {
-
-  if (
-    !esAdmin ||
-    !auth.currentUser
-  ) {
-
-    return;
-
+  .navbar {
+    padding: 0.75rem 1rem;
   }
 
-
-  const proyectoAnterior =
-    proyectos.find(
-      p => p.id === id
-    );
-
-
-  const codigoAnterior =
-    proyectoAnterior?.codigo || "";
-
-
-  const codigo =
-    document.getElementById(
-      `edit-codigo-${index}`
-    ).value
-      .trim()
-      .toUpperCase();
-
-
-  const cliente =
-    document.getElementById(
-      `edit-cliente-${index}`
-    ).value.trim();
-
-
-  const mueble =
-    document.getElementById(
-      `edit-mueble-${index}`
-    ).value.trim();
-
-
-  const telefono =
-    document.getElementById(
-      `edit-telefono-${index}`
-    ).value.trim();
-
-
-  const presupuesto =
-    Number(
-      document.getElementById(
-        `edit-presupuesto-${index}`
-      ).value
-    ) || 0;
-
-
-  const adelanto =
-    Number(
-      document.getElementById(
-        `edit-adelanto-${index}`
-      ).value
-    ) || 0;
-
-
-  const fecha =
-    document.getElementById(
-      `edit-fecha-${index}`
-    ).value;
-
-
-  try {
-
-    await db
-      .collection("proyectos")
-      .doc(id)
-      .update({
-
-        codigo,
-
-        cliente,
-
-        mueble,
-
-        telefono,
-
-        presupuesto,
-
-        adelanto,
-
-        fechaEntrega:
-          fecha
-
-      });
-
-
-    // ========================================================
-    // ACTUALIZAR INGRESOS
-    // ========================================================
-
-    const ingresoSnap =
-      await db
-        .collection("ingresos")
-        .where(
-          "proyectoId",
-          "==",
-          id
-        )
-        .limit(1)
-        .get();
-
-
-    if (!ingresoSnap.empty) {
-
-      const ingresoDoc =
-        ingresoSnap.docs[0];
-
-
-      const ingreso =
-        ingresoDoc.data();
-
-
-      const pagosFinales =
-        Number(
-          ingreso.pagosFinales
-        ) || 0;
-
-
-      const cobrado =
-        adelanto +
-        pagosFinales;
-
-
-      const pendiente =
-        Math.max(
-          presupuesto -
-          cobrado,
-          0
-        );
-
-
-      await ingresoDoc.ref.update({
-
-        codigo,
-
-        cliente,
-
-        mueble,
-
-        presupuesto,
-
-        adelanto,
-
-        cobrado,
-
-        pendiente
-
-      });
-
-    }
-
-
-    // ========================================================
-    // ACTUALIZAR PROYECTO PÚBLICO
-    // ========================================================
-
-    const publicoSnap =
-      await db
-        .collection("proyectos_publicos")
-        .where(
-          "codigo",
-          "==",
-          codigoAnterior
-        )
-        .limit(1)
-        .get();
-
-
-    for (
-      const doc of publicoSnap.docs
-    ) {
-
-      await doc.ref.update({
-
-        codigo,
-
-        cliente,
-
-        mueble,
-
-        fechaEntrega:
-          fecha
-
-      });
-
-    }
-
-
-    await cargarProyectosDesdeNube();
-
-    await cargarIngresosDesdeNube();
-
-
-    renderProyectosAdmin();
-
-    renderGestionIngresos();
-
-
-    mostrarMensajeInterno(
-      "Proyecto actualizado correctamente."
-    );
-
+  .nav-links {
+    gap: 0.3rem;
   }
 
-  catch (error) {
-
-    console.error(
-      "Error editando:",
-      error
-    );
-
-
-    mostrarMensajeInterno(
-      "No se pudo actualizar el proyecto.",
-      true
-    );
-
+  .nav-links button {
+    padding: 0.4rem 0.6rem;
+    font-size: 0.8rem;
   }
 
-}
-
-
-// ============================================================
-// 16. GESTIÓN DE INGRESOS
-// ============================================================
-
-function renderGestionIngresos() {
-
-  if (!esAdmin) return;
-
-
-  const container =
-    document.getElementById(
-      "lista-ingresos"
-    );
-
-
-  if (!container) return;
-
-
-  const filtro =
-    document.getElementById(
-      "ingresos-mes"
-    )?.value
-    || "";
-
-
-  let lista =
-    [...ingresos];
-
-
-  if (filtro) {
-
-    lista =
-      lista.filter(
-        ingreso => {
-
-          let fecha = null;
-
-
-          if (
-            ingreso.fechaCreacion &&
-            ingreso.fechaCreacion.toDate
-          ) {
-
-            fecha =
-              ingreso
-                .fechaCreacion
-                .toDate();
-
-          }
-
-
-          if (!fecha) {
-
-            return true;
-
-          }
-
-
-          const mes =
-            `${fecha.getFullYear()}-${String(
-              fecha.getMonth() + 1
-            ).padStart(2, "0")}`;
-
-
-          return mes === filtro;
-
-        }
-      );
-
+  .instagram-nav {
+    width: 34px;
+    height: 34px;
+    font-size: 1.15rem;
   }
 
-
-  let totalCobrado = 0;
-
-  let totalPendiente = 0;
-
-
-  lista.forEach(
-    ingreso => {
-
-      totalCobrado +=
-        Number(
-          ingreso.cobrado
-        ) || 0;
-
-
-      totalPendiente +=
-        Number(
-          ingreso.pendiente
-        ) || 0;
-
-    }
-  );
-
-
-  const resumenProyectos =
-    document.getElementById(
-      "ing-resumen-proyectos"
-    );
-
-
-  const resumenCobrado =
-    document.getElementById(
-      "ing-resumen-cobrado"
-    );
-
-
-  const resumenPendiente =
-    document.getElementById(
-      "ing-resumen-pendiente"
-    );
-
-
-  if (resumenProyectos) {
-
-    resumenProyectos.innerText =
-      lista.length;
-
+  .hero-fixed-banner {
+    height: auto !important;
+    min-height: 100vh;
+    padding-top: 90px !important;
+    padding-bottom: 3rem;
   }
 
-
-  if (resumenCobrado) {
-
-    resumenCobrado.innerText =
-      `Bs. ${formatearMonto(totalCobrado)}`;
-
+  .hero-split-container {
+    grid-template-columns: 1fr;
+    gap: 2rem;
+    text-align: center;
   }
 
-
-  if (resumenPendiente) {
-
-    resumenPendiente.innerText =
-      `Bs. ${formatearMonto(totalPendiente)}`;
-
+  .hero-title-big {
+    font-size: 2.7rem !important;
+    line-height: 1.1;
   }
 
-
-  container.innerHTML =
-    "";
-
-
-  if (!lista.length) {
-
-    container.innerHTML =
-      `
-
-      <div
-        style="
-          text-align:center;
-          color:#777;
-          padding:25px;
-        "
-      >
-        No hay registros para este mes.
-      </div>
-
-      `;
-
-    return;
-
+  .hero-highlights {
+    justify-content: center;
   }
 
-
-  lista.forEach(
-    ingreso => {
-
-      const card =
-        document.createElement(
-          "div"
-        );
-
-
-      card.style.cssText =
-        `
-        background:rgba(255,255,255,.035);
-        border:1px solid rgba(255,255,255,.09);
-        border-radius:9px;
-        padding:10px;
-        margin-bottom:7px;
-        `;
-
-
-      const presupuesto =
-        Number(
-          ingreso.presupuesto
-        ) || 0;
-
-
-      const adelanto =
-        Number(
-          ingreso.adelanto
-        ) || 0;
-
-
-      const cobrado =
-        Number(
-          ingreso.cobrado
-        ) || 0;
-
-
-      const pendiente =
-        Math.max(
-          presupuesto -
-          cobrado,
-          0
-        );
-
-
-      card.innerHTML =
-      `
-
-        <div
-          style="
-            display:flex;
-            justify-content:space-between;
-            gap:8px;
-            align-items:flex-start;
-          "
-        >
-
-          <div>
-
-            <strong>
-              ${ingreso.cliente || ""}
-            </strong>
-
-            <div
-              style="
-                color:#a3a3a3;
-                font-size:.75rem;
-                margin-top:2px;
-              "
-            >
-              ${ingreso.codigo || ""}
-              ·
-              ${ingreso.mueble || ""}
-            </div>
-
-          </div>
-
-
-          <div
-            style="
-              color:#38bdf8;
-              font-weight:bold;
-              font-size:.85rem;
-            "
-          >
-            Total:
-            Bs. ${formatearMonto(presupuesto)}
-          </div>
-
-        </div>
-
-
-        <div
-          style="
-            display:grid;
-            grid-template-columns:repeat(3,1fr);
-            gap:5px;
-            margin-top:8px;
-          "
-        >
-
-          <div
-            style="
-              background:rgba(245,158,11,.06);
-              border:1px solid rgba(245,158,11,.2);
-              color:#f59e0b;
-              border-radius:6px;
-              padding:6px;
-              font-size:.72rem;
-            "
-          >
-            Adelanto
-
-            <strong
-              style="display:block;"
-            >
-              Bs. ${formatearMonto(adelanto)}
-            </strong>
-
-          </div>
-
-
-          <div
-            style="
-              background:rgba(74,222,128,.06);
-              border:1px solid rgba(74,222,128,.2);
-              color:#4ade80;
-              border-radius:6px;
-              padding:6px;
-              font-size:.72rem;
-            "
-          >
-            Cobrado
-
-            <strong
-              style="display:block;"
-            >
-              Bs. ${formatearMonto(cobrado)}
-            </strong>
-
-          </div>
-
-
-          <div
-            style="
-              background:rgba(239,68,68,.06);
-              border:1px solid rgba(239,68,68,.2);
-              color:#ef4444;
-              border-radius:6px;
-              padding:6px;
-              font-size:.72rem;
-            "
-          >
-            Pendiente
-
-            <strong
-              style="display:block;"
-            >
-              Bs. ${formatearMonto(pendiente)}
-            </strong>
-
-          </div>
-
-        </div>
-
-
-        ${
-          pendiente > 0
-
-          ?
-
-          `
-
-          <div
-            style="
-              display:flex;
-              gap:5px;
-              margin-top:8px;
-            "
-          >
-
-            <input
-              type="number"
-              min="0"
-              step="0.01"
-              id="pago-${ingreso.id}"
-              placeholder="Monto pagado"
-              style="
-                flex:1;
-                background:#0a0a0a;
-                border:1px solid #333;
-                color:#fff;
-                padding:7px;
-                border-radius:6px;
-                box-sizing:border-box;
-              "
-            >
-
-
-            <button
-              type="button"
-              onclick="registrarPago('${ingreso.id}')"
-              style="
-                background:#16a34a;
-                color:#fff;
-                border:none;
-                border-radius:6px;
-                padding:7px 10px;
-                cursor:pointer;
-                font-weight:bold;
-              "
-            >
-              Registrar pago
-            </button>
-
-          </div>
-
-          `
-
-          :
-
-          `
-
-          <div
-            style="
-              margin-top:8px;
-              color:#4ade80;
-              font-size:.78rem;
-              text-align:center;
-            "
-          >
-            <i class="fa-solid fa-circle-check"></i>
-            Proyecto pagado completamente
-          </div>
-
-          `
-
-        }
-
-      `;
-
-
-      container.appendChild(
-        card
-      );
-
-    }
-  );
-
-}
-
-
-// ============================================================
-// 17. REGISTRAR PAGO
-// ============================================================
-
-async function registrarPago(
-  ingresoId
-) {
-
-  if (
-    !esAdmin ||
-    !auth.currentUser
-  ) {
-
-    return;
-
+  .search-form-modern {
+    align-items: stretch;
   }
 
-
-  const input =
-    document.getElementById(
-      `pago-${ingresoId}`
-    );
-
-
-  const monto =
-    Number(
-      input?.value
-    ) || 0;
-
-
-  if (monto <= 0) {
-
-    return;
-
+  .modal-box {
+    max-width: 100%;
+    padding: 1.5rem;
   }
 
-
-  const ingreso =
-    ingresos.find(
-      i => i.id === ingresoId
-    );
-
-
-  if (!ingreso) return;
-
-
-  const presupuesto =
-    Number(
-      ingreso.presupuesto
-    ) || 0;
-
-
-  const cobradoActual =
-    Number(
-      ingreso.cobrado
-    ) || 0;
-
-
-  const pendienteActual =
-    Math.max(
-      presupuesto -
-      cobradoActual,
-      0
-    );
-
-
-  const pago =
-    Math.min(
-      monto,
-      pendienteActual
-    );
-
-
-  if (pago <= 0) return;
-
-
-  const pagosFinalesActuales =
-    Number(
-      ingreso.pagosFinales
-    ) || 0;
-
-
-  const nuevosPagosFinales =
-    pagosFinalesActuales +
-    pago;
-
-
-  const nuevoCobrado =
-    cobradoActual +
-    pago;
-
-
-  const nuevoPendiente =
-    Math.max(
-      presupuesto -
-      nuevoCobrado,
-      0
-    );
-
-
-  try {
-
-    await db
-      .collection("ingresos")
-      .doc(ingresoId)
-      .update({
-
-        pagosFinales:
-          nuevosPagosFinales,
-
-        cobrado:
-          nuevoCobrado,
-
-        pendiente:
-          nuevoPendiente,
-
-        fechaUltimoPago:
-          firebase.firestore.FieldValue.serverTimestamp()
-
-      });
-
-
-    await cargarIngresosDesdeNube();
-
-    renderGestionIngresos();
-
+  .whatsapp-float {
+    width: 54px;
+    height: 54px;
+    right: 18px;
+    bottom: 18px;
+    font-size: 1.75rem;
   }
-
-  catch (error) {
-
-    console.error(
-      "Error registrando pago:",
-      error
-    );
-
-  }
-
-}
-
-
-// ============================================================
-// 18. EXPORTAR PDF
-// ============================================================
-
-function exportarIngresosPDF() {
-
-  if (!esAdmin) return;
-
-
-  const filtro =
-    document.getElementById(
-      "ingresos-mes"
-    )?.value
-    || "";
-
-
-  if (!filtro) return;
-
-
-  const lista =
-    ingresos.filter(
-      ingreso => {
-
-        if (
-          !ingreso.fechaCreacion ||
-          !ingreso.fechaCreacion.toDate
-        ) {
-
-          return true;
-
-        }
-
-
-        const fecha =
-          ingreso
-            .fechaCreacion
-            .toDate();
-
-
-        const mes =
-          `${fecha.getFullYear()}-${String(
-            fecha.getMonth() + 1
-          ).padStart(2, "0")}`;
-
-
-        return mes === filtro;
-
-      }
-    );
-
-
-  if (
-    !window.jspdf ||
-    !window.jspdf.jsPDF
-  ) {
-
-    console.error(
-      "jsPDF no está disponible."
-    );
-
-    return;
-
-  }
-
-
-  const jsPDF =
-    window.jspdf.jsPDF;
-
-
-  const doc =
-    new jsPDF();
-
-
-  const [anio, mes] =
-    filtro.split("-");
-
-
-  const nombresMes = [
-
-    "Enero",
-
-    "Febrero",
-
-    "Marzo",
-
-    "Abril",
-
-    "Mayo",
-
-    "Junio",
-
-    "Julio",
-
-    "Agosto",
-
-    "Septiembre",
-
-    "Octubre",
-
-    "Noviembre",
-
-    "Diciembre"
-
-  ];
-
-
-  doc.setFontSize(18);
-
-  doc.text(
-    "HN MUEBLES",
-    14,
-    18
-  );
-
-
-  doc.setFontSize(12);
-
-  doc.text(
-    `Registro de Ingresos - ${nombresMes[Number(mes) - 1]} ${anio}`,
-    14,
-    27
-  );
-
-
-  let totalProyecto = 0;
-
-  let totalAdelanto = 0;
-
-  let totalCobrado = 0;
-
-  let totalPendiente = 0;
-
-
-  const filas =
-    lista.map(
-      ingreso => {
-
-        const total =
-          Number(
-            ingreso.presupuesto
-          ) || 0;
-
-
-        const adelanto =
-          Number(
-            ingreso.adelanto
-          ) || 0;
-
-
-        const cobrado =
-          Number(
-            ingreso.cobrado
-          ) || 0;
-
-
-        const pendiente =
-          Math.max(
-            total -
-            cobrado,
-            0
-          );
-
-
-        totalProyecto +=
-          total;
-
-
-        totalAdelanto +=
-          adelanto;
-
-
-        totalCobrado +=
-          cobrado;
-
-
-        totalPendiente +=
-          pendiente;
-
-
-        return [
-
-          ingreso.codigo || "",
-
-          ingreso.cliente || "",
-
-          ingreso.mueble || "",
-
-          `Bs. ${formatearMonto(total)}`,
-
-          `Bs. ${formatearMonto(adelanto)}`,
-
-          `Bs. ${formatearMonto(cobrado)}`,
-
-          `Bs. ${formatearMonto(pendiente)}`
-
-        ];
-
-      }
-    );
-
-
-  if (
-    typeof doc.autoTable ===
-    "function"
-  ) {
-
-    doc.autoTable({
-
-      startY: 35,
-
-      head: [[
-
-        "Código",
-
-        "Cliente",
-
-        "Proyecto",
-
-        "Total",
-
-        "Adelanto",
-
-        "Cobrado",
-
-        "Pendiente"
-
-      ]],
-
-      body: filas,
-
-      styles: {
-        fontSize: 8
-      },
-
-      headStyles: {
-        fontStyle: "bold"
-      }
-
-    });
-
-  }
-
-
-  const finalY =
-    doc.lastAutoTable
-      ? doc.lastAutoTable.finalY + 10
-      : 45;
-
-
-  doc.setFontSize(10);
-
-
-  doc.text(
-    `Total proyectos: ${lista.length}`,
-    14,
-    finalY
-  );
-
-
-  doc.text(
-    `Total contratado: Bs. ${formatearMonto(totalProyecto)}`,
-    14,
-    finalY + 7
-  );
-
-
-  doc.text(
-    `Total adelantos: Bs. ${formatearMonto(totalAdelanto)}`,
-    14,
-    finalY + 14
-  );
-
-
-  doc.text(
-    `Total cobrado: Bs. ${formatearMonto(totalCobrado)}`,
-    14,
-    finalY + 21
-  );
-
-
-  doc.text(
-    `Total pendiente: Bs. ${formatearMonto(totalPendiente)}`,
-    14,
-    finalY + 28
-  );
-
-
-  doc.save(
-    `HN-Muebles-Ingresos-${filtro}.pdf`
-  );
-
-}
-
-
-// ============================================================
-// 19. WHATSAPP
-// ============================================================
-
-function notificarWhatsApp(
-  index
-) {
-
-  if (!esAdmin) return;
-
-
-  const p =
-    proyectos[index];
-
-
-  if (
-    !p ||
-    !p.telefono
-  ) {
-
-    return;
-
-  }
-
-
-  let numero =
-    p.telefono
-      .toString()
-      .replace(
-        /\D/g,
-        ""
-      );
-
-
-  if (
-    !numero.startsWith("591") &&
-    numero.length === 8
-  ) {
-
-    numero =
-      "591" +
-      numero;
-
-  }
-
-
-  const link =
-    window.location.origin +
-    window.location.pathname +
-    `?codigo=${encodeURIComponent(
-      p.codigo
-    )}`;
-
-
-  const fecha =
-    p.fechaEntrega
-      ? p.fechaEntrega
-          .split("-")
-          .reverse()
-          .join("/")
-      : "Por coordinar";
-
-
-  const mensaje =
-`Hola *${p.cliente}* 👋, desde *HN Muebles* te informamos el estado de tu proyecto *"${p.mueble}"*:
-
-🛠️ *Estado:* ${p.estado}
-
-📊 *Progreso:* ${p.progreso}%
-
-📅 *Fecha estimada de entrega:* ${fecha}
-
-🔍 *Consulta el estado de tu proyecto:*
-${link}`;
-
-
-  window.open(
-    `https://wa.me/${numero}?text=${encodeURIComponent(
-      mensaje
-    )}`,
-    "_blank"
-  );
 
 }
