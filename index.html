@@ -1,3 +1,4 @@
+```html
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -344,16 +345,7 @@
 
     <div class="social-buttons">
 
-      <a
-        href="https://wa.me/59162037033?text=Hola%20HN%20Muebles"
-        target="_blank"
-        class="btn-social btn-wa"
-      >
-        <i class="fa-brands fa-whatsapp"></i>
-        WhatsApp (+591 62037033)
-      </a>
-
-
+      <!-- INSTAGRAM -->
       <a
         href="https://www.instagram.com/hnmuebles/"
         target="_blank"
@@ -372,6 +364,22 @@
   </footer>
 
 </main>
+
+
+<!-- =========================================================
+     WHATSAPP FLOTANTE
+========================================================= -->
+
+<a
+  href="https://wa.me/59162037033?text=Hola%20HN%20Muebles"
+  target="_blank"
+  rel="noopener noreferrer"
+  class="whatsapp-float"
+  aria-label="Contactar por WhatsApp"
+  title="Contactar por WhatsApp"
+>
+  <i class="fa-brands fa-whatsapp"></i>
+</a>
 
 
 <!-- =========================================================
@@ -541,9 +549,7 @@
       </div>
 
 
-      <!-- =====================================================
-           GESTIÓN DE INGRESOS - ARRIBA
-      ====================================================== -->
+      <!-- GESTIÓN DE INGRESOS -->
 
       <div
         style="
@@ -569,9 +575,7 @@
       </div>
 
 
-      <!-- =====================================================
-           NUEVO PROYECTO
-      ====================================================== -->
+      <!-- NUEVO PROYECTO -->
 
       <form
         id="form-nuevo-proyecto"
@@ -1291,3 +1295,48 @@ function abrirGestionIngresos() {
 
 </body>
 </html>
+```
+
+Y **solo agrega esto al final de tu `styles.css`** para darle el aspecto flotante:
+
+```css
+/* =========================================================
+   WHATSAPP FLOTANTE
+========================================================= */
+
+.whatsapp-float {
+  position: fixed;
+  right: 22px;
+  bottom: 22px;
+  width: 58px;
+  height: 58px;
+  border-radius: 50%;
+  background: #25D366;
+  color: #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-decoration: none;
+  font-size: 31px;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.45);
+  z-index: 9999;
+  transition: transform 0.25s ease, box-shadow 0.25s ease;
+}
+
+.whatsapp-float:hover {
+  transform: scale(1.08);
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.6);
+}
+
+@media (max-width: 768px) {
+  .whatsapp-float {
+    width: 54px;
+    height: 54px;
+    right: 16px;
+    bottom: 16px;
+    font-size: 29px;
+  }
+}
+```
+
+**Eso es todo para WhatsApp.** No hay que tocar `script.js` ni Firebase.
