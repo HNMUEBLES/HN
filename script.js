@@ -34,7 +34,9 @@ const firebaseConfig = {
 };
 
 
-firebase.initializeApp(firebaseConfig);
+firebase.initializeApp(
+  firebaseConfig
+);
 
 
 const db =
@@ -113,7 +115,9 @@ function llenarCodigoAutomatico() {
 }
 
 
-function copiarCodigoAlPortapapeles(codigo) {
+function copiarCodigoAlPortapapeles(
+  codigo
+) {
 
   navigator.clipboard
     .writeText(codigo)
@@ -193,18 +197,6 @@ auth.onAuthStateChanged(
       user.email
     );
 
-
-    /*
-      IMPORTANTE:
-
-      Firebase ya comprobó el correo y contraseña.
-
-      Dejamos el control de seguridad real
-      en las Rules de Firestore.
-
-      Aquí solamente verificamos el correo
-      para mostrar el panel.
-    */
 
     const emailUsuario =
       (user.email || "")
@@ -358,10 +350,6 @@ document.addEventListener(
   function () {
 
 
-    // ========================================================
-    // FORMULARIO LOGIN
-    // ========================================================
-
     const formLogin =
       document.getElementById(
         "form-login"
@@ -409,7 +397,7 @@ document.addEventListener(
 
           const password =
             passwordInput?.value
-              || "";
+            || "";
 
 
           if (errorMsg) {
@@ -458,21 +446,12 @@ document.addEventListener(
             }
 
 
-            console.log(
-              "Intentando iniciar sesión con:",
-              email
-            );
-
-
-            /*
-              LOGIN DIRECTO CON FIREBASE
-            */
-
             const resultado =
-              await auth.signInWithEmailAndPassword(
-                email,
-                password
-              );
+              await auth
+                .signInWithEmailAndPassword(
+                  email,
+                  password
+                );
 
 
             console.log(
@@ -481,21 +460,12 @@ document.addEventListener(
             );
 
 
-            /*
-              No hacemos signOut aquí.
-
-              Dejamos que onAuthStateChanged()
-              se encargue de mostrar el administrador.
-            */
-
-
             if (passwordInput) {
 
               passwordInput.value =
                 "";
 
             }
-
 
           }
 
@@ -581,7 +551,9 @@ document.addEventListener(
 
                 mensaje =
                   `Error de acceso: ${
-                    error.message || error.code || "desconocido"
+                    error.message ||
+                    error.code ||
+                    "desconocido"
                   }`;
 
             }
@@ -984,47 +956,115 @@ document.addEventListener(
             );
 
 
+            // ==================================================
+            // GUARDAMOS LAS 3 COLECCIONES JUNTAS
+            // ==================================================
+
             await batch.commit();
 
 
-            document.getElementById(
-              "nuevo-codigo"
-            ).value =
-              generarCodigoAleatorio();
+            // ==================================================
+            // LIMPIAR FORMULARIO
+            // ==================================================
+
+            const campoCodigo =
+              document.getElementById(
+                "nuevo-codigo"
+              );
+
+            const campoCliente =
+              document.getElementById(
+                "nuevo-cliente"
+              );
+
+            const campoMueble =
+              document.getElementById(
+                "nuevo-mueble"
+              );
+
+            const campoTelefono =
+              document.getElementById(
+                "nuevo-telefono"
+              );
+
+            const campoPresupuesto =
+              document.getElementById(
+                "nuevo-presupuesto"
+              );
+
+            const campoAdelanto =
+              document.getElementById(
+                "nuevo-adelanto"
+              );
+
+            const campoFecha =
+              document.getElementById(
+                "nuevo-fecha"
+              );
 
 
-            document.getElementById(
-              "nuevo-cliente"
-            ).value = "";
+            if (campoCodigo) {
+
+              campoCodigo.value =
+                generarCodigoAleatorio();
+
+            }
 
 
-            document.getElementById(
-              "nuevo-mueble"
-            ).value = "";
+            if (campoCliente) {
+
+              campoCliente.value =
+                "";
+
+            }
 
 
-            document.getElementById(
-              "nuevo-telefono"
-            ).value = "";
+            if (campoMueble) {
+
+              campoMueble.value =
+                "";
+
+            }
 
 
-            document.getElementById(
-              "nuevo-presupuesto"
-            ).value = "";
+            if (campoTelefono) {
+
+              campoTelefono.value =
+                "";
+
+            }
 
 
-            document.getElementById(
-              "nuevo-adelanto"
-            ).value = "";
+            if (campoPresupuesto) {
+
+              campoPresupuesto.value =
+                "";
+
+            }
 
 
-            document.getElementById(
-              "nuevo-fecha"
-            ).value = "";
+            if (campoAdelanto) {
+
+              campoAdelanto.value =
+                "";
+
+            }
+
+
+            if (campoFecha) {
+
+              campoFecha.value =
+                "";
+
+            }
 
 
             calcularSaldoNuevo();
 
+
+            // ==================================================
+            // ACTUALIZAR TODO AUTOMÁTICAMENTE
+            // ==================================================
 
             await cargarProyectosDesdeNube();
 
@@ -1632,29 +1672,28 @@ function renderProyectosAdmin() {
               </p>
 
 
+              <!-- =================================================
+                   CAJAS FINANCIERAS
+                   ================================================= -->
+
               <div
                 style="
                   display:grid;
                   grid-template-columns:
-                    repeat(auto-fit,minmax(160px,1fr));
-                  gap:8px;
+                    repeat(3,minmax(0,1fr));
+                  gap:10px;
                   margin-top:12px;
                 "
               >
 
+                <!-- MONTO TOTAL -->
+
                 <div
+                  class="financial-box"
                   style="
                     background:rgba(56,189,248,.07);
                     border:1px solid rgba(56,189,248,.25);
                     color:#38bdf8;
-                    padding:11px 13px;
-                    border-radius:9px;
-                    font-size:.82rem;
-                    min-height:58px;
-                    box-sizing:border-box;
-                    display:flex;
-                    flex-direction:column;
-                    justify-content:center;
                   "
                 >
 
@@ -1662,7 +1701,7 @@ function renderProyectosAdmin() {
                     style="
                       font-size:.75rem;
                       opacity:.85;
-                      margin-bottom:3px;
+                      margin-bottom:5px;
                     "
                   >
                     Monto total
@@ -1670,8 +1709,9 @@ function renderProyectosAdmin() {
 
                   <strong
                     style="
-                      font-size:1rem;
+                      font-size:1.05rem;
                       line-height:1.2;
+                      white-space:nowrap;
                     "
                   >
                     Bs. ${formatearMonto(presupuesto)}
@@ -1680,19 +1720,14 @@ function renderProyectosAdmin() {
                 </div>
 
 
+                <!-- ADELANTO -->
+
                 <div
+                  class="financial-box"
                   style="
                     background:rgba(245,158,11,.07);
                     border:1px solid rgba(245,158,11,.25);
                     color:#f59e0b;
-                    padding:11px 13px;
-                    border-radius:9px;
-                    font-size:.82rem;
-                    min-height:58px;
-                    box-sizing:border-box;
-                    display:flex;
-                    flex-direction:column;
-                    justify-content:center;
                   "
                 >
 
@@ -1700,7 +1735,7 @@ function renderProyectosAdmin() {
                     style="
                       font-size:.75rem;
                       opacity:.85;
-                      margin-bottom:3px;
+                      margin-bottom:5px;
                     "
                   >
                     Adelanto
@@ -1708,8 +1743,9 @@ function renderProyectosAdmin() {
 
                   <strong
                     style="
-                      font-size:1rem;
+                      font-size:1.05rem;
                       line-height:1.2;
+                      white-space:nowrap;
                     "
                   >
                     Bs. ${formatearMonto(adelanto)}
@@ -1718,19 +1754,14 @@ function renderProyectosAdmin() {
                 </div>
 
 
+                <!-- PENDIENTE -->
+
                 <div
+                  class="financial-box"
                   style="
                     background:rgba(239,68,68,.07);
                     border:1px solid rgba(239,68,68,.25);
                     color:#ef4444;
-                    padding:11px 13px;
-                    border-radius:9px;
-                    font-size:.82rem;
-                    min-height:58px;
-                    box-sizing:border-box;
-                    display:flex;
-                    flex-direction:column;
-                    justify-content:center;
                   "
                 >
 
@@ -1738,7 +1769,7 @@ function renderProyectosAdmin() {
                     style="
                       font-size:.75rem;
                       opacity:.85;
-                      margin-bottom:3px;
+                      margin-bottom:5px;
                     "
                   >
                     Pendiente
@@ -1746,8 +1777,9 @@ function renderProyectosAdmin() {
 
                   <strong
                     style="
-                      font-size:1rem;
+                      font-size:1.05rem;
                       line-height:1.2;
+                      white-space:nowrap;
                     "
                   >
                     Bs. ${formatearMonto(saldo)}
@@ -1758,6 +1790,8 @@ function renderProyectosAdmin() {
               </div>
 
 
+              <!-- ETAPAS -->
+
               <div
                 style="
                   margin-top:.7rem;
@@ -1766,6 +1800,8 @@ function renderProyectosAdmin() {
                 ${botones}
               </div>
 
+
+              <!-- WHATSAPP -->
 
               <button
                 type="button"
@@ -1788,24 +1824,27 @@ function renderProyectosAdmin() {
             </div>
 
 
+            <!-- =================================================
+                 ACCIONES
+                 ================================================= -->
+
             <div
               style="
                 display:flex;
                 gap:5px;
+                align-items:flex-start;
               "
             >
 
               <button
                 type="button"
                 onclick="activarEdicionInline(${index})"
+                class="admin-action-btn"
                 style="
                   background:#3b82f6;
                   color:#fff;
-                  border:none;
-                  padding:.6rem .8rem;
-                  border-radius:8px;
-                  cursor:pointer;
                 "
+                title="Editar proyecto"
               >
                 ✏️
               </button>
@@ -1814,14 +1853,12 @@ function renderProyectosAdmin() {
               <button
                 type="button"
                 onclick="eliminarProyecto('${p.id}')"
+                class="admin-action-btn"
                 style="
                   background:#ef4444;
                   color:#fff;
-                  border:none;
-                  padding:.6rem .8rem;
-                  border-radius:8px;
-                  cursor:pointer;
                 "
+                title="Eliminar proyecto"
               >
                 🗑️
               </button>
@@ -2158,6 +2195,8 @@ function activarEdicionInline(
         id="edit-presupuesto-${index}"
         value="${p.presupuesto || 0}"
         placeholder="Presupuesto"
+        min="0"
+        step="0.01"
       >
 
 
@@ -2166,6 +2205,8 @@ function activarEdicionInline(
         id="edit-adelanto-${index}"
         value="${p.adelanto || 0}"
         placeholder="Adelanto"
+        min="0"
+        step="0.01"
       >
 
 
@@ -2320,6 +2361,10 @@ async function guardarEdicionInline(
       });
 
 
+    // ========================================================
+    // ACTUALIZAR INGRESOS
+    // ========================================================
+
     const ingresoSnap =
       await db
         .collection("ingresos")
@@ -2381,6 +2426,10 @@ async function guardarEdicionInline(
 
     }
 
+
+    // ========================================================
+    // ACTUALIZAR PROYECTO PÚBLICO
+    // ========================================================
 
     const publicoSnap =
       await db
