@@ -1,7 +1,8 @@
 // ============================================================
-// HN MUEBLES - SCRIPT PRINCIPAL
+// HN MUEBLES
+// SCRIPT PRINCIPAL
 // Firebase Authentication + Firestore
-// Gestión de Proyectos + Gestión de Ingresos
+// Proyectos + Ingresos mensuales
 // ============================================================
 
 
@@ -69,6 +70,80 @@ function formatearMonto(valor) {
   return Number.isInteger(num)
     ? num.toString()
     : num.toFixed(2);
+
+}
+
+
+function obtenerMesActual() {
+
+  const ahora =
+    new Date();
+
+  return `${ahora.getFullYear()}-${String(
+    ahora.getMonth() + 1
+  ).padStart(2, "0")}`;
+
+}
+
+
+function obtenerMesDeFecha(fecha) {
+
+  if (!fecha) return null;
+
+  let date = null;
+
+  if (
+    fecha &&
+    typeof fecha.toDate === "function"
+  ) {
+
+    date = fecha.toDate();
+
+  }
+
+  else if (fecha instanceof Date) {
+
+    date = fecha;
+
+  }
+
+  else if (typeof fecha === "string") {
+
+    date = new Date(fecha);
+
+  }
+
+  if (
+    !date ||
+    Number.isNaN(date.getTime())
+  ) {
+
+    return null;
+
+  }
+
+  return `${date.getFullYear()}-${String(
+    date.getMonth() + 1
+  ).padStart(2, "0")}`;
+
+}
+
+
+function convertirFechaParaMes(fecha) {
+
+  const mes =
+    obtenerMesDeFecha(fecha);
+
+  return mes || obtenerMesActual();
+
+}
+
+
+function compararMeses(a, b) {
+
+  if (!a || !b) return 0;
+
+  return a.localeCompare(b);
 
 }
 
@@ -142,7 +217,7 @@ function copiarCodigoAlPortapapeles(codigo) {
           boton.innerText =
             textoOriginal;
 
-        }, 1200);
+        }, 700);
 
       }
 
@@ -162,8 +237,8 @@ function copiarCodigoAlPortapapeles(codigo) {
 function irInicio() {
 
   window.scrollTo({
-    top:0,
-    behavior:"smooth"
+    top: 0,
+    behavior: "auto"
   });
 
 }
@@ -174,7 +249,7 @@ function irInicio() {
 // ============================================================
 
 auth.onAuthStateChanged(
-  async (user) => {
+  async user => {
 
     if (user) {
 
@@ -194,15 +269,9 @@ auth.onAuthStateChanged(
 
         mostrarPanelAdministrador();
 
-
         await cargarProyectosDesdeNube();
 
-
-        await limpiarIngresosSinProyecto();
-
-
         await cargarIngresosDesdeNube();
-
 
         renderProyectosAdmin();
 
@@ -211,11 +280,6 @@ auth.onAuthStateChanged(
       }
 
       else {
-
-        console.warn(
-          "Usuario no autorizado:",
-          user.email
-        );
 
         await auth.signOut();
 
@@ -245,81 +309,45 @@ auth.onAuthStateChanged(
 
 function mostrarPanelAdministrador() {
 
-  const login =
-    document.getElementById(
-      "admin-login"
-    );
+  document
+    .getElementById("admin-login")
+    ?.classList
+    .add("hidden");
 
-  const panel =
-    document.getElementById(
-      "admin-panel"
-    );
-
-
-  if (login) {
-
-    login.classList.add(
-      "hidden"
-    );
-
-  }
-
-
-  if (panel) {
-
-    panel.classList.remove(
-      "hidden"
-    );
-
-  }
+  document
+    .getElementById("admin-panel")
+    ?.classList
+    .remove("hidden");
 
 }
 
 
 function ocultarPanelAdministrador() {
 
-  const login =
-    document.getElementById(
-      "admin-login"
-    );
+  document
+    .getElementById("admin-panel")
+    ?.classList
+    .add("hidden");
 
-  const panel =
-    document.getElementById(
-      "admin-panel"
-    );
-
-
-  if (panel) {
-
-    panel.classList.add(
-      "hidden"
-    );
-
-  }
-
-
-  if (login) {
-
-    login.classList.remove(
-      "hidden"
-    );
-
-  }
+  document
+    .getElementById("admin-login")
+    ?.classList
+    .remove("hidden");
 
 }
 
 
 // ============================================================
-// 5. LOGIN
+// 5. DOM READY
 // ============================================================
 
 document.addEventListener(
   "DOMContentLoaded",
   function () {
 
-    // ========================================================
+    // --------------------------------------------------------
     // LOGIN
-    // ========================================================
+    // --------------------------------------------------------
 
     const formLogin =
       document.getElementById(
@@ -337,15 +365,16 @@ document.addEventListener(
 
 
           const email =
-            document.getElementById(
-              "input-email"
-            )?.value.trim();
+            document
+              .getElementById("input-email")
+              ?.value
+              .trim();
 
 
           const password =
-            document.getElementById(
-              "input-pass"
-            )?.value;
+            document
+              .getElementById("input-pass")
+              ?.value;
 
 
           const errorMsg =
@@ -356,13 +385,9 @@ document.addEventListener(
 
           try {
 
-            if (errorMsg) {
-
-              errorMsg.classList.add(
-                "hidden"
-              );
-
-            }
+            errorMsg?.classList.add(
+              "hidden"
+            );
 
 
             const resultado =
@@ -399,8 +424,7 @@ document.addEventListener(
 
             if (passInput) {
 
-              passInput.value =
-                "";
+              passInput.value = "";
 
             }
 
@@ -422,8 +446,7 @@ document.addEventListener(
 
             if (passInput) {
 
-              passInput.value =
-                "";
+              passInput.value = "";
 
             }
 
@@ -495,9 +518,9 @@ document.addEventListener(
     }
 
 
-    // ========================================================
+    // --------------------------------------------------------
     // BÚSQUEDA PÚBLICA
-    // ========================================================
+    // --------------------------------------------------------
 
     const formBuscar =
       document.getElementById(
@@ -515,9 +538,9 @@ document.addEventListener(
 
 
           const codigo =
-            document.getElementById(
-              "input-codigo"
-            )?.value
+            document
+              .getElementById("input-codigo")
+              ?.value
               .trim()
               .toUpperCase();
 
@@ -536,9 +559,9 @@ document.addEventListener(
     }
 
 
-    // ========================================================
-    // CÁLCULO MONTOS NUEVO PROYECTO
-    // ========================================================
+    // --------------------------------------------------------
+    // MONTOS DEL NUEVO PROYECTO
+    // --------------------------------------------------------
 
     const presupuestoInput =
       document.getElementById(
@@ -629,9 +652,12 @@ document.addEventListener(
     );
 
 
-    // ========================================================
+    calcularSaldoNuevo();
+
+
+    // --------------------------------------------------------
     // NUEVO PROYECTO
-    // ========================================================
+    // --------------------------------------------------------
 
     const formNuevo =
       document.getElementById(
@@ -658,81 +684,83 @@ document.addEventListener(
           }
 
 
-          if (
-            auth.currentUser.email.toLowerCase() !==
-            EMAIL_ADMIN.toLowerCase()
-          ) {
-
-            return;
-
-          }
-
-
           const codigo =
-            document.getElementById(
-              "nuevo-codigo"
-            )?.value
+            document
+              .getElementById(
+                "nuevo-codigo"
+              )
+              ?.value
               .trim()
               .toUpperCase()
-              ||
-              generarCodigoAleatorio();
+            ||
+            generarCodigoAleatorio();
 
 
           const cliente =
-            document.getElementById(
-              "nuevo-cliente"
-            )?.value.trim()
+            document
+              .getElementById(
+                "nuevo-cliente"
+              )
+              ?.value
+              .trim()
             || "";
 
 
           const mueble =
-            document.getElementById(
-              "nuevo-mueble"
-            )?.value.trim()
+            document
+              .getElementById(
+                "nuevo-mueble"
+              )
+              ?.value
+              .trim()
             || "";
 
 
           const telefono =
-            document.getElementById(
-              "nuevo-telefono"
-            )?.value.trim()
+            document
+              .getElementById(
+                "nuevo-telefono"
+              )
+              ?.value
+              .trim()
             || "";
 
 
           const presupuesto =
             Number(
-              document.getElementById(
-                "nuevo-presupuesto"
-              )?.value
+              document
+                .getElementById(
+                  "nuevo-presupuesto"
+                )
+                ?.value
             ) || 0;
 
 
           const adelanto =
             Number(
-              document.getElementById(
-                "nuevo-adelanto"
-              )?.value
+              document
+                .getElementById(
+                  "nuevo-adelanto"
+                )
+                ?.value
             ) || 0;
 
 
           const fechaEntrega =
-            document.getElementById(
-              "nuevo-fecha"
-            )?.value
+            document
+              .getElementById(
+                "nuevo-fecha"
+              )
+              ?.value
             || "";
 
 
           const pendiente =
             Math.max(
-              presupuesto -
-              adelanto,
+              presupuesto - adelanto,
               0
             );
 
-
-          // ==================================================
-          // REFERENCIAS
-          // ==================================================
 
           const proyectoRef =
             db
@@ -754,9 +782,9 @@ document.addEventListener(
               );
 
 
-          // ==================================================
-          // PROYECTO
-          // ==================================================
+          const ahora =
+            firebase.firestore.Timestamp.now();
+
 
           const proyecto = {
 
@@ -784,14 +812,10 @@ document.addEventListener(
             fechaEntrega,
 
             creadoEn:
-              firebase.firestore.FieldValue.serverTimestamp()
+              ahora
 
           };
 
-
-          // ==================================================
-          // INGRESO
-          // ==================================================
 
           const ingreso = {
 
@@ -817,19 +841,27 @@ document.addEventListener(
             pendiente,
 
             fechaCreacion:
-              firebase.firestore.FieldValue.serverTimestamp(),
+              ahora,
 
             fechaUltimoPago:
               adelanto > 0
-                ? firebase.firestore.FieldValue.serverTimestamp()
-                : null
+                ? ahora
+                : null,
+
+            // HISTORIAL DE PAGOS
+            pagos:
+              adelanto > 0
+                ? [
+                    {
+                      monto: adelanto,
+                      tipo: "Adelanto",
+                      fecha: ahora
+                    }
+                  ]
+                : []
 
           };
 
-
-          // ==================================================
-          // PÚBLICO
-          // ==================================================
 
           const proyectoPublico = {
 
@@ -880,58 +912,45 @@ document.addEventListener(
             await batch.commit();
 
 
-            // =================================================
-            // LIMPIAR
-            // =================================================
+            document.getElementById(
+              "nuevo-codigo"
+            ).value = "";
 
-            const idsLimpiar = [
 
-              "nuevo-codigo",
+            document.getElementById(
+              "nuevo-cliente"
+            ).value = "";
 
-              "nuevo-cliente",
 
-              "nuevo-mueble",
+            document.getElementById(
+              "nuevo-mueble"
+            ).value = "";
 
-              "nuevo-telefono",
 
-              "nuevo-presupuesto",
+            document.getElementById(
+              "nuevo-telefono"
+            ).value = "";
 
-              "nuevo-adelanto",
 
+            document.getElementById(
+              "nuevo-presupuesto"
+            ).value = "";
+
+
+            document.getElementById(
+              "nuevo-adelanto"
+            ).value = "";
+
+
+            document.getElementById(
               "nuevo-fecha"
-
-            ];
-
-
-            idsLimpiar.forEach(
-              id => {
-
-                const campo =
-                  document.getElementById(
-                    id
-                  );
-
-                if (campo) {
-
-                  campo.value =
-                    "";
-
-                }
-
-              }
-            );
+            ).value = "";
 
 
             calcularSaldoNuevo();
 
 
-            // =================================================
-            // ACTUALIZAR
-            // =================================================
-
             await cargarProyectosDesdeNube();
-
-            await limpiarIngresosSinProyecto();
 
             await cargarIngresosDesdeNube();
 
@@ -963,9 +982,9 @@ document.addEventListener(
     }
 
 
-    // ========================================================
-    // MES INGRESOS
-    // ========================================================
+    // --------------------------------------------------------
+    // MES DE INGRESOS
+    // --------------------------------------------------------
 
     const filtroIngresos =
       document.getElementById(
@@ -975,14 +994,8 @@ document.addEventListener(
 
     if (filtroIngresos) {
 
-      const ahora =
-        new Date();
-
-
       filtroIngresos.value =
-        `${ahora.getFullYear()}-${String(
-          ahora.getMonth() + 1
-        ).padStart(2,"0")}`;
+        obtenerMesActual();
 
 
       filtroIngresos.addEventListener(
@@ -1001,121 +1014,7 @@ document.addEventListener(
 
 
 // ============================================================
-// 6. LIMPIAR INGRESOS SIN PROYECTO
-// ============================================================
-
-async function limpiarIngresosSinProyecto() {
-
-  if (
-    !esAdmin ||
-    !auth.currentUser
-  ) {
-
-    return;
-
-  }
-
-
-  try {
-
-    // Obtener proyectos existentes
-
-    const proyectosSnap =
-      await db
-        .collection("proyectos")
-        .get();
-
-
-    const proyectosIds =
-      new Set();
-
-
-    proyectosSnap.forEach(
-      doc => {
-
-        proyectosIds.add(
-          doc.id
-        );
-
-      }
-    );
-
-
-    // Obtener ingresos
-
-    const ingresosSnap =
-      await db
-        .collection("ingresos")
-        .get();
-
-
-    const batch =
-      db.batch();
-
-
-    let eliminados =
-      0;
-
-
-    ingresosSnap.forEach(
-      doc => {
-
-        const data =
-          doc.data();
-
-
-        const proyectoId =
-          data.proyectoId;
-
-
-        // Si el proyecto ya no existe,
-        // se elimina su ingreso.
-
-        if (
-          !proyectoId ||
-          !proyectosIds.has(
-            proyectoId
-          )
-        ) {
-
-          batch.delete(
-            doc.ref
-          );
-
-          eliminados++;
-
-        }
-
-      }
-    );
-
-
-    if (eliminados > 0) {
-
-      await batch.commit();
-
-      console.log(
-        `Se eliminaron ${eliminados} ingresos sin proyecto.`
-      );
-
-    }
-
-  }
-
-  catch (error) {
-
-    console.error(
-      "Error limpiando ingresos sin proyecto:",
-      error
-    );
-
-  }
-
-}
-
-
-// ============================================================
-// 7. MENSAJE INTERNO
+// 6. MENSAJE INTERNO
 // ============================================================
 
 function mostrarMensajeInterno(
@@ -1147,13 +1046,13 @@ function mostrarMensajeInterno(
     elemento.textContent =
       "";
 
-  }, 3000);
+  }, 2000);
 
 }
 
 
 // ============================================================
-// 8. CERRAR SESIÓN
+// 7. CERRAR SESIÓN
 // ============================================================
 
 async function cerrarSesionAdmin() {
@@ -1167,19 +1066,12 @@ async function cerrarSesionAdmin() {
     ocultarPanelAdministrador();
 
 
-    const modal =
-      document.getElementById(
+    document
+      .getElementById(
         "modal-ingresos"
-      );
-
-
-    if (modal) {
-
-      modal.classList.add(
-        "hidden"
-      );
-
-    }
+      )
+      ?.classList
+      .add("hidden");
 
 
     irInicio();
@@ -1199,7 +1091,7 @@ async function cerrarSesionAdmin() {
 
 
 // ============================================================
-// 9. CARGAR PROYECTOS
+// 8. CARGAR PROYECTOS
 // ============================================================
 
 async function cargarProyectosDesdeNube() {
@@ -1240,6 +1132,7 @@ async function cargarProyectosDesdeNube() {
       }
     );
 
+
   }
 
   catch (error) {
@@ -1255,7 +1148,7 @@ async function cargarProyectosDesdeNube() {
 
 
 // ============================================================
-// 10. CARGAR INGRESOS
+// 9. CARGAR INGRESOS
 // ============================================================
 
 async function cargarIngresosDesdeNube() {
@@ -1296,6 +1189,7 @@ async function cargarIngresosDesdeNube() {
       }
     );
 
+
   }
 
   catch (error) {
@@ -1311,7 +1205,7 @@ async function cargarIngresosDesdeNube() {
 
 
 // ============================================================
-// 11. BÚSQUEDA PÚBLICA
+// 10. BÚSQUEDA PÚBLICA
 // ============================================================
 
 async function buscarProyectoPublico(
@@ -1419,13 +1313,16 @@ async function buscarProyectoPublico(
     );
 
 
-    errorMsg.innerText =
-      "No se pudo consultar el proyecto.";
+    if (errorMsg) {
 
+      errorMsg.innerText =
+        "No se pudo consultar el proyecto.";
 
-    errorMsg.classList.remove(
-      "hidden"
-    );
+      errorMsg.classList.remove(
+        "hidden"
+      );
+
+    }
 
   }
 
@@ -1433,7 +1330,7 @@ async function buscarProyectoPublico(
 
 
 // ============================================================
-// 12. RENDER PROYECTOS ADMIN
+// 11. RENDER PROYECTOS ADMIN
 // ============================================================
 
 function renderProyectosAdmin() {
@@ -1484,7 +1381,7 @@ function renderProyectosAdmin() {
 
 
   proyectos.forEach(
-    (p,index) => {
+    (p, index) => {
 
       const presupuesto =
         Number(
@@ -1498,10 +1395,22 @@ function renderProyectosAdmin() {
         ) || 0;
 
 
+      const ingreso =
+        ingresos.find(
+          i =>
+            i.proyectoId === p.id
+        );
+
+
+      const cobrado =
+        ingreso
+          ? Number(ingreso.cobrado) || 0
+          : adelanto;
+
+
       const saldo =
         Math.max(
-          presupuesto -
-          adelanto,
+          presupuesto - cobrado,
           0
         );
 
@@ -1535,43 +1444,45 @@ function renderProyectosAdmin() {
 
 
       const botones =
-        etapas.map(
-          (estado,idx) => {
+        etapas
+          .map(
+            (estado, idx) => {
 
-            const activo =
-              p.estado === estado;
+              const activo =
+                p.estado === estado;
 
 
-            return `
+              return `
 
-              <button
-                type="button"
-                onclick="cambiarEstadoPorId(
-                  '${p.id}',
-                  ${idx},
-                  ${(idx+1)*20}
-                )"
-                style="
-                  border:none;
-                  padding:.4rem .7rem;
-                  border-radius:6px;
-                  cursor:pointer;
-                  font-size:.8rem;
-                  margin:.2rem;
-                  ${
-                    activo
-                      ? "background:#f59e0b;color:#000;font-weight:bold;"
-                      : "background:rgba(255,255,255,.1);color:#fff;"
-                  }
-                "
-              >
-                ${estado}
-              </button>
+                <button
+                  type="button"
+                  onclick="cambiarEstadoPorId(
+                    '${p.id}',
+                    ${idx},
+                    ${(idx + 1) * 20}
+                  )"
+                  style="
+                    border:none;
+                    padding:.4rem .7rem;
+                    border-radius:6px;
+                    cursor:pointer;
+                    font-size:.8rem;
+                    margin:.2rem;
+                    ${
+                      activo
+                        ? "background:#f59e0b;color:#000;font-weight:bold;"
+                        : "background:rgba(255,255,255,.1);color:#fff;"
+                    }
+                  "
+                >
+                  ${estado}
+                </button>
 
-            `;
+              `;
 
-          }
-        ).join("");
+            }
+          )
+          .join("");
 
 
       card.innerHTML = `
@@ -1603,11 +1514,7 @@ function renderProyectosAdmin() {
               </span>
 
 
-              <strong
-                style="
-                  margin-left:.4rem;
-                "
-              >
+              <strong style="margin-left:.4rem;">
                 ${p.mueble || ""}
               </strong>
 
@@ -1702,11 +1609,7 @@ function renderProyectosAdmin() {
               </div>
 
 
-              <div
-                style="
-                  margin-top:.7rem;
-                "
-              >
+              <div style="margin-top:.7rem;">
                 ${botones}
               </div>
 
@@ -1779,9 +1682,7 @@ function renderProyectosAdmin() {
       `;
 
 
-      container.appendChild(
-        card
-      );
+      container.appendChild(card);
 
     }
   );
@@ -1790,7 +1691,7 @@ function renderProyectosAdmin() {
 
 
 // ============================================================
-// 13. CAMBIAR ESTADO
+// 12. CAMBIAR ESTADO
 // ============================================================
 
 async function cambiarEstadoPorId(
@@ -1875,34 +1776,38 @@ async function cambiarEstadoPorId(
       );
 
 
-    const publicoQuery =
-      await db
-        .collection(
-          "proyectos_publicos"
-        )
-        .where(
-          "codigo",
-          "==",
-          proyecto?.codigo
-        )
-        .limit(1)
-        .get();
+    if (proyecto) {
+
+      const publicoQuery =
+        await db
+          .collection(
+            "proyectos_publicos"
+          )
+          .where(
+            "codigo",
+            "==",
+            proyecto.codigo
+          )
+          .limit(1)
+          .get();
 
 
-    publicoQuery.forEach(
-      doc => {
+      publicoQuery.forEach(
+        doc => {
 
-        batch.update(
-          doc.ref,
-          {
-            estado,
-            progreso,
-            detalles
-          }
-        );
+          batch.update(
+            doc.ref,
+            {
+              estado,
+              progreso,
+              detalles
+            }
+          );
 
-      }
-    );
+        }
+      );
+
+    }
 
 
     await batch.commit();
@@ -1927,7 +1832,7 @@ async function cambiarEstadoPorId(
 
 
 // ============================================================
-// 14. ELIMINAR PROYECTO
+// 13. ELIMINAR PROYECTO
 // ============================================================
 
 async function eliminarProyecto(
@@ -1956,16 +1861,12 @@ async function eliminarProyecto(
       db.batch();
 
 
-    // PROYECTO
-
     batch.delete(
       db
         .collection("proyectos")
         .doc(id)
     );
 
-
-    // PÚBLICO
 
     if (proyecto) {
 
@@ -1979,6 +1880,7 @@ async function eliminarProyecto(
             "==",
             proyecto.codigo
           )
+          .limit(1)
           .get();
 
 
@@ -1992,45 +1894,36 @@ async function eliminarProyecto(
         }
       );
 
+
+      const ingresoSnap =
+        await db
+          .collection("ingresos")
+          .where(
+            "proyectoId",
+            "==",
+            id
+          )
+          .limit(1)
+          .get();
+
+
+      ingresoSnap.forEach(
+        doc => {
+
+          batch.delete(
+            doc.ref
+          );
+
+        }
+      );
+
     }
-
-
-    // INGRESOS
-    // IMPORTANTE:
-    // eliminamos TODOS los ingresos relacionados.
-
-    const ingresoSnap =
-      await db
-        .collection("ingresos")
-        .where(
-          "proyectoId",
-          "==",
-          id
-        )
-        .get();
-
-
-    ingresoSnap.forEach(
-      doc => {
-
-        batch.delete(
-          doc.ref
-        );
-
-      }
-    );
 
 
     await batch.commit();
 
 
-    // Volver a cargar todo
-
     await cargarProyectosDesdeNube();
-
-
-    await limpiarIngresosSinProyecto();
-
 
     await cargarIngresosDesdeNube();
 
@@ -2054,7 +1947,7 @@ async function eliminarProyecto(
 
 
 // ============================================================
-// 15. EDITAR PROYECTO
+// 14. EDITAR PROYECTO
 // ============================================================
 
 function activarEdicionInline(
@@ -2090,13 +1983,11 @@ function activarEdicionInline(
         placeholder="Código"
       >
 
-
       <input
         id="edit-cliente-${index}"
         value="${p.cliente || ""}"
         placeholder="Cliente"
       >
-
 
       <input
         id="edit-mueble-${index}"
@@ -2104,13 +1995,11 @@ function activarEdicionInline(
         placeholder="Mueble"
       >
 
-
       <input
         id="edit-telefono-${index}"
         value="${p.telefono || ""}"
         placeholder="WhatsApp"
       >
-
 
       <input
         type="number"
@@ -2119,14 +2008,12 @@ function activarEdicionInline(
         placeholder="Presupuesto"
       >
 
-
       <input
         type="number"
         id="edit-adelanto-${index}"
         value="${p.adelanto || 0}"
         placeholder="Adelanto"
       >
-
 
       <input
         type="date"
@@ -2178,7 +2065,7 @@ function activarEdicionInline(
 
 
 // ============================================================
-// 16. GUARDAR EDICIÓN
+// 15. GUARDAR EDICIÓN
 // ============================================================
 
 async function guardarEdicionInline(
@@ -2197,51 +2084,68 @@ async function guardarEdicionInline(
 
 
   const codigo =
-    document.getElementById(
-      `edit-codigo-${index}`
-    ).value
+    document
+      .getElementById(
+        `edit-codigo-${index}`
+      )
+      .value
       .trim()
       .toUpperCase();
 
 
   const cliente =
-    document.getElementById(
-      `edit-cliente-${index}`
-    ).value.trim();
+    document
+      .getElementById(
+        `edit-cliente-${index}`
+      )
+      .value
+      .trim();
 
 
   const mueble =
-    document.getElementById(
-      `edit-mueble-${index}`
-    ).value.trim();
+    document
+      .getElementById(
+        `edit-mueble-${index}`
+      )
+      .value
+      .trim();
 
 
   const telefono =
-    document.getElementById(
-      `edit-telefono-${index}`
-    ).value.trim();
+    document
+      .getElementById(
+        `edit-telefono-${index}`
+      )
+      .value
+      .trim();
 
 
   const presupuesto =
     Number(
-      document.getElementById(
-        `edit-presupuesto-${index}`
-      ).value
+      document
+        .getElementById(
+          `edit-presupuesto-${index}`
+        )
+        .value
     ) || 0;
 
 
   const adelanto =
     Number(
-      document.getElementById(
-        `edit-adelanto-${index}`
-      ).value
+      document
+        .getElementById(
+          `edit-adelanto-${index}`
+        )
+        .value
     ) || 0;
 
 
   const fecha =
-    document.getElementById(
-      `edit-fecha-${index}`
-    ).value;
+    document
+      .getElementById(
+        `edit-fecha-${index}`
+      )
+      .value;
 
 
   try {
@@ -2263,13 +2167,10 @@ async function guardarEdicionInline(
 
         adelanto,
 
-        fechaEntrega:
-          fecha
+        fechaEntrega: fecha
 
       });
 
-
-    // INGRESO RELACIONADO
 
     const ingresoSnap =
       await db
@@ -2306,8 +2207,7 @@ async function guardarEdicionInline(
 
       const pendiente =
         Math.max(
-          presupuesto -
-          cobrado,
+          presupuesto - cobrado,
           0
         );
 
@@ -2335,8 +2235,6 @@ async function guardarEdicionInline(
 
     await cargarProyectosDesdeNube();
 
-    await limpiarIngresosSinProyecto();
-
     await cargarIngresosDesdeNube();
 
 
@@ -2359,7 +2257,102 @@ async function guardarEdicionInline(
 
 
 // ============================================================
-// 17. GESTIÓN DE INGRESOS
+// 16. PROYECTOS QUE DEBEN APARECER EN UN MES
+// ============================================================
+
+function proyectoDebeAparecerEnMes(
+  ingreso,
+  mesSeleccionado
+) {
+
+  if (!ingreso || !mesSeleccionado) {
+
+    return false;
+
+  }
+
+
+  const fechaCreacion =
+    obtenerMesDeFecha(
+      ingreso.fechaCreacion
+    );
+
+
+  if (!fechaCreacion) {
+
+    return true;
+
+  }
+
+
+  const fechaFin =
+    ingreso.fechaFinalizacion
+      ? obtenerMesDeFecha(
+          ingreso.fechaFinalizacion
+        )
+      : null;
+
+
+  // Todavía no existía en ese mes
+  if (
+    compararMeses(
+      mesSeleccionado,
+      fechaCreacion
+    ) < 0
+  ) {
+
+    return false;
+
+  }
+
+
+  // Si ya estaba completamente pagado,
+  // deja de arrastrarse después de ese mes.
+  if (
+    fechaFin &&
+    compararMeses(
+      mesSeleccionado,
+      fechaFin
+    ) > 0
+  ) {
+
+    return false;
+
+  }
+
+
+  return true;
+
+}
+
+
+// ============================================================
+// 17. PAGOS DEL MES
+// ============================================================
+
+function obtenerPagosDelMes(
+  ingreso,
+  mesSeleccionado
+) {
+
+  const pagos =
+    Array.isArray(ingreso.pagos)
+      ? ingreso.pagos
+      : [];
+
+
+  return pagos.filter(
+    pago =>
+      obtenerMesDeFecha(
+        pago.fecha
+      ) === mesSeleccionado
+  );
+
+}
+
+
+// ============================================================
+// 18. GESTIÓN DE INGRESOS
 // ============================================================
 
 function renderGestionIngresos() {
@@ -2376,81 +2369,47 @@ function renderGestionIngresos() {
   if (!container) return;
 
 
-  const filtro =
+  const filtroInput =
     document.getElementById(
       "ingresos-mes"
-    )?.value
-    || "";
-
-
-  // SOLO mostrar ingresos cuyos proyectos existen
-
-  const idsProyectos =
-    new Set(
-      proyectos.map(
-        p => p.id
-      )
     );
 
 
-  let lista =
-    ingresos.filter(
-      ingreso =>
-        ingreso.proyectoId &&
-        idsProyectos.has(
-          ingreso.proyectoId
-        )
-    );
+  const filtro =
+    filtroInput?.value
+    || obtenerMesActual();
 
 
-  // FILTRO POR MES
+  if (
+    filtroInput &&
+    !filtroInput.value
+  ) {
 
-  if (filtro) {
-
-    lista =
-      lista.filter(
-        ingreso => {
-
-          let fecha = null;
-
-
-          if (
-            ingreso.fechaCreacion &&
-            ingreso.fechaCreacion.toDate
-          ) {
-
-            fecha =
-              ingreso
-                .fechaCreacion
-                .toDate();
-
-          }
-
-
-          if (!fecha) {
-
-            return true;
-
-          }
-
-
-          const mes =
-            `${fecha.getFullYear()}-${String(
-              fecha.getMonth()+1
-            ).padStart(2,"0")}`;
-
-
-          return mes === filtro;
-
-        }
-      );
+    filtroInput.value =
+      filtro;
 
   }
 
 
-  let totalCobrado = 0;
+  // ----------------------------------------------------------
+  // PROYECTOS DEL MES
+  // ----------------------------------------------------------
 
-  let totalPendiente = 0;
+  const lista =
+    ingresos.filter(
+      ingreso =>
+        proyectoDebeAparecerEnMes(
+          ingreso,
+          filtro
+        )
+    );
+
+
+  let totalCobrado =
+    0;
+
+  let totalPendiente =
+    0;
 
 
   lista.forEach(
@@ -2463,118 +2422,63 @@ function renderGestionIngresos() {
 
 
       totalPendiente +=
-        Number(
-          ingreso.pendiente
-        ) || 0;
+        Math.max(
+          Number(
+            ingreso.presupuesto
+          ) || 0
+          -
+          Number(
+            ingreso.cobrado
+          ) || 0,
+          0
+        );
 
     }
   );
 
 
-  // ==========================================================
-  // RESUMEN
-  // ==========================================================
-
-  const resumen =
+  const resumenProyectos =
     document.getElementById(
-      "resumen-ingresos"
+      "ing-resumen-proyectos"
     );
 
 
-  if (resumen) {
-
-    resumen.innerHTML = `
-
-      <div
-        style="
-          background:rgba(56,189,248,.08);
-          border:1px solid rgba(56,189,248,.25);
-          border-radius:8px;
-          padding:10px;
-        "
-      >
-
-        <div
-          style="
-            color:#38bdf8;
-            font-size:.78rem;
-          "
-        >
-          Proyectos
-        </div>
-
-        <strong
-          style="
-            color:#38bdf8;
-            font-size:1rem;
-          "
-        >
-          ${lista.length}
-        </strong>
-
-      </div>
+  const resumenCobrado =
+    document.getElementById(
+      "ing-resumen-cobrado"
+    );
 
 
-      <div
-        style="
-          background:rgba(74,222,128,.08);
-          border:1px solid rgba(74,222,128,.25);
-          border-radius:8px;
-          padding:10px;
-        "
-      >
-
-        <div
-          style="
-            color:#4ade80;
-            font-size:.78rem;
-          "
-        >
-          Cobrado
-        </div>
-
-        <strong
-          style="
-            color:#4ade80;
-            font-size:1rem;
-          "
-        >
-          Bs. ${formatearMonto(totalCobrado)}
-        </strong>
-
-      </div>
+  const resumenPendiente =
+    document.getElementById(
+      "ing-resumen-pendiente"
+    );
 
 
-      <div
-        style="
-          background:rgba(239,68,68,.08);
-          border:1px solid rgba(239,68,68,.25);
-          border-radius:8px;
-          padding:10px;
-        "
-      >
+  if (resumenProyectos) {
 
-        <div
-          style="
-            color:#ef4444;
-            font-size:.78rem;
-          "
-        >
-          Pendiente
-        </div>
+    resumenProyectos.innerText =
+      lista.length;
 
-        <strong
-          style="
-            color:#ef4444;
-            font-size:1rem;
-          "
-        >
-          Bs. ${formatearMonto(totalPendiente)}
-        </strong>
+  }
 
-      </div>
 
-    `;
+  if (resumenCobrado) {
+
+    resumenCobrado.innerText =
+      `Bs. ${formatearMonto(
+        totalCobrado
+      )}`;
+
+  }
+
+
+  if (resumenPendiente) {
+
+    resumenPendiente.innerText =
+      `Bs. ${formatearMonto(
+        totalPendiente
+      )}`;
 
   }
 
@@ -2582,10 +2486,6 @@ function renderGestionIngresos() {
   container.innerHTML =
     "";
 
-
-  // ==========================================================
-  // SIN PROYECTOS
-  // ==========================================================
 
   if (!lista.length) {
 
@@ -2600,7 +2500,7 @@ function renderGestionIngresos() {
       >
 
         <i
-          class="fa-solid fa-receipt"
+          class="fa-solid fa-calendar-check"
           style="
             font-size:1.5rem;
             margin-bottom:8px;
@@ -2608,7 +2508,7 @@ function renderGestionIngresos() {
         ></i>
 
         <div>
-          No hay proyectos registrados.
+          No hay proyectos registrados para este mes.
         </div>
 
       </div>
@@ -2620,9 +2520,36 @@ function renderGestionIngresos() {
   }
 
 
-  // ==========================================================
-  // LISTA
-  // ==========================================================
+  // ----------------------------------------------------------
+  // ORDENAR
+  // ----------------------------------------------------------
+
+  lista.sort(
+    (a, b) => {
+
+      const aFecha =
+        obtenerMesDeFecha(
+          a.fechaCreacion
+        ) || "";
+
+
+      const bFecha =
+        obtenerMesDeFecha(
+          b.fechaCreacion
+        ) || "";
+
+
+      return aFecha.localeCompare(
+        bFecha
+      );
+
+    }
+  );
+
+
+  // ----------------------------------------------------------
+  // CARDS
+  // ----------------------------------------------------------
 
   lista.forEach(
     ingreso => {
@@ -2668,6 +2595,123 @@ function renderGestionIngresos() {
         );
 
 
+      const pagosMes =
+        obtenerPagosDelMes(
+          ingreso,
+          filtro
+        );
+
+
+      const totalPagadoMes =
+        pagosMes.reduce(
+          (total, pago) =>
+            total +
+            (Number(
+              pago.monto
+            ) || 0),
+          0
+        );
+
+
+      const esNuevoEsteMes =
+        obtenerMesDeFecha(
+          ingreso.fechaCreacion
+        ) === filtro;
+
+
+      let pagosHTML =
+        "";
+
+
+      if (pagosMes.length) {
+
+        pagosHTML = `
+
+          <div
+            style="
+              margin-top:8px;
+              border-top:1px solid rgba(255,255,255,.07);
+              padding-top:7px;
+            "
+          >
+
+            <div
+              style="
+                color:#4ade80;
+                font-size:.72rem;
+                margin-bottom:4px;
+              "
+            >
+              <i class="fa-solid fa-clock-rotate-left"></i>
+              Movimientos de este mes
+            </div>
+
+            ${pagosMes
+              .map(
+                pago => {
+
+                  const fechaPago =
+                    obtenerFechaBonita(
+                      pago.fecha
+                    );
+
+
+                  return `
+
+                    <div
+                      style="
+                        display:flex;
+                        justify-content:space-between;
+                        font-size:.74rem;
+                        padding:2px 0;
+                      "
+                    >
+
+                      <span style="color:#aaa;">
+                        ${pago.tipo || "Pago"}
+                        ·
+                        ${fechaPago}
+                      </span>
+
+                      <strong
+                        style="color:#4ade80;"
+                      >
+                        Bs. ${formatearMonto(
+                          pago.monto
+                        )}
+                      </strong>
+
+                    </div>
+
+                  `;
+
+                }
+              )
+              .join("")}
+
+            <div
+              style="
+                text-align:right;
+                color:#4ade80;
+                font-size:.76rem;
+                margin-top:4px;
+              "
+            >
+              Recibido este mes:
+              <strong>
+                Bs. ${formatearMonto(
+                  totalPagadoMes
+                )}
+              </strong>
+            </div>
+
+          </div>
+
+        `;
+
+      }
+
+
       card.innerHTML = `
 
         <div
@@ -2697,6 +2741,34 @@ function renderGestionIngresos() {
               ${ingreso.mueble || ""}
             </div>
 
+            ${
+              esNuevoEsteMes
+                ? `
+                  <span
+                    style="
+                      display:inline-block;
+                      margin-top:4px;
+                      color:#38bdf8;
+                      font-size:.68rem;
+                    "
+                  >
+                    NUEVO ESTE MES
+                  </span>
+                `
+                : `
+                  <span
+                    style="
+                      display:inline-block;
+                      margin-top:4px;
+                      color:#f59e0b;
+                      font-size:.68rem;
+                    "
+                  >
+                    PENDIENTE DE MESES ANTERIORES
+                  </span>
+                `
+            }
+
           </div>
 
 
@@ -2708,7 +2780,9 @@ function renderGestionIngresos() {
             "
           >
             Total:
-            Bs. ${formatearMonto(presupuesto)}
+            Bs. ${formatearMonto(
+              presupuesto
+            )}
           </div>
 
         </div>
@@ -2737,11 +2811,11 @@ function renderGestionIngresos() {
             Adelanto
 
             <strong
-              style="
-                display:block;
-              "
+              style="display:block;"
             >
-              Bs. ${formatearMonto(adelanto)}
+              Bs. ${formatearMonto(
+                adelanto
+              )}
             </strong>
 
           </div>
@@ -2761,11 +2835,11 @@ function renderGestionIngresos() {
             Cobrado
 
             <strong
-              style="
-                display:block;
-              "
+              style="display:block;"
             >
-              Bs. ${formatearMonto(cobrado)}
+              Bs. ${formatearMonto(
+                cobrado
+              )}
             </strong>
 
           </div>
@@ -2785,16 +2859,19 @@ function renderGestionIngresos() {
             Pendiente
 
             <strong
-              style="
-                display:block;
-              "
+              style="display:block;"
             >
-              Bs. ${formatearMonto(pendiente)}
+              Bs. ${formatearMonto(
+                pendiente
+              )}
             </strong>
 
           </div>
 
         </div>
+
+
+        ${pagosHTML}
 
 
         ${
@@ -2870,7 +2947,6 @@ function renderGestionIngresos() {
           </div>
 
           `
-
         }
 
       `;
@@ -2887,7 +2963,66 @@ function renderGestionIngresos() {
 
 
 // ============================================================
-// 18. REGISTRAR PAGO
+// 19. FECHA BONITA
+// ============================================================
+
+function obtenerFechaBonita(
+  fecha
+) {
+
+  if (!fecha) {
+
+    return "--/--/----";
+
+  }
+
+
+  let date = null;
+
+
+  if (
+    fecha &&
+    typeof fecha.toDate === "function"
+  ) {
+
+    date =
+      fecha.toDate();
+
+  }
+
+  else if (
+    fecha instanceof Date
+  ) {
+
+    date =
+      fecha;
+
+  }
+
+
+  if (
+    !date ||
+    Number.isNaN(
+      date.getTime()
+    )
+  ) {
+
+    return "--/--/----";
+
+  }
+
+
+  return `${String(
+    date.getDate()
+  ).padStart(2, "0")}/${String(
+    date.getMonth() + 1
+  ).padStart(2, "0")}/${date.getFullYear()}`;
+
+}
+
+
+// ============================================================
+// 20. REGISTRAR PAGO
 // ============================================================
 
 async function registrarPago(
@@ -2925,7 +3060,8 @@ async function registrarPago(
 
   const ingreso =
     ingresos.find(
-      i => i.id === ingresoId
+      i =>
+        i.id === ingresoId
     );
 
 
@@ -2986,31 +3122,83 @@ async function registrarPago(
     );
 
 
+  const ahora =
+    firebase.firestore.Timestamp.now();
+
+
+  const pagosActuales =
+    Array.isArray(
+      ingreso.pagos
+    )
+      ? [...ingreso.pagos]
+      : [];
+
+
+  pagosActuales.push({
+
+    monto: pago,
+
+    tipo:
+      ingreso.cobrado > 0
+        ? "Pago"
+        : "Adelanto",
+
+    fecha:
+      ahora
+
+  });
+
+
+  const datosUpdate = {
+
+    pagosFinales:
+      nuevosPagosFinales,
+
+    cobrado:
+      nuevoCobrado,
+
+    pendiente:
+      nuevoPendiente,
+
+    pagos:
+      pagosActuales,
+
+    fechaUltimoPago:
+      ahora
+
+  };
+
+
+  // Cuando queda completamente pagado,
+  // guardamos el mes de finalización.
+  if (
+    nuevoPendiente <= 0
+  ) {
+
+    datosUpdate.fechaFinalizacion =
+      ahora;
+
+  }
+
+
   try {
 
     await db
       .collection("ingresos")
       .doc(ingresoId)
-      .update({
-
-        pagosFinales:
-          nuevosPagosFinales,
-
-        cobrado:
-          nuevoCobrado,
-
-        pendiente:
-          nuevoPendiente,
-
-        fechaUltimoPago:
-          firebase.firestore.FieldValue.serverTimestamp()
-
-      });
+      .update(
+        datosUpdate
+      );
 
 
     await cargarIngresosDesdeNube();
 
     renderGestionIngresos();
+
+
+    mostrarMensajeInterno(
+      "Pago registrado correctamente."
+    );
 
   }
 
@@ -3021,13 +3209,19 @@ async function registrarPago(
       error
     );
 
+
+    mostrarMensajeInterno(
+      "No se pudo registrar el pago.",
+      true
+    );
+
   }
 
 }
 
 
 // ============================================================
-// 19. EXPORTAR PDF
+// 21. EXPORTAR PDF
 // ============================================================
 
 function exportarIngresosPDF() {
@@ -3045,56 +3239,24 @@ function exportarIngresosPDF() {
   if (!filtro) return;
 
 
-  const idsProyectos =
-    new Set(
-      proyectos.map(
-        p => p.id
-      )
-    );
-
-
   const lista =
     ingresos.filter(
-      ingreso => {
-
-        if (
-          !ingreso.proyectoId ||
-          !idsProyectos.has(
-            ingreso.proyectoId
-          )
-        ) {
-
-          return false;
-
-        }
-
-
-        if (
-          !ingreso.fechaCreacion ||
-          !ingreso.fechaCreacion.toDate
-        ) {
-
-          return true;
-
-        }
-
-
-        const fecha =
-          ingreso
-            .fechaCreacion
-            .toDate();
-
-
-        const mes =
-          `${fecha.getFullYear()}-${String(
-            fecha.getMonth()+1
-          ).padStart(2,"0")}`;
-
-
-        return mes === filtro;
-
-      }
+      ingreso =>
+        proyectoDebeAparecerEnMes(
+          ingreso,
+          filtro
+        )
     );
+
+
+  if (
+    !window.jspdf ||
+    !window.jspdf.jsPDF
+  ) {
+
+    return;
+
+  }
 
 
   const jsPDF =
@@ -3105,7 +3267,7 @@ function exportarIngresosPDF() {
     new jsPDF();
 
 
-  const [anio,mes] =
+  const [anio, mes] =
     filtro.split("-");
 
 
@@ -3140,7 +3302,6 @@ function exportarIngresosPDF() {
 
   doc.setFontSize(18);
 
-
   doc.text(
     "HN MUEBLES",
     14,
@@ -3150,21 +3311,26 @@ function exportarIngresosPDF() {
 
   doc.setFontSize(12);
 
-
   doc.text(
-    `Registro de Ingresos - ${nombresMes[Number(mes)-1]} ${anio}`,
+    `Registro de Ingresos - ${nombresMes[
+      Number(mes) - 1
+    ]} ${anio}`,
     14,
     27
   );
 
 
-  let totalProyecto = 0;
+  let totalProyecto =
+    0;
 
-  let totalAdelanto = 0;
+  let totalAdelanto =
+    0;
 
-  let totalCobrado = 0;
+  let totalCobrado =
+    0;
 
-  let totalPendiente = 0;
+  let totalPendiente =
+    0;
 
 
   const filas =
@@ -3221,13 +3387,21 @@ function exportarIngresosPDF() {
 
           ingreso.mueble || "",
 
-          `Bs. ${formatearMonto(total)}`,
+          `Bs. ${formatearMonto(
+            total
+          )}`,
 
-          `Bs. ${formatearMonto(adelanto)}`,
+          `Bs. ${formatearMonto(
+            adelanto
+          )}`,
 
-          `Bs. ${formatearMonto(cobrado)}`,
+          `Bs. ${formatearMonto(
+            cobrado
+          )}`,
 
-          `Bs. ${formatearMonto(pendiente)}`
+          `Bs. ${formatearMonto(
+            pendiente
+          )}`
 
         ];
 
@@ -3235,16 +3409,16 @@ function exportarIngresosPDF() {
     );
 
 
-  // AutoTable puede no estar incluido en algunas versiones.
-  // Se mantiene exactamente el comportamiento anterior.
-
-  if (typeof doc.autoTable === "function") {
+  if (
+    typeof doc.autoTable ===
+    "function"
+  ) {
 
     doc.autoTable({
 
       startY:35,
 
-      head:[[
+      head: [[
 
         "Código",
 
@@ -3280,7 +3454,7 @@ function exportarIngresosPDF() {
   const finalY =
     doc.lastAutoTable
       ? doc.lastAutoTable.finalY + 10
-      : 40;
+      : 45;
 
 
   doc.setFontSize(10);
@@ -3294,28 +3468,36 @@ function exportarIngresosPDF() {
 
 
   doc.text(
-    `Total contratado: Bs. ${formatearMonto(totalProyecto)}`,
+    `Total contratado: Bs. ${formatearMonto(
+      totalProyecto
+    )}`,
     14,
     finalY + 7
   );
 
 
   doc.text(
-    `Total adelantos: Bs. ${formatearMonto(totalAdelanto)}`,
+    `Total adelantos: Bs. ${formatearMonto(
+      totalAdelanto
+    )}`,
     14,
     finalY + 14
   );
 
 
   doc.text(
-    `Total cobrado: Bs. ${formatearMonto(totalCobrado)}`,
+    `Total cobrado: Bs. ${formatearMonto(
+      totalCobrado
+    )}`,
     14,
     finalY + 21
   );
 
 
   doc.text(
-    `Total pendiente: Bs. ${formatearMonto(totalPendiente)}`,
+    `Total pendiente: Bs. ${formatearMonto(
+      totalPendiente
+    )}`,
     14,
     finalY + 28
   );
@@ -3329,7 +3511,7 @@ function exportarIngresosPDF() {
 
 
 // ============================================================
-// 20. WHATSAPP
+// 22. WHATSAPP
 // ============================================================
 
 function notificarWhatsApp(
