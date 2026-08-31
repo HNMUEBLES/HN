@@ -1,3 +1,4 @@
+```javascript
 // ============================================================
 // HN MUEBLES - SCRIPT PRINCIPAL
 // Firebase Authentication + Firestore
@@ -160,8 +161,8 @@ function copiarCodigoAlPortapapeles(codigo) {
 function irInicio() {
 
   window.scrollTo({
-    top:0,
-    behavior:"smooth"
+    top: 0,
+    behavior: "smooth"
   });
 
 }
@@ -665,8 +666,8 @@ document.addEventListener(
             )?.value
               .trim()
               .toUpperCase()
-              ||
-              generarCodigoAleatorio();
+            ||
+            generarCodigoAleatorio();
 
 
           const cliente =
@@ -787,7 +788,7 @@ document.addEventListener(
 
             adelanto,
 
-            pagosFinales:0,
+            pagosFinales: 0,
 
             cobrado:
               adelanto,
@@ -856,7 +857,8 @@ document.addEventListener(
 
             document.getElementById(
               "nuevo-codigo"
-            ).value = "";
+            ).value =
+              generarCodigoAleatorio();
 
 
             document.getElementById(
@@ -900,6 +902,11 @@ document.addEventListener(
 
             renderGestionIngresos();
 
+
+            mostrarMensajeInterno(
+              "Proyecto guardado correctamente."
+            );
+
           }
 
           catch (error) {
@@ -941,7 +948,7 @@ document.addEventListener(
       filtroIngresos.value =
         `${ahora.getFullYear()}-${String(
           ahora.getMonth() + 1
-        ).padStart(2,"0")}`;
+        ).padStart(2, "0")}`;
 
 
       filtroIngresos.addEventListener(
@@ -1342,7 +1349,7 @@ function renderProyectosAdmin() {
 
 
   proyectos.forEach(
-    (p,index) => {
+    (p, index) => {
 
       const presupuesto =
         Number(
@@ -1395,7 +1402,7 @@ function renderProyectosAdmin() {
 
       const botones =
         etapas.map(
-          (estado,idx) => {
+          (estado, idx) => {
 
             const activo =
               p.estado === estado;
@@ -1408,7 +1415,7 @@ function renderProyectosAdmin() {
                 onclick="cambiarEstadoPorId(
                   '${p.id}',
                   ${idx},
-                  ${(idx+1)*20}
+                  ${(idx + 1) * 20}
                 )"
                 style="
                   border:none;
@@ -1448,7 +1455,7 @@ function renderProyectosAdmin() {
             "
           >
 
-            <div>
+            <div style="flex:1;min-width:260px;">
 
               <span
                 style="
@@ -1497,72 +1504,144 @@ function renderProyectosAdmin() {
               </p>
 
 
+              <!-- =================================================
+                   INFORMACIÓN ECONÓMICA
+                   BLOQUES GRANDES
+                   ================================================= -->
+
               <div
                 style="
-                  display:flex;
-                  gap:6px;
-                  flex-wrap:wrap;
-                  margin-top:8px;
+                  display:grid;
+                  grid-template-columns:
+                    repeat(auto-fit,minmax(160px,1fr));
+                  gap:8px;
+                  margin-top:12px;
                 "
               >
 
-                <!-- ESTOS SON SOLO INFORMACIÓN.
-                     NO TIENEN onclick NI ABREN VENTANAS -->
+                <!-- TOTAL -->
 
                 <div
                   style="
                     background:rgba(56,189,248,.07);
                     border:1px solid rgba(56,189,248,.25);
                     color:#38bdf8;
-                    padding:7px;
-                    border-radius:7px;
-                    font-size:.8rem;
+                    padding:11px 13px;
+                    border-radius:9px;
+                    font-size:.82rem;
                     cursor:default;
                     user-select:none;
+                    min-height:58px;
+                    box-sizing:border-box;
+                    display:flex;
+                    flex-direction:column;
+                    justify-content:center;
                   "
                 >
-                  Total:
-                  <strong>
+
+                  <span
+                    style="
+                      font-size:.75rem;
+                      opacity:.85;
+                      margin-bottom:3px;
+                    "
+                  >
+                    Monto total
+                  </span>
+
+                  <strong
+                    style="
+                      font-size:1rem;
+                      line-height:1.2;
+                    "
+                  >
                     Bs. ${formatearMonto(presupuesto)}
                   </strong>
+
                 </div>
 
+
+                <!-- ADELANTO -->
 
                 <div
                   style="
                     background:rgba(245,158,11,.07);
                     border:1px solid rgba(245,158,11,.25);
                     color:#f59e0b;
-                    padding:7px;
-                    border-radius:7px;
-                    font-size:.8rem;
+                    padding:11px 13px;
+                    border-radius:9px;
+                    font-size:.82rem;
                     cursor:default;
                     user-select:none;
+                    min-height:58px;
+                    box-sizing:border-box;
+                    display:flex;
+                    flex-direction:column;
+                    justify-content:center;
                   "
                 >
-                  Adelanto:
-                  <strong>
+
+                  <span
+                    style="
+                      font-size:.75rem;
+                      opacity:.85;
+                      margin-bottom:3px;
+                    "
+                  >
+                    Adelanto
+                  </span>
+
+                  <strong
+                    style="
+                      font-size:1rem;
+                      line-height:1.2;
+                    "
+                  >
                     Bs. ${formatearMonto(adelanto)}
                   </strong>
+
                 </div>
 
+
+                <!-- PENDIENTE -->
 
                 <div
                   style="
                     background:rgba(239,68,68,.07);
                     border:1px solid rgba(239,68,68,.25);
                     color:#ef4444;
-                    padding:7px;
-                    border-radius:7px;
-                    font-size:.8rem;
+                    padding:11px 13px;
+                    border-radius:9px;
+                    font-size:.82rem;
                     cursor:default;
                     user-select:none;
+                    min-height:58px;
+                    box-sizing:border-box;
+                    display:flex;
+                    flex-direction:column;
+                    justify-content:center;
                   "
                 >
-                  Pendiente:
-                  <strong>
+
+                  <span
+                    style="
+                      font-size:.75rem;
+                      opacity:.85;
+                      margin-bottom:3px;
+                    "
+                  >
+                    Pendiente
+                  </span>
+
+                  <strong
+                    style="
+                      font-size:1rem;
+                      line-height:1.2;
+                    "
+                  >
                     Bs. ${formatearMonto(saldo)}
                   </strong>
+
                 </div>
 
               </div>
@@ -2053,6 +2132,16 @@ async function guardarEdicionInline(
   }
 
 
+  const proyectoAnterior =
+    proyectos.find(
+      p => p.id === id
+    );
+
+
+  const codigoAnterior =
+    proyectoAnterior?.codigo || "";
+
+
   const codigo =
     document.getElementById(
       `edit-codigo-${index}`
@@ -2103,6 +2192,10 @@ async function guardarEdicionInline(
 
   try {
 
+    // ========================================================
+    // ACTUALIZAR PROYECTO
+    // ========================================================
+
     await db
       .collection("proyectos")
       .doc(id)
@@ -2120,10 +2213,14 @@ async function guardarEdicionInline(
 
         adelanto,
 
-        fechaEntrega:fecha
+        fechaEntrega: fecha
 
       });
 
+
+    // ========================================================
+    // ACTUALIZAR INGRESO
+    // ========================================================
 
     const ingresoSnap =
       await db
@@ -2189,7 +2286,10 @@ async function guardarEdicionInline(
     }
 
 
-    // También actualizamos la información pública
+    // ========================================================
+    // ACTUALIZAR INFORMACIÓN PÚBLICA
+    // ========================================================
+
     const publicoSnap =
       await db
         .collection(
@@ -2198,29 +2298,29 @@ async function guardarEdicionInline(
         .where(
           "codigo",
           "==",
-          pCodigoAnterior(id)
+          codigoAnterior
         )
         .limit(1)
         .get();
 
 
-    publicoSnap.forEach(
-      doc => {
+    for (
+      const doc of publicoSnap.docs
+    ) {
 
-        doc.ref.update({
+      await doc.ref.update({
 
-          codigo,
+        codigo,
 
-          cliente,
+        cliente,
 
-          mueble,
+        mueble,
 
-          fechaEntrega:fecha
+        fechaEntrega: fecha
 
-        });
+      });
 
-      }
-    );
+    }
 
 
     await cargarProyectosDesdeNube();
@@ -2232,6 +2332,11 @@ async function guardarEdicionInline(
 
     renderGestionIngresos();
 
+
+    mostrarMensajeInterno(
+      "Proyecto actualizado correctamente."
+    );
+
   }
 
   catch (error) {
@@ -2241,23 +2346,13 @@ async function guardarEdicionInline(
       error
     );
 
-  }
 
-}
-
-
-// ============================================================
-// OBTENER CÓDIGO ANTERIOR DE PROYECTO
-// ============================================================
-
-function pCodigoAnterior(id) {
-
-  const proyecto =
-    proyectos.find(
-      p => p.id === id
+    mostrarMensajeInterno(
+      "No se pudo actualizar el proyecto.",
+      true
     );
 
-  return proyecto?.codigo || "";
+  }
 
 }
 
@@ -2280,8 +2375,6 @@ function renderGestionIngresos() {
   if (!container) return;
 
 
-  // IMPORTANTE:
-  // El HTML utiliza ingresos-mes.
   const filtro =
     document.getElementById(
       "ingresos-mes"
@@ -2324,8 +2417,8 @@ function renderGestionIngresos() {
 
           const mes =
             `${fecha.getFullYear()}-${String(
-              fecha.getMonth()+1
-            ).padStart(2,"0")}`;
+              fecha.getMonth() + 1
+            ).padStart(2, "0")}`;
 
 
           return mes === filtro;
@@ -2868,8 +2961,8 @@ function exportarIngresosPDF() {
 
         const mes =
           `${fecha.getFullYear()}-${String(
-            fecha.getMonth()+1
-          ).padStart(2,"0")}`;
+            fecha.getMonth() + 1
+          ).padStart(2, "0")}`;
 
 
         return mes === filtro;
@@ -2900,7 +2993,7 @@ function exportarIngresosPDF() {
     new jsPDF();
 
 
-  const [anio,mes] =
+  const [anio, mes] =
     filtro.split("-");
 
 
@@ -2945,7 +3038,7 @@ function exportarIngresosPDF() {
   doc.setFontSize(12);
 
   doc.text(
-    `Registro de Ingresos - ${nombresMes[Number(mes)-1]} ${anio}`,
+    `Registro de Ingresos - ${nombresMes[Number(mes) - 1]} ${anio}`,
     14,
     27
   );
@@ -3028,30 +3121,41 @@ function exportarIngresosPDF() {
     );
 
 
-  if (typeof doc.autoTable === "function") {
+  if (
+    typeof doc.autoTable ===
+    "function"
+  ) {
 
     doc.autoTable({
 
-      startY:35,
+      startY: 35,
 
-      head:[[
+      head: [[
+
         "Código",
+
         "Cliente",
+
         "Proyecto",
+
         "Total",
+
         "Adelanto",
+
         "Cobrado",
+
         "Pendiente"
+
       ]],
 
-      body:filas,
+      body: filas,
 
-      styles:{
-        fontSize:8
+      styles: {
+        fontSize: 8
       },
 
-      headStyles:{
-        fontStyle:"bold"
+      headStyles: {
+        fontStyle: "bold"
       }
 
     });
@@ -3194,3 +3298,4 @@ ${link}`;
   );
 
 }
+```
