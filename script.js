@@ -561,15 +561,43 @@ document.addEventListener(
         );
 
 
-      const label =
+      const totalPreview =
         document.getElementById(
-          "lbl-nuevo-saldo"
+          "nuevo-total-preview"
         );
 
 
-      if (label) {
+      const adelantoPreview =
+        document.getElementById(
+          "nuevo-adelanto-preview"
+        );
 
-        label.innerText =
+
+      const saldoPreview =
+        document.getElementById(
+          "nuevo-saldo-preview"
+        );
+
+
+      if (totalPreview) {
+
+        totalPreview.innerText =
+          `Bs. ${formatearMonto(total)}`;
+
+      }
+
+
+      if (adelantoPreview) {
+
+        adelantoPreview.innerText =
+          `Bs. ${formatearMonto(adelanto)}`;
+
+      }
+
+
+      if (saldoPreview) {
+
+        saldoPreview.innerText =
           `Bs. ${formatearMonto(saldo)}`;
 
       }
@@ -587,6 +615,9 @@ document.addEventListener(
       "input",
       calcularSaldoNuevo
     );
+
+
+    calcularSaldoNuevo();
 
 
     // ========================================================
@@ -690,10 +721,6 @@ document.addEventListener(
             );
 
 
-          // ==================================================
-          // REFERENCIAS
-          // ==================================================
-
           const proyectoRef =
             db.collection(
               "proyectos"
@@ -714,12 +741,7 @@ document.addEventListener(
             );
 
 
-          // ==================================================
-          // PROYECTO PRIVADO
-          // ==================================================
-
-          const proyecto =
-          {
+          const proyecto = {
 
             codigo,
 
@@ -750,12 +772,7 @@ document.addEventListener(
           };
 
 
-          // ==================================================
-          // REGISTRO DE INGRESO
-          // ==================================================
-
-          const ingreso =
-          {
+          const ingreso = {
 
             proyectoId:
               proyectoRef.id,
@@ -770,7 +787,7 @@ document.addEventListener(
 
             adelanto,
 
-            pagosFinales: 0,
+            pagosFinales:0,
 
             cobrado:
               adelanto,
@@ -788,13 +805,7 @@ document.addEventListener(
           };
 
 
-          // ==================================================
-          // INFORMACIÓN PÚBLICA
-          // NO INCLUYE DINERO
-          // ==================================================
-
-          const proyectoPublico =
-          {
+          const proyectoPublico = {
 
             codigo,
 
@@ -817,10 +828,6 @@ document.addEventListener(
 
 
           try {
-
-            // =================================================
-            // TODO EN UNA SOLA OPERACIÓN
-            // =================================================
 
             const batch =
               db.batch();
@@ -846,10 +853,6 @@ document.addEventListener(
 
             await batch.commit();
 
-
-            // =================================================
-            // LIMPIAR FORMULARIO
-            // =================================================
 
             document.getElementById(
               "nuevo-codigo"
@@ -889,10 +892,6 @@ document.addEventListener(
             calcularSaldoNuevo();
 
 
-            // =================================================
-            // ACTUALIZAR DATOS
-            // =================================================
-
             await cargarProyectosDesdeNube();
 
             await cargarIngresosDesdeNube();
@@ -929,7 +928,7 @@ document.addEventListener(
 
     const filtroIngresos =
       document.getElementById(
-        "filtro-ingresos-mes"
+        "ingresos-mes"
       );
 
 
@@ -962,7 +961,6 @@ document.addEventListener(
 
 // ============================================================
 // 6. MENSAJE INTERNO
-// SIN POPUPS
 // ============================================================
 
 function mostrarMensajeInterno(
@@ -976,7 +974,13 @@ function mostrarMensajeInterno(
     );
 
 
-  if (!elemento) return;
+  if (!elemento) {
+
+    console.log(mensaje);
+
+    return;
+
+  }
 
 
   elemento.textContent =
@@ -1012,6 +1016,7 @@ async function cerrarSesionAdmin() {
     esAdmin = false;
 
     ocultarPanelAdministrador();
+
 
     const modal =
       document.getElementById(
@@ -1088,7 +1093,6 @@ async function cargarProyectosDesdeNube() {
       }
     );
 
-
   }
 
   catch (error) {
@@ -1146,7 +1150,6 @@ async function cargarIngresosDesdeNube() {
 
       }
     );
-
 
   }
 
@@ -1265,16 +1268,22 @@ async function buscarProyectoPublico(
       error
     );
 
+
     resultBox?.classList.add(
       "hidden"
     );
 
-    errorMsg.innerText =
-      "No se pudo consultar el proyecto.";
 
-    errorMsg.classList.remove(
-      "hidden"
-    );
+    if (errorMsg) {
+
+      errorMsg.innerText =
+        "No se pudo consultar el proyecto.";
+
+      errorMsg.classList.remove(
+        "hidden"
+      );
+
+    }
 
   }
 
@@ -1317,8 +1326,7 @@ function renderProyectosAdmin() {
     "";
 
 
-  const etapas =
-  [
+  const etapas = [
 
     "Diseño Aprobado",
 
@@ -1429,9 +1437,7 @@ function renderProyectosAdmin() {
       card.innerHTML =
       `
 
-        <div
-          id="info-view-${index}"
-        >
+        <div id="info-view-${index}">
 
           <div
             style="
@@ -1458,11 +1464,7 @@ function renderProyectosAdmin() {
               </span>
 
 
-              <strong
-                style="
-                  margin-left:.4rem;
-                "
-              >
+              <strong style="margin-left:.4rem;">
                 ${p.mueble || ""}
               </strong>
 
@@ -1504,6 +1506,9 @@ function renderProyectosAdmin() {
                 "
               >
 
+                <!-- ESTOS SON SOLO INFORMACIÓN.
+                     NO TIENEN onclick NI ABREN VENTANAS -->
+
                 <div
                   style="
                     background:rgba(56,189,248,.07);
@@ -1512,6 +1517,8 @@ function renderProyectosAdmin() {
                     padding:7px;
                     border-radius:7px;
                     font-size:.8rem;
+                    cursor:default;
+                    user-select:none;
                   "
                 >
                   Total:
@@ -1529,6 +1536,8 @@ function renderProyectosAdmin() {
                     padding:7px;
                     border-radius:7px;
                     font-size:.8rem;
+                    cursor:default;
+                    user-select:none;
                   "
                 >
                   Adelanto:
@@ -1546,6 +1555,8 @@ function renderProyectosAdmin() {
                     padding:7px;
                     border-radius:7px;
                     font-size:.8rem;
+                    cursor:default;
+                    user-select:none;
                   "
                 >
                   Pendiente:
@@ -1664,8 +1675,7 @@ async function cambiarEstadoPorId(
   }
 
 
-  const etapas =
-  [
+  const etapas = [
 
     "Diseño Aprobado",
 
@@ -1680,8 +1690,7 @@ async function cambiarEstadoPorId(
   ];
 
 
-  const descripciones =
-  [
+  const descripciones = [
 
     "El diseño ha sido aprobado por WhatsApp. El proyecto ingresa a producción.",
 
@@ -1726,6 +1735,12 @@ async function cambiarEstadoPorId(
     );
 
 
+    const proyecto =
+      proyectos.find(
+        p => p.id === id
+      );
+
+
     const publicoQuery =
       await db
         .collection(
@@ -1734,9 +1749,7 @@ async function cambiarEstadoPorId(
         .where(
           "codigo",
           "==",
-          proyectos.find(
-            p => p.id === id
-          )?.codigo
+          proyecto?.codigo
         )
         .limit(1)
         .get();
@@ -1934,11 +1947,13 @@ function activarEdicionInline(
         placeholder="Código"
       >
 
+
       <input
         id="edit-cliente-${index}"
         value="${p.cliente || ""}"
         placeholder="Cliente"
       >
+
 
       <input
         id="edit-mueble-${index}"
@@ -1946,11 +1961,13 @@ function activarEdicionInline(
         placeholder="Mueble"
       >
 
+
       <input
         id="edit-telefono-${index}"
         value="${p.telefono || ""}"
         placeholder="WhatsApp"
       >
+
 
       <input
         type="number"
@@ -1959,12 +1976,14 @@ function activarEdicionInline(
         placeholder="Presupuesto"
       >
 
+
       <input
         type="number"
         id="edit-adelanto-${index}"
         value="${p.adelanto || 0}"
         placeholder="Adelanto"
       >
+
 
       <input
         type="date"
@@ -2106,8 +2125,6 @@ async function guardarEdicionInline(
       });
 
 
-    // Actualizar ingreso relacionado
-
     const ingresoSnap =
       await db
         .collection(
@@ -2172,6 +2189,40 @@ async function guardarEdicionInline(
     }
 
 
+    // También actualizamos la información pública
+    const publicoSnap =
+      await db
+        .collection(
+          "proyectos_publicos"
+        )
+        .where(
+          "codigo",
+          "==",
+          pCodigoAnterior(id)
+        )
+        .limit(1)
+        .get();
+
+
+    publicoSnap.forEach(
+      doc => {
+
+        doc.ref.update({
+
+          codigo,
+
+          cliente,
+
+          mueble,
+
+          fechaEntrega:fecha
+
+        });
+
+      }
+    );
+
+
     await cargarProyectosDesdeNube();
 
     await cargarIngresosDesdeNube();
@@ -2196,6 +2247,22 @@ async function guardarEdicionInline(
 
 
 // ============================================================
+// OBTENER CÓDIGO ANTERIOR DE PROYECTO
+// ============================================================
+
+function pCodigoAnterior(id) {
+
+  const proyecto =
+    proyectos.find(
+      p => p.id === id
+    );
+
+  return proyecto?.codigo || "";
+
+}
+
+
+// ============================================================
 // 16. GESTIÓN DE INGRESOS
 // ============================================================
 
@@ -2213,9 +2280,11 @@ function renderGestionIngresos() {
   if (!container) return;
 
 
+  // IMPORTANTE:
+  // El HTML utiliza ingresos-mes.
   const filtro =
     document.getElementById(
-      "filtro-ingresos-mes"
+      "ingresos-mes"
     )?.value
     || "";
 
@@ -2290,22 +2359,46 @@ function renderGestionIngresos() {
   );
 
 
-  document.getElementById(
-    "ing-resumen-proyectos"
-  ).innerText =
-    lista.length;
+  const resumenProyectos =
+    document.getElementById(
+      "ing-resumen-proyectos"
+    );
 
 
-  document.getElementById(
-    "ing-resumen-cobrado"
-  ).innerText =
-    `Bs. ${formatearMonto(totalCobrado)}`;
+  const resumenCobrado =
+    document.getElementById(
+      "ing-resumen-cobrado"
+    );
 
 
-  document.getElementById(
-    "ing-resumen-pendiente"
-  ).innerText =
-    `Bs. ${formatearMonto(totalPendiente)}`;
+  const resumenPendiente =
+    document.getElementById(
+      "ing-resumen-pendiente"
+    );
+
+
+  if (resumenProyectos) {
+
+    resumenProyectos.innerText =
+      lista.length;
+
+  }
+
+
+  if (resumenCobrado) {
+
+    resumenCobrado.innerText =
+      `Bs. ${formatearMonto(totalCobrado)}`;
+
+  }
+
+
+  if (resumenPendiente) {
+
+    resumenPendiente.innerText =
+      `Bs. ${formatearMonto(totalPendiente)}`;
+
+  }
 
 
   container.innerHTML =
@@ -2316,6 +2409,7 @@ function renderGestionIngresos() {
 
     container.innerHTML =
       `
+
       <div
         style="
           text-align:center;
@@ -2325,6 +2419,7 @@ function renderGestionIngresos() {
       >
         No hay registros para este mes.
       </div>
+
       `;
 
     return;
@@ -2441,14 +2536,18 @@ function renderGestionIngresos() {
               border-radius:6px;
               padding:6px;
               font-size:.72rem;
+              cursor:default;
+              user-select:none;
             "
           >
             Adelanto
+
             <strong
               style="display:block;"
             >
               Bs. ${formatearMonto(adelanto)}
             </strong>
+
           </div>
 
 
@@ -2460,14 +2559,18 @@ function renderGestionIngresos() {
               border-radius:6px;
               padding:6px;
               font-size:.72rem;
+              cursor:default;
+              user-select:none;
             "
           >
             Cobrado
+
             <strong
               style="display:block;"
             >
               Bs. ${formatearMonto(cobrado)}
             </strong>
+
           </div>
 
 
@@ -2479,14 +2582,18 @@ function renderGestionIngresos() {
               border-radius:6px;
               padding:6px;
               font-size:.72rem;
+              cursor:default;
+              user-select:none;
             "
           >
             Pendiente
+
             <strong
               style="display:block;"
             >
               Bs. ${formatearMonto(pendiente)}
             </strong>
+
           </div>
 
         </div>
@@ -2494,6 +2601,7 @@ function renderGestionIngresos() {
 
         ${
           pendiente > 0
+
           ?
 
           `
@@ -2730,7 +2838,7 @@ function exportarIngresosPDF() {
 
   const filtro =
     document.getElementById(
-      "filtro-ingresos-mes"
+      "ingresos-mes"
     )?.value
     || "";
 
@@ -2770,6 +2878,20 @@ function exportarIngresosPDF() {
     );
 
 
+  if (
+    !window.jspdf ||
+    !window.jspdf.jsPDF
+  ) {
+
+    console.error(
+      "jsPDF no está disponible."
+    );
+
+    return;
+
+  }
+
+
   const jsPDF =
     window.jspdf.jsPDF;
 
@@ -2782,8 +2904,7 @@ function exportarIngresosPDF() {
     filtro.split("-");
 
 
-  const nombresMes =
-  [
+  const nombresMes = [
 
     "Enero",
 
@@ -2907,44 +3028,41 @@ function exportarIngresosPDF() {
     );
 
 
-  doc.autoTable({
+  if (typeof doc.autoTable === "function") {
 
-    startY:35,
+    doc.autoTable({
 
-    head:
-    [[
+      startY:35,
 
-      "Código",
+      head:[[
+        "Código",
+        "Cliente",
+        "Proyecto",
+        "Total",
+        "Adelanto",
+        "Cobrado",
+        "Pendiente"
+      ]],
 
-      "Cliente",
+      body:filas,
 
-      "Proyecto",
+      styles:{
+        fontSize:8
+      },
 
-      "Total",
+      headStyles:{
+        fontStyle:"bold"
+      }
 
-      "Adelanto",
+    });
 
-      "Cobrado",
-
-      "Pendiente"
-
-    ]],
-
-    body:filas,
-
-    styles:{
-      fontSize:8
-    },
-
-    headStyles:{
-      fontStyle:"bold"
-    }
-
-  });
+  }
 
 
   const finalY =
-    doc.lastAutoTable.finalY + 10;
+    doc.lastAutoTable
+      ? doc.lastAutoTable.finalY + 10
+      : 45;
 
 
   doc.setFontSize(10);
