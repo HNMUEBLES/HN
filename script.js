@@ -2582,10 +2582,63 @@ async function registrarPago(
 
 
 // ============================================================
-// 18. EXPORTAR PDF
+// 18. EXPORTAR PDF PROFESIONAL
 // ============================================================
 
-function exportarIngresosPDF() {
+async function obtenerLogoPDF() {
+
+  try {
+
+    const response =
+      await fetch("logo.png");
+
+    if (!response.ok)
+      return null;
+
+
+    const blob =
+      await response.blob();
+
+
+    return await new Promise(
+      (resolve) => {
+
+        const reader =
+          new FileReader();
+
+
+        reader.onloadend =
+          () => resolve(
+            reader.result
+          );
+
+
+        reader.onerror =
+          () => resolve(null);
+
+
+        reader.readAsDataURL(blob);
+
+      }
+    );
+
+  }
+
+  catch (error) {
+
+    console.warn(
+      "No se pudo cargar logo.png para el PDF:",
+      error
+    );
+
+    return null;
+
+  }
+
+}
+
+
+async function exportarIngresosPDF() {
 
   if (!esAdmin) return;
 
@@ -2604,8 +2657,8 @@ function exportarIngresosPDF() {
     !window.jspdf.jsPDF
   ) {
 
-    console.error(
-      "jsPDF no disponible."
+    alert(
+      "No se pudo generar el PDF porque jsPDF no está disponible."
     );
 
     return;
@@ -2645,7 +2698,11 @@ function exportarIngresosPDF() {
 
 
   const doc =
-    new jsPDF();
+    new jsPDF({
+      orientation: "landscape",
+      unit: "mm",
+      format: "a4"
+    });
 
 
   const [anio,mes] =
@@ -2670,23 +2727,40 @@ function exportarIngresosPDF() {
   ];
 
 
-  doc.setFontSize(18);
-
-  doc.text(
-    "HN MUEBLES",
-    14,
-    18
-  );
+  const nombreMes =
+    nombresMes[
+      Number(mes) - 1
+    ] || mes;
 
 
-  doc.setFontSize(12);
+  const logo =
+    await obtenerLogoPDF();
 
-  doc.text(
-    `Registro de Ingresos - ${nombresMes[Number(mes)-1]} ${anio}`,
-    14,
-    27
-  );
 
+  // ----------------------------------------------------------
+  // COLORES
+  // ----------------------------------------------------------
+
+  const NEGRO = [18,18,18];
+
+  const GRIS = [105,105,105];
+
+  const GRIS_CLARO = [242,242,242];
+
+  const DORADO = [156,113,81];
+
+  const BLANCO = [255,255,255];
+
+  const VERDE = [22,163,74];
+
+  const ROJO = [220,38,38];
+
+  const AZUL = [37,99,235];
+
+
+  // ----------------------------------------------------------
+  // DATOS
+  // ----------------------------------------------------------
 
   let totalProyecto = 0;
 
@@ -2757,6 +2831,327 @@ function exportarIngresosPDF() {
     );
 
 
+  // ----------------------------------------------------------
+  // ENCABEZADO
+  // ----------------------------------------------------------
+
+  if (logo) {
+
+    try {
+
+      doc.addImage(
+        logo,
+        "PNG",
+        14,
+        10,
+        25,
+        18
+      );
+
+    }
+
+    catch (error) {
+
+      console.warn(
+        "No se pudo insertar el logo:",
+        error
+      );
+
+    }
+
+  }
+
+
+  const posicionTexto =
+    logo ? 45 : 14;
+
+
+  doc.setTextColor(
+    ...NEGRO
+  );
+
+
+  doc.setFont(
+    "helvetica",
+    "bold"
+  );
+
+
+  doc.setFontSize(20);
+
+
+  doc.text(
+    "HN MUEBLES",
+    posicionTexto,
+    17
+  );
+
+
+  doc.setFont(
+    "helvetica",
+    "normal"
+  );
+
+
+  doc.setFontSize(9);
+
+
+  doc.setTextColor(
+    ...GRIS
+  );
+
+
+  doc.text(
+    "DISEÑO Y FABRICACIÓN DE MUEBLES A MEDIDA",
+    posicionTexto,
+    23
+  );
+
+
+  doc.setFont(
+    "helvetica",
+    "bold"
+  );
+
+
+  doc.setFontSize(14);
+
+
+  doc.setTextColor(
+    ...DORADO
+  );
+
+
+  doc.text(
+    `REPORTE DE INGRESOS`,
+    14,
+    38
+  );
+
+
+  doc.setFont(
+    "helvetica",
+    "normal"
+  );
+
+
+  doc.setFontSize(11);
+
+
+  doc.setTextColor(
+    ...NEGRO
+  );
+
+
+  doc.text(
+    `${nombreMes} ${anio}`,
+    14,
+    45
+  );
+
+
+  const fechaGeneracion =
+    new Date();
+
+
+  const fechaTexto =
+    fechaGeneracion.toLocaleDateString(
+      "es-BO",
+      {
+        day: "2-digit",
+        month: "2-digit",
+        year: "numeric"
+      }
+    );
+
+
+  const horaTexto =
+    fechaGeneracion.toLocaleTimeString(
+      "es-BO",
+      {
+        hour: "2-digit",
+        minute: "2-digit"
+      }
+    );
+
+
+  doc.setFontSize(8);
+
+
+  doc.setTextColor(
+    ...GRIS
+  );
+
+
+  doc.text(
+    `Generado el ${fechaTexto} a las ${horaTexto}`,
+    283,
+    45,
+    {
+      align: "right"
+    }
+  );
+
+
+  doc.setDrawColor(
+    ...DORADO
+  );
+
+
+  doc.setLineWidth(
+    0.8
+  );
+
+
+  doc.line(
+    14,
+    49,
+    283,
+    49
+  );
+
+
+  // ----------------------------------------------------------
+  // RESUMEN SUPERIOR
+  // ----------------------------------------------------------
+
+  const resumenY = 55;
+
+  const anchoCaja = 63;
+
+  const altoCaja = 20;
+
+  const separacion = 5;
+
+
+  const resumen = [
+
+    {
+      titulo: "PROYECTOS",
+      valor: `${lista.length}`,
+      color: AZUL
+    },
+
+    {
+      titulo: "CONTRATADO",
+      valor: `Bs. ${formatearMonto(totalProyecto)}`,
+      color: DORADO
+    },
+
+    {
+      titulo: "COBRADO",
+      valor: `Bs. ${formatearMonto(totalCobrado)}`,
+      color: VERDE
+    },
+
+    {
+      titulo: "PENDIENTE",
+      valor: `Bs. ${formatearMonto(totalPendiente)}`,
+      color: ROJO
+    }
+
+  ];
+
+
+  resumen.forEach(
+    (item,index) => {
+
+      const x =
+        14 +
+        index *
+        (anchoCaja + separacion);
+
+
+      doc.setFillColor(
+        248,
+        248,
+        248
+      );
+
+
+      doc.setDrawColor(
+        225,
+        225,
+        225
+      );
+
+
+      doc.roundedRect(
+        x,
+        resumenY,
+        anchoCaja,
+        altoCaja,
+        3,
+        3,
+        "FD"
+      );
+
+
+      doc.setFillColor(
+        ...item.color
+      );
+
+
+      doc.roundedRect(
+        x,
+        resumenY,
+        2.5,
+        altoCaja,
+        1,
+        1,
+        "F"
+      );
+
+
+      doc.setFont(
+        "helvetica",
+        "bold"
+      );
+
+
+      doc.setFontSize(7);
+
+
+      doc.setTextColor(
+        ...GRIS
+      );
+
+
+      doc.text(
+        item.titulo,
+        x + 7,
+        resumenY + 7
+      );
+
+
+      doc.setFontSize(11);
+
+
+      doc.setTextColor(
+        ...NEGRO
+      );
+
+
+      doc.text(
+        item.valor,
+        x + 7,
+        resumenY + 15
+      );
+
+    }
+  );
+
+
+  // ----------------------------------------------------------
+  // TABLA
+  // ----------------------------------------------------------
+
+  const tablaY =
+    resumenY +
+    altoCaja +
+    8;
+
+
   if (
     typeof doc.autoTable ===
     "function"
@@ -2764,75 +3159,641 @@ function exportarIngresosPDF() {
 
     doc.autoTable({
 
-      startY: 35,
+      startY: tablaY,
+
+      margin: {
+        left: 14,
+        right: 14
+      },
 
       head: [[
-        "Código",
-        "Cliente",
-        "Proyecto",
-        "Total",
-        "Adelanto",
-        "Cobrado",
-        "Pendiente"
+
+        "CÓDIGO",
+        "CLIENTE",
+        "PROYECTO",
+        "TOTAL",
+        "ADELANTO",
+        "COBRADO",
+        "PENDIENTE"
+
       ]],
 
       body: filas,
 
-      styles: {
-        fontSize: 8
-      }
+      theme: "grid",
+
+      headStyles: {
+
+        fillColor:
+          NEGRO,
+
+        textColor:
+          BLANCO,
+
+        fontStyle:
+          "bold",
+
+        fontSize:
+          8,
+
+        halign:
+          "center",
+
+        valign:
+          "middle",
+
+        cellPadding:
+          4
+
+      },
+
+      bodyStyles: {
+
+        fontSize:
+          8,
+
+        textColor:
+          [45,45,45],
+
+        cellPadding:
+          3.5,
+
+        valign:
+          "middle"
+
+      },
+
+      alternateRowStyles: {
+
+        fillColor:
+          [248,248,248]
+
+      },
+
+      columnStyles: {
+
+        0: {
+          cellWidth: 25,
+          halign: "center"
+        },
+
+        1: {
+          cellWidth: 45
+        },
+
+        2: {
+          cellWidth: 65
+        },
+
+        3: {
+          cellWidth: 36,
+          halign: "right"
+        },
+
+        4: {
+          cellWidth: 36,
+          halign: "right"
+        },
+
+        5: {
+          cellWidth: 36,
+          halign: "right"
+        },
+
+        6: {
+          cellWidth: 36,
+          halign: "right"
+        }
+
+      },
+
+      didParseCell:
+        function(data) {
+
+          if (
+            data.section ===
+            "body"
+          ) {
+
+            if (
+              data.column.index === 0
+            ) {
+
+              data.cell.styles.fontStyle =
+                "bold";
+
+              data.cell.styles.textColor =
+                DORADO;
+
+            }
+
+
+            if (
+              data.column.index === 6
+            ) {
+
+              data.cell.styles.textColor =
+                ROJO;
+
+              data.cell.styles.fontStyle =
+                "bold";
+
+            }
+
+
+            if (
+              data.column.index === 5
+            ) {
+
+              data.cell.styles.textColor =
+                VERDE;
+
+            }
+
+          }
+
+        },
+
+      didDrawPage:
+        function(data) {
+
+          const pageWidth =
+            doc.internal.pageSize.getWidth();
+
+          const pageHeight =
+            doc.internal.pageSize.getHeight();
+
+
+          // Línea inferior
+
+          doc.setDrawColor(
+            220,
+            220,
+            220
+          );
+
+          doc.setLineWidth(
+            0.4
+          );
+
+          doc.line(
+            14,
+            pageHeight - 14,
+            pageWidth - 14,
+            pageHeight - 14
+          );
+
+
+          doc.setFont(
+            "helvetica",
+            "normal"
+          );
+
+
+          doc.setFontSize(
+            7
+          );
+
+
+          doc.setTextColor(
+            ...GRIS
+          );
+
+
+          doc.text(
+            "HN MUEBLES · Reporte interno de ingresos",
+            14,
+            pageHeight - 8
+          );
+
+
+          doc.text(
+            `Página ${data.pageNumber}`,
+            pageWidth - 14,
+            pageHeight - 8,
+            {
+              align: "right"
+            }
+          );
+
+        }
 
     });
 
   }
 
 
+  // ----------------------------------------------------------
+  // RESUMEN FINAL
+  // ----------------------------------------------------------
+
   const finalY =
     doc.lastAutoTable
-      ? doc.lastAutoTable.finalY + 10
-      : 45;
+      ? doc.lastAutoTable.finalY + 9
+      : tablaY + 20;
 
 
-  doc.setFontSize(10);
+  const pageHeight =
+    doc.internal.pageSize.getHeight();
 
 
-  doc.text(
-    `Total proyectos: ${lista.length}`,
-    14,
-    finalY
+  let resumenFinalY =
+    finalY;
+
+
+  if (
+    resumenFinalY >
+    pageHeight - 55
+  ) {
+
+    doc.addPage();
+
+    resumenFinalY = 25;
+
+  }
+
+
+  doc.setFont(
+    "helvetica",
+    "bold"
+  );
+
+
+  doc.setFontSize(
+    11
+  );
+
+
+  doc.setTextColor(
+    ...NEGRO
   );
 
 
   doc.text(
-    `Total contratado: Bs. ${formatearMonto(totalProyecto)}`,
+    "RESUMEN FINANCIERO",
     14,
-    finalY + 7
+    resumenFinalY
+  );
+
+
+  doc.setDrawColor(
+    ...DORADO
+  );
+
+
+  doc.setLineWidth(
+    0.7
+  );
+
+
+  doc.line(
+    14,
+    resumenFinalY + 3,
+    283,
+    resumenFinalY + 3
+  );
+
+
+  const resumenDetalleY =
+    resumenFinalY + 12;
+
+
+  doc.setFont(
+    "helvetica",
+    "normal"
+  );
+
+
+  doc.setFontSize(
+    9
+  );
+
+
+  doc.setTextColor(
+    ...GRIS
   );
 
 
   doc.text(
-    `Total adelantos: Bs. ${formatearMonto(totalAdelanto)}`,
-    14,
-    finalY + 14
+    "Total contratado:",
+    18,
+    resumenDetalleY
+  );
+
+
+  doc.setFont(
+    "helvetica",
+    "bold"
+  );
+
+
+  doc.setTextColor(
+    ...NEGRO
   );
 
 
   doc.text(
-    `Total cobrado: Bs. ${formatearMonto(totalCobrado)}`,
-    14,
-    finalY + 21
+    `Bs. ${formatearMonto(totalProyecto)}`,
+    90,
+    resumenDetalleY
+  );
+
+
+  doc.setFont(
+    "helvetica",
+    "normal"
+  );
+
+
+  doc.setTextColor(
+    ...GRIS
   );
 
 
   doc.text(
-    `Total pendiente: Bs. ${formatearMonto(totalPendiente)}`,
-    14,
-    finalY + 28
+    "Total adelantos:",
+    18,
+    resumenDetalleY + 7
   );
 
+
+  doc.setFont(
+    "helvetica",
+    "bold"
+  );
+
+
+  doc.setTextColor(
+    ...DORADO
+  );
+
+
+  doc.text(
+    `Bs. ${formatearMonto(totalAdelanto)}`,
+    90,
+    resumenDetalleY + 7
+  );
+
+
+  doc.setFont(
+    "helvetica",
+    "normal"
+  );
+
+
+  doc.setTextColor(
+    ...GRIS
+  );
+
+
+  doc.text(
+    "Total cobrado:",
+    18,
+    resumenDetalleY + 14
+  );
+
+
+  doc.setFont(
+    "helvetica",
+    "bold"
+  );
+
+
+  doc.setTextColor(
+    ...VERDE
+  );
+
+
+  doc.text(
+    `Bs. ${formatearMonto(totalCobrado)}`,
+    90,
+    resumenDetalleY + 14
+  );
+
+
+  doc.setFont(
+    "helvetica",
+    "normal"
+  );
+
+
+  doc.setTextColor(
+    ...GRIS
+  );
+
+
+  doc.text(
+    "Total pendiente:",
+    18,
+    resumenDetalleY + 21
+  );
+
+
+  doc.setFont(
+    "helvetica",
+    "bold"
+  );
+
+
+  doc.setTextColor(
+    ...ROJO
+  );
+
+
+  doc.text(
+    `Bs. ${formatearMonto(totalPendiente)}`,
+    90,
+    resumenDetalleY + 21
+  );
+
+
+  // ----------------------------------------------------------
+  // CAJA DE BALANCE
+  // ----------------------------------------------------------
+
+  const balanceX = 165;
+
+  const balanceY =
+    resumenFinalY + 8;
+
+  const balanceW = 118;
+
+  const balanceH = 28;
+
+
+  doc.setFillColor(
+    248,
+    248,
+    248
+  );
+
+
+  doc.setDrawColor(
+    225,
+    225,
+    225
+  );
+
+
+  doc.roundedRect(
+    balanceX,
+    balanceY,
+    balanceW,
+    balanceH,
+    3,
+    3,
+    "FD"
+  );
+
+
+  doc.setFont(
+    "helvetica",
+    "bold"
+  );
+
+
+  doc.setFontSize(
+    8
+  );
+
+
+  doc.setTextColor(
+    ...GRIS
+  );
+
+
+  doc.text(
+    "BALANCE DEL MES",
+    balanceX + 8,
+    balanceY + 9
+  );
+
+
+  doc.setFontSize(
+    15
+  );
+
+
+  doc.setTextColor(
+    ...VERDE
+  );
+
+
+  doc.text(
+    `Bs. ${formatearMonto(totalCobrado)}`,
+    balanceX + 8,
+    balanceY + 20
+  );
+
+
+  doc.setFont(
+    "helvetica",
+    "normal"
+  );
+
+
+  doc.setFontSize(
+    7
+  );
+
+
+  doc.setTextColor(
+    ...GRIS
+  );
+
+
+  doc.text(
+    "Monto efectivamente cobrado",
+    balanceX + 72,
+    balanceY + 20
+  );
+
+
+  // ----------------------------------------------------------
+  // PIE DE PÁGINA FINAL
+  // ----------------------------------------------------------
+
+  const paginas =
+    doc.getNumberOfPages();
+
+
+  for (
+    let i = 1;
+    i <= paginas;
+    i++
+  ) {
+
+    doc.setPage(i);
+
+
+    const alto =
+      doc.internal.pageSize.getHeight();
+
+    const ancho =
+      doc.internal.pageSize.getWidth();
+
+
+    doc.setDrawColor(
+      220,
+      220,
+      220
+    );
+
+
+    doc.setLineWidth(
+      0.4
+    );
+
+
+    doc.line(
+      14,
+      alto - 14,
+      ancho - 14,
+      alto - 14
+    );
+
+
+    doc.setFont(
+      "helvetica",
+      "normal"
+    );
+
+
+    doc.setFontSize(
+      7
+    );
+
+
+    doc.setTextColor(
+      ...GRIS
+    );
+
+
+    doc.text(
+      "HN MUEBLES · Diseño y fabricación a medida",
+      14,
+      alto - 8
+    );
+
+
+    doc.text(
+      `Página ${i} de ${paginas}`,
+      ancho - 14,
+      alto - 8,
+      {
+        align: "right"
+      }
+    );
+
+  }
+
+
+  // ----------------------------------------------------------
+  // GUARDAR
+  // ----------------------------------------------------------
 
   doc.save(
-    `HN-Muebles-Ingresos-${filtro}.pdf`
+    `HN-MUEBLES-Reporte-Ingresos-${anio}-${mes}.pdf`
   );
 
 }
@@ -2915,9 +3876,7 @@ ${link}`;
 
 
 // ============================================================
-// ============================================================
 // PORTAFOLIO
-// ============================================================
 // ============================================================
 
 
@@ -3391,9 +4350,9 @@ async function publicarTrabajoPortafolio(e) {
   }
 
 
-  // Máximo aproximado por archivo
   const MAX_IMAGEN =
     15 * 1024 * 1024;
+
 
   const MAX_VIDEO =
     100 * 1024 * 1024;
@@ -3898,7 +4857,6 @@ async function eliminarTrabajoPortafolio(
 
   try {
 
-    // Primero eliminamos archivos de Storage
     if (
       trabajo.media &&
       Array.isArray(trabajo.media)
@@ -3936,7 +4894,6 @@ async function eliminarTrabajoPortafolio(
     }
 
 
-    // Luego eliminamos documento
     await db
       .collection("portafolio")
       .doc(id)
