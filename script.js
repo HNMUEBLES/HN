@@ -30,6 +30,7 @@ const firebaseConfig = {
 
   measurementId:
     "G-8PJGERB67Q"
+
 };
 
 
@@ -617,9 +618,6 @@ document.addEventListener(
     );
 
 
-    calcularSaldoNuevo();
-
-
     // ========================================================
     // NUEVO PROYECTO
     // ========================================================
@@ -721,6 +719,10 @@ document.addEventListener(
             );
 
 
+          // ==================================================
+          // REFERENCIAS
+          // ==================================================
+
           const proyectoRef =
             db.collection(
               "proyectos"
@@ -741,7 +743,12 @@ document.addEventListener(
             );
 
 
-          const proyecto = {
+          // ==================================================
+          // PROYECTO PRIVADO
+          // ==================================================
+
+          const proyecto =
+          {
 
             codigo,
 
@@ -772,7 +779,12 @@ document.addEventListener(
           };
 
 
-          const ingreso = {
+          // ==================================================
+          // REGISTRO DE INGRESO
+          // ==================================================
+
+          const ingreso =
+          {
 
             proyectoId:
               proyectoRef.id,
@@ -787,7 +799,7 @@ document.addEventListener(
 
             adelanto,
 
-            pagosFinales:0,
+            pagosFinales: 0,
 
             cobrado:
               adelanto,
@@ -805,7 +817,13 @@ document.addEventListener(
           };
 
 
-          const proyectoPublico = {
+          // ==================================================
+          // INFORMACIÓN PÚBLICA
+          // NO INCLUYE DINERO
+          // ==================================================
+
+          const proyectoPublico =
+          {
 
             codigo,
 
@@ -854,6 +872,10 @@ document.addEventListener(
             await batch.commit();
 
 
+            // =================================================
+            // LIMPIAR FORMULARIO
+            // =================================================
+
             document.getElementById(
               "nuevo-codigo"
             ).value = "";
@@ -892,6 +914,10 @@ document.addEventListener(
             calcularSaldoNuevo();
 
 
+            // =================================================
+            // ACTUALIZAR DATOS
+            // =================================================
+
             await cargarProyectosDesdeNube();
 
             await cargarIngresosDesdeNube();
@@ -928,7 +954,7 @@ document.addEventListener(
 
     const filtroIngresos =
       document.getElementById(
-        "ingresos-mes"
+        "filtro-ingresos-mes"
       );
 
 
@@ -974,13 +1000,7 @@ function mostrarMensajeInterno(
     );
 
 
-  if (!elemento) {
-
-    console.log(mensaje);
-
-    return;
-
-  }
+  if (!elemento) return;
 
 
   elemento.textContent =
@@ -1093,6 +1113,7 @@ async function cargarProyectosDesdeNube() {
       }
     );
 
+
   }
 
   catch (error) {
@@ -1150,6 +1171,7 @@ async function cargarIngresosDesdeNube() {
 
       }
     );
+
 
   }
 
@@ -1274,16 +1296,13 @@ async function buscarProyectoPublico(
     );
 
 
-    if (errorMsg) {
+    errorMsg.innerText =
+      "No se pudo consultar el proyecto.";
 
-      errorMsg.innerText =
-        "No se pudo consultar el proyecto.";
 
-      errorMsg.classList.remove(
-        "hidden"
-      );
-
-    }
+    errorMsg.classList.remove(
+      "hidden"
+    );
 
   }
 
@@ -1326,7 +1345,8 @@ function renderProyectosAdmin() {
     "";
 
 
-  const etapas = [
+  const etapas =
+  [
 
     "Diseño Aprobado",
 
@@ -1437,7 +1457,9 @@ function renderProyectosAdmin() {
       card.innerHTML =
       `
 
-        <div id="info-view-${index}">
+        <div
+          id="info-view-${index}"
+        >
 
           <div
             style="
@@ -1464,7 +1486,11 @@ function renderProyectosAdmin() {
               </span>
 
 
-              <strong style="margin-left:.4rem;">
+              <strong
+                style="
+                  margin-left:.4rem;
+                "
+              >
                 ${p.mueble || ""}
               </strong>
 
@@ -1497,34 +1523,44 @@ function renderProyectosAdmin() {
               </p>
 
 
+              <!-- ==================================================
+                   MONTOS
+                   AHORA TIENEN MÁS PRESENCIA VISUAL
+              =================================================== -->
+
               <div
                 style="
-                  display:flex;
-                  gap:6px;
-                  flex-wrap:wrap;
-                  margin-top:8px;
+                  display:grid;
+                  grid-template-columns:repeat(3,minmax(130px,1fr));
+                  gap:8px;
+                  margin-top:10px;
                 "
               >
-
-                <!-- ESTOS SON SOLO INFORMACIÓN.
-                     NO TIENEN onclick NI ABREN VENTANAS -->
 
                 <div
                   style="
                     background:rgba(56,189,248,.07);
                     border:1px solid rgba(56,189,248,.25);
                     color:#38bdf8;
-                    padding:7px;
-                    border-radius:7px;
-                    font-size:.8rem;
-                    cursor:default;
-                    user-select:none;
+                    padding:10px;
+                    border-radius:8px;
+                    font-size:.82rem;
+                    min-height:45px;
+                    box-sizing:border-box;
                   "
                 >
-                  Total:
-                  <strong>
+                  Total
+
+                  <strong
+                    style="
+                      display:block;
+                      margin-top:3px;
+                      font-size:1rem;
+                    "
+                  >
                     Bs. ${formatearMonto(presupuesto)}
                   </strong>
+
                 </div>
 
 
@@ -1533,17 +1569,25 @@ function renderProyectosAdmin() {
                     background:rgba(245,158,11,.07);
                     border:1px solid rgba(245,158,11,.25);
                     color:#f59e0b;
-                    padding:7px;
-                    border-radius:7px;
-                    font-size:.8rem;
-                    cursor:default;
-                    user-select:none;
+                    padding:10px;
+                    border-radius:8px;
+                    font-size:.82rem;
+                    min-height:45px;
+                    box-sizing:border-box;
                   "
                 >
-                  Adelanto:
-                  <strong>
+                  Adelanto
+
+                  <strong
+                    style="
+                      display:block;
+                      margin-top:3px;
+                      font-size:1rem;
+                    "
+                  >
                     Bs. ${formatearMonto(adelanto)}
                   </strong>
+
                 </div>
 
 
@@ -1552,17 +1596,25 @@ function renderProyectosAdmin() {
                     background:rgba(239,68,68,.07);
                     border:1px solid rgba(239,68,68,.25);
                     color:#ef4444;
-                    padding:7px;
-                    border-radius:7px;
-                    font-size:.8rem;
-                    cursor:default;
-                    user-select:none;
+                    padding:10px;
+                    border-radius:8px;
+                    font-size:.82rem;
+                    min-height:45px;
+                    box-sizing:border-box;
                   "
                 >
-                  Pendiente:
-                  <strong>
+                  Pendiente
+
+                  <strong
+                    style="
+                      display:block;
+                      margin-top:3px;
+                      font-size:1rem;
+                    "
+                  >
                     Bs. ${formatearMonto(saldo)}
                   </strong>
+
                 </div>
 
               </div>
@@ -1675,7 +1727,8 @@ async function cambiarEstadoPorId(
   }
 
 
-  const etapas = [
+  const etapas =
+  [
 
     "Diseño Aprobado",
 
@@ -1690,7 +1743,8 @@ async function cambiarEstadoPorId(
   ];
 
 
-  const descripciones = [
+  const descripciones =
+  [
 
     "El diseño ha sido aprobado por WhatsApp. El proyecto ingresa a producción.",
 
@@ -1822,12 +1876,20 @@ async function eliminarProyecto(
       db.batch();
 
 
+    // ========================================================
+    // BORRAR PROYECTO
+    // ========================================================
+
     batch.delete(
       db
         .collection("proyectos")
         .doc(id)
     );
 
+
+    // ========================================================
+    // BORRAR PROYECTO PÚBLICO
+    // ========================================================
 
     if (proyecto) {
 
@@ -1841,7 +1903,6 @@ async function eliminarProyecto(
             "==",
             proyecto.codigo
           )
-          .limit(1)
           .get();
 
 
@@ -1855,36 +1916,47 @@ async function eliminarProyecto(
         }
       );
 
-
-      const ingresoSnap =
-        await db
-          .collection(
-            "ingresos"
-          )
-          .where(
-            "proyectoId",
-            "==",
-            id
-          )
-          .limit(1)
-          .get();
-
-
-      ingresoSnap.forEach(
-        doc => {
-
-          batch.delete(
-            doc.ref
-          );
-
-        }
-      );
-
     }
 
 
+    // ========================================================
+    // BORRAR TODOS LOS INGRESOS DEL PROYECTO
+    // ========================================================
+
+    const ingresoSnap =
+      await db
+        .collection(
+          "ingresos"
+        )
+        .where(
+          "proyectoId",
+          "==",
+          id
+        )
+        .get();
+
+
+    ingresoSnap.forEach(
+      doc => {
+
+        batch.delete(
+          doc.ref
+        );
+
+      }
+    );
+
+
+    // ========================================================
+    // COMMIT
+    // ========================================================
+
     await batch.commit();
 
+
+    // ========================================================
+    // RECARGAR TODO
+    // ========================================================
 
     await cargarProyectosDesdeNube();
 
@@ -1945,6 +2017,15 @@ function activarEdicionInline(
         id="edit-codigo-${index}"
         value="${p.codigo || ""}"
         placeholder="Código"
+        style="
+          background:#0a0a0a;
+          color:#fff;
+          border:1px solid #333;
+          padding:8px;
+          border-radius:8px;
+          box-sizing:border-box;
+          width:100%;
+        "
       >
 
 
@@ -1952,6 +2033,15 @@ function activarEdicionInline(
         id="edit-cliente-${index}"
         value="${p.cliente || ""}"
         placeholder="Cliente"
+        style="
+          background:#0a0a0a;
+          color:#fff;
+          border:1px solid #333;
+          padding:8px;
+          border-radius:8px;
+          box-sizing:border-box;
+          width:100%;
+        "
       >
 
 
@@ -1959,6 +2049,15 @@ function activarEdicionInline(
         id="edit-mueble-${index}"
         value="${p.mueble || ""}"
         placeholder="Mueble"
+        style="
+          background:#0a0a0a;
+          color:#fff;
+          border:1px solid #333;
+          padding:8px;
+          border-radius:8px;
+          box-sizing:border-box;
+          width:100%;
+        "
       >
 
 
@@ -1966,6 +2065,15 @@ function activarEdicionInline(
         id="edit-telefono-${index}"
         value="${p.telefono || ""}"
         placeholder="WhatsApp"
+        style="
+          background:#0a0a0a;
+          color:#fff;
+          border:1px solid #333;
+          padding:8px;
+          border-radius:8px;
+          box-sizing:border-box;
+          width:100%;
+        "
       >
 
 
@@ -1973,7 +2081,18 @@ function activarEdicionInline(
         type="number"
         id="edit-presupuesto-${index}"
         value="${p.presupuesto || 0}"
-        placeholder="Presupuesto"
+        placeholder="Monto total (Bs)"
+        min="0"
+        step="0.01"
+        style="
+          background:#0a0a0a;
+          color:#fff;
+          border:1px solid #333;
+          padding:8px;
+          border-radius:8px;
+          box-sizing:border-box;
+          width:100%;
+        "
       >
 
 
@@ -1981,7 +2100,18 @@ function activarEdicionInline(
         type="number"
         id="edit-adelanto-${index}"
         value="${p.adelanto || 0}"
-        placeholder="Adelanto"
+        placeholder="Adelanto (Bs)"
+        min="0"
+        step="0.01"
+        style="
+          background:#0a0a0a;
+          color:#fff;
+          border:1px solid #333;
+          padding:8px;
+          border-radius:8px;
+          box-sizing:border-box;
+          width:100%;
+        "
       >
 
 
@@ -1989,6 +2119,15 @@ function activarEdicionInline(
         type="date"
         id="edit-fecha-${index}"
         value="${p.fechaEntrega || ""}"
+        style="
+          background:#0a0a0a;
+          color:#fff;
+          border:1px solid #333;
+          padding:8px;
+          border-radius:8px;
+          box-sizing:border-box;
+          width:100%;
+        "
       >
 
 
@@ -2125,6 +2264,10 @@ async function guardarEdicionInline(
       });
 
 
+    // ========================================================
+    // ACTUALIZAR INGRESO RELACIONADO
+    // ========================================================
+
     const ingresoSnap =
       await db
         .collection(
@@ -2189,40 +2332,6 @@ async function guardarEdicionInline(
     }
 
 
-    // También actualizamos la información pública
-    const publicoSnap =
-      await db
-        .collection(
-          "proyectos_publicos"
-        )
-        .where(
-          "codigo",
-          "==",
-          pCodigoAnterior(id)
-        )
-        .limit(1)
-        .get();
-
-
-    publicoSnap.forEach(
-      doc => {
-
-        doc.ref.update({
-
-          codigo,
-
-          cliente,
-
-          mueble,
-
-          fechaEntrega:fecha
-
-        });
-
-      }
-    );
-
-
     await cargarProyectosDesdeNube();
 
     await cargarIngresosDesdeNube();
@@ -2247,22 +2356,6 @@ async function guardarEdicionInline(
 
 
 // ============================================================
-// OBTENER CÓDIGO ANTERIOR DE PROYECTO
-// ============================================================
-
-function pCodigoAnterior(id) {
-
-  const proyecto =
-    proyectos.find(
-      p => p.id === id
-    );
-
-  return proyecto?.codigo || "";
-
-}
-
-
-// ============================================================
 // 16. GESTIÓN DE INGRESOS
 // ============================================================
 
@@ -2280,18 +2373,39 @@ function renderGestionIngresos() {
   if (!container) return;
 
 
-  // IMPORTANTE:
-  // El HTML utiliza ingresos-mes.
   const filtro =
     document.getElementById(
-      "ingresos-mes"
+      "filtro-ingresos-mes"
     )?.value
     || "";
 
 
-  let lista =
-    [...ingresos];
+  // ==========================================================
+  // IMPORTANTE:
+  // SOLO MOSTRAR INGRESOS CUYO PROYECTO SIGUE EXISTIENDO
+  // ==========================================================
 
+  const idsProyectos =
+    new Set(
+      proyectos.map(
+        p => p.id
+      )
+    );
+
+
+  let lista =
+    ingresos.filter(
+      ingreso =>
+        ingreso.proyectoId &&
+        idsProyectos.has(
+          ingreso.proyectoId
+        )
+    );
+
+
+  // ==========================================================
+  // FILTRO POR MES
+  // ==========================================================
 
   if (filtro) {
 
@@ -2336,6 +2450,10 @@ function renderGestionIngresos() {
   }
 
 
+  // ==========================================================
+  // TOTALES
+  // ==========================================================
+
   let totalCobrado = 0;
 
   let totalPendiente = 0;
@@ -2351,9 +2469,16 @@ function renderGestionIngresos() {
 
 
       totalPendiente +=
-        Number(
-          ingreso.pendiente
-        ) || 0;
+        Math.max(
+          Number(
+            ingreso.presupuesto
+          ) || 0
+          -
+          Number(
+            ingreso.cobrado
+          ) || 0,
+          0
+        );
 
     }
   );
@@ -2409,7 +2534,6 @@ function renderGestionIngresos() {
 
     container.innerHTML =
       `
-
       <div
         style="
           text-align:center;
@@ -2419,13 +2543,16 @@ function renderGestionIngresos() {
       >
         No hay registros para este mes.
       </div>
-
       `;
 
     return;
 
   }
 
+
+  // ==========================================================
+  // TARJETAS
+  // ==========================================================
 
   lista.forEach(
     ingreso => {
@@ -2536,14 +2663,15 @@ function renderGestionIngresos() {
               border-radius:6px;
               padding:6px;
               font-size:.72rem;
-              cursor:default;
-              user-select:none;
             "
           >
+
             Adelanto
 
             <strong
-              style="display:block;"
+              style="
+                display:block;
+              "
             >
               Bs. ${formatearMonto(adelanto)}
             </strong>
@@ -2559,14 +2687,15 @@ function renderGestionIngresos() {
               border-radius:6px;
               padding:6px;
               font-size:.72rem;
-              cursor:default;
-              user-select:none;
             "
           >
+
             Cobrado
 
             <strong
-              style="display:block;"
+              style="
+                display:block;
+              "
             >
               Bs. ${formatearMonto(cobrado)}
             </strong>
@@ -2582,14 +2711,15 @@ function renderGestionIngresos() {
               border-radius:6px;
               padding:6px;
               font-size:.72rem;
-              cursor:default;
-              user-select:none;
             "
           >
+
             Pendiente
 
             <strong
-              style="display:block;"
+              style="
+                display:block;
+              "
             >
               Bs. ${formatearMonto(pendiente)}
             </strong>
@@ -2664,8 +2794,13 @@ function renderGestionIngresos() {
               text-align:center;
             "
           >
-            <i class="fa-solid fa-circle-check"></i>
+
+            <i
+              class="fa-solid fa-circle-check"
+            ></i>
+
             Proyecto pagado completamente
+
           </div>
 
           `
@@ -2838,7 +2973,7 @@ function exportarIngresosPDF() {
 
   const filtro =
     document.getElementById(
-      "ingresos-mes"
+      "filtro-ingresos-mes"
     )?.value
     || "";
 
@@ -2846,50 +2981,52 @@ function exportarIngresosPDF() {
   if (!filtro) return;
 
 
+  const idsProyectos =
+    new Set(
+      proyectos.map(
+        p => p.id
+      )
+    );
+
+
   const lista =
-    ingresos.filter(
-      ingreso => {
+    ingresos
+      .filter(
+        ingreso =>
+          ingreso.proyectoId &&
+          idsProyectos.has(
+            ingreso.proyectoId
+          )
+      )
+      .filter(
+        ingreso => {
 
-        if (
-          !ingreso.fechaCreacion ||
-          !ingreso.fechaCreacion.toDate
-        ) {
+          if (
+            !ingreso.fechaCreacion ||
+            !ingreso.fechaCreacion.toDate
+          ) {
 
-          return true;
+            return true;
+
+          }
+
+
+          const fecha =
+            ingreso
+              .fechaCreacion
+              .toDate();
+
+
+          const mes =
+            `${fecha.getFullYear()}-${String(
+              fecha.getMonth()+1
+            ).padStart(2,"0")}`;
+
+
+          return mes === filtro;
 
         }
-
-
-        const fecha =
-          ingreso
-            .fechaCreacion
-            .toDate();
-
-
-        const mes =
-          `${fecha.getFullYear()}-${String(
-            fecha.getMonth()+1
-          ).padStart(2,"0")}`;
-
-
-        return mes === filtro;
-
-      }
-    );
-
-
-  if (
-    !window.jspdf ||
-    !window.jspdf.jsPDF
-  ) {
-
-    console.error(
-      "jsPDF no está disponible."
-    );
-
-    return;
-
-  }
+      );
 
 
   const jsPDF =
@@ -2904,7 +3041,8 @@ function exportarIngresosPDF() {
     filtro.split("-");
 
 
-  const nombresMes = [
+  const nombresMes =
+  [
 
     "Enero",
 
@@ -2935,6 +3073,7 @@ function exportarIngresosPDF() {
 
   doc.setFontSize(18);
 
+
   doc.text(
     "HN MUEBLES",
     14,
@@ -2943,6 +3082,7 @@ function exportarIngresosPDF() {
 
 
   doc.setFontSize(12);
+
 
   doc.text(
     `Registro de Ingresos - ${nombresMes[Number(mes)-1]} ${anio}`,
@@ -3028,41 +3168,44 @@ function exportarIngresosPDF() {
     );
 
 
-  if (typeof doc.autoTable === "function") {
+  doc.autoTable({
 
-    doc.autoTable({
+    startY:35,
 
-      startY:35,
+    head:
+    [[
 
-      head:[[
-        "Código",
-        "Cliente",
-        "Proyecto",
-        "Total",
-        "Adelanto",
-        "Cobrado",
-        "Pendiente"
-      ]],
+      "Código",
 
-      body:filas,
+      "Cliente",
 
-      styles:{
-        fontSize:8
-      },
+      "Proyecto",
 
-      headStyles:{
-        fontStyle:"bold"
-      }
+      "Total",
 
-    });
+      "Adelanto",
 
-  }
+      "Cobrado",
+
+      "Pendiente"
+
+    ]],
+
+    body:filas,
+
+    styles:{
+      fontSize:8
+    },
+
+    headStyles:{
+      fontStyle:"bold"
+    }
+
+  });
 
 
   const finalY =
-    doc.lastAutoTable
-      ? doc.lastAutoTable.finalY + 10
-      : 45;
+    doc.lastAutoTable.finalY + 10;
 
 
   doc.setFontSize(10);
