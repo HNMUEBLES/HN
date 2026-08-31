@@ -1,13 +1,10 @@
 ```javascript
-// ==========================================================
-// HN MUEBLES - SCRIPT SEGURO
+// ============================================================
+// HN MUEBLES - SCRIPT PRINCIPAL
 // Firebase Authentication + Firestore
-// ==========================================================
+// ============================================================
 
-// ----------------------------------------------------------
-// 1. CONFIGURACIÓN DE FIREBASE
-// ----------------------------------------------------------
-
+// --- CONFIGURACIÓN DE FIREBASE ---
 const firebaseConfig = {
   apiKey: "AIzaSyCLrVUpGCTxFxuMR0ATlwj2t3osSP0dD7Y",
   authDomain: "hn-muebles.firebaseapp.com",
@@ -18,20 +15,22 @@ const firebaseConfig = {
   measurementId: "G-8PJGERB67Q"
 };
 
+// Inicializar Firebase
 firebase.initializeApp(firebaseConfig);
 
 const db = firebase.firestore();
 const auth = firebase.auth();
 
-const EMAIL_ADMIN = "hn24muebles@gmail.com";
-
 let proyectos = [];
 let esAdmin = false;
 
+// Correo autorizado como administrador
+const EMAIL_ADMIN = "hn24muebles@gmail.com";
 
-// ==========================================================
-// 2. FUNCIONES UTILITARIAS
-// ==========================================================
+
+// ============================================================
+// 1. FUNCIONES UTILITARIAS
+// ============================================================
 
 function formatearMonto(valor) {
   const num = Number(valor);
@@ -45,9 +44,9 @@ function formatearMonto(valor) {
 
 
 function generarCodigoAleatorio() {
-  const caracteres = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+  const caracteres = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
 
-  let aleatorio = "";
+  let aleatorio = '';
 
   for (let i = 0; i < 5; i++) {
     aleatorio += caracteres.charAt(
@@ -60,7 +59,7 @@ function generarCodigoAleatorio() {
 
 
 function llenarCodigoAutomatico() {
-  const inputCod = document.getElementById("nuevo-codigo");
+  const inputCod = document.getElementById('nuevo-codigo');
 
   if (inputCod) {
     inputCod.value = generarCodigoAleatorio();
@@ -69,117 +68,52 @@ function llenarCodigoAutomatico() {
 
 
 function copiarCodigoAlPortapapeles(codigo) {
+
   navigator.clipboard.writeText(codigo)
     .then(() => {
       alert(`¡Código "${codigo}" copiado al portapapeles!`);
     })
-    .catch(error => {
-      console.error("Error al copiar código:", error);
+    .catch(err => {
+      console.error("Error al copiar código:", err);
     });
 }
 
 
 function irInicio() {
-  mostrarSeccion("inicio");
+  mostrarSeccion('inicio');
 }
 
 
-// ==========================================================
-// 3. AUTENTICACIÓN
-// ==========================================================
+// ============================================================
+// 2. CARGA DE PROYECTOS
+// ============================================================
 
-auth.onAuthStateChanged(async user => {
-
-  if (
-    user &&
-    user.email &&
-    user.email.toLowerCase() === EMAIL_ADMIN.toLowerCase()
-  ) {
-
-    esAdmin = true;
-
-    mostrarPanelAdmin();
-
-    await cargarProyectosPrivados();
-
-    renderProyectosAdmin();
-
-  } else {
-
-    esAdmin = false;
-
-    ocultarPanelAdmin();
-  }
-
-});
-
-
-// ==========================================================
-// 4. MOSTRAR / OCULTAR PANEL ADMIN
-// ==========================================================
-
-function mostrarPanelAdmin() {
-
-  const divLogin = document.getElementById("admin-login");
-  const divPanel = document.getElementById("admin-panel");
-
-  if (divLogin) {
-    divLogin.classList.add("hidden");
-  }
-
-  if (divPanel) {
-    divPanel.classList.remove("hidden");
-  }
-
-  const btnReportes = document.getElementById("btn-reportes");
-
-  if (btnReportes) {
-    btnReportes.classList.remove("hidden");
-  }
-}
-
-
-function ocultarPanelAdmin() {
-
-  const divLogin = document.getElementById("admin-login");
-  const divPanel = document.getElementById("admin-panel");
-
-  if (divLogin) {
-    divLogin.classList.remove("hidden");
-  }
-
-  if (divPanel) {
-    divPanel.classList.add("hidden");
-  }
-
-  const btnReportes = document.getElementById("btn-reportes");
-
-  if (btnReportes) {
-    btnReportes.classList.add("hidden");
-  }
-}
-
-
-// ==========================================================
-// 5. CARGAR PROYECTOS PRIVADOS
-// ==========================================================
-
-async function cargarProyectosPrivados() {
-
-  if (!esAdmin || !auth.currentUser) {
-    proyectos = [];
-    return;
-  }
+async function cargarProyectosDesdeNube() {
 
   try {
 
-    const querySnapshot = await db
-      .collection("proyectos")
-      .get();
+    // Si no hay usuario autenticado,
+    // NO intentamos leer los proyectos privados.
+    if (!auth.currentUser) {
+      console.warn("No hay usuario autenticado.");
+      return;
+    }
+
+    // Verificación adicional del administrador
+    if (
+      auth.currentUser.email.toLowerCase() !==
+      EMAIL_ADMIN.toLowerCase()
+    ) {
+      console.warn("Usuario no autorizado.");
+      return;
+    }
+
+    const querySnapshot =
+      await db.collection("proyectos").get();
 
     proyectos = [];
 
-    querySnapshot.forEach(docSnap => {
+    querySnapshot.forEach((docSnap) => {
 
       proyectos.push({
         id: docSnap.id,
@@ -188,60 +122,26 @@ async function cargarProyectosPrivados() {
 
     });
 
-  } catch (error) {
-
-    console.error(
-      "Error al cargar proyectos privados:",
-      error
-    );
-
-    alert(
-      "No se pudieron cargar los proyectos administrativos."
-    );
-  }
-}
-
-
-// ==========================================================
-// 6. BUSCAR PROYECTO PÚBLICO
-// ==========================================================
-
-async function buscarProyectoPublico(codigo) {
-
-  try {
-
-    const snapshot = await db
-      .collection("proyectos_publicos")
-      .where("codigo", "==", codigo)
-      .limit(1)
-      .get();
-
-    if (snapshot.empty) {
-      return null;
+    if (esAdmin) {
+      renderProyectosAdmin();
     }
 
-    const doc = snapshot.docs[0];
-
-    return {
-      id: doc.id,
-      ...doc.data()
-    };
+    procesarEnlaceDirectoUrl();
 
   } catch (error) {
 
     console.error(
-      "Error buscando proyecto público:",
+      "Error al cargar proyectos de la nube:",
       error
     );
 
-    throw error;
   }
 }
 
 
-// ==========================================================
-// 7. PROCESAR ENLACE DIRECTO
-// ==========================================================
+// ============================================================
+// 3. ENLACE DIRECTO DE SEGUIMIENTO
+// ============================================================
 
 function procesarEnlaceDirectoUrl() {
 
@@ -249,48 +149,67 @@ function procesarEnlaceDirectoUrl() {
     new URLSearchParams(window.location.search);
 
   const codigoUrl =
-    urlParams.get("codigo");
+    urlParams.get('codigo');
 
   if (!codigoUrl) return;
 
   setTimeout(() => {
 
-    const inputCodigo =
-      document.getElementById("input-codigo");
+    const secInicio =
+      document.getElementById('sec-inicio');
 
-    if (inputCodigo) {
-      inputCodigo.value =
-        codigoUrl.toUpperCase();
+    const secRastreo =
+      document.getElementById('sec-rastreo');
+
+    if (typeof mostrarSeccion === 'function') {
+
+      mostrarSeccion('rastreo');
+
+    } else {
+
+      if (secInicio)
+        secInicio.classList.add('hidden');
+
+      if (secRastreo)
+        secRastreo.classList.remove('hidden');
     }
 
+    const inputCodigo =
+      document.getElementById('input-codigo');
+
     const formBuscar =
-      document.getElementById("form-buscar");
+      document.getElementById('form-buscar');
+
+    if (inputCodigo)
+      inputCodigo.value =
+        codigoUrl.toUpperCase();
 
     if (formBuscar) {
 
       formBuscar.dispatchEvent(
-        new Event("submit", {
+        new Event('submit', {
           cancelable: true,
           bubbles: true
         })
       );
+
     }
 
-  }, 500);
+  }, 400);
 }
 
 
-// ==========================================================
-// 8. NAVEGACIÓN
-// ==========================================================
+// ============================================================
+// 4. NAVEGACIÓN
+// ============================================================
 
 function mostrarSeccion(seccionId) {
 
   const secciones = [
-    "sec-inicio",
-    "sec-rastreo",
-    "sec-admin",
-    "sec-reportes"
+    'sec-inicio',
+    'sec-rastreo',
+    'sec-admin',
+    'sec-reportes'
   ];
 
   secciones.forEach(id => {
@@ -298,18 +217,17 @@ function mostrarSeccion(seccionId) {
     const el =
       document.getElementById(id);
 
-    if (el) {
-      el.classList.add("hidden");
-    }
+    if (el)
+      el.classList.add('hidden');
 
   });
 
 
   const botones = [
-    "btn-inicio",
-    "btn-rastreo",
-    "btn-admin",
-    "btn-reportes"
+    'btn-inicio',
+    'btn-rastreo',
+    'btn-admin',
+    'btn-reportes'
   ];
 
   botones.forEach(id => {
@@ -317,661 +235,552 @@ function mostrarSeccion(seccionId) {
     const el =
       document.getElementById(id);
 
-    if (el) {
-      el.classList.remove("active");
-    }
+    if (el)
+      el.classList.remove('active');
 
   });
 
 
   const secDestino =
-    document.getElementById(`sec-${seccionId}`);
+    document.getElementById(
+      `sec-${seccionId}`
+    );
 
   const btnDestino =
-    document.getElementById(`btn-${seccionId}`);
+    document.getElementById(
+      `btn-${seccionId}`
+    );
 
 
-  if (secDestino) {
-    secDestino.classList.remove("hidden");
-  }
+  if (secDestino)
+    secDestino.classList.remove('hidden');
 
-  if (btnDestino) {
-    btnDestino.classList.add("active");
-  }
+  if (btnDestino)
+    btnDestino.classList.add('active');
 }
 
 
-// ==========================================================
-// 9. EVENTOS PRINCIPALES
-// ==========================================================
+// ============================================================
+// 5. LOGIN ADMINISTRADOR
+// Firebase Authentication
+// ============================================================
 
-document.addEventListener("DOMContentLoaded", function () {
+document.addEventListener(
+  'DOMContentLoaded',
+  function () {
 
-
-  // --------------------------------------------------------
-  // BÚSQUEDA PÚBLICA
-  // --------------------------------------------------------
-
-  const formBuscar =
-    document.getElementById("form-buscar");
+    const formLogin =
+      document.getElementById('form-login');
 
 
-  if (formBuscar) {
+    if (formLogin) {
 
-    formBuscar.addEventListener(
-      "submit",
-      async function (e) {
+      formLogin.addEventListener(
+        'submit',
+        async function (e) {
 
-        e.preventDefault();
-
-
-        const codigoInput =
-          document.getElementById("input-codigo");
-
-        if (!codigoInput) return;
+          e.preventDefault();
 
 
-        const codigo =
-          codigoInput.value
-            .trim()
-            .toUpperCase();
+          const emailInput =
+            document.getElementById('input-email');
+
+          const passInput =
+            document.getElementById('input-pass');
+
+          const errorMsg =
+            document.getElementById(
+              'login-error-msg'
+            );
 
 
-        const errorMsg =
-          document.getElementById("mensaje-error");
-
-        const resultBox =
-          document.getElementById("resultado-proyecto");
-
-
-        if (errorMsg) {
-          errorMsg.classList.add("hidden");
-        }
+          const email =
+            emailInput
+              ? emailInput.value.trim().toLowerCase()
+              : '';
 
 
-        if (resultBox) {
-          resultBox.classList.add("hidden");
-        }
+          const password =
+            passInput
+              ? passInput.value
+              : '';
 
 
-        try {
+          if (errorMsg) {
 
-          const encontrado =
-            await buscarProyectoPublico(codigo);
+            errorMsg.classList.add('hidden');
+            errorMsg.innerText = '';
+
+          }
 
 
-          if (!encontrado) {
+          try {
 
-            if (errorMsg) {
-              errorMsg.classList.remove("hidden");
+            // LOGIN REAL CON FIREBASE
+            const credencial =
+              await auth.signInWithEmailAndPassword(
+                email,
+                password
+              );
+
+
+            const usuario =
+              credencial.user;
+
+
+            // SEGUNDA VERIFICACIÓN:
+            // SOLO TU CORREO PUEDE SER ADMIN
+            if (
+              usuario.email.toLowerCase() !==
+              EMAIL_ADMIN.toLowerCase()
+            ) {
+
+              await auth.signOut();
+
+              throw new Error(
+                'NO_AUTORIZADO'
+              );
+
             }
+
+
+            // ADMIN AUTORIZADO
+            esAdmin = true;
+
+
+            const divLogin =
+              document.getElementById(
+                'admin-login'
+              );
+
+            const divPanel =
+              document.getElementById(
+                'admin-panel'
+              );
+
+
+            if (divLogin)
+              divLogin.classList.add('hidden');
+
+            if (divPanel)
+              divPanel.classList.remove('hidden');
+
+
+            const btnReportes =
+              document.getElementById(
+                'btn-reportes'
+              );
+
+            if (btnReportes)
+              btnReportes.classList.remove('hidden');
+
+
+            if (passInput)
+              passInput.value = '';
+
+
+            // CARGAR DATOS PRIVADOS
+            await cargarProyectosDesdeNube();
+
+            renderProyectosAdmin();
+
+
+          } catch (error) {
+
+            console.error(
+              'Error de inicio de sesión:',
+              error
+            );
+
+
+            if (passInput)
+              passInput.value = '';
+
+
+            // CUENTA NO AUTORIZADA
+            if (
+              error.message ===
+              'NO_AUTORIZADO'
+            ) {
+
+              if (errorMsg) {
+
+                errorMsg.innerText =
+                  'Esta cuenta no tiene permiso de administrador.';
+
+                errorMsg.classList.remove(
+                  'hidden'
+                );
+
+              }
+
+              return;
+            }
+
+
+            // CREDENCIALES INCORRECTAS
+            if (
+              error.code ===
+                'auth/invalid-credential' ||
+
+              error.code ===
+                'auth/wrong-password' ||
+
+              error.code ===
+                'auth/user-not-found'
+            ) {
+
+              if (errorMsg) {
+
+                errorMsg.innerText =
+                  'Correo o contraseña incorrectos.';
+
+                errorMsg.classList.remove(
+                  'hidden'
+                );
+
+              }
+
+            }
+
+            // DEMASIADOS INTENTOS
+            else if (
+              error.code ===
+              'auth/too-many-requests'
+            ) {
+
+              if (errorMsg) {
+
+                errorMsg.innerText =
+                  'Demasiados intentos. Espera unos minutos e inténtalo nuevamente.';
+
+                errorMsg.classList.remove(
+                  'hidden'
+                );
+
+              }
+
+            }
+
+            // OTRO ERROR
+            else {
+
+              if (errorMsg) {
+
+                errorMsg.innerText =
+                  'No se pudo iniciar sesión. Revisa tu conexión e inténtalo nuevamente.';
+
+                errorMsg.classList.remove(
+                  'hidden'
+                );
+
+              }
+
+            }
+
+          }
+
+        }
+      );
+
+    }
+
+
+    // ========================================================
+    // CÁLCULO EN VIVO
+    // ========================================================
+
+    const inputPresupuestoNuevo =
+      document.getElementById(
+        'nuevo-presupuesto'
+      );
+
+    const inputAdelantoNuevo =
+      document.getElementById(
+        'nuevo-adelanto'
+      );
+
+
+    function calcularSaldoEnVivo() {
+
+      const pres =
+        parseFloat(
+          inputPresupuestoNuevo
+            ? inputPresupuestoNuevo.value
+            : 0
+        ) || 0;
+
+
+      const adel =
+        parseFloat(
+          inputAdelantoNuevo
+            ? inputAdelantoNuevo.value
+            : 0
+        ) || 0;
+
+
+      const saldoFinal =
+        pres - adel;
+
+
+      const lblSaldo =
+        document.getElementById(
+          'lbl-nuevo-saldo'
+        );
+
+
+      if (lblSaldo) {
+
+        lblSaldo.innerText =
+          `Bs. ${formatearMonto(saldoFinal)}`;
+
+        lblSaldo.style.color =
+          saldoFinal > 0
+            ? '#f87171'
+            : '#4ade80';
+
+      }
+
+    }
+
+
+    if (inputPresupuestoNuevo)
+      inputPresupuestoNuevo.addEventListener(
+        'input',
+        calcularSaldoEnVivo
+      );
+
+
+    if (inputAdelantoNuevo)
+      inputAdelantoNuevo.addEventListener(
+        'input',
+        calcularSaldoEnVivo
+      );
+
+
+    // ========================================================
+    // NUEVO PROYECTO
+    // ========================================================
+
+    const formNuevo =
+      document.getElementById(
+        'form-nuevo-proyecto'
+      );
+
+
+    if (formNuevo) {
+
+      formNuevo.addEventListener(
+        'submit',
+        async function (e) {
+
+          e.preventDefault();
+
+
+          // VERIFICACIÓN LOCAL
+          if (!esAdmin || !auth.currentUser) {
+
+            alert(
+              'Debes iniciar sesión como administrador.'
+            );
 
             return;
           }
 
 
-          if (errorMsg) {
-            errorMsg.classList.add("hidden");
-          }
-
-
-          if (resultBox) {
-            resultBox.classList.remove("hidden");
-          }
-
-
-          const resCodigo =
-            document.getElementById("res-codigo");
-
-          const resMueble =
-            document.getElementById("res-mueble");
-
-          const resCliente =
-            document.getElementById("res-cliente");
-
-          const resEstado =
-            document.getElementById("res-estado");
-
-          const resPorcentaje =
-            document.getElementById("res-porcentaje");
-
-
-          if (resCodigo) {
-            resCodigo.innerText =
-              encontrado.codigo || "";
-          }
-
-
-          if (resMueble) {
-            resMueble.innerText =
-              encontrado.mueble || "";
-          }
-
-
-          // IMPORTANTE:
-          // No mostramos teléfono,
-          // presupuesto ni adelanto.
-
-          if (resCliente) {
-
-            resCliente.innerText =
-              encontrado.cliente
-                ? `Cliente: ${encontrado.cliente}`
-                : "";
-          }
-
-
-          if (resEstado) {
-            resEstado.innerText =
-              encontrado.estado || "";
-          }
-
-
-          if (resPorcentaje) {
-
-            resPorcentaje.innerText =
-              `${Number(encontrado.progreso) || 0}%`;
-          }
-
-
-          const barFill =
-            document.getElementById(
-              "res-bar-fill"
-            );
-
-          if (barFill) {
-
-            barFill.style.width =
-              `${Number(encontrado.progreso) || 0}%`;
-          }
-
-
-          const detalles =
-            document.getElementById(
-              "res-detalles"
-            );
-
-          if (detalles) {
-
-            detalles.innerText =
-              encontrado.detalles ||
-              `El proyecto se encuentra en etapa de ${encontrado.estado}.`;
-          }
-
-
-        } catch (error) {
-
-          console.error(
-            "Error al consultar proyecto:",
-            error
-          );
-
-          if (errorMsg) {
-
-            errorMsg.innerText =
-              "No se pudo consultar el proyecto. Intenta nuevamente.";
-
-            errorMsg.classList.remove("hidden");
-          }
-
-        }
-
-      }
-    );
-
-  }
-
-
-  // --------------------------------------------------------
-  // LOGIN FIREBASE
-  // --------------------------------------------------------
-
-  const formLogin =
-    document.getElementById("form-login");
-
-
-  if (formLogin) {
-
-    formLogin.addEventListener(
-      "submit",
-      async function (e) {
-
-        e.preventDefault();
-
-
-        const emailInput =
-          document.getElementById("input-email");
-
-        const passInput =
-          document.getElementById("input-pass");
-
-        const errorBox =
-          document.getElementById("login-error-msg");
-
-
-        const email =
-          emailInput
-            ? emailInput.value.trim()
-            : "";
-
-        const password =
-          passInput
-            ? passInput.value
-            : "";
-
-
-        if (errorBox) {
-
-          errorBox.classList.add("hidden");
-          errorBox.innerText = "";
-        }
-
-
-        try {
-
-          const credential =
-            await auth.signInWithEmailAndPassword(
-              email,
-              password
-            );
-
-
-          // Verificación adicional:
-          // aunque alguien tenga otro usuario
-          // Firebase, no lo consideramos administrador.
-
           if (
-            !credential.user.email ||
-            credential.user.email.toLowerCase() !==
-              EMAIL_ADMIN.toLowerCase()
+            auth.currentUser.email.toLowerCase() !==
+            EMAIL_ADMIN.toLowerCase()
           ) {
 
-            await auth.signOut();
-
-            throw new Error(
-              "Esta cuenta no tiene permisos de administrador."
+            alert(
+              'No tienes permisos de administrador.'
             );
+
+            return;
           }
 
 
-          if (passInput) {
-            passInput.value = "";
-          }
+          const codIn =
+            document.getElementById(
+              'nuevo-codigo'
+            );
+
+          const cliIn =
+            document.getElementById(
+              'nuevo-cliente'
+            );
+
+          const mueIn =
+            document.getElementById(
+              'nuevo-mueble'
+            );
+
+          const telIn =
+            document.getElementById(
+              'nuevo-telefono'
+            );
+
+          const presIn =
+            document.getElementById(
+              'nuevo-presupuesto'
+            );
+
+          const adelIn =
+            document.getElementById(
+              'nuevo-adelanto'
+            );
+
+          const fechaIn =
+            document.getElementById(
+              'nuevo-fecha'
+            );
 
 
-          cerrarModalAdmin();
+          let codigoGenerado =
+            codIn
+              ? codIn.value.trim().toUpperCase()
+              : '';
 
 
-        } catch (error) {
-
-          console.error(
-            "Error de inicio de sesión:",
-            error
-          );
+          if (!codigoGenerado)
+            codigoGenerado =
+              generarCodigoAleatorio();
 
 
-          if (errorBox) {
+          const nuevoProyectoObj = {
 
-            errorBox.innerText =
-              "Correo o contraseña incorrectos.";
+            codigo: codigoGenerado,
 
-            errorBox.classList.remove("hidden");
+            cliente:
+              cliIn
+                ? cliIn.value.trim()
+                : '',
+
+            mueble:
+              mueIn
+                ? mueIn.value.trim()
+                : '',
+
+            telefono:
+              telIn
+                ? telIn.value.trim()
+                : '',
+
+            estado:
+              'Diseño Aprobado',
+
+            progreso: 20,
+
+            detalles:
+              'Diseño confirmado por WhatsApp. Listo para corte.',
+
+            presupuesto:
+              presIn
+                ? parseFloat(presIn.value) || 0
+                : 0,
+
+            adelanto:
+              adelIn
+                ? parseFloat(adelIn.value) || 0
+                : 0,
+
+            fechaEntrega:
+              fechaIn
+                ? fechaIn.value
+                : ''
+          };
+
+
+          try {
+
+            await db
+              .collection('proyectos')
+              .add(nuevoProyectoObj);
+
+
+            if (codIn) codIn.value = '';
+            if (cliIn) cliIn.value = '';
+            if (mueIn) mueIn.value = '';
+            if (telIn) telIn.value = '';
+            if (presIn) presIn.value = '';
+            if (adelIn) adelIn.value = '';
+            if (fechaIn) fechaIn.value = '';
+
+
+            calcularSaldoEnVivo();
+
+
+            await cargarProyectosDesdeNube();
+
+            renderProyectosAdmin();
+
+
+          } catch (error) {
+
+            console.error(
+              'Error al guardar en Firebase:',
+              error
+            );
+
+            alert(
+              'Error al guardar el proyecto.'
+            );
+
           }
 
         }
+      );
 
-      }
-    );
-
-  }
+    }
 
 
-  // --------------------------------------------------------
-  // CÁLCULO EN VIVO
-  // --------------------------------------------------------
+    // ========================================================
+    // FILTRO MENSUAL
+    // ========================================================
 
-  const inputPresupuestoNuevo =
-    document.getElementById(
-      "nuevo-presupuesto"
-    );
-
-  const inputAdelantoNuevo =
-    document.getElementById(
-      "nuevo-adelanto"
-    );
-
-
-  function calcularSaldoEnVivo() {
-
-    const pres =
-      parseFloat(
-        inputPresupuestoNuevo
-          ? inputPresupuestoNuevo.value
-          : 0
-      ) || 0;
-
-
-    const adel =
-      parseFloat(
-        inputAdelantoNuevo
-          ? inputAdelantoNuevo.value
-          : 0
-      ) || 0;
-
-
-    const saldoFinal =
-      pres - adel;
-
-
-    const lblSaldo =
+    const selectMes =
       document.getElementById(
-        "lbl-nuevo-saldo"
+        'filtro-mes'
       );
 
 
-    if (lblSaldo) {
+    if (selectMes) {
 
-      lblSaldo.innerText =
-        `Bs. ${formatearMonto(saldoFinal)}`;
+      const fechaActual =
+        new Date();
 
-      lblSaldo.style.color =
-        saldoFinal > 0
-          ? "#f87171"
-          : "#4ade80";
+      const anio =
+        fechaActual.getFullYear();
+
+      const mes =
+        String(
+          fechaActual.getMonth() + 1
+        ).padStart(2, '0');
+
+
+      selectMes.value =
+        `${anio}-${mes}`;
+
+
+      selectMes.addEventListener(
+        'change',
+        () => {
+
+          renderProyectosAdmin();
+
+        }
+      );
+
     }
 
   }
+);
 
 
-  if (inputPresupuestoNuevo) {
-
-    inputPresupuestoNuevo.addEventListener(
-      "input",
-      calcularSaldoEnVivo
-    );
-  }
-
-
-  if (inputAdelantoNuevo) {
-
-    inputAdelantoNuevo.addEventListener(
-      "input",
-      calcularSaldoEnVivo
-    );
-  }
-
-
-  // --------------------------------------------------------
-  // NUEVO PROYECTO
-  // --------------------------------------------------------
-
-  const formNuevo =
-    document.getElementById(
-      "form-nuevo-proyecto"
-    );
-
-
-  if (formNuevo) {
-
-    formNuevo.addEventListener(
-      "submit",
-      async function (e) {
-
-        e.preventDefault();
-
-
-        if (!esAdmin || !auth.currentUser) {
-
-          alert(
-            "Debes iniciar sesión como administrador."
-          );
-
-          return;
-        }
-
-
-        const usuario =
-          auth.currentUser.email
-            ? auth.currentUser.email.toLowerCase()
-            : "";
-
-
-        if (usuario !== EMAIL_ADMIN.toLowerCase()) {
-
-          alert(
-            "No tienes permisos para realizar esta acción."
-          );
-
-          return;
-        }
-
-
-        const codIn =
-          document.getElementById(
-            "nuevo-codigo"
-          );
-
-        const cliIn =
-          document.getElementById(
-            "nuevo-cliente"
-          );
-
-        const mueIn =
-          document.getElementById(
-            "nuevo-mueble"
-          );
-
-        const telIn =
-          document.getElementById(
-            "nuevo-telefono"
-          );
-
-        const presIn =
-          document.getElementById(
-            "nuevo-presupuesto"
-          );
-
-        const adelIn =
-          document.getElementById(
-            "nuevo-adelanto"
-          );
-
-        const fechaIn =
-          document.getElementById(
-            "nuevo-fecha"
-          );
-
-
-        let codigoGenerado =
-          codIn
-            ? codIn.value.trim().toUpperCase()
-            : "";
-
-
-        if (!codigoGenerado) {
-          codigoGenerado =
-            generarCodigoAleatorio();
-        }
-
-
-        const nuevoProyecto = {
-
-          codigo: codigoGenerado,
-
-          cliente:
-            cliIn
-              ? cliIn.value.trim()
-              : "",
-
-          mueble:
-            mueIn
-              ? mueIn.value.trim()
-              : "",
-
-          telefono:
-            telIn
-              ? telIn.value.trim()
-              : "",
-
-          estado:
-            "Diseño Aprobado",
-
-          progreso: 20,
-
-          detalles:
-            "Diseño confirmado por WhatsApp. Listo para corte.",
-
-          presupuesto:
-            presIn
-              ? parseFloat(presIn.value) || 0
-              : 0,
-
-          adelanto:
-            adelIn
-              ? parseFloat(adelIn.value) || 0
-              : 0,
-
-          fechaEntrega:
-            fechaIn
-              ? fechaIn.value
-              : ""
-
-        };
-
-
-        try {
-
-          // Crear documento privado
-          const nuevoDoc =
-            await db
-              .collection("proyectos")
-              .add(nuevoProyecto);
-
-
-          // Crear solamente información pública
-          await db
-            .collection("proyectos_publicos")
-            .doc(nuevoDoc.id)
-            .set({
-
-              codigo:
-                nuevoProyecto.codigo,
-
-              cliente:
-                nuevoProyecto.cliente,
-
-              mueble:
-                nuevoProyecto.mueble,
-
-              estado:
-                nuevoProyecto.estado,
-
-              progreso:
-                nuevoProyecto.progreso,
-
-              detalles:
-                nuevoProyecto.detalles,
-
-              fechaEntrega:
-                nuevoProyecto.fechaEntrega
-
-            });
-
-
-          if (codIn) codIn.value = "";
-          if (cliIn) cliIn.value = "";
-          if (mueIn) mueIn.value = "";
-          if (telIn) telIn.value = "";
-          if (presIn) presIn.value = "";
-          if (adelIn) adelIn.value = "";
-          if (fechaIn) fechaIn.value = "";
-
-
-          calcularSaldoEnVivo();
-
-
-          await cargarProyectosPrivados();
-
-          renderProyectosAdmin();
-
-
-          alert(
-            "Proyecto guardado correctamente."
-          );
-
-
-        } catch (error) {
-
-          console.error(
-            "Error al guardar proyecto:",
-            error
-          );
-
-          alert(
-            "Error al guardar el proyecto."
-          );
-        }
-
-      }
-    );
-
-  }
-
-
-  // --------------------------------------------------------
-  // FILTRO MENSUAL
-  // --------------------------------------------------------
-
-  const selectMes =
-    document.getElementById(
-      "filtro-mes"
-    );
-
-
-  if (selectMes) {
-
-    const fechaActual =
-      new Date();
-
-    const anio =
-      fechaActual.getFullYear();
-
-    const mes =
-      String(
-        fechaActual.getMonth() + 1
-      ).padStart(2, "0");
-
-
-    selectMes.value =
-      `${anio}-${mes}`;
-
-
-    selectMes.addEventListener(
-      "change",
-      () => {
-
-        if (esAdmin) {
-          renderProyectosAdmin();
-        }
-
-      }
-    );
-
-  }
-
-
-  // --------------------------------------------------------
-  // PROCESAR URL
-  // --------------------------------------------------------
-
-  procesarEnlaceDirectoUrl();
-
-});
-
-
-// ==========================================================
-// 10. CERRAR SESIÓN
-// ==========================================================
+// ============================================================
+// 6. CERRAR SESIÓN
+// ============================================================
 
 async function cerrarSesionAdmin() {
 
@@ -979,80 +788,122 @@ async function cerrarSesionAdmin() {
 
     await auth.signOut();
 
-    esAdmin = false;
-
-    proyectos = [];
-
-    ocultarPanelAdmin();
-
-    irInicio();
-
   } catch (error) {
 
     console.error(
-      "Error cerrando sesión:",
+      'Error al cerrar sesión:',
       error
     );
 
   }
+
+
+  esAdmin = false;
+
+
+  const divPanel =
+    document.getElementById(
+      'admin-panel'
+    );
+
+  const divLogin =
+    document.getElementById(
+      'admin-login'
+    );
+
+
+  if (divPanel)
+    divPanel.classList.add('hidden');
+
+  if (divLogin)
+    divLogin.classList.remove('hidden');
+
+
+  const btnReportes =
+    document.getElementById(
+      'btn-reportes'
+    );
+
+
+  if (btnReportes)
+    btnReportes.classList.add('hidden');
+
+
+  const emailInput =
+    document.getElementById(
+      'input-email'
+    );
+
+  const passInput =
+    document.getElementById(
+      'input-pass'
+    );
+
+
+  if (emailInput)
+    emailInput.value = '';
+
+  if (passInput)
+    passInput.value = '';
+
+
+  irInicio();
 }
 
 
-// ==========================================================
-// 11. RENDERIZADO ADMIN
-// ==========================================================
+// ============================================================
+// 7. RENDERIZADO DEL PANEL ADMIN
+// ============================================================
 
 function renderProyectosAdmin() {
 
+  // No renderizar si no somos admin
   if (!esAdmin) return;
 
 
   const container =
     document.getElementById(
-      "lista-proyectos-admin"
+      'lista-proyectos-admin'
     );
 
   const totalEl =
     document.getElementById(
-      "total-proyectos"
+      'total-proyectos'
     );
 
 
-  if (totalEl) {
-
+  if (totalEl)
     totalEl.innerText =
       proyectos.length;
-  }
 
 
   const selectMes =
     document.getElementById(
-      "filtro-mes"
+      'filtro-mes'
     );
 
 
   const mesSeleccionado =
     selectMes
       ? selectMes.value
-      : "";
+      : '';
 
 
-  const proyectosFiltradosMes =
+  let proyectosFiltradosMes =
     proyectos.filter(p => {
 
       if (
         !p.fechaEntrega ||
-        p.fechaEntrega.trim() === ""
-      ) {
+        p.fechaEntrega.trim() === ''
+      )
         return true;
-      }
 
-      if (mesSeleccionado) {
 
+      if (mesSeleccionado)
         return p.fechaEntrega.startsWith(
           mesSeleccionado
         );
-      }
+
 
       return true;
 
@@ -1075,6 +926,7 @@ function renderProyectosAdmin() {
 
     totalPresupuestoMes += pres;
     totalAdelantoMes += adel;
+
     totalSaldoMes +=
       pres - adel;
 
@@ -1083,71 +935,60 @@ function renderProyectosAdmin() {
 
   const reporteCant =
     document.getElementById(
-      "reporte-cant-mes"
+      'reporte-cant-mes'
     );
 
   const reportePres =
     document.getElementById(
-      "reporte-presupuesto-mes"
+      'reporte-presupuesto-mes'
     );
 
   const reporteAdel =
     document.getElementById(
-      "reporte-adelanto-mes"
+      'reporte-adelanto-mes'
     );
 
   const reporteSaldo =
     document.getElementById(
-      "reporte-saldo-mes"
+      'reporte-saldo-mes'
     );
 
 
-  if (reporteCant) {
-
+  if (reporteCant)
     reporteCant.innerText =
       proyectosFiltradosMes.length;
-  }
 
-
-  if (reportePres) {
-
+  if (reportePres)
     reportePres.innerText =
       `Bs. ${formatearMonto(
         totalPresupuestoMes
       )}`;
-  }
 
-
-  if (reporteAdel) {
-
+  if (reporteAdel)
     reporteAdel.innerText =
       `Bs. ${formatearMonto(
         totalAdelantoMes
       )}`;
-  }
 
-
-  if (reporteSaldo) {
-
+  if (reporteSaldo)
     reporteSaldo.innerText =
       `Bs. ${formatearMonto(
         totalSaldoMes
       )}`;
-  }
 
 
   if (!container) return;
 
 
-  container.innerHTML = "";
+  container.innerHTML = '';
 
 
   const etapas = [
-    "Diseño Aprobado",
-    "Corte",
-    "Armado",
-    "Instalación",
-    "Finalizado"
+    'Diseño Aprobado',
+    'Corte',
+    'Armado',
+    'Instalación',
+    'Finalizado'
   ];
 
 
@@ -1166,26 +1007,22 @@ function renderProyectosAdmin() {
     const fechaFormateada =
       p.fechaEntrega
         ? p.fechaEntrega
-            .split("-")
+            .split('-')
             .reverse()
-            .join("/")
-        : "Sin definir";
+            .join('/')
+        : 'Sin definir';
 
 
     const card =
-      document.createElement("div");
+      document.createElement('div');
 
 
     card.className =
-      "admin-card";
+      'admin-card';
 
 
     card.style.cssText =
-      "background:rgba(255,255,255,0.05);" +
-      "border:1px solid rgba(255,255,255,0.1);" +
-      "border-radius:12px;" +
-      "padding:1.2rem;" +
-      "margin-bottom:1rem;";
+      'background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 12px; padding: 1.2rem; margin-bottom: 1rem;';
 
 
     let botonesEtapas =
@@ -1193,8 +1030,10 @@ function renderProyectosAdmin() {
 
         const activeStyle =
           p.estado === est
-            ? "background:#f59e0b;color:#000;font-weight:bold;"
-            : "background:rgba(255,255,255,0.1);color:#fff;";
+
+            ? 'background: #f59e0b; color: #000; font-weight: bold;'
+
+            : 'background: rgba(255,255,255,0.1); color: #fff;';
 
 
         const porcentaje =
@@ -1213,13 +1052,13 @@ function renderProyectosAdmin() {
               margin:0.2rem;
               ${activeStyle}
             "
-            onclick="cambiarEstadoPorId('${p.id}',${idx},${porcentaje})"
+            onclick="cambiarEstadoPorId('${p.id}', ${idx}, ${porcentaje})"
           >
             ${est}
           </button>
         `;
 
-      }).join("");
+      }).join('');
 
 
     card.innerHTML = `
@@ -1234,7 +1073,7 @@ function renderProyectosAdmin() {
 
         <div
           id="info-view-${index}"
-          style="flex:1;min-width:280px;"
+          style="flex:1; min-width:280px;"
         >
 
           <div style="
@@ -1298,7 +1137,8 @@ function renderProyectosAdmin() {
             |
 
             <i class="fa-solid fa-phone"></i>
-            Tel: ${p.telefono || "Sin registrar"}
+            Tel:
+            ${p.telefono || 'Sin registrar'}
           </p>
 
 
@@ -1334,7 +1174,9 @@ function renderProyectosAdmin() {
               </span>
 
               <strong>
-                Bs. ${formatearMonto(presupuesto)}
+                Bs. ${formatearMonto(
+                  presupuesto
+                )}
               </strong>
             </div>
 
@@ -1345,7 +1187,9 @@ function renderProyectosAdmin() {
               </span>
 
               <strong style="color:#38bdf8;">
-                Bs. ${formatearMonto(adelanto)}
+                Bs. ${formatearMonto(
+                  adelanto
+                )}
               </strong>
             </div>
 
@@ -1356,11 +1200,15 @@ function renderProyectosAdmin() {
               </span>
 
               <strong style="
-                color:${saldo > 0
-                  ? "#f87171"
-                  : "#4ade80"};
+                color:${
+                  saldo > 0
+                    ? '#f87171'
+                    : '#4ade80'
+                };
               ">
-                Bs. ${formatearMonto(saldo)}
+                Bs. ${formatearMonto(
+                  saldo
+                )}
               </strong>
             </div>
 
@@ -1432,24 +1280,63 @@ function renderProyectosAdmin() {
               type="text"
               id="input-edit-codigo-${index}"
               value="${p.codigo}"
+              style="
+                width:100%;
+                padding:0.4rem;
+                background:#0a0a0a;
+                border:1px solid #404040;
+                color:#fff;
+                border-radius:6px;
+                font-size:0.85rem;
+              "
             >
+
 
             <input
               type="text"
               id="input-edit-cliente-${index}"
               value="${p.cliente}"
+              style="
+                width:100%;
+                padding:0.4rem;
+                background:#0a0a0a;
+                border:1px solid #404040;
+                color:#fff;
+                border-radius:6px;
+                font-size:0.85rem;
+              "
             >
+
 
             <input
               type="text"
               id="input-edit-mueble-${index}"
               value="${p.mueble}"
+              style="
+                width:100%;
+                padding:0.4rem;
+                background:#0a0a0a;
+                border:1px solid #404040;
+                color:#fff;
+                border-radius:6px;
+                font-size:0.85rem;
+              "
             >
+
 
             <input
               type="text"
               id="input-edit-telefono-${index}"
-              value="${p.telefono || ""}"
+              value="${p.telefono || ''}"
+              style="
+                width:100%;
+                padding:0.4rem;
+                background:#0a0a0a;
+                border:1px solid #404040;
+                color:#fff;
+                border-radius:6px;
+                font-size:0.85rem;
+              "
             >
 
 
@@ -1461,13 +1348,36 @@ function renderProyectosAdmin() {
               <input
                 type="text"
                 id="input-edit-presupuesto-${index}"
-                value="${formatearMonto(presupuesto)}"
+                value="${formatearMonto(
+                  presupuesto
+                )}"
+                style="
+                  width:100%;
+                  padding:0.4rem;
+                  background:#0a0a0a;
+                  border:1px solid #404040;
+                  color:#fff;
+                  border-radius:6px;
+                  font-size:0.85rem;
+                "
               >
+
 
               <input
                 type="text"
                 id="input-edit-adelanto-${index}"
-                value="${formatearMonto(adelanto)}"
+                value="${formatearMonto(
+                  adelanto
+                )}"
+                style="
+                  width:100%;
+                  padding:0.4rem;
+                  background:#0a0a0a;
+                  border:1px solid #404040;
+                  color:#fff;
+                  border-radius:6px;
+                  font-size:0.85rem;
+                "
               >
 
             </div>
@@ -1476,7 +1386,16 @@ function renderProyectosAdmin() {
             <input
               type="date"
               id="input-edit-fecha-${index}"
-              value="${p.fechaEntrega || ""}"
+              value="${p.fechaEntrega || ''}"
+              style="
+                width:100%;
+                padding:0.4rem;
+                background:#0a0a0a;
+                border:1px solid #404040;
+                color:#fff;
+                border-radius:6px;
+                font-size:0.85rem;
+              "
             >
 
 
@@ -1488,7 +1407,7 @@ function renderProyectosAdmin() {
 
               <button
                 type="button"
-                onclick="guardarEdicionInline('${p.id}',${index})"
+                onclick="guardarEdicionInline('${p.id}', ${index})"
                 style="
                   background:#16a34a;
                   color:white;
@@ -1567,7 +1486,6 @@ function renderProyectosAdmin() {
         </div>
 
       </div>
-
     `;
 
 
@@ -1578,9 +1496,9 @@ function renderProyectosAdmin() {
 }
 
 
-// ==========================================================
-// 12. EDICIÓN
-// ==========================================================
+// ============================================================
+// 8. EDICIÓN DE PROYECTOS
+// ============================================================
 
 function activarEdicionInline(index) {
 
@@ -1600,9 +1518,14 @@ function activarEdicionInline(index) {
     );
 
 
-  if (info) info.style.display = "none";
-  if (edit) edit.style.display = "block";
-  if (btn) btn.style.display = "none";
+  if (info)
+    info.style.display = 'none';
+
+  if (edit)
+    edit.style.display = 'block';
+
+  if (btn)
+    btn.style.display = 'none';
 }
 
 
@@ -1624,15 +1547,20 @@ function cancelarEdicionInline(index) {
     );
 
 
-  if (info) info.style.display = "block";
-  if (edit) edit.style.display = "none";
-  if (btn) btn.style.display = "block";
+  if (info)
+    info.style.display = 'block';
+
+  if (edit)
+    edit.style.display = 'none';
+
+  if (btn)
+    btn.style.display = 'block';
 }
 
 
-// ==========================================================
-// 13. GUARDAR EDICIÓN
-// ==========================================================
+// ============================================================
+// 9. GUARDAR EDICIÓN
+// ============================================================
 
 async function guardarEdicionInline(
   idFirebase,
@@ -1642,7 +1570,7 @@ async function guardarEdicionInline(
   if (!esAdmin || !auth.currentUser) {
 
     alert(
-      "Debes iniciar sesión como administrador."
+      'Debes iniciar sesión como administrador.'
     );
 
     return;
@@ -1697,68 +1625,25 @@ async function guardarEdicionInline(
     ).value;
 
 
-  const proyectoActual =
-    proyectos.find(
-      p => p.id === idFirebase
-    );
-
-
-  if (!proyectoActual) return;
-
-
   try {
 
-    // Actualizar privado
     await db
-      .collection("proyectos")
+      .collection('proyectos')
       .doc(idFirebase)
       .update({
 
         codigo: nuevoCodigo,
-
         cliente: nuevoCliente,
-
         mueble: nuevoMueble,
-
         telefono: nuevoTelefono,
-
         presupuesto: nuevoPresupuesto,
-
         adelanto: nuevoAdelanto,
-
         fechaEntrega: nuevaFecha
 
       });
 
 
-    // Actualizar solamente datos públicos
-    await db
-      .collection("proyectos_publicos")
-      .doc(idFirebase)
-      .set({
-
-        codigo: nuevoCodigo,
-
-        cliente: nuevoCliente,
-
-        mueble: nuevoMueble,
-
-        estado:
-          proyectoActual.estado,
-
-        progreso:
-          proyectoActual.progreso,
-
-        detalles:
-          proyectoActual.detalles,
-
-        fechaEntrega:
-          nuevaFecha
-
-      });
-
-
-    await cargarProyectosPrivados();
+    await cargarProyectosDesdeNube();
 
     renderProyectosAdmin();
 
@@ -1766,22 +1651,21 @@ async function guardarEdicionInline(
   } catch (error) {
 
     console.error(
-      "Error al actualizar:",
+      'Error al actualizar:',
       error
     );
 
     alert(
-      "Error al actualizar el proyecto."
+      'Error al actualizar el proyecto.'
     );
 
   }
-
 }
 
 
-// ==========================================================
-// 14. CAMBIAR ESTADO
-// ==========================================================
+// ============================================================
+// 10. CAMBIAR ESTADO
+// ============================================================
 
 async function cambiarEstadoPorId(
   idFirebase,
@@ -1792,7 +1676,7 @@ async function cambiarEstadoPorId(
   if (!esAdmin || !auth.currentUser) {
 
     alert(
-      "Debes iniciar sesión como administrador."
+      'Debes iniciar sesión como administrador.'
     );
 
     return;
@@ -1800,25 +1684,25 @@ async function cambiarEstadoPorId(
 
 
   const etapas = [
-    "Diseño Aprobado",
-    "Corte",
-    "Armado",
-    "Instalación",
-    "Finalizado"
+    'Diseño Aprobado',
+    'Corte',
+    'Armado',
+    'Instalación',
+    'Finalizado'
   ];
 
 
   const descripciones = [
 
-    "El diseño ha sido aprobado por WhatsApp. El proyecto ingresa a producción.",
+    'El diseño ha sido aprobado por WhatsApp. El proyecto ingresa a producción.',
 
-    "Las placas se encuentran en proceso de corte y pegado de tapacantos.",
+    'Las placas se encuentran en proceso de corte y pegado de tapacantos.',
 
-    "Las piezas se están ensamblando en taller.",
+    'Las piezas se están ensamblando en taller.',
 
-    "El mueble está en proceso de traslado e instalación en sitio.",
+    'El mueble está en proceso de traslado e instalación en sitio.',
 
-    "¡El proyecto ha sido completado e instalado con éxito!"
+    '¡El proyecto ha sido completado e instalado con éxito!'
 
   ];
 
@@ -1826,86 +1710,123 @@ async function cambiarEstadoPorId(
   const nuevoEstado =
     etapas[etapaIdx];
 
-
   const nuevaDesc =
     descripciones[etapaIdx];
 
 
+  const proyectoLocal =
+    proyectos.find(
+      p => p.id === idFirebase
+    );
+
+
+  if (proyectoLocal) {
+
+    proyectoLocal.estado =
+      nuevoEstado;
+
+    proyectoLocal.progreso =
+      nuevoProgreso;
+
+    proyectoLocal.detalles =
+      nuevaDesc;
+
+  }
+
+
+  const cardIndex =
+    proyectos.findIndex(
+      p => p.id === idFirebase
+    );
+
+
+  if (cardIndex !== -1) {
+
+    const infoView =
+      document.getElementById(
+        `info-view-${cardIndex}`
+      );
+
+
+    if (infoView) {
+
+      const botones =
+        infoView.querySelectorAll(
+          'button[onclick*="cambiarEstadoPorId"]'
+        );
+
+
+      botones.forEach(
+        (btn, idx) => {
+
+          if (idx === etapaIdx) {
+
+            btn.style.background =
+              '#f59e0b';
+
+            btn.style.color =
+              '#000';
+
+            btn.style.fontWeight =
+              'bold';
+
+          } else {
+
+            btn.style.background =
+              'rgba(255,255,255,0.1)';
+
+            btn.style.color =
+              '#fff';
+
+            btn.style.fontWeight =
+              'normal';
+
+          }
+
+        }
+      );
+
+    }
+
+  }
+
+
   try {
 
-    // Actualizar privado
     await db
-      .collection("proyectos")
+      .collection('proyectos')
       .doc(idFirebase)
       .update({
 
         estado: nuevoEstado,
-
         progreso: nuevoProgreso,
-
         detalles: nuevaDesc
 
       });
-
-
-    // Actualizar público
-    await db
-      .collection("proyectos_publicos")
-      .doc(idFirebase)
-      .set({
-
-        estado: nuevoEstado,
-
-        progreso: nuevoProgreso,
-
-        detalles: nuevaDesc
-
-      }, {
-        merge: true
-      });
-
-
-    const proyectoLocal =
-      proyectos.find(
-        p => p.id === idFirebase
-      );
-
-
-    if (proyectoLocal) {
-
-      proyectoLocal.estado =
-        nuevoEstado;
-
-      proyectoLocal.progreso =
-        nuevoProgreso;
-
-      proyectoLocal.detalles =
-        nuevaDesc;
-    }
-
-
-    renderProyectosAdmin();
-
 
   } catch (error) {
 
     console.error(
-      "Error al cambiar estado:",
+      'Error al actualizar estado:',
       error
     );
 
     alert(
-      "No se pudo actualizar el estado."
+      'No se pudo guardar el nuevo estado.'
     );
+
+    await cargarProyectosDesdeNube();
+
+    renderProyectosAdmin();
 
   }
 
 }
 
 
-// ==========================================================
-// 15. ELIMINAR PROYECTO
-// ==========================================================
+// ============================================================
+// 11. ELIMINAR PROYECTO
+// ============================================================
 
 async function eliminarProyecto(
   idFirebase
@@ -1914,7 +1835,7 @@ async function eliminarProyecto(
   if (!esAdmin || !auth.currentUser) {
 
     alert(
-      "Debes iniciar sesión como administrador."
+      'Debes iniciar sesión como administrador.'
     );
 
     return;
@@ -1923,28 +1844,24 @@ async function eliminarProyecto(
 
   if (
     !confirm(
-      "¿Deseas eliminar este proyecto de la nube?"
+      '¿Deseas eliminar este proyecto de la nube?'
     )
   ) {
+
     return;
+
   }
 
 
   try {
 
     await db
-      .collection("proyectos")
+      .collection('proyectos')
       .doc(idFirebase)
       .delete();
 
 
-    await db
-      .collection("proyectos_publicos")
-      .doc(idFirebase)
-      .delete();
-
-
-    await cargarProyectosPrivados();
+    await cargarProyectosDesdeNube();
 
     renderProyectosAdmin();
 
@@ -1952,12 +1869,12 @@ async function eliminarProyecto(
   } catch (error) {
 
     console.error(
-      "Error al eliminar:",
+      'Error al eliminar:',
       error
     );
 
     alert(
-      "Error al eliminar proyecto."
+      'Error al eliminar proyecto.'
     );
 
   }
@@ -1965,16 +1882,16 @@ async function eliminarProyecto(
 }
 
 
-// ==========================================================
-// 16. WHATSAPP
-// ==========================================================
+// ============================================================
+// 12. WHATSAPP
+// ============================================================
 
 function notificarWhatsApp(index) {
 
   if (!esAdmin) {
 
     alert(
-      "Debes iniciar sesión como administrador."
+      'Debes iniciar sesión como administrador.'
     );
 
     return;
@@ -1987,40 +1904,54 @@ function notificarWhatsApp(index) {
 
   if (
     !p.telefono ||
-    p.telefono.trim() === ""
+    p.telefono.trim() === ''
   ) {
 
     alert(
-      "Este cliente no tiene un número de teléfono registrado."
+      'Este cliente no tiene un número de teléfono registrado.'
     );
 
     return;
+
   }
 
 
   let num =
     p.telefono
       .toString()
-      .replace(/\D/g, "");
+      .replace(/\D/g, '');
 
 
   if (
-    !num.startsWith("591") &&
+    !num.startsWith('591') &&
     num.length === 8
   ) {
 
     num =
-      "591" + num;
+      '591' + num;
+
   }
+
+
+  const presupuesto =
+    Number(p.presupuesto) || 0;
+
+
+  const adelanto =
+    Number(p.adelanto) || 0;
+
+
+  const saldo =
+    presupuesto - adelanto;
 
 
   const fechaTexto =
     p.fechaEntrega
       ? p.fechaEntrega
-          .split("-")
+          .split('-')
           .reverse()
-          .join("/")
-      : "Por coordinar";
+          .join('/')
+      : 'Por coordinar';
 
 
   const linkBase =
@@ -2029,29 +1960,108 @@ function notificarWhatsApp(index) {
 
 
   const linkDirecto =
-    `${linkBase}?codigo=${encodeURIComponent(
-      p.codigo
-    )}`;
+    `${linkBase}?codigo=${p.codigo}`;
 
 
   const mensaje =
 
-`Hola *${p.cliente}* 👋, desde *HN Muebles* te informamos el estado de tu proyecto *"${p.mueble}"*:
+    `Hola *${p.cliente}* 👋, desde *HN Muebles* te informamos el estado de tu proyecto *"${p.mueble}"*:\n\n` +
 
-🛠️ *Estado:* ${p.estado}
-📊 *Progreso:* ${p.progreso}%
-📅 *Fecha Estimada de Entrega:* ${fechaTexto}
+    `🛠️ *Estado:* ${p.estado}\n` +
 
-🔍 *Haz clic en el siguiente enlace para ver el estado de tu proyecto (Código: ${p.codigo}):*
-${linkDirecto}`;
+    `📊 *Progreso:* ${p.progreso}%\n` +
+
+    `📅 *Fecha Estimada de Entrega:* ${fechaTexto}\n\n` +
+
+    `💰 *Resumen Financiero:*\n` +
+
+    `• Presupuesto Total: Bs. ${formatearMonto(presupuesto)}\n` +
+
+    `• Adelanto: Bs. ${formatearMonto(adelanto)}\n` +
+
+    `• Saldo Pendiente: Bs. ${formatearMonto(saldo)}\n\n` +
+
+    `🔍 *Haz clic en el siguiente enlace para ver el estado de tu proyecto (Código: ${p.codigo}):*\n` +
+
+    linkDirecto;
 
 
   window.open(
-    `https://wa.me/${num}?text=${encodeURIComponent(
-      mensaje
-    )}`,
-    "_blank"
+    `https://wa.me/${num}?text=${encodeURIComponent(mensaje)}`,
+    '_blank'
   );
 
 }
+
+
+// ============================================================
+// 13. ESTADO DE AUTENTICACIÓN
+// ============================================================
+
+// Firebase recuerda la sesión automáticamente.
+// Si ya estás autenticado, recuperamos el estado.
+
+auth.onAuthStateChanged(async (usuario) => {
+
+  if (!usuario) {
+
+    esAdmin = false;
+
+    return;
+  }
+
+
+  // Verificar correo autorizado
+  if (
+    usuario.email &&
+    usuario.email.toLowerCase() ===
+    EMAIL_ADMIN.toLowerCase()
+  ) {
+
+    esAdmin = true;
+
+    const divLogin =
+      document.getElementById(
+        'admin-login'
+      );
+
+    const divPanel =
+      document.getElementById(
+        'admin-panel'
+      );
+
+
+    if (divLogin)
+      divLogin.classList.add('hidden');
+
+    if (divPanel)
+      divPanel.classList.remove('hidden');
+
+
+    const btnReportes =
+      document.getElementById(
+        'btn-reportes'
+      );
+
+
+    if (btnReportes)
+      btnReportes.classList.remove(
+        'hidden'
+      );
+
+
+    await cargarProyectosDesdeNube();
+
+    renderProyectosAdmin();
+
+  } else {
+
+    // Usuario autenticado pero no autorizado
+    await auth.signOut();
+
+    esAdmin = false;
+
+  }
+
+});
 ```
