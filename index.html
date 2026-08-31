@@ -734,12 +734,18 @@
       </form>
 
 
+      <!-- PESTAÑAS DE MESES PARA PROYECTOS -->
+      <div id="contenedor-pestanas-meses" class="months-tabs-container" style="display: flex; gap: 8px; overflow-x: auto; padding: 10px 0; margin-top: 15px; border-bottom: 1px solid rgba(255,255,255,0.1);">
+        <!-- Generado dinámicamente -->
+      </div>
+
+
       <!-- PROYECTOS REGISTRADOS -->
 
-      <div class="registered-title">
+      <div class="registered-title" style="margin-top: 15px;">
 
         <h3>
-          Registrados
+          Registrados en el mes
           (<span id="total-proyectos">0</span>)
         </h3>
 
@@ -942,7 +948,7 @@
   <div
     class="modal-box"
     style="
-      max-width:760px;
+      max-width:850px;
       max-height:90vh;
       overflow-y:auto;
     "
@@ -964,41 +970,29 @@
       </h2>
 
       <p class="subtitle">
-        Cada proyecto aparece automáticamente. Solo registra el total que efectivamente recibiste.
+        Visualiza y exporta los ingresos estructurados por pestañas mensuales de trabajo.
       </p>
 
     </div>
 
 
-    <div class="income-filter">
-
-      <div>
-
-        <label>
-          Mes del reporte
-        </label>
-
-        <input
-          type="month"
-          id="ingresos-mes"
-        />
-
-      </div>
+    <!-- PESTAÑAS DE MESES PARA INGRESOS -->
+    <div id="contenedor-pestanas-ingresos" class="months-tabs-container" style="display: flex; gap: 8px; overflow-x: auto; padding: 10px 0; margin-bottom: 15px; border-bottom: 1px solid rgba(255,255,255,0.1);">
+      <!-- Generado dinámicamente -->
+    </div>
 
 
+    <div class="income-filter" style="display: flex; justify-content: flex-end; align-items: center; margin-bottom: 15px;">
       <div class="income-pdf-button">
-
         <button
           type="button"
           onclick="exportarIngresosPDF()"
           class="btn-primary-modern"
         >
           <i class="fa-solid fa-file-pdf"></i>
-          Exportar PDF
+          Exportar PDF del Mes
         </button>
-
       </div>
-
     </div>
 
 
