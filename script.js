@@ -2582,7 +2582,7 @@ async function registrarPago(
 
 
 // ============================================================
-// 18. EXPORTAR PDF - INFORME PROFESIONAL
+// 18. EXPORTAR PDF
 // ============================================================
 
 function exportarIngresosPDF() {
@@ -2599,7 +2599,6 @@ function exportarIngresosPDF() {
   if (!filtro) return;
 
 
-  // Verificar que jsPDF esté cargado
   if (
     !window.jspdf ||
     !window.jspdf.jsPDF
@@ -2607,10 +2606,6 @@ function exportarIngresosPDF() {
 
     console.error(
       "jsPDF no disponible."
-    );
-
-    alert(
-      "No se pudo generar el PDF. La librería PDF no está disponible."
     );
 
     return;
@@ -2625,11 +2620,8 @@ function exportarIngresosPDF() {
         if (
           !ingreso.fechaCreacion ||
           !ingreso.fechaCreacion.toDate
-        ) {
-
+        )
           return true;
-
-        }
 
 
         const fecha =
@@ -2652,19 +2644,11 @@ function exportarIngresosPDF() {
     window.jspdf.jsPDF;
 
 
-  // ==========================================================
-  // CREAR DOCUMENTO
-  // ==========================================================
-
   const doc =
-    new jsPDF({
-      orientation: "portrait",
-      unit: "mm",
-      format: "a4"
-    });
+    new jsPDF();
 
 
-  const [anio, mes] =
+  const [anio,mes] =
     filtro.split("-");
 
 
@@ -2686,89 +2670,23 @@ function exportarIngresosPDF() {
   ];
 
 
-  const nombreMes =
-    nombresMes[
-      Number(mes) - 1
-    ] || "";
+  doc.setFontSize(18);
+
+  doc.text(
+    "HN MUEBLES",
+    14,
+    18
+  );
 
 
-  // ==========================================================
-  // COLORES
-  // ==========================================================
+  doc.setFontSize(12);
 
-  const negro = [
-    25,
-    25,
-    25
-  ];
+  doc.text(
+    `Registro de Ingresos - ${nombresMes[Number(mes)-1]} ${anio}`,
+    14,
+    27
+  );
 
-
-  const grisOscuro = [
-    70,
-    70,
-    70
-  ];
-
-
-  const gris = [
-    115,
-    115,
-    115
-  ];
-
-
-  const grisClaro = [
-    242,
-    242,
-    242
-  ];
-
-
-  const blanco = [
-    255,
-    255,
-    255
-  ];
-
-
-  const dorado = [
-    156,
-    113,
-    81
-  ];
-
-
-  const doradoClaro = [
-    237,
-    226,
-    217
-  ];
-
-
-  const verde = [
-    34,
-    139,
-    94
-  ];
-
-
-  const rojo = [
-    190,
-    60,
-    60
-  ];
-
-
-  const azul = [
-    45,
-    120,
-    170
-  ];
-
-
-  // ==========================================================
-  // DATOS Y TOTALES
-  // ==========================================================
 
   let totalProyecto = 0;
 
@@ -2808,20 +2726,13 @@ function exportarIngresosPDF() {
           );
 
 
-        totalProyecto +=
-          total;
+        totalProyecto += total;
 
+        totalAdelanto += adelanto;
 
-        totalAdelanto +=
-          adelanto;
+        totalCobrado += cobrado;
 
-
-        totalCobrado +=
-          cobrado;
-
-
-        totalPendiente +=
-          pendiente;
+        totalPendiente += pendiente;
 
 
         return [
@@ -2846,543 +2757,6 @@ function exportarIngresosPDF() {
     );
 
 
-  // ==========================================================
-  // FECHA DE GENERACIÓN
-  // ==========================================================
-
-  const ahora =
-    new Date();
-
-
-  const fechaGeneracion =
-    `${String(
-      ahora.getDate()
-    ).padStart(2,"0")}/${
-      String(
-        ahora.getMonth() + 1
-      ).padStart(2,"0")
-    }/${
-      ahora.getFullYear()
-    }`;
-
-
-  const horaGeneracion =
-    `${String(
-      ahora.getHours()
-    ).padStart(2,"0")}:${
-      String(
-        ahora.getMinutes()
-      ).padStart(2,"0")
-    }`;
-
-
-  // ==========================================================
-  // ENCABEZADO
-  // ==========================================================
-
-  // Franja superior
-  doc.setFillColor(
-    ...negro
-  );
-
-
-  doc.rect(
-    0,
-    0,
-    210,
-    30,
-    "F"
-  );
-
-
-  // Línea decorativa
-  doc.setFillColor(
-    ...dorado
-  );
-
-
-  doc.rect(
-    0,
-    30,
-    210,
-    2,
-    "F"
-  );
-
-
-  // Logo textual
-  doc.setTextColor(
-    ...blanco
-  );
-
-
-  doc.setFont(
-    "helvetica",
-    "bold"
-  );
-
-
-  doc.setFontSize(
-    21
-  );
-
-
-  doc.text(
-    "HN MUEBLES",
-    14,
-    14
-  );
-
-
-  doc.setFont(
-    "helvetica",
-    "normal"
-  );
-
-
-  doc.setFontSize(
-    8
-  );
-
-
-  doc.setTextColor(
-    190,
-    190,
-    190
-  );
-
-
-  doc.text(
-    "DISEÑO Y FABRICACIÓN A MEDIDA",
-    14,
-    21
-  );
-
-
-  // Información derecha
-  doc.setTextColor(
-    ...blanco
-  );
-
-
-  doc.setFont(
-    "helvetica",
-    "bold"
-  );
-
-
-  doc.setFontSize(
-    8
-  );
-
-
-  doc.text(
-    "INFORME FINANCIERO",
-    196,
-    12,
-    {
-      align: "right"
-    }
-  );
-
-
-  doc.setFont(
-    "helvetica",
-    "normal"
-  );
-
-
-  doc.setTextColor(
-    190,
-    190,
-    190
-  );
-
-
-  doc.text(
-    `Emitido: ${fechaGeneracion}`,
-    196,
-    18,
-    {
-      align: "right"
-    }
-  );
-
-
-  doc.text(
-    `Hora: ${horaGeneracion}`,
-    196,
-    23,
-    {
-      align: "right"
-    }
-  );
-
-
-  // ==========================================================
-  // TÍTULO DEL INFORME
-  // ==========================================================
-
-  doc.setTextColor(
-    ...negro
-  );
-
-
-  doc.setFont(
-    "helvetica",
-    "bold"
-  );
-
-
-  doc.setFontSize(
-    16
-  );
-
-
-  doc.text(
-    "Gestión de Ingresos",
-    14,
-    45
-  );
-
-
-  doc.setFont(
-    "helvetica",
-    "normal"
-  );
-
-
-  doc.setFontSize(
-    10
-  );
-
-
-  doc.setTextColor(
-    ...gris
-  );
-
-
-  doc.text(
-    `${nombreMes} ${anio}`,
-    14,
-    52
-  );
-
-
-  // Línea
-  doc.setDrawColor(
-    220,
-    220,
-    220
-  );
-
-
-  doc.setLineWidth(
-    0.3
-  );
-
-
-  doc.line(
-    14,
-    57,
-    196,
-    57
-  );
-
-
-  // ==========================================================
-  // RESUMEN FINANCIERO
-  // ==========================================================
-
-  const anchoCaja =
-    43.5;
-
-
-  const espacio =
-    3;
-
-
-  const x1 =
-    14;
-
-
-  const x2 =
-    x1 + anchoCaja + espacio;
-
-
-  const x3 =
-    x2 + anchoCaja + espacio;
-
-
-  const x4 =
-    x3 + anchoCaja + espacio;
-
-
-  const yCaja =
-    64;
-
-
-  const altoCaja =
-    25;
-
-
-  // Caja 1 - Proyectos
-  doc.setFillColor(
-    ...grisClaro
-  );
-
-
-  doc.roundedRect(
-    x1,
-    yCaja,
-    anchoCaja,
-    altoCaja,
-    2,
-    2,
-    "F"
-  );
-
-
-  doc.setTextColor(
-    ...gris
-  );
-
-
-  doc.setFont(
-    "helvetica",
-    "normal"
-  );
-
-
-  doc.setFontSize(
-    7.5
-  );
-
-
-  doc.text(
-    "PROYECTOS",
-    x1 + 4,
-    yCaja + 7
-  );
-
-
-  doc.setTextColor(
-    ...negro
-  );
-
-
-  doc.setFont(
-    "helvetica",
-    "bold"
-  );
-
-
-  doc.setFontSize(
-    14
-  );
-
-
-  doc.text(
-    String(lista.length),
-    x1 + 4,
-    yCaja + 17
-  );
-
-
-  // Caja 2 - Contratado
-  doc.setFillColor(
-    234,
-    242,
-    248
-  );
-
-
-  doc.roundedRect(
-    x2,
-    yCaja,
-    anchoCaja,
-    altoCaja,
-    2,
-    2,
-    "F"
-  );
-
-
-  doc.setTextColor(
-    ...azul
-  );
-
-
-  doc.setFont(
-    "helvetica",
-    "normal"
-  );
-
-
-  doc.setFontSize(
-    7.5
-  );
-
-
-  doc.text(
-    "TOTAL CONTRATADO",
-    x2 + 4,
-    yCaja + 7
-  );
-
-
-  doc.setFont(
-    "helvetica",
-    "bold"
-  );
-
-
-  doc.setFontSize(
-    10
-  );
-
-
-  doc.text(
-    `Bs. ${formatearMonto(
-      totalProyecto
-    )}`,
-    x2 + 4,
-    yCaja + 17
-  );
-
-
-  // Caja 3 - Cobrado
-  doc.setFillColor(
-    232,
-    245,
-    237
-  );
-
-
-  doc.roundedRect(
-    x3,
-    yCaja,
-    anchoCaja,
-    altoCaja,
-    2,
-    2,
-    "F"
-  );
-
-
-  doc.setTextColor(
-    ...verde
-  );
-
-
-  doc.setFont(
-    "helvetica",
-    "normal"
-  );
-
-
-  doc.setFontSize(
-    7.5
-  );
-
-
-  doc.text(
-    "TOTAL COBRADO",
-    x3 + 4,
-    yCaja + 7
-  );
-
-
-  doc.setFont(
-    "helvetica",
-    "bold"
-  );
-
-
-  doc.setFontSize(
-    10
-  );
-
-
-  doc.text(
-    `Bs. ${formatearMonto(
-      totalCobrado
-    )}`,
-    x3 + 4,
-    yCaja + 17
-  );
-
-
-  // Caja 4 - Pendiente
-  doc.setFillColor(
-    249,
-    237,
-    237
-  );
-
-
-  doc.roundedRect(
-    x4,
-    yCaja,
-    anchoCaja,
-    altoCaja,
-    2,
-    2,
-    "F"
-  );
-
-
-  doc.setTextColor(
-    ...rojo
-  );
-
-
-  doc.setFont(
-    "helvetica",
-    "normal"
-  );
-
-
-  doc.setFontSize(
-    7.5
-  );
-
-
-  doc.text(
-    "TOTAL PENDIENTE",
-    x4 + 4,
-    yCaja + 7
-  );
-
-
-  doc.setFont(
-    "helvetica",
-    "bold"
-  );
-
-
-  doc.setFontSize(
-    10
-  );
-
-
-  doc.text(
-    `Bs. ${formatearMonto(
-      totalPendiente
-    )}`,
-    x4 + 4,
-    yCaja + 17
-  );
-
-
-  // ==========================================================
-  // TABLA
-  // ==========================================================
-
-  const inicioTabla =
-    98;
-
-
   if (
     typeof doc.autoTable ===
     "function"
@@ -3390,16 +2764,9 @@ function exportarIngresosPDF() {
 
     doc.autoTable({
 
-      startY:
-        inicioTabla,
-
-      margin: {
-        left: 14,
-        right: 14
-      },
+      startY: 35,
 
       head: [[
-
         "Código",
         "Cliente",
         "Proyecto",
@@ -3407,453 +2774,69 @@ function exportarIngresosPDF() {
         "Adelanto",
         "Cobrado",
         "Pendiente"
-
       ]],
 
-      body:
-        filas,
-
-      theme:
-        "grid",
+      body: filas,
 
       styles: {
-
-        font:
-          "helvetica",
-
-        fontSize:
-          7.5,
-
-        cellPadding:
-          3,
-
-        textColor:
-          [55,55,55],
-
-        lineColor:
-          [225,225,225],
-
-        lineWidth:
-          0.2,
-
-        valign:
-          "middle"
-
-      },
-
-      headStyles: {
-
-        fillColor:
-          negro,
-
-        textColor:
-          blanco,
-
-        fontStyle:
-          "bold",
-
-        fontSize:
-          7.5,
-
-        halign:
-          "center",
-
-        cellPadding:
-          3.5
-
-      },
-
-      alternateRowStyles: {
-
-        fillColor:
-          [249,249,249]
-
-      },
-
-      columnStyles: {
-
-        0: {
-          cellWidth:
-            20,
-          halign:
-            "center"
-        },
-
-        1: {
-          cellWidth:
-            34
-        },
-
-        2: {
-          cellWidth:
-            37
-        },
-
-        3: {
-          cellWidth:
-            23,
-          halign:
-            "right"
-        },
-
-        4: {
-          cellWidth:
-            23,
-          halign:
-            "right"
-        },
-
-        5: {
-          cellWidth:
-            23,
-          halign:
-            "right"
-        },
-
-        6: {
-          cellWidth:
-            23,
-          halign:
-            "right"
-        }
-
-      },
-
-      didParseCell:
-        function(data) {
-
-          // Columna pendiente
-          if (
-            data.section === "body" &&
-            data.column.index === 6
-          ) {
-
-            data.cell.styles.textColor =
-              data.row.raw?.[6] ===
-              "Bs. 0"
-                ? verde
-                : rojo;
-
-          }
-
-
-          // Código
-          if (
-            data.section === "body" &&
-            data.column.index === 0
-          ) {
-
-            data.cell.styles.fontStyle =
-              "bold";
-
-          }
-
-        }
+        fontSize: 8
+      }
 
     });
 
   }
 
-  else {
-
-    // Si AutoTable no está disponible
-    doc.setFont(
-      "helvetica",
-      "normal"
-    );
-
-
-    doc.setFontSize(
-      9
-    );
-
-
-    doc.setTextColor(
-      ...rojo
-    );
-
-
-    doc.text(
-      "No se pudo cargar la tabla del informe.",
-      14,
-      inicioTabla
-    );
-
-  }
-
-
-  // ==========================================================
-  // RESUMEN FINAL
-  // ==========================================================
 
   const finalY =
     doc.lastAutoTable
-      ? doc.lastAutoTable.finalY + 12
-      : inicioTabla + 15;
+      ? doc.lastAutoTable.finalY + 10
+      : 45;
 
 
-  // Evitar que el resumen quede fuera de la página
-  let yResumen =
-    finalY;
+  doc.setFontSize(10);
 
 
-  if (
-    yResumen > 245
-  ) {
-
-    doc.addPage();
-
-    yResumen = 25;
-
-  }
-
-
-  doc.setFillColor(
-    248,
-    248,
-    248
-  );
-
-
-  doc.roundedRect(
+  doc.text(
+    `Total proyectos: ${lista.length}`,
     14,
-    yResumen,
-    182,
-    38,
-    2,
-    2,
-    "F"
-  );
-
-
-  doc.setTextColor(
-    ...negro
-  );
-
-
-  doc.setFont(
-    "helvetica",
-    "bold"
-  );
-
-
-  doc.setFontSize(
-    9
+    finalY
   );
 
 
   doc.text(
-    "RESUMEN DEL PERÍODO",
-    19,
-    yResumen + 8
-  );
-
-
-  doc.setFont(
-    "helvetica",
-    "normal"
-  );
-
-
-  doc.setFontSize(
-    8
-  );
-
-
-  doc.setTextColor(
-    ...grisOscuro
+    `Total contratado: Bs. ${formatearMonto(totalProyecto)}`,
+    14,
+    finalY + 7
   );
 
 
   doc.text(
-    `Proyectos registrados: ${lista.length}`,
-    19,
-    yResumen + 16
+    `Total adelantos: Bs. ${formatearMonto(totalAdelanto)}`,
+    14,
+    finalY + 14
   );
 
 
   doc.text(
-    `Total de adelantos: Bs. ${formatearMonto(
-      totalAdelanto
-    )}`,
-    19,
-    yResumen + 23
+    `Total cobrado: Bs. ${formatearMonto(totalCobrado)}`,
+    14,
+    finalY + 21
   );
 
 
   doc.text(
-    `Total cobrado: Bs. ${formatearMonto(
-      totalCobrado
-    )}`,
-    19,
-    yResumen + 30
+    `Total pendiente: Bs. ${formatearMonto(totalPendiente)}`,
+    14,
+    finalY + 28
   );
 
-
-  doc.setTextColor(
-    ...rojo
-  );
-
-
-  doc.setFont(
-    "helvetica",
-    "bold"
-  );
-
-
-  doc.text(
-    `Saldo pendiente: Bs. ${formatearMonto(
-      totalPendiente
-    )}`,
-    112,
-    yResumen + 23
-  );
-
-
-  // ==========================================================
-  // PORCENTAJE COBRADO
-  // ==========================================================
-
-  const porcentajeCobrado =
-    totalProyecto > 0
-      ? Math.min(
-          (
-            totalCobrado /
-            totalProyecto
-          ) * 100,
-          100
-        )
-      : 0;
-
-
-  doc.setTextColor(
-    ...gris
-  );
-
-
-  doc.setFont(
-    "helvetica",
-    "normal"
-  );
-
-
-  doc.setFontSize(
-    7.5
-  );
-
-
-  doc.text(
-    "PORCENTAJE COBRADO",
-    112,
-    yResumen + 9
-  );
-
-
-  doc.setTextColor(
-    ...verde
-  );
-
-
-  doc.setFont(
-    "helvetica",
-    "bold"
-  );
-
-
-  doc.setFontSize(
-    11
-  );
-
-
-  doc.text(
-    `${porcentajeCobrado.toFixed(1)}%`,
-    112,
-    yResumen + 17
-  );
-
-
-  // ==========================================================
-  // PIE DE PÁGINA
-  // ==========================================================
-
-  const paginas =
-    doc.internal.getNumberOfPages();
-
-
-  for (
-    let i = 1;
-    i <= paginas;
-    i++
-  ) {
-
-    doc.setPage(i);
-
-
-    // Línea superior del footer
-    doc.setDrawColor(
-      225,
-      225,
-      225
-    );
-
-
-    doc.setLineWidth(
-      0.3
-    );
-
-
-    doc.line(
-      14,
-      283,
-      196,
-      283
-    );
-
-
-    doc.setFont(
-      "helvetica",
-      "normal"
-    );
-
-
-    doc.setFontSize(
-      7
-    );
-
-
-    doc.setTextColor(
-      ...gris
-    );
-
-
-    doc.text(
-      "HN MUEBLES · Diseño y fabricación a medida",
-      14,
-      289
-    );
-
-
-    doc.text(
-      `Página ${i} de ${paginas}`,
-      196,
-      289,
-      {
-        align: "right"
-      }
-    );
-
-  }
-
-
-  // ==========================================================
-  // GUARDAR PDF
-  // ==========================================================
 
   doc.save(
-    `HN-Muebles-Gestion-Ingresos-${filtro}.pdf`
+    `HN-Muebles-Ingresos-${filtro}.pdf`
   );
 
 }
+
 
 // ============================================================
 // 19. WHATSAPP
