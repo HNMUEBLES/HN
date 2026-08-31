@@ -2581,9 +2581,8 @@ async function registrarPago(
 }
 
 
-```js
 // ============================================================
-// 18. EXPORTAR PDF - REPORTE PROFESIONAL
+// 18. EXPORTAR PDF
 // ============================================================
 
 function exportarIngresosPDF() {
@@ -2609,18 +2608,10 @@ function exportarIngresosPDF() {
       "jsPDF no disponible."
     );
 
-    alert(
-      "No se pudo generar el PDF porque jsPDF no está disponible."
-    );
-
     return;
 
   }
 
-
-  // ==========================================================
-  // OBTENER INGRESOS DEL MES
-  // ==========================================================
 
   const lista =
     ingresos.filter(
@@ -2629,9 +2620,8 @@ function exportarIngresosPDF() {
         if (
           !ingreso.fechaCreacion ||
           !ingreso.fechaCreacion.toDate
-        ) {
+        )
           return true;
-        }
 
 
         const fecha =
@@ -2641,7 +2631,7 @@ function exportarIngresosPDF() {
         const mes =
           `${fecha.getFullYear()}-${String(
             fecha.getMonth() + 1
-          ).padStart(2, "0")}`;
+          ).padStart(2,"0")}`;
 
 
         return mes === filtro;
@@ -2655,14 +2645,10 @@ function exportarIngresosPDF() {
 
 
   const doc =
-    new jsPDF({
-      orientation: "portrait",
-      unit: "mm",
-      format: "a4"
-    });
+    new jsPDF();
 
 
-  const [anio, mes] =
+  const [anio,mes] =
     filtro.split("-");
 
 
@@ -2684,323 +2670,23 @@ function exportarIngresosPDF() {
   ];
 
 
-  const nombreMes =
-    nombresMes[
-      Number(mes) - 1
-    ] || mes;
+  doc.setFontSize(18);
 
-
-  // ==========================================================
-  // COLORES DEL REPORTE
-  // ==========================================================
-
-  const NEGRO = [25, 25, 25];
-
-  const GRIS =
-    [100, 100, 100];
-
-  const GRIS_CLARO =
-    [235, 235, 235];
-
-  const BLANCO =
-    [255, 255, 255];
-
-  const DORADO =
-    [156, 113, 81];
-
-  const VERDE =
-    [34, 139, 94];
-
-  const ROJO =
-    [190, 65, 65];
-
-  const AZUL =
-    [45, 110, 150];
-
-
-  // ==========================================================
-  // FECHA DE GENERACIÓN
-  // ==========================================================
-
-  const ahora =
-    new Date();
-
-
-  const fechaGeneracion =
-    `${String(
-      ahora.getDate()
-    ).padStart(2, "0")}/${
-      String(
-        ahora.getMonth() + 1
-      ).padStart(2, "0")
-    }/${ahora.getFullYear()}`;
-
-
-  // ==========================================================
-  // LOGO
-  // ==========================================================
-
-  // Si existe logo.png en la misma carpeta,
-  // intentamos cargarlo automáticamente.
-
-  const logo =
-    new Image();
-
-
-  logo.src =
-    "logo.png";
-
-
-  let logoCargado = false;
-
-
-  try {
-
-    logoCargado =
-      logo.complete &&
-      logo.naturalWidth > 0;
-
-  }
-
-  catch (error) {
-
-    logoCargado = false;
-
-  }
-
-
-  // ==========================================================
-  // ENCABEZADO
-  // ==========================================================
-
-  // Fondo superior
-
-  doc.setFillColor(
-    ...NEGRO
-  );
-
-  doc.rect(
-    0,
-    0,
-    210,
-    38,
-    "F"
-  );
-
-
-  // Línea decorativa
-
-  doc.setFillColor(
-    ...DORADO
-  );
-
-  doc.rect(
-    0,
-    36,
-    210,
-    2,
-    "F"
-  );
-
-
-  // Logo
-
-  if (logoCargado) {
-
-    try {
-
-      doc.addImage(
-        logo,
-        "PNG",
-        14,
-        8,
-        28,
-        20
-      );
-
-    }
-
-    catch (error) {
-
-      console.warn(
-        "No se pudo insertar el logo:",
-        error
-      );
-
-    }
-
-  }
-
-
-  // Nombre empresa
-
-  doc.setTextColor(
-    ...BLANCO
-  );
-
-
-  doc.setFont(
-    "helvetica",
-    "bold"
-  );
-
-
-  doc.setFontSize(
+  doc.text(
+    "HN MUEBLES",
+    14,
     18
   );
 
 
-  doc.text(
-    "HN MUEBLES",
-    logoCargado ? 47 : 14,
-    16
-  );
-
-
-  doc.setFont(
-    "helvetica",
-    "normal"
-  );
-
-
-  doc.setFontSize(
-    8
-  );
-
-
-  doc.setTextColor(
-    210,
-    210,
-    210
-  );
-
+  doc.setFontSize(12);
 
   doc.text(
-    "DISEÑO Y FABRICACIÓN A MEDIDA",
-    logoCargado ? 47 : 14,
-    23
-  );
-
-
-  // Título del reporte
-
-  doc.setFont(
-    "helvetica",
-    "bold"
-  );
-
-
-  doc.setFontSize(
-    10
-  );
-
-
-  doc.setTextColor(
-    ...DORADO
-  );
-
-
-  doc.text(
-    "GESTIÓN DE INGRESOS",
-    196,
-    15,
-    {
-      align: "right"
-    }
-  );
-
-
-  doc.setFont(
-    "helvetica",
-    "normal"
-  );
-
-
-  doc.setFontSize(
-    8
-  );
-
-
-  doc.setTextColor(
-    210,
-    210,
-    210
-  );
-
-
-  doc.text(
-    `${nombreMes} ${anio}`,
-    196,
-    22,
-    {
-      align: "right"
-    }
-  );
-
-
-  // ==========================================================
-  // SUBENCABEZADO
-  // ==========================================================
-
-  doc.setTextColor(
-    ...NEGRO
-  );
-
-
-  doc.setFont(
-    "helvetica",
-    "bold"
-  );
-
-
-  doc.setFontSize(
-    13
-  );
-
-
-  doc.text(
-    "Reporte financiero mensual",
+    `Registro de Ingresos - ${nombresMes[Number(mes)-1]} ${anio}`,
     14,
-    51
+    27
   );
 
-
-  doc.setFont(
-    "helvetica",
-    "normal"
-  );
-
-
-  doc.setFontSize(
-    8
-  );
-
-
-  doc.setTextColor(
-    ...GRIS
-  );
-
-
-  doc.text(
-    `Período: ${nombreMes} ${anio}`,
-    14,
-    57
-  );
-
-
-  doc.text(
-    `Generado el: ${fechaGeneracion}`,
-    196,
-    57,
-    {
-      align: "right"
-    }
-  );
-
-
-  // ==========================================================
-  // CALCULAR TOTALES
-  // ==========================================================
 
   let totalProyecto = 0;
 
@@ -3010,225 +2696,6 @@ function exportarIngresosPDF() {
 
   let totalPendiente = 0;
 
-
-  lista.forEach(
-    ingreso => {
-
-      const total =
-        Number(
-          ingreso.presupuesto
-        ) || 0;
-
-
-      const adelanto =
-        Number(
-          ingreso.adelanto
-        ) || 0;
-
-
-      const cobrado =
-        Number(
-          ingreso.cobrado
-        ) || 0;
-
-
-      const pendiente =
-        Math.max(
-          total - cobrado,
-          0
-        );
-
-
-      totalProyecto +=
-        total;
-
-
-      totalAdelanto +=
-        adelanto;
-
-
-      totalCobrado +=
-        cobrado;
-
-
-      totalPendiente +=
-        pendiente;
-
-    }
-  );
-
-
-  // ==========================================================
-  // TARJETAS RESUMEN
-  // ==========================================================
-
-  const tarjetas = [
-
-    {
-      titulo:
-        "PROYECTOS",
-
-      valor:
-        String(lista.length),
-
-      color:
-        AZUL
-    },
-
-    {
-      titulo:
-        "CONTRATADO",
-
-      valor:
-        `Bs. ${formatearMonto(
-          totalProyecto
-        )}`,
-
-      color:
-        DORADO
-    },
-
-    {
-      titulo:
-        "COBRADO",
-
-      valor:
-        `Bs. ${formatearMonto(
-          totalCobrado
-        )}`,
-
-      color:
-        VERDE
-    },
-
-    {
-      titulo:
-        "PENDIENTE",
-
-      valor:
-        `Bs. ${formatearMonto(
-          totalPendiente
-        )}`,
-
-      color:
-        ROJO
-    }
-
-  ];
-
-
-  const tarjetaY =
-    65;
-
-
-  const tarjetaW =
-    43.5;
-
-
-  const tarjetaH =
-    25;
-
-
-  tarjetas.forEach(
-    (tarjeta, index) => {
-
-      const x =
-        14 +
-        index * 45.5;
-
-
-      // Fondo
-
-      doc.setFillColor(
-        248,
-        248,
-        248
-      );
-
-
-      doc.roundedRect(
-        x,
-        tarjetaY,
-        tarjetaW,
-        tarjetaH,
-        2.5,
-        2.5,
-        "F"
-      );
-
-
-      // Barra superior
-
-      doc.setFillColor(
-        ...tarjeta.color
-      );
-
-
-      doc.roundedRect(
-        x,
-        tarjetaY,
-        tarjetaW,
-        2.5,
-        2.5,
-        2.5,
-        "F"
-      );
-
-
-      doc.setTextColor(
-        ...GRIS
-      );
-
-
-      doc.setFont(
-        "helvetica",
-        "bold"
-      );
-
-
-      doc.setFontSize(
-        6.5
-      );
-
-
-      doc.text(
-        tarjeta.titulo,
-        x + 4,
-        tarjetaY + 9
-      );
-
-
-      doc.setTextColor(
-        ...NEGRO
-      );
-
-
-      doc.setFont(
-        "helvetica",
-        "bold"
-      );
-
-
-      doc.setFontSize(
-        tarjeta.titulo === "PROYECTOS"
-          ? 15
-          : 9.5
-      );
-
-
-      doc.text(
-        tarjeta.valor,
-        x + 4,
-        tarjetaY + 18
-      );
-
-    }
-  );
-
-
-  // ==========================================================
-  // TABLA
-  // ==========================================================
 
   const filas =
     lista.map(
@@ -3259,41 +2726,35 @@ function exportarIngresosPDF() {
           );
 
 
+        totalProyecto += total;
+
+        totalAdelanto += adelanto;
+
+        totalCobrado += cobrado;
+
+        totalPendiente += pendiente;
+
+
         return [
 
-          ingreso.codigo ||
-            "-",
+          ingreso.codigo || "",
 
-          ingreso.cliente ||
-            "-",
+          ingreso.cliente || "",
 
-          ingreso.mueble ||
-            "-",
+          ingreso.mueble || "",
 
-          `Bs. ${formatearMonto(
-            total
-          )}`,
+          `Bs. ${formatearMonto(total)}`,
 
-          `Bs. ${formatearMonto(
-            adelanto
-          )}`,
+          `Bs. ${formatearMonto(adelanto)}`,
 
-          `Bs. ${formatearMonto(
-            cobrado
-          )}`,
+          `Bs. ${formatearMonto(cobrado)}`,
 
-          `Bs. ${formatearMonto(
-            pendiente
-          )}`
+          `Bs. ${formatearMonto(pendiente)}`
 
         ];
 
       }
     );
-
-
-  const tablaY =
-    98;
 
 
   if (
@@ -3303,610 +2764,79 @@ function exportarIngresosPDF() {
 
     doc.autoTable({
 
-      startY:
-        tablaY,
-
-      margin: {
-        left: 14,
-        right: 14
-      },
+      startY: 35,
 
       head: [[
-
-        "CÓDIGO",
-        "CLIENTE",
-        "PROYECTO",
-        "TOTAL",
-        "ADELANTO",
-        "COBRADO",
-        "PENDIENTE"
-
+        "Código",
+        "Cliente",
+        "Proyecto",
+        "Total",
+        "Adelanto",
+        "Cobrado",
+        "Pendiente"
       ]],
 
-      body:
-        filas,
-
-      theme:
-        "grid",
+      body: filas,
 
       styles: {
-
-        font:
-          "helvetica",
-
-        fontSize:
-          7.5,
-
-        textColor:
-          NEGRO,
-
-        cellPadding:
-          3,
-
-        lineColor:
-          [220, 220, 220],
-
-        lineWidth:
-          0.2,
-
-        valign:
-          "middle"
-
-      },
-
-      headStyles: {
-
-        fillColor:
-          NEGRO,
-
-        textColor:
-          BLANCO,
-
-        fontStyle:
-          "bold",
-
-        fontSize:
-          7,
-
-        halign:
-          "center",
-
-        cellPadding:
-          3.5
-
-      },
-
-      alternateRowStyles: {
-
-        fillColor:
-          [248, 248, 248]
-
-      },
-
-      columnStyles: {
-
-        0: {
-          cellWidth:
-            20,
-          halign:
-            "center"
-        },
-
-        1: {
-          cellWidth:
-            32
-        },
-
-        2: {
-          cellWidth:
-            39
-        },
-
-        3: {
-          cellWidth:
-            23,
-          halign:
-            "right"
-        },
-
-        4: {
-          cellWidth:
-            23,
-          halign:
-            "right"
-        },
-
-        5: {
-          cellWidth:
-            23,
-          halign:
-            "right"
-        },
-
-        6: {
-          cellWidth:
-            23,
-          halign:
-            "right"
-        }
-
-      },
-
-      didParseCell:
-        function(data) {
-
-          if (
-            data.section ===
-            "body"
-          ) {
-
-            // Pendiente
-
-            if (
-              data.column.index === 6
-            ) {
-
-              data.cell.styles.textColor =
-                ROJO;
-
-            }
-
-            // Cobrado
-
-            if (
-              data.column.index === 5
-            ) {
-
-              data.cell.styles.textColor =
-                VERDE;
-
-            }
-
-          }
-
-        },
-
-      didDrawPage:
-        function() {
-
-          // Encabezado de páginas
-          // adicionales
-
-          if (
-            doc.internal.getNumberOfPages() > 1
-          ) {
-
-            doc.setFillColor(
-              ...NEGRO
-            );
-
-            doc.rect(
-              0,
-              0,
-              210,
-              10,
-              "F"
-            );
-
-
-            doc.setTextColor(
-              ...BLANCO
-            );
-
-
-            doc.setFont(
-              "helvetica",
-              "bold"
-            );
-
-
-            doc.setFontSize(
-              7
-            );
-
-
-            doc.text(
-              "HN MUEBLES",
-              14,
-              6.5
-            );
-
-
-            doc.setFont(
-              "helvetica",
-              "normal"
-            );
-
-
-            doc.text(
-              `Gestión de Ingresos · ${nombreMes} ${anio}`,
-              196,
-              6.5,
-              {
-                align:
-                  "right"
-              }
-            );
-
-          }
-
-        }
+        fontSize: 8
+      }
 
     });
 
   }
 
 
-  // ==========================================================
-  // BLOQUE FINAL DE TOTALES
-  // ==========================================================
-
-  let finalY =
+  const finalY =
     doc.lastAutoTable
       ? doc.lastAutoTable.finalY + 10
-      : tablaY + 20;
+      : 45;
 
 
-  // Si queda poco espacio,
-  // crear nueva página.
-
-  if (
-    finalY > 250
-  ) {
-
-    doc.addPage();
-
-    finalY = 25;
-
-  }
+  doc.setFontSize(10);
 
 
-  doc.setFillColor(
-    248,
-    248,
-    248
-  );
-
-
-  doc.roundedRect(
+  doc.text(
+    `Total proyectos: ${lista.length}`,
     14,
-    finalY,
-    182,
-    42,
-    3,
-    3,
-    "F"
-  );
-
-
-  // Título resumen
-
-  doc.setTextColor(
-    ...NEGRO
-  );
-
-
-  doc.setFont(
-    "helvetica",
-    "bold"
-  );
-
-
-  doc.setFontSize(
-    10
+    finalY
   );
 
 
   doc.text(
-    "RESUMEN FINANCIERO",
-    20,
-    finalY + 8
-  );
-
-
-  // Línea
-
-  doc.setDrawColor(
-    ...DORADO
-  );
-
-
-  doc.setLineWidth(
-    0.6
-  );
-
-
-  doc.line(
-    20,
-    finalY + 11,
-    190,
-    finalY + 11
-  );
-
-
-  // Primera columna
-
-  doc.setFont(
-    "helvetica",
-    "normal"
-  );
-
-
-  doc.setFontSize(
-    8
-  );
-
-
-  doc.setTextColor(
-    ...GRIS
+    `Total contratado: Bs. ${formatearMonto(totalProyecto)}`,
+    14,
+    finalY + 7
   );
 
 
   doc.text(
-    "Total contratado",
-    20,
-    finalY + 19
+    `Total adelantos: Bs. ${formatearMonto(totalAdelanto)}`,
+    14,
+    finalY + 14
   );
 
 
   doc.text(
-    "Total adelantos",
-    20,
-    finalY + 27
+    `Total cobrado: Bs. ${formatearMonto(totalCobrado)}`,
+    14,
+    finalY + 21
   );
 
 
   doc.text(
-    "Total cobrado",
-    20,
-    finalY + 35
+    `Total pendiente: Bs. ${formatearMonto(totalPendiente)}`,
+    14,
+    finalY + 28
   );
 
-
-  // Segunda columna
-
-  doc.setTextColor(
-    ...NEGRO
-  );
-
-
-  doc.setFont(
-    "helvetica",
-    "bold"
-  );
-
-
-  doc.text(
-    `Bs. ${formatearMonto(
-      totalProyecto
-    )}`,
-    78,
-    finalY + 19,
-    {
-      align:
-        "right"
-    }
-  );
-
-
-  doc.text(
-    `Bs. ${formatearMonto(
-      totalAdelanto
-    )}`,
-    78,
-    finalY + 27,
-    {
-      align:
-        "right"
-    }
-  );
-
-
-  doc.setTextColor(
-    ...VERDE
-  );
-
-
-  doc.text(
-    `Bs. ${formatearMonto(
-      totalCobrado
-    )}`,
-    78,
-    finalY + 35,
-    {
-      align:
-        "right"
-    }
-  );
-
-
-  // Tercera columna
-
-  doc.setTextColor(
-    ...GRIS
-  );
-
-
-  doc.setFont(
-    "helvetica",
-    "normal"
-  );
-
-
-  doc.text(
-    "Total pendiente",
-    112,
-    finalY + 19
-  );
-
-
-  doc.text(
-    "Cantidad de proyectos",
-    112,
-    finalY + 27
-  );
-
-
-  doc.text(
-    "Estado del período",
-    112,
-    finalY + 35
-  );
-
-
-  // Cuarta columna
-
-  doc.setFont(
-    "helvetica",
-    "bold"
-  );
-
-
-  doc.setTextColor(
-    ...ROJO
-  );
-
-
-  doc.text(
-    `Bs. ${formatearMonto(
-      totalPendiente
-    )}`,
-    190,
-    finalY + 19,
-    {
-      align:
-        "right"
-    }
-  );
-
-
-  doc.setTextColor(
-    ...NEGRO
-  );
-
-
-  doc.text(
-    String(lista.length),
-    190,
-    finalY + 27,
-    {
-      align:
-        "right"
-    }
-  );
-
-
-  const estadoPeriodo =
-    totalPendiente <= 0
-      ? "PAGADO"
-      : "EN GESTIÓN";
-
-
-  doc.setTextColor(
-    totalPendiente <= 0
-      ? ...VERDE
-      : ...DORADO
-  );
-
-
-  doc.text(
-    estadoPeriodo,
-    190,
-    finalY + 35,
-    {
-      align:
-        "right"
-    }
-  );
-
-
-  // ==========================================================
-  // PIE DE PÁGINA
-  // ==========================================================
-
-  const paginas =
-    doc.internal.getNumberOfPages();
-
-
-  for (
-    let i = 1;
-    i <= paginas;
-    i++
-  ) {
-
-    doc.setPage(i);
-
-
-    const altura =
-      doc.internal.pageSize.height;
-
-
-    doc.setDrawColor(
-      220,
-      220,
-      220
-    );
-
-
-    doc.setLineWidth(
-      0.3
-    );
-
-
-    doc.line(
-      14,
-      altura - 15,
-      196,
-      altura - 15
-    );
-
-
-    doc.setFont(
-      "helvetica",
-      "normal"
-    );
-
-
-    doc.setFontSize(
-      7
-    );
-
-
-    doc.setTextColor(
-      ...GRIS
-    );
-
-
-    doc.text(
-      "HN MUEBLES · Diseño y Fabricación a Medida",
-      14,
-      altura - 9
-    );
-
-
-    doc.text(
-      `Página ${i} de ${paginas}`,
-      196,
-      altura - 9,
-      {
-        align:
-          "right"
-      }
-    );
-
-  }
-
-
-  // ==========================================================
-  // GUARDAR
-  // ==========================================================
 
   doc.save(
-    `HN-Muebles-Reporte-Ingresos-${filtro}.pdf`
+    `HN-Muebles-Ingresos-${filtro}.pdf`
   );
 
 }
-```
+
 
 // ============================================================
 // 19. WHATSAPP
