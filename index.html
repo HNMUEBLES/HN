@@ -3,20 +3,11 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-
   <title>HN Muebles | Fabricación y Diseño a Medida</title>
 
   <link rel="stylesheet" href="styles.css" />
-
-  <link
-    rel="stylesheet"
-    href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
-  />
-
-  <link
-    href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@700;800&display=swap"
-    rel="stylesheet"
-  />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+  <link href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@700;800&display=swap" rel="stylesheet">
 
   <!-- jsPDF -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
@@ -28,7 +19,7 @@
 
   <div
     class="logo-container"
-    onclick="window.scrollTo({top:0, behavior:'smooth'})"
+    onclick="window.scrollTo({top: 0, behavior: 'smooth'})"
   >
     <img
       src="assets/logo.png"
@@ -41,7 +32,7 @@
   <nav class="nav-links">
 
     <button
-      onclick="window.scrollTo({top:0, behavior:'smooth'})"
+      onclick="window.scrollTo({top: 0, behavior: 'smooth'})"
       class="active"
     >
       Inicio
@@ -80,7 +71,7 @@
         style="
           font-size:1.15rem;
           line-height:1.6;
-          margin-top:.8rem;
+          margin-top:0.8rem;
           margin-bottom:1.5rem;
         "
       >
@@ -121,7 +112,6 @@
         <p class="subtitle">
           Ingresa tu código único para revisar el estado actual de tu mueble en el taller.
         </p>
-
 
         <form
           id="form-buscar"
@@ -184,7 +174,7 @@
             <p
               id="res-cliente"
               style="
-                font-size:.85rem;
+                font-size:0.85rem;
                 color:#a3a3a3;
               "
             ></p>
@@ -319,7 +309,7 @@
 
         <div
           class="step-box"
-          style="border-color:rgba(16,185,129,.4);"
+          style="border-color:rgba(16,185,129,0.4);"
         >
 
           <div
@@ -346,15 +336,10 @@
   </section>
 
 
-  <!-- =======================================================
-       FOOTER
-  ======================================================== -->
-
   <footer class="footer">
 
     <p>
-      ¿Tienes dudas sobre tu proyecto?
-      Contáctanos directamente:
+      ¿Tienes dudas sobre tu proyecto? Contáctanos directamente:
     </p>
 
     <div class="social-buttons">
@@ -367,6 +352,7 @@
         <i class="fa-brands fa-whatsapp"></i>
         WhatsApp (+591 62037033)
       </a>
+
 
       <a
         href="https://www.instagram.com/hnmuebles/"
@@ -389,7 +375,7 @@
 
 
 <!-- =========================================================
-     MODAL ADMIN
+     ADMIN
 ========================================================= -->
 
 <div
@@ -418,7 +404,7 @@
         class="fa-solid fa-lock font-amber"
         style="
           font-size:2rem;
-          margin-bottom:.5rem;
+          margin-bottom:0.5rem;
           display:block;
           text-align:center;
         "
@@ -427,7 +413,7 @@
       <h2
         style="
           text-align:center;
-          margin-bottom:.5rem;
+          margin-bottom:0.5rem;
         "
       >
         Panel Administrador
@@ -467,6 +453,7 @@
           "
         />
 
+
         <input
           type="password"
           id="input-pass"
@@ -483,13 +470,14 @@
           "
         />
 
+
         <button
           type="submit"
           class="btn-primary-modern"
           style="
             width:100%;
             border-radius:8px;
-            padding:.75rem;
+            padding:0.75rem;
           "
         >
           Iniciar Sesión
@@ -503,7 +491,7 @@
         class="hidden"
         style="
           color:#ef4444;
-          font-size:.85rem;
+          font-size:0.85rem;
           text-align:center;
           margin-top:8px;
         "
@@ -512,11 +500,12 @@
     </div>
 
 
-    <!-- =====================================================
-         PANEL ADMIN
-    ====================================================== -->
+    <!-- PANEL -->
 
-    <div id="admin-panel" class="hidden">
+    <div
+      id="admin-panel"
+      class="hidden"
+    >
 
       <div
         style="
@@ -532,6 +521,7 @@
           Gestión
         </h2>
 
+
         <button
           onclick="cerrarSesionAdmin()"
           style="
@@ -541,7 +531,7 @@
             padding:4px 8px;
             border-radius:6px;
             cursor:pointer;
-            font-size:.8rem;
+            font-size:0.8rem;
           "
         >
           <i class="fa-solid fa-right-from-bracket"></i>
@@ -551,15 +541,43 @@
       </div>
 
 
-      <!-- ===================================================
+      <!-- =====================================================
+           GESTIÓN DE INGRESOS - ARRIBA
+      ====================================================== -->
+
+      <div
+        style="
+          display:flex;
+          justify-content:flex-start;
+          margin-bottom:1rem;
+        "
+      >
+
+        <button
+          type="button"
+          onclick="abrirGestionIngresos()"
+          class="btn-primary-modern"
+          style="
+            padding:8px 14px;
+            font-size:0.85rem;
+          "
+        >
+          <i class="fa-solid fa-money-bill-trend-up"></i>
+          Gestión de Ingresos
+        </button>
+
+      </div>
+
+
+      <!-- =====================================================
            NUEVO PROYECTO
-      ==================================================== -->
+      ====================================================== -->
 
       <form
         id="form-nuevo-proyecto"
         class="admin-form"
         style="
-          background:rgba(255,255,255,.03);
+          background:rgba(255,255,255,0.03);
           padding:1rem;
           border-radius:8px;
           margin-bottom:1.5rem;
@@ -569,7 +587,7 @@
         <h3
           style="
             font-size:1rem;
-            margin-bottom:.75rem;
+            margin-bottom:0.75rem;
           "
         >
           <i class="fa-solid fa-plus font-amber"></i>
@@ -589,10 +607,7 @@
             type="text"
             id="nuevo-codigo"
             placeholder="Código (Ej: HN-001)"
-            style="
-              flex:1;
-              box-sizing:border-box;
-            "
+            style="flex:1;"
           />
 
           <button
@@ -601,7 +616,7 @@
             class="btn-primary-modern"
             style="
               padding:0 10px;
-              font-size:.8rem;
+              font-size:0.8rem;
             "
           >
             Generar
@@ -616,7 +631,7 @@
           style="
             display:grid;
             grid-template-columns:1fr 1fr;
-            gap:6px;
+            gap:8px;
             margin-bottom:8px;
           "
         >
@@ -626,61 +641,142 @@
             id="nuevo-cliente"
             placeholder="Cliente"
             required
+            style="width:100%;box-sizing:border-box;"
           />
+
 
           <input
             type="text"
             id="nuevo-mueble"
             placeholder="Mueble"
             required
+            style="width:100%;box-sizing:border-box;"
           />
+
 
           <input
             type="text"
             id="nuevo-telefono"
             placeholder="WhatsApp"
+            style="width:100%;box-sizing:border-box;"
           />
 
 
-          <!-- MONTO TOTAL -->
+          <!-- MONTO -->
 
-          <input
-            type="number"
-            id="nuevo-presupuesto"
-            placeholder="Monto total (Bs)"
-            min="0"
-            step="0.01"
-          />
+          <div
+            style="
+              display:flex;
+              flex-direction:column;
+              gap:3px;
+              min-width:0;
+            "
+          >
+
+            <label
+              for="nuevo-presupuesto"
+              style="
+                font-size:0.75rem;
+                color:#38bdf8;
+              "
+            >
+              <i class="fa-solid fa-money-bill"></i>
+              Monto total
+            </label>
+
+            <input
+              type="number"
+              id="nuevo-presupuesto"
+              placeholder="Monto total (Bs)"
+              min="0"
+              step="0.01"
+              style="
+                width:100%;
+                min-width:0;
+                box-sizing:border-box;
+              "
+            />
+
+          </div>
 
 
           <!-- ADELANTO -->
 
-          <input
-            type="number"
-            id="nuevo-adelanto"
-            placeholder="Adelanto (Bs)"
-            min="0"
-            step="0.01"
-          />
+          <div
+            style="
+              display:flex;
+              flex-direction:column;
+              gap:3px;
+              min-width:0;
+            "
+          >
+
+            <label
+              for="nuevo-adelanto"
+              style="
+                font-size:0.75rem;
+                color:#f59e0b;
+              "
+            >
+              <i class="fa-solid fa-hand-holding-dollar"></i>
+              Adelanto
+            </label>
+
+            <input
+              type="number"
+              id="nuevo-adelanto"
+              placeholder="Adelanto (Bs)"
+              min="0"
+              step="0.01"
+              style="
+                width:100%;
+                min-width:0;
+                box-sizing:border-box;
+              "
+            />
+
+          </div>
 
 
           <!-- FECHA -->
 
-          <input
-            type="date"
-            id="nuevo-fecha"
-            title="Seleccionar fecha de entrega"
+          <div
             style="
-              width:100%;
-              box-sizing:border-box;
-              background:#0a0a0a;
-              border:1px solid #333;
-              color:#fff;
-              padding:8px;
-              border-radius:8px;
-              cursor:pointer;
+              display:flex;
+              flex-direction:column;
+              gap:3px;
+              min-width:0;
             "
-          />
+          >
+
+            <label
+              for="nuevo-fecha"
+              style="
+                font-size:0.75rem;
+                color:#a3a3a3;
+              "
+            >
+              <i class="fa-regular fa-calendar font-amber"></i>
+              Fecha de entrega
+            </label>
+
+            <input
+              type="date"
+              id="nuevo-fecha"
+              title="Seleccionar fecha de entrega"
+              style="
+                width:100%;
+                box-sizing:border-box;
+                background:#0a0a0a;
+                border:1px solid #333;
+                color:#fff;
+                padding:8px;
+                border-radius:8px;
+                cursor:pointer;
+              "
+            />
+
+          </div>
 
         </div>
 
@@ -699,8 +795,8 @@
 
           <div
             style="
-              background:rgba(56,189,248,.08);
-              border:1px solid rgba(56,189,248,.25);
+              background:rgba(56,189,248,0.08);
+              border:1px solid rgba(56,189,248,0.25);
               border-radius:8px;
               padding:10px;
             "
@@ -709,7 +805,7 @@
             <div
               style="
                 color:#38bdf8;
-                font-size:.78rem;
+                font-size:0.78rem;
               "
             >
               Monto total
@@ -730,8 +826,8 @@
 
           <div
             style="
-              background:rgba(245,158,11,.08);
-              border:1px solid rgba(245,158,11,.25);
+              background:rgba(245,158,11,0.08);
+              border:1px solid rgba(245,158,11,0.25);
               border-radius:8px;
               padding:10px;
             "
@@ -740,7 +836,7 @@
             <div
               style="
                 color:#f59e0b;
-                font-size:.78rem;
+                font-size:0.78rem;
               "
             >
               Adelanto
@@ -761,8 +857,8 @@
 
           <div
             style="
-              background:rgba(239,68,68,.08);
-              border:1px solid rgba(239,68,68,.25);
+              background:rgba(239,68,68,0.08);
+              border:1px solid rgba(239,68,68,0.25);
               border-radius:8px;
               padding:10px;
             "
@@ -771,7 +867,7 @@
             <div
               style="
                 color:#ef4444;
-                font-size:.78rem;
+                font-size:0.78rem;
               "
             >
               Pendiente
@@ -803,9 +899,7 @@
       </form>
 
 
-      <!-- ===================================================
-           REGISTRADOS + GESTIÓN INGRESOS
-      ==================================================== -->
+      <!-- REGISTRADOS -->
 
       <div
         style="
@@ -813,7 +907,7 @@
           justify-content:space-between;
           align-items:center;
           gap:10px;
-          margin-bottom:.5rem;
+          margin-bottom:0.5rem;
           flex-wrap:wrap;
         "
       >
@@ -827,22 +921,6 @@
           Registrados
           (<span id="total-proyectos">0</span>)
         </h3>
-
-
-        <!-- ESTE BOTÓN QUEDA ARRIBA -->
-
-        <button
-          type="button"
-          onclick="abrirGestionIngresos()"
-          class="btn-primary-modern"
-          style="
-            padding:7px 12px;
-            font-size:.82rem;
-          "
-        >
-          <i class="fa-solid fa-money-bill-trend-up"></i>
-          Gestión de Ingresos
-        </button>
 
       </div>
 
@@ -902,21 +980,15 @@
       <div>
 
         <h2 style="margin:0;">
-
-          <i
-            class="fa-solid fa-money-bill-trend-up font-amber"
-          ></i>
-
+          <i class="fa-solid fa-money-bill-trend-up font-amber"></i>
           Gestión de Ingresos
-
         </h2>
 
         <p
           class="subtitle"
           style="margin:5px 0 0;"
         >
-          Cada proyecto aparece automáticamente.
-          Solo registra el total que efectivamente recibiste.
+          Cada proyecto aparece automáticamente. Solo registra el total que efectivamente recibiste.
         </p>
 
       </div>
@@ -924,7 +996,7 @@
     </div>
 
 
-    <!-- MES -->
+    <!-- FILTRO -->
 
     <div
       style="
@@ -939,7 +1011,7 @@
 
         <label
           style="
-            font-size:.75rem;
+            font-size:0.75rem;
             color:#a3a3a3;
           "
         >
@@ -979,10 +1051,8 @@
             padding:9px;
           "
         >
-
           <i class="fa-solid fa-file-pdf"></i>
           Exportar PDF
-
         </button>
 
       </div>
@@ -1000,23 +1070,102 @@
         gap:8px;
         margin-bottom:12px;
       "
-    ></div>
+    >
+
+      <div
+        style="
+          background:rgba(56,189,248,.06);
+          border:1px solid rgba(56,189,248,.2);
+          border-radius:8px;
+          padding:10px;
+        "
+      >
+
+        <div
+          style="
+            color:#38bdf8;
+            font-size:.75rem;
+          "
+        >
+          Proyectos
+        </div>
+
+        <strong
+          id="ing-resumen-proyectos"
+          style="
+            font-size:1rem;
+            color:#fff;
+          "
+        >
+          0
+        </strong>
+
+      </div>
 
 
-    <!-- MENSAJE -->
+      <div
+        style="
+          background:rgba(74,222,128,.06);
+          border:1px solid rgba(74,222,128,.2);
+          border-radius:8px;
+          padding:10px;
+        "
+      >
 
-    <div
-      id="ingreso-mensaje"
-      style="
-        min-height:18px;
-        font-size:.8rem;
-        text-align:center;
-        margin-bottom:5px;
-      "
-    ></div>
+        <div
+          style="
+            color:#4ade80;
+            font-size:.75rem;
+          "
+        >
+          Cobrado
+        </div>
+
+        <strong
+          id="ing-resumen-cobrado"
+          style="
+            font-size:1rem;
+            color:#4ade80;
+          "
+        >
+          Bs. 0
+        </strong>
+
+      </div>
 
 
-    <!-- LISTA -->
+      <div
+        style="
+          background:rgba(239,68,68,.06);
+          border:1px solid rgba(239,68,68,.2);
+          border-radius:8px;
+          padding:10px;
+        "
+      >
+
+        <div
+          style="
+            color:#ef4444;
+            font-size:.75rem;
+          "
+        >
+          Pendiente
+        </div>
+
+        <strong
+          id="ing-resumen-pendiente"
+          style="
+            font-size:1rem;
+            color:#ef4444;
+          "
+        >
+          Bs. 0
+        </strong>
+
+      </div>
+
+    </div>
+
 
     <div id="lista-ingresos"></div>
 
@@ -1026,20 +1175,8 @@
 
 
 <!-- =========================================================
-     FIREBASE
+     FUNCIONES DEL INDEX
 ========================================================= -->
-
-<script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
-
-<script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
-
-<script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
-
-
-<script src="script.js"></script>
-
-
-<!-- FUNCIONES BÁSICAS -->
 
 <script>
 
@@ -1115,6 +1252,8 @@ function cerrarGestionIngresos() {
 
 function abrirGestionIngresos() {
 
+  if (!esAdmin) return;
+
   if (
     typeof renderGestionIngresos ===
     "function"
@@ -1140,6 +1279,15 @@ function abrirGestionIngresos() {
 }
 
 </script>
+
+
+<!-- FIREBASE -->
+
+<script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+
+<script src="script.js"></script>
 
 </body>
 </html>
