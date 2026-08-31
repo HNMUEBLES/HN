@@ -1,7 +1,7 @@
 // ============================================================
 // HN MUEBLES - SCRIPT PRINCIPAL
 // Firebase Authentication + Firestore
-// PROYECTOS + GESTIÓN DE INGRESOS
+// Gestión de proyectos + Gestión de ingresos
 // ============================================================
 
 
@@ -19,20 +19,14 @@ const firebaseConfig = {
   measurementId: "G-8PJGERB67Q"
 };
 
-
 firebase.initializeApp(firebaseConfig);
 
 const db = firebase.firestore();
-
 const auth = firebase.auth();
 
 const EMAIL_ADMIN = "hn24muebles@gmail.com";
 
-
 let proyectos = [];
-
-let ingresos = [];
-
 let esAdmin = false;
 
 
@@ -44,12 +38,13 @@ function formatearMonto(valor) {
 
   const num = Number(valor);
 
-  if (isNaN(num)) return "0";
+  if (isNaN(num)) {
+    return "0";
+  }
 
   return Number.isInteger(num)
     ? num.toString()
-    : num.toString();
-
+    : num.toFixed(2);
 }
 
 
@@ -62,27 +57,22 @@ function generarCodigoAleatorio() {
 
   for (let i = 0; i < 5; i++) {
 
-    aleatorio +=
-      caracteres.charAt(
-        Math.floor(
-          Math.random() *
-          caracteres.length
-        )
-      );
+    aleatorio += caracteres.charAt(
+      Math.floor(
+        Math.random() * caracteres.length
+      )
+    );
 
   }
 
   return `HN${aleatorio}`;
-
 }
 
 
 function llenarCodigoAutomatico() {
 
   const inputCod =
-    document.getElementById(
-      "nuevo-codigo"
-    );
+    document.getElementById("nuevo-codigo");
 
   if (inputCod) {
 
@@ -121,7 +111,10 @@ function copiarCodigoAlPortapapeles(codigo) {
 
 function irInicio() {
 
-  mostrarSeccion("inicio");
+  window.scrollTo({
+    top: 0,
+    behavior: "smooth"
+  });
 
 }
 
@@ -130,66 +123,66 @@ function irInicio() {
 // 3. AUTENTICACIÓN
 // ============================================================
 
-auth.onAuthStateChanged(async (user) => {
+auth.onAuthStateChanged(
+  async (user) => {
 
-  if (user) {
+    if (user) {
 
-    console.log(
-      "Usuario autenticado:",
-      user.email
-    );
-
-
-    if (
-      user.email &&
-      user.email.toLowerCase() ===
-      EMAIL_ADMIN.toLowerCase()
-    ) {
-
-      esAdmin = true;
-
-      mostrarPanelAdministrador();
-
-      await cargarProyectosDesdeNube();
-
-      await cargarIngresosDesdeNube();
-
-      renderProyectosAdmin();
-
-      renderIngresos();
-
-    } else {
-
-      console.warn(
-        "Usuario no autorizado:",
+      console.log(
+        "Usuario autenticado:",
         user.email
       );
 
-      await auth.signOut();
+
+      if (
+        user.email &&
+        user.email.toLowerCase() ===
+        EMAIL_ADMIN.toLowerCase()
+      ) {
+
+        esAdmin = true;
+
+        mostrarPanelAdministrador();
+
+        await cargarProyectosDesdeNube();
+
+        renderProyectosAdmin();
+
+        renderGestionIngresos();
+
+      } else {
+
+        console.warn(
+          "Usuario no autorizado:",
+          user.email
+        );
+
+        await auth.signOut();
+
+        esAdmin = false;
+
+        ocultarPanelAdministrador();
+
+        alert(
+          "Esta cuenta no tiene permisos de administrador."
+        );
+
+      }
+
+    } else {
+
+      console.log(
+        "No hay sesión activa."
+      );
 
       esAdmin = false;
 
       ocultarPanelAdministrador();
 
-      alert(
-        "Esta cuenta no tiene permisos de administrador."
-      );
-
     }
 
-  } else {
-
-    console.log(
-      "No hay sesión activa."
-    );
-
-    esAdmin = false;
-
-    ocultarPanelAdministrador();
-
   }
-
-});
+);
 
 
 // ============================================================
@@ -225,9 +218,6 @@ function mostrarPanelAdministrador() {
     );
 
   }
-
-
-  mostrarAdminSeccion("proyectos");
 
 }
 
@@ -273,6 +263,10 @@ document.addEventListener(
   "DOMContentLoaded",
   function () {
 
+
+    // --------------------------------------------------------
+    // LOGIN
+    // --------------------------------------------------------
 
     const formLogin =
       document.getElementById(
@@ -347,11 +341,10 @@ document.addEventListener(
 
 
             const resultado =
-              await auth
-                .signInWithEmailAndPassword(
-                  email,
-                  password
-                );
+              await auth.signInWithEmailAndPassword(
+                email,
+                password
+              );
 
 
             const usuario =
@@ -471,9 +464,9 @@ document.addEventListener(
     }
 
 
-    // ========================================================
+    // --------------------------------------------------------
     // BÚSQUEDA PÚBLICA
-    // ========================================================
+    // --------------------------------------------------------
 
     const formBuscar =
       document.getElementById(
@@ -496,7 +489,9 @@ document.addEventListener(
             );
 
 
-          if (!codigoInput) return;
+          if (!codigoInput) {
+            return;
+          }
 
 
           const codigo =
@@ -515,9 +510,9 @@ document.addEventListener(
     }
 
 
-    // ========================================================
-    // CÁLCULO SALDO EN VIVO
-    // ========================================================
+    // --------------------------------------------------------
+    // CÁLCULO SALDO NUEVO PROYECTO
+    // --------------------------------------------------------
 
     const inputPresupuestoNuevo =
       document.getElementById(
@@ -551,8 +546,8 @@ document.addEventListener(
 
       const saldoFinal =
         Math.max(
-          0,
-          pres - adel
+          pres - adel,
+          0
         );
 
 
@@ -565,14 +560,12 @@ document.addEventListener(
       if (lblSaldo) {
 
         lblSaldo.innerText =
-          `Bs. ${formatearMonto(
-            saldoFinal
-          )}`;
+          `Bs. ${formatearMonto(saldoFinal)}`;
 
 
         lblSaldo.style.color =
           saldoFinal > 0
-            ? "#f59e0b"
+            ? "#f87171"
             : "#4ade80";
 
       }
@@ -600,9 +593,9 @@ document.addEventListener(
     }
 
 
-    // ========================================================
+    // --------------------------------------------------------
     // NUEVO PROYECTO
-    // ========================================================
+    // --------------------------------------------------------
 
     const formNuevo =
       document.getElementById(
@@ -729,10 +722,14 @@ document.addEventListener(
 
           const saldo =
             Math.max(
-              0,
-              presupuesto - adelanto
+              presupuesto - adelanto,
+              0
             );
 
+
+          // --------------------------------------------------
+          // NUEVO PROYECTO
+          // --------------------------------------------------
 
           const nuevoProyectoObj = {
 
@@ -772,19 +769,21 @@ document.addEventListener(
             saldo:
               saldo,
 
-            ingresoRegistrado:
+            // NUEVO:
+            // todavía no se ha registrado el cobro final
+            ingresoFinal:
+              0,
+
+            ingresoFinalRegistrado:
               false,
 
-            ingresoFecha:
+            fechaIngresoFinal:
               "",
 
             fechaEntrega:
               fechaIn
                 ? fechaIn.value
-                : "",
-
-            fechaCreacion:
-              new Date().toISOString()
+                : ""
 
           };
 
@@ -792,9 +791,7 @@ document.addEventListener(
           try {
 
             await db
-              .collection(
-                "proyectos"
-              )
+              .collection("proyectos")
               .add(
                 nuevoProyectoObj
               );
@@ -832,12 +829,9 @@ document.addEventListener(
 
             await cargarProyectosDesdeNube();
 
-            await cargarIngresosDesdeNube();
-
-
             renderProyectosAdmin();
 
-            renderIngresos();
+            renderGestionIngresos();
 
 
           } catch (error) {
@@ -853,85 +847,6 @@ document.addEventListener(
             );
 
           }
-
-        }
-      );
-
-    }
-
-
-    // ========================================================
-    // FILTRO PROYECTOS
-    // ========================================================
-
-    const selectMes =
-      document.getElementById(
-        "filtro-mes"
-      );
-
-
-    if (selectMes) {
-
-      const fechaActual =
-        new Date();
-
-
-      const anio =
-        fechaActual.getFullYear();
-
-
-      const mes =
-        String(
-          fechaActual.getMonth() + 1
-        ).padStart(
-          2,
-          "0"
-        );
-
-
-      selectMes.value =
-        `${anio}-${mes}`;
-
-
-      selectMes.addEventListener(
-        "change",
-        function () {
-
-          renderProyectosAdmin();
-
-        }
-      );
-
-    }
-
-
-    // ========================================================
-    // FILTRO INGRESOS
-    // ========================================================
-
-    const filtroIngresos =
-      document.getElementById(
-        "filtro-mes-ingresos"
-      );
-
-
-    if (filtroIngresos) {
-
-      const ahora =
-        new Date();
-
-
-      filtroIngresos.value =
-        `${ahora.getFullYear()}-${String(
-          ahora.getMonth() + 1
-        ).padStart(2, "0")}`;
-
-
-      filtroIngresos.addEventListener(
-        "change",
-        function () {
-
-          renderIngresos();
 
         }
       );
@@ -984,7 +899,7 @@ async function cargarProyectosDesdeNube() {
     ) {
 
       console.warn(
-        "No se cargan proyectos privados: usuario no autenticado."
+        "No se cargan proyectos privados."
       );
 
       return;
@@ -1004,12 +919,53 @@ async function cargarProyectosDesdeNube() {
     querySnapshot.forEach(
       (docSnap) => {
 
+        const datos =
+          docSnap.data();
+
+
+        const presupuesto =
+          Number(
+            datos.presupuesto
+          ) || 0;
+
+
+        const adelanto =
+          Number(
+            datos.adelanto
+          ) || 0;
+
+
+        // Compatibilidad con proyectos
+        // antiguos que no tengan saldo
+        const saldo =
+          datos.saldo !== undefined
+            ? Number(datos.saldo) || 0
+            : Math.max(
+                presupuesto - adelanto,
+                0
+              );
+
+
         proyectos.push({
 
           id:
             docSnap.id,
 
-          ...docSnap.data()
+          ...datos,
+
+          saldo:
+            saldo,
+
+          ingresoFinal:
+            Number(
+              datos.ingresoFinal
+            ) || 0,
+
+          ingresoFinalRegistrado:
+            datos.ingresoFinalRegistrado === true,
+
+          fechaIngresoFinal:
+            datos.fechaIngresoFinal || ""
 
         });
 
@@ -1020,6 +976,8 @@ async function cargarProyectosDesdeNube() {
     if (esAdmin) {
 
       renderProyectosAdmin();
+
+      renderGestionIngresos();
 
     }
 
@@ -1040,72 +998,10 @@ async function cargarProyectosDesdeNube() {
 
 
 // ============================================================
-// 8. CARGAR INGRESOS
+// 8. BÚSQUEDA PÚBLICA
 // ============================================================
 
-async function cargarIngresosDesdeNube() {
-
-  try {
-
-    if (
-      !auth.currentUser ||
-      !esAdmin
-    ) {
-
-      ingresos = [];
-
-      return;
-
-    }
-
-
-    const snapshot =
-      await db
-        .collection("ingresos")
-        .get();
-
-
-    ingresos = [];
-
-
-    snapshot.forEach(
-      docSnap => {
-
-        ingresos.push({
-
-          id:
-            docSnap.id,
-
-          ...docSnap.data()
-
-        });
-
-      }
-    );
-
-
-    renderIngresos();
-
-
-  } catch (error) {
-
-    console.error(
-      "Error cargando ingresos:",
-      error
-    );
-
-  }
-
-}
-
-
-// ============================================================
-// 9. BÚSQUEDA PÚBLICA
-// ============================================================
-
-async function buscarProyectoPublico(
-  codigo
-) {
+async function buscarProyectoPublico(codigo) {
 
   const errorMsg =
     document.getElementById(
@@ -1137,16 +1033,22 @@ async function buscarProyectoPublico(
 
     if (snapshot.empty) {
 
-      if (resultBox)
+      if (resultBox) {
+
         resultBox.classList.add(
           "hidden"
         );
 
+      }
 
-      if (errorMsg)
+
+      if (errorMsg) {
+
         errorMsg.classList.remove(
           "hidden"
         );
+
+      }
 
 
       return;
@@ -1162,16 +1064,22 @@ async function buscarProyectoPublico(
       doc.data();
 
 
-    if (errorMsg)
+    if (errorMsg) {
+
       errorMsg.classList.add(
         "hidden"
       );
 
+    }
 
-    if (resultBox)
+
+    if (resultBox) {
+
       resultBox.classList.remove(
         "hidden"
       );
+
+    }
 
 
     const codigoEl =
@@ -1204,31 +1112,81 @@ async function buscarProyectoPublico(
       );
 
 
-    if (codigoEl)
+    const barEl =
+      document.getElementById(
+        "res-bar-fill"
+      );
+
+
+    const detallesEl =
+      document.getElementById(
+        "res-detalles"
+      );
+
+
+    if (codigoEl) {
+
       codigoEl.innerText =
         encontrado.codigo || "";
 
+    }
 
-    if (muebleEl)
+
+    if (muebleEl) {
+
       muebleEl.innerText =
         encontrado.mueble || "";
 
+    }
 
-    if (clienteEl)
+
+    if (clienteEl) {
+
       clienteEl.innerText =
         `Cliente: ${
           encontrado.cliente || ""
         }`;
 
+    }
 
-    if (estadoEl)
+
+    if (estadoEl) {
+
       estadoEl.innerText =
         encontrado.estado || "";
 
+    }
 
-    if (porcentajeEl)
+
+    if (porcentajeEl) {
+
       porcentajeEl.innerText =
-        `${encontrado.progreso || 0}%`;
+        `${
+          encontrado.progreso || 0
+        }%`;
+
+    }
+
+
+    if (barEl) {
+
+      barEl.style.width =
+        `${
+          encontrado.progreso || 0
+        }%`;
+
+    }
+
+
+    if (detallesEl) {
+
+      detallesEl.innerText =
+        encontrado.detalles ||
+        `El proyecto se encuentra en etapa de ${
+          encontrado.estado || ""
+        }.`;
+
+    }
 
 
   } catch (error) {
@@ -1239,10 +1197,13 @@ async function buscarProyectoPublico(
     );
 
 
-    if (resultBox)
+    if (resultBox) {
+
       resultBox.classList.add(
         "hidden"
       );
+
+    }
 
 
     if (errorMsg) {
@@ -1262,7 +1223,7 @@ async function buscarProyectoPublico(
 
 
 // ============================================================
-// 10. ENLACE DIRECTO
+// 9. ENLACE DIRECTO
 // ============================================================
 
 function procesarEnlaceDirectoUrl() {
@@ -1279,8 +1240,9 @@ function procesarEnlaceDirectoUrl() {
     );
 
 
-  if (!codigoUrl)
+  if (!codigoUrl) {
     return;
+  }
 
 
   setTimeout(
@@ -1330,99 +1292,14 @@ function procesarEnlaceDirectoUrl() {
 
 
 // ============================================================
-// 11. NAVEGACIÓN
-// ============================================================
-
-function mostrarSeccion(
-  seccionId
-) {
-
-  const secciones = [
-    "sec-inicio",
-    "sec-rastreo",
-    "sec-admin",
-    "sec-reportes"
-  ];
-
-
-  secciones.forEach(
-    id => {
-
-      const el =
-        document.getElementById(
-          id
-        );
-
-
-      if (el)
-        el.classList.add(
-          "hidden"
-        );
-
-    }
-  );
-
-
-  const botones = [
-    "btn-inicio",
-    "btn-rastreo",
-    "btn-admin",
-    "btn-reportes"
-  ];
-
-
-  botones.forEach(
-    id => {
-
-      const el =
-        document.getElementById(
-          id
-        );
-
-
-      if (el)
-        el.classList.remove(
-          "active"
-        );
-
-    }
-  );
-
-
-  const secDestino =
-    document.getElementById(
-      `sec-${seccionId}`
-    );
-
-
-  const btnDestino =
-    document.getElementById(
-      `btn-${seccionId}`
-    );
-
-
-  if (secDestino)
-    secDestino.classList.remove(
-      "hidden"
-    );
-
-
-  if (btnDestino)
-    btnDestino.classList.add(
-      "active"
-    );
-
-}
-
-
-// ============================================================
-// 12. RENDER PROYECTOS ADMIN
+// 10. RENDER ADMIN
 // ============================================================
 
 function renderProyectosAdmin() {
 
-  if (!esAdmin)
+  if (!esAdmin) {
     return;
+  }
 
 
   const container =
@@ -1437,16 +1314,35 @@ function renderProyectosAdmin() {
     );
 
 
-  if (totalEl)
+  if (totalEl) {
+
     totalEl.innerText =
       proyectos.length;
 
+  }
 
-  if (!container)
+
+  if (!container) {
     return;
+  }
 
 
   container.innerHTML = "";
+
+
+  const etapas = [
+
+    "Diseño Aprobado",
+
+    "Corte",
+
+    "Armado",
+
+    "Instalación",
+
+    "Finalizado"
+
+  ];
 
 
   proyectos.forEach(
@@ -1467,9 +1363,15 @@ function renderProyectosAdmin() {
 
       const saldo =
         Math.max(
-          0,
-          presupuesto - adelanto
+          presupuesto - adelanto,
+          0
         );
+
+
+      const ingresoFinal =
+        Number(
+          p.ingresoFinal
+        ) || 0;
 
 
       const fechaFormateada =
@@ -1499,15 +1401,6 @@ function renderProyectosAdmin() {
         "margin-bottom:1rem;";
 
 
-      const etapas = [
-        "Diseño Aprobado",
-        "Corte",
-        "Armado",
-        "Instalación",
-        "Finalizado"
-      ];
-
-
       let botonesEtapas =
         etapas.map(
           (est, idx) => {
@@ -1515,7 +1408,9 @@ function renderProyectosAdmin() {
 
             const activeStyle =
               p.estado === est
+
                 ? "background:#f59e0b;color:#000;font-weight:bold;"
+
                 : "background:rgba(255,255,255,0.1);color:#fff;";
 
 
@@ -1643,7 +1538,9 @@ function renderProyectosAdmin() {
             >
               Cliente:
               ${p.cliente || ""}
+
               |
+
               Tel:
               ${p.telefono || "Sin registrar"}
             </p>
@@ -1656,18 +1553,23 @@ function renderProyectosAdmin() {
                 font-size:0.85rem;
               "
             >
+
               Entrega estimada:
+
               <strong>
                 ${fechaFormateada}
               </strong>
+
             </p>
 
+
+            <!-- DATOS FINANCIEROS -->
 
             <div
               style="
                 background:rgba(0,0,0,0.3);
                 border:1px solid rgba(255,255,255,0.08);
-                padding:0.6rem 0.8rem;
+                padding:0.7rem 0.8rem;
                 border-radius:8px;
                 margin:0.6rem 0;
                 display:flex;
@@ -1678,32 +1580,40 @@ function renderProyectosAdmin() {
             >
 
               <div>
+
                 Total:
+
                 <strong>
                   Bs.
                   ${formatearMonto(
                     presupuesto
                   )}
                 </strong>
+
               </div>
 
 
               <div>
+
                 Adelanto:
+
                 <strong>
                   Bs.
                   ${formatearMonto(
                     adelanto
                   )}
                 </strong>
+
               </div>
 
 
               <div>
+
                 Saldo:
+
                 <strong
                   style="
-                    color:#f59e0b;
+                    color:#f87171;
                   "
                 >
                   Bs.
@@ -1711,46 +1621,28 @@ function renderProyectosAdmin() {
                     saldo
                   )}
                 </strong>
+
+              </div>
+
+
+              <div>
+
+                Ingreso final:
+
+                <strong
+                  style="
+                    color:#4ade80;
+                  "
+                >
+                  Bs.
+                  ${formatearMonto(
+                    ingresoFinal
+                  )}
+                </strong>
+
               </div>
 
             </div>
-
-
-            ${
-              saldo > 0 &&
-              !p.ingresoRegistrado
-                ? `
-                  <div
-                    style="
-                      margin-bottom:0.6rem;
-                      color:#f59e0b;
-                      font-size:0.8rem;
-                    "
-                  >
-                    <i class="fa-solid fa-clock"></i>
-                    Saldo pendiente de cobro
-                  </div>
-                `
-                : ""
-            }
-
-
-            ${
-              p.ingresoRegistrado
-                ? `
-                  <div
-                    style="
-                      margin-bottom:0.6rem;
-                      color:#10b981;
-                      font-size:0.8rem;
-                    "
-                  >
-                    <i class="fa-solid fa-circle-check"></i>
-                    Saldo registrado como ingreso
-                  </div>
-                `
-                : ""
-            }
 
 
             <div
@@ -1765,6 +1657,9 @@ function renderProyectosAdmin() {
             <div
               style="
                 margin-top:0.8rem;
+                display:flex;
+                gap:6px;
+                flex-wrap:wrap;
               "
             >
 
@@ -1786,6 +1681,26 @@ function renderProyectosAdmin() {
               >
                 WhatsApp
               </button>
+
+
+              ${
+                p.ingresoFinalRegistrado
+                  ? `
+                    <span
+                      style="
+                        background:rgba(16,185,129,0.15);
+                        color:#4ade80;
+                        border:1px solid rgba(16,185,129,0.3);
+                        padding:0.4rem 0.8rem;
+                        border-radius:6px;
+                        font-size:0.8rem;
+                      "
+                    >
+                      ✓ Saldo registrado
+                    </span>
+                  `
+                  : ""
+              }
 
             </div>
 
@@ -1852,36 +1767,60 @@ function renderProyectosAdmin() {
 
 
 // ============================================================
-// 13. RENDER INGRESOS
+// 11. GESTIÓN DE INGRESOS
 // ============================================================
 
-function renderIngresos() {
+function renderGestionIngresos() {
 
-  if (!esAdmin)
+  if (!esAdmin) {
     return;
+  }
 
 
-  const filtro =
+  const container =
     document.getElementById(
-      "filtro-mes-ingresos"
+      "lista-ingresos"
     );
 
 
-  const mesSeleccionado =
-    filtro
-      ? filtro.value
-      : "";
+  if (!container) {
+    return;
+  }
 
 
-  // ----------------------------------------------------------
-  // RESUMEN DE ADELANTOS
-  // ----------------------------------------------------------
+  container.innerHTML = "";
 
-  let totalAdelantos = 0;
+
+  if (proyectos.length === 0) {
+
+    container.innerHTML = `
+
+      <div
+        style="
+          color:#777;
+          text-align:center;
+          padding:15px;
+        "
+      >
+        Todavía no hay proyectos registrados.
+      </div>
+
+    `;
+
+    return;
+
+  }
 
 
   proyectos.forEach(
-    p => {
+    (p, index) => {
+
+
+      const total =
+        Number(
+          p.presupuesto
+        ) || 0;
+
 
       const adelanto =
         Number(
@@ -1889,484 +1828,289 @@ function renderIngresos() {
         ) || 0;
 
 
-      if (!mesSeleccionado) {
-
-        totalAdelantos +=
-          adelanto;
-
-      } else {
-
-        const fecha =
-          p.fechaCreacion || "";
+      const saldo =
+        Math.max(
+          total - adelanto,
+          0
+        );
 
 
-        if (
-          fecha.startsWith(
-            mesSeleccionado
-          )
-        ) {
-
-          totalAdelantos +=
-            adelanto;
-
-        }
-
-      }
-
-    }
-  );
-
-
-  // ----------------------------------------------------------
-  // INGRESOS COBRADOS
-  // ----------------------------------------------------------
-
-  let ingresosFiltrados =
-    ingresos;
-
-
-  if (mesSeleccionado) {
-
-    ingresosFiltrados =
-      ingresos.filter(
-        ingreso => {
-
-          return (
-            ingreso.fecha ||
-            ""
-          ).startsWith(
-            mesSeleccionado
-          );
-
-        }
-      );
-
-  }
-
-
-  let totalSaldos =
-    0;
-
-
-  ingresosFiltrados.forEach(
-    ingreso => {
-
-      totalSaldos +=
+      const ingresoFinal =
         Number(
-          ingreso.monto
+          p.ingresoFinal
         ) || 0;
 
-    }
-  );
+
+      const registrado =
+        p.ingresoFinalRegistrado === true;
 
 
-  const totalIngresos =
-    totalAdelantos +
-    totalSaldos;
+      const item =
+        document.createElement(
+          "div"
+        );
 
 
-  const adelantosEl =
-    document.getElementById(
-      "ingresos-resumen-adelantos"
-    );
+      item.style.cssText =
+        "background:rgba(255,255,255,0.04);" +
+        "border:1px solid rgba(255,255,255,0.08);" +
+        "border-radius:8px;" +
+        "padding:10px;" +
+        "margin-bottom:8px;";
 
 
-  const saldosEl =
-    document.getElementById(
-      "ingresos-resumen-saldos"
-    );
-
-
-  const totalEl =
-    document.getElementById(
-      "ingresos-resumen-total"
-    );
-
-
-  if (adelantosEl)
-    adelantosEl.innerText =
-      `Bs. ${formatearMonto(
-        totalAdelantos
-      )}`;
-
-
-  if (saldosEl)
-    saldosEl.innerText =
-      `Bs. ${formatearMonto(
-        totalSaldos
-      )}`;
-
-
-  if (totalEl)
-    totalEl.innerText =
-      `Bs. ${formatearMonto(
-        totalIngresos
-      )}`;
-
-
-  // ----------------------------------------------------------
-  // SALDOS PENDIENTES
-  // ----------------------------------------------------------
-
-  const pendientesContainer =
-    document.getElementById(
-      "lista-saldos-pendientes"
-    );
-
-
-  if (pendientesContainer) {
-
-    pendientesContainer.innerHTML = "";
-
-
-    const pendientes =
-      proyectos.filter(
-        p => {
-
-          const presupuesto =
-            Number(
-              p.presupuesto
-            ) || 0;
-
-
-          const adelanto =
-            Number(
-              p.adelanto
-            ) || 0;
-
-
-          const saldo =
-            Math.max(
-              0,
-              presupuesto - adelanto
-            );
-
-
-          return (
-            saldo > 0 &&
-            !p.ingresoRegistrado
-          );
-
-        }
-      );
-
-
-    if (pendientes.length === 0) {
-
-      pendientesContainer.innerHTML = `
+      item.innerHTML = `
 
         <div
           style="
-            padding:12px;
-            background:rgba(16,185,129,0.08);
-            border:1px solid rgba(16,185,129,0.2);
-            border-radius:8px;
-            color:#10b981;
-            font-size:0.85rem;
+            display:flex;
+            justify-content:space-between;
+            gap:10px;
+            flex-wrap:wrap;
+            align-items:center;
           "
         >
-          <i class="fa-solid fa-circle-check"></i>
-          No hay saldos pendientes de cobro.
-        </div>
 
-      `;
+          <div>
 
-    }
+            <strong>
+              ${p.codigo || ""}
+            </strong>
 
+            <div
+              style="
+                color:#aaa;
+                font-size:0.8rem;
+                margin-top:3px;
+              "
+            >
+              ${p.cliente || ""}
+              —
+              ${p.mueble || ""}
+            </div>
 
-    pendientes.forEach(
-      p => {
+          </div>
 
-        const presupuesto =
-          Number(
-            p.presupuesto
-          ) || 0;
-
-
-        const adelanto =
-          Number(
-            p.adelanto
-          ) || 0;
-
-
-        const saldo =
-          Math.max(
-            0,
-            presupuesto - adelanto
-          );
-
-
-        const div =
-          document.createElement(
-            "div"
-          );
-
-
-        div.style.cssText =
-          `
-            background:rgba(255,255,255,0.04);
-            border:1px solid rgba(245,158,11,0.2);
-            border-radius:10px;
-            padding:10px;
-            margin-bottom:8px;
-          `;
-
-
-        div.innerHTML = `
 
           <div
             style="
-              display:flex;
-              justify-content:space-between;
-              gap:8px;
-              align-items:center;
+              font-size:0.8rem;
+              text-align:right;
             "
           >
 
             <div>
-
+              Total:
               <strong>
-                ${p.codigo || ""}
+                Bs. ${formatearMonto(total)}
               </strong>
-
-              <div
-                style="
-                  font-size:0.8rem;
-                  color:#a3a3a3;
-                  margin-top:3px;
-                "
-              >
-                ${p.cliente || ""}
-                —
-                ${p.mueble || ""}
-              </div>
-
-              <div
-                style="
-                  margin-top:5px;
-                  font-size:0.85rem;
-                "
-              >
-                Saldo:
-                <strong
-                  style="
-                    color:#f59e0b;
-                  "
-                >
-                  Bs.
-                  ${formatearMonto(
-                    saldo
-                  )}
-                </strong>
-              </div>
-
             </div>
 
+            <div>
+              Adelanto:
+              <strong>
+                Bs. ${formatearMonto(adelanto)}
+              </strong>
+            </div>
 
-            <button
-              type="button"
-              onclick="
-                registrarIngreso(
-                  '${p.id}'
-                )
-              "
+            <div
               style="
-                background:#10b981;
-                color:#fff;
-                border:none;
-                padding:7px 9px;
-                border-radius:7px;
-                cursor:pointer;
-                font-size:0.75rem;
-                font-weight:bold;
+                color:#f87171;
               "
             >
-              Registrar ingreso
-            </button>
+              Saldo:
+              <strong>
+                Bs. ${formatearMonto(saldo)}
+              </strong>
+            </div>
 
           </div>
 
-        `;
+        </div>
 
-
-        pendientesContainer.appendChild(
-          div
-        );
-
-      }
-    );
-
-  }
-
-
-  // ----------------------------------------------------------
-  // HISTORIAL
-  // ----------------------------------------------------------
-
-  const historialContainer =
-    document.getElementById(
-      "lista-historial-ingresos"
-    );
-
-
-  if (historialContainer) {
-
-    historialContainer.innerHTML = "";
-
-
-    if (
-      ingresosFiltrados.length === 0
-    ) {
-
-      historialContainer.innerHTML = `
 
         <div
           style="
-            padding:12px;
-            background:rgba(255,255,255,0.04);
-            border-radius:8px;
-            color:#a3a3a3;
-            font-size:0.85rem;
+            margin-top:10px;
+            padding-top:10px;
+            border-top:1px solid rgba(255,255,255,0.08);
           "
         >
-          No hay ingresos registrados
-          para este período.
+
+          ${
+            registrado
+
+              ? `
+
+                <div
+                  style="
+                    display:flex;
+                    justify-content:space-between;
+                    align-items:center;
+                    gap:10px;
+                    flex-wrap:wrap;
+                  "
+                >
+
+                  <div>
+
+                    <div
+                      style="
+                        color:#4ade80;
+                        font-weight:bold;
+                      "
+                    >
+                      ✓ Ingreso final registrado
+                    </div>
+
+                    <div
+                      style="
+                        color:#aaa;
+                        font-size:0.8rem;
+                      "
+                    >
+                      Fecha:
+                      ${
+                        p.fechaIngresoFinal
+                          ? formatearFecha(
+                              p.fechaIngresoFinal
+                            )
+                          : "Sin fecha"
+                      }
+                    </div>
+
+                  </div>
+
+
+                  <strong
+                    style="
+                      color:#4ade80;
+                      font-size:1.1rem;
+                    "
+                  >
+                    Bs.
+                    ${formatearMonto(
+                      ingresoFinal
+                    )}
+                  </strong>
+
+
+                  <button
+                    type="button"
+                    onclick="
+                      quitarIngresoFinal(
+                        '${p.id}'
+                      )
+                    "
+                    style="
+                      background:#7f1d1d;
+                      color:#fff;
+                      border:none;
+                      padding:6px 8px;
+                      border-radius:6px;
+                      cursor:pointer;
+                    "
+                  >
+                    Deshacer
+                  </button>
+
+                </div>
+
+              `
+
+              : `
+
+                <div>
+
+                  <div
+                    style="
+                      display:grid;
+                      grid-template-columns:1fr 1fr;
+                      gap:6px;
+                      margin-bottom:7px;
+                    "
+                  >
+
+                    <input
+                      type="number"
+                      id="ingreso-monto-${index}"
+                      value="${saldo}"
+                      min="0"
+                      step="0.01"
+                      placeholder="Monto recibido"
+                      style="
+                        width:100%;
+                        box-sizing:border-box;
+                      "
+                    />
+
+
+                    <input
+                      type="date"
+                      id="ingreso-fecha-${index}"
+                      style="
+                        width:100%;
+                        box-sizing:border-box;
+                      "
+                    />
+
+                  </div>
+
+
+                  <button
+                    type="button"
+                    onclick="
+                      registrarIngresoFinal(
+                        '${p.id}',
+                        ${index}
+                      )
+                    "
+                    style="
+                      width:100%;
+                      background:#16a34a;
+                      color:#fff;
+                      border:none;
+                      padding:8px;
+                      border-radius:6px;
+                      cursor:pointer;
+                      font-weight:bold;
+                    "
+                  >
+
+                    <i class="fa-solid fa-check"></i>
+
+                    Registrar ingreso final
+
+                  </button>
+
+                </div>
+
+              `
+
+          }
+
         </div>
 
       `;
 
-      return;
 
-    }
-
-
-    ingresosFiltrados
-      .sort(
-        (a, b) => {
-
-          return (
-            b.fecha || ""
-          ).localeCompare(
-            a.fecha || ""
-          );
-
-        }
-      )
-      .forEach(
-        ingreso => {
-
-
-          const div =
-            document.createElement(
-              "div"
-            );
-
-
-          div.style.cssText =
-            `
-              background:rgba(16,185,129,0.06);
-              border:1px solid rgba(16,185,129,0.18);
-              border-radius:10px;
-              padding:10px;
-              margin-bottom:8px;
-            `;
-
-
-          let fechaMostrar =
-            ingreso.fecha || "";
-
-
-          if (
-            fechaMostrar.length >= 10
-          ) {
-
-            fechaMostrar =
-              fechaMostrar
-                .split("-")
-                .reverse()
-                .join("/");
-
-          }
-
-
-          div.innerHTML = `
-
-            <div
-              style="
-                display:flex;
-                justify-content:space-between;
-                gap:10px;
-                align-items:center;
-              "
-            >
-
-              <div>
-
-                <strong>
-                  ${ingreso.codigo || ""}
-                </strong>
-
-                <div
-                  style="
-                    color:#a3a3a3;
-                    font-size:0.8rem;
-                    margin-top:3px;
-                  "
-                >
-                  ${ingreso.cliente || ""}
-                  —
-                  ${ingreso.mueble || ""}
-                </div>
-
-                <div
-                  style="
-                    color:#737373;
-                    font-size:0.7rem;
-                    margin-top:3px;
-                  "
-                >
-                  Cobrado:
-                  ${fechaMostrar}
-                </div>
-
-              </div>
-
-
-              <strong
-                style="
-                  color:#10b981;
-                  font-size:1rem;
-                "
-              >
-                Bs.
-                ${formatearMonto(
-                  ingreso.monto
-                )}
-              </strong>
-
-            </div>
-
-          `;
-
-
-          historialContainer.appendChild(
-            div
-          );
-
-        }
+      container.appendChild(
+        item
       );
 
-  }
+    }
+  );
 
 }
 
 
 // ============================================================
-// 14. REGISTRAR INGRESO
+// 12. REGISTRAR INGRESO FINAL
 // ============================================================
 
-async function registrarIngreso(
-  idProyecto
+async function registrarIngresoFinal(
+  idFirebase,
+  index
 ) {
 
   if (
@@ -2385,9 +2129,7 @@ async function registrarIngreso(
 
   const proyecto =
     proyectos.find(
-      p =>
-        p.id ===
-        idProyecto
+      p => p.id === idFirebase
     );
 
 
@@ -2402,10 +2144,36 @@ async function registrarIngreso(
   }
 
 
-  if (proyecto.ingresoRegistrado) {
+  const montoInput =
+    document.getElementById(
+      `ingreso-monto-${index}`
+    );
+
+
+  const fechaInput =
+    document.getElementById(
+      `ingreso-fecha-${index}`
+    );
+
+
+  const monto =
+    montoInput
+      ? parseFloat(
+          montoInput.value
+        ) || 0
+      : 0;
+
+
+  const fecha =
+    fechaInput
+      ? fechaInput.value
+      : "";
+
+
+  if (monto <= 0) {
 
     alert(
-      "El ingreso de este proyecto ya fue registrado."
+      "Ingresa un monto válido."
     );
 
     return;
@@ -2413,154 +2181,69 @@ async function registrarIngreso(
   }
 
 
-  const presupuesto =
-    Number(
-      proyecto.presupuesto
-    ) || 0;
+  if (!fecha) {
 
+    alert(
+      "Selecciona la fecha en que recibiste el ingreso."
+    );
 
-  const adelanto =
-    Number(
-      proyecto.adelanto
-    ) || 0;
+    return;
+
+  }
 
 
   const saldo =
     Math.max(
-      0,
-      presupuesto - adelanto
+      (Number(proyecto.presupuesto) || 0) -
+      (Number(proyecto.adelanto) || 0),
+      0
     );
 
 
-  if (saldo <= 0) {
+  if (monto > saldo) {
 
-    alert(
-      "Este proyecto no tiene saldo pendiente."
-    );
+    const confirmar =
+      confirm(
+        `El monto ingresado (Bs. ${formatearMonto(monto)}) supera el saldo pendiente (Bs. ${formatearMonto(saldo)}). ¿Deseas registrarlo igualmente?`
+      );
 
-    return;
+
+    if (!confirmar) {
+      return;
+    }
 
   }
 
 
-  const confirmar =
-    confirm(
-      `¿Confirmás que cobraste el saldo de Bs. ${formatearMonto(
-        saldo
-      )} del proyecto ${proyecto.codigo}?`
-    );
-
-
-  if (!confirmar)
-    return;
-
-
-  const ahora =
-    new Date();
-
-
-  const fecha =
-    `${ahora.getFullYear()}-${String(
-      ahora.getMonth() + 1
-    ).padStart(2, "0")}-${String(
-      ahora.getDate()
-    ).padStart(2, "0")}`;
-
-
   try {
 
-    // --------------------------------------------------------
-    // CREAMOS EL REGISTRO DE INGRESO
-    // --------------------------------------------------------
+    await db
+      .collection("proyectos")
+      .doc(idFirebase)
+      .update({
 
-    const ingresoRef =
-      db.collection(
-        "ingresos"
-      ).doc();
+        ingresoFinal:
+          monto,
 
-
-    // --------------------------------------------------------
-    // ACTUALIZAMOS EL PROYECTO
-    // --------------------------------------------------------
-
-    const proyectoRef =
-      db.collection(
-        "proyectos"
-      ).doc(
-        idProyecto
-      );
-
-
-    const batch =
-      db.batch();
-
-
-    batch.set(
-      ingresoRef,
-      {
-
-        proyectoId:
-          idProyecto,
-
-        codigo:
-          proyecto.codigo || "",
-
-        cliente:
-          proyecto.cliente || "",
-
-        mueble:
-          proyecto.mueble || "",
-
-        monto:
-          saldo,
-
-        fecha:
-          fecha,
-
-        fechaRegistro:
-          new Date().toISOString(),
-
-        tipo:
-          "Saldo final"
-
-      }
-    );
-
-
-    batch.update(
-      proyectoRef,
-      {
-
-        saldo:
-          0,
-
-        ingresoRegistrado:
+        ingresoFinalRegistrado:
           true,
 
-        ingresoFecha:
+        fechaIngresoFinal:
           fecha
 
-      }
-    );
-
-
-    await batch.commit();
-
-
-    alert(
-      `Ingreso registrado correctamente: Bs. ${formatearMonto(
-        saldo
-      )}`
-    );
+      });
 
 
     await cargarProyectosDesdeNube();
 
-    await cargarIngresosDesdeNube();
-
     renderProyectosAdmin();
 
-    renderIngresos();
+    renderGestionIngresos();
+
+
+    alert(
+      "Ingreso final registrado correctamente."
+    );
 
 
   } catch (error) {
@@ -2574,6 +2257,253 @@ async function registrarIngreso(
     alert(
       "No se pudo registrar el ingreso."
     );
+
+  }
+
+}
+
+
+// ============================================================
+// 13. QUITAR INGRESO FINAL
+// ============================================================
+
+async function quitarIngresoFinal(
+  idFirebase
+) {
+
+  if (
+    !esAdmin ||
+    !auth.currentUser
+  ) {
+
+    alert(
+      "Sesión de administrador no válida."
+    );
+
+    return;
+
+  }
+
+
+  const confirmar =
+    confirm(
+      "¿Quieres quitar el registro del ingreso final?"
+    );
+
+
+  if (!confirmar) {
+    return;
+  }
+
+
+  try {
+
+    await db
+      .collection("proyectos")
+      .doc(idFirebase)
+      .update({
+
+        ingresoFinal:
+          0,
+
+        ingresoFinalRegistrado:
+          false,
+
+        fechaIngresoFinal:
+          ""
+
+      });
+
+
+    await cargarProyectosDesdeNube();
+
+    renderProyectosAdmin();
+
+    renderGestionIngresos();
+
+
+  } catch (error) {
+
+    console.error(
+      "Error quitando ingreso:",
+      error
+    );
+
+
+    alert(
+      "No se pudo modificar el ingreso."
+    );
+
+  }
+
+}
+
+
+// ============================================================
+// 14. RESUMEN FINANCIERO
+// ============================================================
+
+function actualizarResumenFinanciero() {
+
+  const cantidad =
+    proyectos.length;
+
+
+  let totalContratado = 0;
+
+  let totalAdelantos = 0;
+
+  let totalIngresosFinales = 0;
+
+  let totalCobrado = 0;
+
+  let totalPendiente = 0;
+
+
+  proyectos.forEach(
+    p => {
+
+      const total =
+        Number(
+          p.presupuesto
+        ) || 0;
+
+
+      const adelanto =
+        Number(
+          p.adelanto
+        ) || 0;
+
+
+      const ingresoFinal =
+        Number(
+          p.ingresoFinal
+        ) || 0;
+
+
+      const pendiente =
+        Math.max(
+          total -
+          adelanto -
+          ingresoFinal,
+          0
+        );
+
+
+      totalContratado +=
+        total;
+
+
+      totalAdelantos +=
+        adelanto;
+
+
+      totalIngresosFinales +=
+        ingresoFinal;
+
+
+      totalCobrado +=
+        adelanto +
+        ingresoFinal;
+
+
+      totalPendiente +=
+        pendiente;
+
+    }
+  );
+
+
+  const cantidadEl =
+    document.getElementById(
+      "reporte-cant-mes"
+    );
+
+
+  const contratadoEl =
+    document.getElementById(
+      "reporte-presupuesto-mes"
+    );
+
+
+  const adelantosEl =
+    document.getElementById(
+      "reporte-adelanto-mes"
+    );
+
+
+  const ingresosFinalesEl =
+    document.getElementById(
+      "reporte-ingreso-final"
+    );
+
+
+  const cobradoEl =
+    document.getElementById(
+      "reporte-total-cobrado"
+    );
+
+
+  const pendienteEl =
+    document.getElementById(
+      "reporte-saldo"
+    );
+
+
+  if (cantidadEl) {
+
+    cantidadEl.innerText =
+      cantidad;
+
+  }
+
+
+  if (contratadoEl) {
+
+    contratadoEl.innerText =
+      `Bs. ${formatearMonto(
+        totalContratado
+      )}`;
+
+  }
+
+
+  if (adelantosEl) {
+
+    adelantosEl.innerText =
+      `Bs. ${formatearMonto(
+        totalAdelantos
+      )}`;
+
+  }
+
+
+  if (ingresosFinalesEl) {
+
+    ingresosFinalesEl.innerText =
+      `Bs. ${formatearMonto(
+        totalIngresosFinales
+      )}`;
+
+  }
+
+
+  if (cobradoEl) {
+
+    cobradoEl.innerText =
+      `Bs. ${formatearMonto(
+        totalCobrado
+      )}`;
+
+  }
+
+
+  if (pendienteEl) {
+
+    pendienteEl.innerText =
+      `Bs. ${formatearMonto(
+        totalPendiente
+      )}`;
 
   }
 
@@ -2605,11 +2535,17 @@ async function cambiarEstadoPorId(
 
 
   const etapas = [
+
     "Diseño Aprobado",
+
     "Corte",
+
     "Armado",
+
     "Instalación",
+
     "Finalizado"
+
   ];
 
 
@@ -2639,12 +2575,8 @@ async function cambiarEstadoPorId(
   try {
 
     await db
-      .collection(
-        "proyectos"
-      )
-      .doc(
-        idFirebase
-      )
+      .collection("proyectos")
+      .doc(idFirebase)
       .update({
 
         estado:
@@ -2662,6 +2594,8 @@ async function cambiarEstadoPorId(
     await cargarProyectosDesdeNube();
 
     renderProyectosAdmin();
+
+    renderGestionIngresos();
 
 
   } catch (error) {
@@ -2717,22 +2651,16 @@ async function eliminarProyecto(
   try {
 
     await db
-      .collection(
-        "proyectos"
-      )
-      .doc(
-        idFirebase
-      )
+      .collection("proyectos")
+      .doc(idFirebase)
       .delete();
 
 
     await cargarProyectosDesdeNube();
 
-    await cargarIngresosDesdeNube();
-
     renderProyectosAdmin();
 
-    renderIngresos();
+    renderGestionIngresos();
 
 
   } catch (error) {
@@ -2756,9 +2684,7 @@ async function eliminarProyecto(
 // 17. EDITAR PROYECTO
 // ============================================================
 
-function activarEdicionInline(
-  index
-) {
+function activarEdicionInline(index) {
 
   const p =
     proyectos[index];
@@ -2770,8 +2696,9 @@ function activarEdicionInline(
     );
 
 
-  if (!info || !p)
+  if (!info || !p) {
     return;
+  }
 
 
   info.innerHTML = `
@@ -2842,6 +2769,7 @@ function activarEdicionInline(
       <div>
 
         <button
+          type="button"
           onclick="
             guardarEdicionInline(
               '${p.id}',
@@ -2862,6 +2790,7 @@ function activarEdicionInline(
 
 
         <button
+          type="button"
           onclick="
             renderProyectosAdmin()
           "
@@ -2920,22 +2849,19 @@ async function guardarEdicionInline(
   const nuevoCliente =
     document.getElementById(
       `edit-cliente-${index}`
-    ).value
-      .trim();
+    ).value.trim();
 
 
   const nuevoMueble =
     document.getElementById(
       `edit-mueble-${index}`
-    ).value
-      .trim();
+    ).value.trim();
 
 
   const nuevoTelefono =
     document.getElementById(
       `edit-telefono-${index}`
-    ).value
-      .trim();
+    ).value.trim();
 
 
   const nuevoPresupuesto =
@@ -2960,50 +2886,19 @@ async function guardarEdicionInline(
     ).value;
 
 
-  const proyectoActual =
-    proyectos[index];
-
-
-  let nuevoSaldo =
+  const nuevoSaldo =
     Math.max(
-      0,
       nuevoPresupuesto -
-      nuevoAdelanto
+      nuevoAdelanto,
+      0
     );
-
-
-  // Si se modifica el dinero de un proyecto
-  // cuyo saldo todavía no fue cobrado,
-  // recalculamos el saldo.
-  if (
-    !proyectoActual.ingresoRegistrado
-  ) {
-
-    nuevoSaldo =
-      Math.max(
-        0,
-        nuevoPresupuesto -
-        nuevoAdelanto
-      );
-
-  } else {
-
-    // Si ya fue registrado el ingreso,
-    // no volvemos a ponerlo como pendiente.
-    nuevoSaldo = 0;
-
-  }
 
 
   try {
 
     await db
-      .collection(
-        "proyectos"
-      )
-      .doc(
-        idFirebase
-      )
+      .collection("proyectos")
+      .doc(idFirebase)
       .update({
 
         codigo:
@@ -3037,7 +2932,7 @@ async function guardarEdicionInline(
 
     renderProyectosAdmin();
 
-    renderIngresos();
+    renderGestionIngresos();
 
 
   } catch (error) {
@@ -3058,12 +2953,37 @@ async function guardarEdicionInline(
 
 
 // ============================================================
-// 19. WHATSAPP
+// 19. FORMATEAR FECHA
 // ============================================================
 
-function notificarWhatsApp(
-  index
+function formatearFecha(
+  fecha
 ) {
+
+  if (!fecha) {
+    return "";
+  }
+
+
+  const partes =
+    fecha.split("-");
+
+
+  if (partes.length !== 3) {
+    return fecha;
+  }
+
+
+  return `${partes[2]}/${partes[1]}/${partes[0]}`;
+
+}
+
+
+// ============================================================
+// 20. WHATSAPP
+// ============================================================
+
+function notificarWhatsApp(index) {
 
   if (!esAdmin) {
 
@@ -3109,7 +3029,8 @@ function notificarWhatsApp(
   ) {
 
     num =
-      "591" + num;
+      "591" +
+      num;
 
   }
 
@@ -3124,20 +3045,21 @@ function notificarWhatsApp(
 
 
   const mensaje =
-    `Hola *${p.cliente}* 👋, desde *HN Muebles* te informamos el estado de tu proyecto *"${p.mueble}"*:
+
+`Hola *${p.cliente}* 👋, desde *HN Muebles* te informamos el estado de tu proyecto *"${p.mueble}"*:
 
 🛠️ *Estado:* ${p.estado}
 
 📊 *Progreso:* ${p.progreso}%
 
 📅 *Fecha Estimada de Entrega:* ${
-      p.fechaEntrega
-        ? p.fechaEntrega
-            .split("-")
-            .reverse()
-            .join("/")
-        : "Por coordinar"
-    }
+    p.fechaEntrega
+      ? p.fechaEntrega
+          .split("-")
+          .reverse()
+          .join("/")
+      : "Por coordinar"
+  }
 
 🔍 *Consulta el estado de tu proyecto:*
 ${linkDirecto}`;
