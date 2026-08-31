@@ -70,6 +70,8 @@
 
     <div class="hero-split-container">
 
+      <!-- INFORMACIÓN HN MUEBLES -->
+
       <div class="hero-about-col">
 
         <h1 class="hero-title-big">
@@ -122,8 +124,7 @@
           </h2>
 
           <p class="subtitle">
-            Ingresa tu código único para revisar el estado actual
-            de tu mueble en el taller.
+            Ingresa tu código único para revisar el estado actual de tu mueble en el taller.
           </p>
 
           <form
@@ -227,7 +228,7 @@
 
 
   <!-- =========================================================
-       RUTA
+       CONTENIDO
   ========================================================== -->
 
   <main class="black-content-container">
@@ -243,8 +244,11 @@
       >
 
         <h2>
+
           <i class="fa-solid fa-route font-amber"></i>
+
           ¿Cómo es la Ruta de tu Mueble?
+
         </h2>
 
         <p class="subtitle">
@@ -516,15 +520,13 @@
 
 
       <!-- =====================================================
-           PANEL ADMIN
+           PANEL ADMINISTRADOR
       ====================================================== -->
 
       <div
         id="admin-panel"
         class="hidden"
       >
-
-        <!-- CABECERA -->
 
         <div
           style="
@@ -567,464 +569,377 @@
 
 
         <!-- ===================================================
-             BOTONES DE NAVEGACIÓN ADMIN
+             NUEVO PROYECTO
         ==================================================== -->
 
-        <div
+        <form
+          id="form-nuevo-proyecto"
+          class="admin-form"
           style="
-            display:grid;
-            grid-template-columns:1fr 1fr;
-            gap:8px;
-            margin-bottom:1rem;
+            background:rgba(255,255,255,0.03);
+            padding:1rem;
+            border-radius:8px;
+            margin-bottom:1.5rem;
           "
         >
 
-          <button
-            type="button"
-            id="btn-admin-proyectos"
-            onclick="mostrarAdminSeccion('proyectos')"
+          <h3
             style="
-              background:#f59e0b;
-              color:#000;
-              border:none;
-              padding:10px;
-              border-radius:8px;
-              cursor:pointer;
-              font-weight:bold;
-            "
-          >
-            <i class="fa-solid fa-box"></i>
-            Proyectos
-          </button>
-
-
-          <button
-            type="button"
-            id="btn-admin-ingresos"
-            onclick="mostrarAdminSeccion('ingresos')"
-            style="
-              background:rgba(255,255,255,0.1);
-              color:#fff;
-              border:1px solid rgba(255,255,255,0.15);
-              padding:10px;
-              border-radius:8px;
-              cursor:pointer;
-              font-weight:bold;
-            "
-          >
-            <i class="fa-solid fa-money-bill-trend-up"></i>
-            Ingresos
-          </button>
-
-        </div>
-
-
-        <!-- ===================================================
-             SECCIÓN PROYECTOS
-        ==================================================== -->
-
-        <div id="admin-seccion-proyectos">
-
-
-          <!-- NUEVO PROYECTO -->
-
-          <form
-            id="form-nuevo-proyecto"
-            class="admin-form"
-            style="
-              background:rgba(255,255,255,0.03);
-              padding:1rem;
-              border-radius:8px;
-              margin-bottom:1.5rem;
+              font-size:1rem;
+              margin-bottom:0.75rem;
             "
           >
 
-            <h3
+            <i class="fa-solid fa-plus font-amber"></i>
+
+            Nuevo Proyecto
+
+          </h3>
+
+
+          <div
+            style="
+              display:flex;
+              gap:6px;
+              margin-bottom:8px;
+            "
+          >
+
+            <input
+              type="text"
+              id="nuevo-codigo"
+              placeholder="Código (Ej: HN-001)"
+              style="flex:1;"
+            />
+
+            <button
+              type="button"
+              onclick="llenarCodigoAutomatico()"
+              class="btn-primary-modern"
               style="
-                font-size:1rem;
-                margin-bottom:0.75rem;
+                padding:0 10px;
+                font-size:0.8rem;
               "
             >
+              Generar
+            </button>
 
-              <i class="fa-solid fa-plus font-amber"></i>
-
-              Nuevo Proyecto
-
-            </h3>
+          </div>
 
 
-            <!-- CÓDIGO -->
+          <div
+            style="
+              display:grid;
+              grid-template-columns:1fr 1fr;
+              gap:6px;
+              margin-bottom:8px;
+            "
+          >
+
+            <input
+              type="text"
+              id="nuevo-cliente"
+              placeholder="Cliente"
+              required
+            />
+
+            <input
+              type="text"
+              id="nuevo-mueble"
+              placeholder="Mueble"
+              required
+            />
+
+            <input
+              type="text"
+              id="nuevo-telefono"
+              placeholder="WhatsApp"
+            />
+
+            <input
+              type="number"
+              id="nuevo-presupuesto"
+              placeholder="Total (Bs)"
+              min="0"
+              step="0.01"
+            />
+
+            <input
+              type="number"
+              id="nuevo-adelanto"
+              placeholder="Adelanto (Bs)"
+              min="0"
+              step="0.01"
+            />
+
+
+            <!-- FECHA -->
 
             <div
               style="
                 display:flex;
-                gap:6px;
-                margin-bottom:8px;
+                flex-direction:column;
+                gap:3px;
               "
             >
 
-              <input
-                type="text"
-                id="nuevo-codigo"
-                placeholder="Código (Ej: HN-001)"
-                style="flex:1;"
-              />
-
-              <button
-                type="button"
-                onclick="llenarCodigoAutomatico()"
-                class="btn-primary-modern"
+              <label
+                for="nuevo-fecha"
                 style="
-                  padding:0 10px;
-                  font-size:0.8rem;
-                "
-              >
-                Generar
-              </button>
-
-            </div>
-
-
-            <!-- DATOS -->
-
-            <div
-              style="
-                display:grid;
-                grid-template-columns:1fr 1fr;
-                gap:6px;
-                margin-bottom:8px;
-              "
-            >
-
-              <input
-                type="text"
-                id="nuevo-cliente"
-                placeholder="Cliente"
-                required
-              />
-
-              <input
-                type="text"
-                id="nuevo-mueble"
-                placeholder="Mueble"
-                required
-              />
-
-              <input
-                type="text"
-                id="nuevo-telefono"
-                placeholder="WhatsApp"
-              />
-
-              <input
-                type="number"
-                id="nuevo-presupuesto"
-                placeholder="Total (Bs)"
-                min="0"
-                step="0.01"
-              />
-
-              <input
-                type="number"
-                id="nuevo-adelanto"
-                placeholder="Adelanto (Bs)"
-                min="0"
-                step="0.01"
-              />
-
-
-              <!-- FECHA -->
-
-              <div
-                style="
-                  display:flex;
-                  flex-direction:column;
-                  gap:3px;
+                  font-size:0.75rem;
+                  color:#a3a3a3;
                 "
               >
 
-                <label
-                  for="nuevo-fecha"
-                  style="
-                    font-size:0.75rem;
-                    color:#a3a3a3;
-                  "
-                >
+                <i
+                  class="fa-regular fa-calendar font-amber"
+                ></i>
 
-                  <i
-                    class="fa-regular fa-calendar font-amber"
-                  ></i>
+                Fecha de entrega
 
-                  Fecha de entrega
+              </label>
 
-                </label>
-
-                <input
-                  type="date"
-                  id="nuevo-fecha"
-                  title="Seleccionar fecha de entrega"
-                  style="
-                    width:100%;
-                    box-sizing:border-box;
-                    background:#0a0a0a;
-                    border:1px solid #333;
-                    color:#fff;
-                    padding:8px;
-                    border-radius:8px;
-                    cursor:pointer;
-                  "
-                />
-
-              </div>
+              <input
+                type="date"
+                id="nuevo-fecha"
+                title="Seleccionar fecha de entrega"
+                style="
+                  width:100%;
+                  box-sizing:border-box;
+                  background:#0a0a0a;
+                  border:1px solid #333;
+                  color:#fff;
+                  padding:8px;
+                  border-radius:8px;
+                  cursor:pointer;
+                "
+              />
 
             </div>
 
+          </div>
 
-            <!-- SALDO PREVIO -->
+
+          <!-- SALDO AUTOMÁTICO -->
+
+          <div
+            style="
+              background:rgba(245,158,11,0.08);
+              border:1px solid rgba(245,158,11,0.25);
+              padding:10px;
+              border-radius:8px;
+              margin-bottom:10px;
+            "
+          >
 
             <div
               style="
-                background:rgba(245,158,11,0.08);
-                border:1px solid rgba(245,158,11,0.2);
-                padding:8px;
-                border-radius:8px;
-                margin-bottom:10px;
-                font-size:0.85rem;
+                display:flex;
+                justify-content:space-between;
+                align-items:center;
               "
             >
 
-              Saldo pendiente:
+              <span style="color:#aaa;">
+                Saldo pendiente:
+              </span>
 
               <strong
                 id="lbl-nuevo-saldo"
-                style="color:#f59e0b;"
+                style="color:#f87171;"
               >
                 Bs. 0
               </strong>
 
             </div>
 
-
-            <button
-              type="submit"
-              class="btn-primary-modern"
-              style="width:100%;"
-            >
-              Guardar Proyecto
-            </button>
-
-          </form>
+          </div>
 
 
-          <!-- PROYECTOS REGISTRADOS -->
+          <button
+            type="submit"
+            class="btn-primary-modern"
+            style="width:100%;"
+          >
+            Guardar Proyecto
+          </button>
+
+        </form>
+
+
+        <!-- ===================================================
+             RESUMEN FINANCIERO
+        ==================================================== -->
+
+        <div
+          style="
+            background:rgba(16,185,129,0.06);
+            border:1px solid rgba(16,185,129,0.25);
+            border-radius:10px;
+            padding:1rem;
+            margin-bottom:1.5rem;
+          "
+        >
 
           <h3
             style="
               font-size:1rem;
-              margin-bottom:0.5rem;
+              margin:0 0 12px 0;
             "
           >
 
-            Registrados
-            (<span id="total-proyectos">0</span>)
+            <i
+              class="fa-solid fa-chart-line"
+              style="color:#10b981;"
+            ></i>
+
+            Resumen Financiero
 
           </h3>
 
 
           <div
-            id="lista-proyectos-admin"
-            class="projects-list"
             style="
-              max-height:300px;
-              overflow-y:auto;
-            "
-          ></div>
-
-        </div>
-
-
-        <!-- ===================================================
-             SECCIÓN INGRESOS
-        ==================================================== -->
-
-        <div
-          id="admin-seccion-ingresos"
-          class="hidden"
-        >
-
-          <div
-            style="
-              background:rgba(255,255,255,0.03);
-              border:1px solid rgba(255,255,255,0.08);
-              padding:1rem;
-              border-radius:10px;
-              margin-bottom:1rem;
+              display:grid;
+              grid-template-columns:1fr 1fr;
+              gap:8px;
             "
           >
 
-            <h3
-              style="
-                margin:0 0 0.8rem 0;
-                font-size:1.05rem;
-              "
-            >
-
-              <i
-                class="fa-solid fa-money-bill-trend-up font-amber"
-              ></i>
-
-              Gestión de Ingresos
-
-            </h3>
-
-
-            <p
-              style="
-                color:#a3a3a3;
-                font-size:0.8rem;
-                margin-bottom:0.8rem;
-              "
-            >
-              Aquí registrás manualmente los saldos que realmente
-              fueron cobrados. Un saldo pendiente no se considera
-              ingreso hasta que vos lo confirmes.
-            </p>
-
-
-            <!-- FILTRO -->
-
             <div
               style="
-                display:flex;
-                gap:8px;
-                margin-bottom:1rem;
+                background:rgba(255,255,255,0.04);
+                padding:10px;
+                border-radius:8px;
               "
             >
 
-              <input
-                type="month"
-                id="filtro-mes-ingresos"
-                style="
-                  flex:1;
-                  background:#0a0a0a;
-                  border:1px solid #333;
-                  color:#fff;
-                  padding:8px;
-                  border-radius:8px;
-                "
-              />
+              <small style="color:#aaa;">
+                Proyectos
+              </small>
 
-              <button
-                type="button"
-                onclick="renderIngresos()"
-                style="
-                  background:#f59e0b;
-                  color:#000;
-                  border:none;
-                  border-radius:8px;
-                  padding:8px 12px;
-                  cursor:pointer;
-                  font-weight:bold;
-                "
-              >
-                Filtrar
-              </button>
+              <div>
+                <strong id="reporte-cant-mes">
+                  0
+                </strong>
+              </div>
 
             </div>
 
 
-            <!-- RESUMEN -->
-
             <div
               style="
-                display:grid;
-                grid-template-columns:1fr 1fr;
-                gap:8px;
+                background:rgba(255,255,255,0.04);
+                padding:10px;
+                border-radius:8px;
               "
             >
 
+              <small style="color:#aaa;">
+                Total contratado
+              </small>
+
+              <div>
+                <strong id="reporte-presupuesto-mes">
+                  Bs. 0
+                </strong>
+              </div>
+
+            </div>
+
+
+            <div
+              style="
+                background:rgba(255,255,255,0.04);
+                padding:10px;
+                border-radius:8px;
+              "
+            >
+
+              <small style="color:#aaa;">
+                Adelantos
+              </small>
+
+              <div>
+                <strong id="reporte-adelanto-mes">
+                  Bs. 0
+                </strong>
+              </div>
+
+            </div>
+
+
+            <div
+              style="
+                background:rgba(255,255,255,0.04);
+                padding:10px;
+                border-radius:8px;
+              "
+            >
+
+              <small style="color:#aaa;">
+                Ingreso final
+              </small>
+
+              <div>
+                <strong id="reporte-ingreso-final">
+                  Bs. 0
+                </strong>
+              </div>
+
+            </div>
+
+
+            <div
+              style="
+                background:rgba(16,185,129,0.10);
+                padding:10px;
+                border-radius:8px;
+                grid-column:1 / -1;
+              "
+            >
+
+              <small style="color:#aaa;">
+                Total cobrado
+              </small>
+
               <div
                 style="
-                  background:rgba(255,255,255,0.05);
-                  padding:10px;
-                  border-radius:8px;
+                  font-size:1.2rem;
+                  color:#4ade80;
                 "
               >
 
-                <div
-                  style="
-                    color:#a3a3a3;
-                    font-size:0.75rem;
-                  "
-                >
-                  Adelantos registrados
-                </div>
-
-                <strong
-                  id="ingresos-resumen-adelantos"
-                  style="font-size:1rem;"
-                >
+                <strong id="reporte-total-cobrado">
                   Bs. 0
                 </strong>
 
               </div>
 
+            </div>
+
+
+            <div
+              style="
+                background:rgba(239,68,68,0.08);
+                padding:10px;
+                border-radius:8px;
+                grid-column:1 / -1;
+              "
+            >
+
+              <small style="color:#aaa;">
+                Saldo pendiente total
+              </small>
 
               <div
                 style="
-                  background:rgba(16,185,129,0.08);
-                  padding:10px;
-                  border-radius:8px;
+                  font-size:1.1rem;
+                  color:#f87171;
                 "
               >
 
-                <div
-                  style="
-                    color:#a3a3a3;
-                    font-size:0.75rem;
-                  "
-                >
-                  Saldos cobrados
-                </div>
-
-                <strong
-                  id="ingresos-resumen-saldos"
-                  style="
-                    font-size:1rem;
-                    color:#10b981;
-                  "
-                >
-                  Bs. 0
-                </strong>
-
-              </div>
-
-
-              <div
-                style="
-                  background:rgba(245,158,11,0.08);
-                  padding:10px;
-                  border-radius:8px;
-                  grid-column:1 / -1;
-                "
-              >
-
-                <div
-                  style="
-                    color:#a3a3a3;
-                    font-size:0.75rem;
-                  "
-                >
-                  Total de ingresos registrados
-                </div>
-
-                <strong
-                  id="ingresos-resumen-total"
-                  style="
-                    font-size:1.35rem;
-                    color:#f59e0b;
-                  "
-                >
+                <strong id="reporte-saldo">
                   Bs. 0
                 </strong>
 
@@ -1034,43 +949,51 @@
 
           </div>
 
-
-          <!-- PROYECTOS CON SALDO -->
-
-          <h3
-            style="
-              font-size:0.95rem;
-              margin-bottom:0.5rem;
-            "
-          >
-            Saldos pendientes de cobro
-          </h3>
+        </div>
 
 
-          <div
-            id="lista-saldos-pendientes"
-            style="
-              max-height:300px;
-              overflow-y:auto;
-              margin-bottom:1.2rem;
-            "
-          ></div>
+        <!-- ===================================================
+             GESTIÓN DE INGRESOS
+        ==================================================== -->
 
-
-          <!-- HISTORIAL -->
+        <div
+          style="
+            background:rgba(245,158,11,0.05);
+            border:1px solid rgba(245,158,11,0.25);
+            border-radius:10px;
+            padding:1rem;
+            margin-bottom:1.5rem;
+          "
+        >
 
           <h3
             style="
-              font-size:0.95rem;
-              margin-bottom:0.5rem;
+              font-size:1rem;
+              margin:0 0 5px 0;
             "
           >
-            Historial de ingresos
+
+            <i class="fa-solid fa-money-bill-wave font-amber"></i>
+
+            Gestión de Ingresos
+
           </h3>
+
+          <p
+            style="
+              color:#999;
+              font-size:0.8rem;
+              margin-top:0;
+              margin-bottom:12px;
+            "
+          >
+            Registra manualmente el saldo cuando realmente recibas
+            el pago final del proyecto.
+          </p>
 
 
           <div
-            id="lista-historial-ingresos"
+            id="lista-ingresos"
             style="
               max-height:300px;
               overflow-y:auto;
@@ -1078,6 +1001,33 @@
           ></div>
 
         </div>
+
+
+        <!-- ===================================================
+             PROYECTOS
+        ==================================================== -->
+
+        <h3
+          style="
+            font-size:1rem;
+            margin-bottom:0.5rem;
+          "
+        >
+
+          Proyectos registrados
+          (<span id="total-proyectos">0</span>)
+
+        </h3>
+
+
+        <div
+          id="lista-proyectos-admin"
+          class="projects-list"
+          style="
+            max-height:500px;
+            overflow-y:auto;
+          "
+        ></div>
 
       </div>
 
@@ -1100,7 +1050,7 @@
       if (elemento) {
 
         elemento.scrollIntoView({
-          behavior: "smooth"
+          behavior: 'smooth'
         });
 
       }
@@ -1111,11 +1061,11 @@
     function abrirModalAdmin() {
 
       const modal =
-        document.getElementById("modal-admin");
+        document.getElementById('modal-admin');
 
       if (modal) {
 
-        modal.classList.remove("hidden");
+        modal.classList.remove('hidden');
 
       }
 
@@ -1125,101 +1075,11 @@
     function cerrarModalAdmin() {
 
       const modal =
-        document.getElementById("modal-admin");
+        document.getElementById('modal-admin');
 
       if (modal) {
 
-        modal.classList.add("hidden");
-
-      }
-
-    }
-
-
-    function mostrarAdminSeccion(seccion) {
-
-      const proyectos =
-        document.getElementById(
-          "admin-seccion-proyectos"
-        );
-
-      const ingresos =
-        document.getElementById(
-          "admin-seccion-ingresos"
-        );
-
-      const btnProyectos =
-        document.getElementById(
-          "btn-admin-proyectos"
-        );
-
-      const btnIngresos =
-        document.getElementById(
-          "btn-admin-ingresos"
-        );
-
-
-      if (seccion === "ingresos") {
-
-        if (proyectos)
-          proyectos.classList.add("hidden");
-
-        if (ingresos)
-          ingresos.classList.remove("hidden");
-
-        if (btnProyectos) {
-
-          btnProyectos.style.background =
-            "rgba(255,255,255,0.1)";
-
-          btnProyectos.style.color =
-            "#fff";
-
-        }
-
-        if (btnIngresos) {
-
-          btnIngresos.style.background =
-            "#f59e0b";
-
-          btnIngresos.style.color =
-            "#000";
-
-        }
-
-        if (typeof renderIngresos === "function") {
-
-          renderIngresos();
-
-        }
-
-      } else {
-
-        if (ingresos)
-          ingresos.classList.add("hidden");
-
-        if (proyectos)
-          proyectos.classList.remove("hidden");
-
-        if (btnIngresos) {
-
-          btnIngresos.style.background =
-            "rgba(255,255,255,0.1)";
-
-          btnIngresos.style.color =
-            "#fff";
-
-        }
-
-        if (btnProyectos) {
-
-          btnProyectos.style.background =
-            "#f59e0b";
-
-          btnProyectos.style.color =
-            "#000";
-
-        }
+        modal.classList.add('hidden');
 
       }
 
