@@ -18,8 +18,8 @@
     rel="stylesheet"
   />
 
+  <!-- jsPDF -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
 </head>
 
 <body>
@@ -28,7 +28,7 @@
 
   <div
     class="logo-container"
-    onclick="irInicio()"
+    onclick="window.scrollTo({top:0, behavior:'smooth'})"
   >
     <img
       src="assets/logo.png"
@@ -41,21 +41,17 @@
   <nav class="nav-links">
 
     <button
-      onclick="irInicio()"
+      onclick="window.scrollTo({top:0, behavior:'smooth'})"
       class="active"
     >
       Inicio
     </button>
 
-    <button
-      onclick="irASeccion('sec-ruta-explicativa')"
-    >
+    <button onclick="irASeccion('sec-ruta-explicativa')">
       Ruta de Seguimiento
     </button>
 
-    <button
-      onclick="abrirModalAdmin()"
-    >
+    <button onclick="abrirModalAdmin()">
       <i class="fa-solid fa-lock"></i>
       Admin
     </button>
@@ -64,6 +60,10 @@
 
 </header>
 
+
+<!-- =========================================================
+     HERO
+========================================================= -->
 
 <section class="hero-fixed-banner">
 
@@ -221,6 +221,10 @@
 </section>
 
 
+<!-- =========================================================
+     CONTENIDO
+========================================================= -->
+
 <main class="black-content-container">
 
   <section
@@ -246,54 +250,70 @@
       <div class="steps-grid-5">
 
         <div class="step-box">
+
           <div class="step-icon">
             <i class="fa-solid fa-file-signature"></i>
           </div>
+
           <div class="step-title">
             1. Diseño Aprobado
           </div>
+
           <div class="step-desc">
             Validación de medidas, planos y visto bueno del cliente.
           </div>
+
         </div>
 
 
         <div class="step-box">
+
           <div class="step-icon">
             <i class="fa-solid fa-scissors"></i>
           </div>
+
           <div class="step-title">
             2. Corte
           </div>
+
           <div class="step-desc">
             Optimización y corte exacto de los tableros de melamina.
           </div>
+
         </div>
 
 
         <div class="step-box">
+
           <div class="step-icon">
             <i class="fa-solid fa-hammer"></i>
           </div>
+
           <div class="step-title">
             3. Armado
           </div>
+
           <div class="step-desc">
             Ensamblaje estructural del mueble y colocación de cantos.
           </div>
+
         </div>
 
 
         <div class="step-box">
+
           <div class="step-icon">
             <i class="fa-solid fa-truck-fast"></i>
           </div>
+
           <div class="step-title">
             4. Instalación
           </div>
+
           <div class="step-desc">
             Traslado y montaje profesional en el domicilio del cliente.
           </div>
+
         </div>
 
 
@@ -326,10 +346,15 @@
   </section>
 
 
+  <!-- =======================================================
+       FOOTER
+  ======================================================== -->
+
   <footer class="footer">
 
     <p>
-      ¿Tienes dudas sobre tu proyecto? Contáctanos directamente:
+      ¿Tienes dudas sobre tu proyecto?
+      Contáctanos directamente:
     </p>
 
     <div class="social-buttons">
@@ -363,9 +388,9 @@
 </main>
 
 
-<!-- ========================================================= -->
-<!-- ADMIN -->
-<!-- ========================================================= -->
+<!-- =========================================================
+     MODAL ADMIN
+========================================================= -->
 
 <div
   id="modal-admin"
@@ -399,7 +424,12 @@
         "
       ></i>
 
-      <h2 style="text-align:center;margin-bottom:.5rem;">
+      <h2
+        style="
+          text-align:center;
+          margin-bottom:.5rem;
+        "
+      >
         Panel Administrador
       </h2>
 
@@ -482,7 +512,9 @@
     </div>
 
 
-    <!-- PANEL -->
+    <!-- =====================================================
+         PANEL ADMIN
+    ====================================================== -->
 
     <div id="admin-panel" class="hidden">
 
@@ -519,7 +551,9 @@
       </div>
 
 
-      <!-- NUEVO PROYECTO -->
+      <!-- ===================================================
+           NUEVO PROYECTO
+      ==================================================== -->
 
       <form
         id="form-nuevo-proyecto"
@@ -555,7 +589,10 @@
             type="text"
             id="nuevo-codigo"
             placeholder="Código (Ej: HN-001)"
-            style="flex:1;"
+            style="
+              flex:1;
+              box-sizing:border-box;
+            "
           />
 
           <button
@@ -572,6 +609,8 @@
 
         </div>
 
+
+        <!-- CAMPOS -->
 
         <div
           style="
@@ -603,107 +642,50 @@
           />
 
 
-          <!-- MONTOS: NO TOCAR -->
+          <!-- MONTO TOTAL -->
 
-          <div
+          <input
+            type="number"
+            id="nuevo-presupuesto"
+            placeholder="Monto total (Bs)"
+            min="0"
+            step="0.01"
+          />
+
+
+          <!-- ADELANTO -->
+
+          <input
+            type="number"
+            id="nuevo-adelanto"
+            placeholder="Adelanto (Bs)"
+            min="0"
+            step="0.01"
+          />
+
+
+          <!-- FECHA -->
+
+          <input
+            type="date"
+            id="nuevo-fecha"
+            title="Seleccionar fecha de entrega"
             style="
-              display:flex;
-              flex-direction:column;
-              gap:3px;
+              width:100%;
+              box-sizing:border-box;
+              background:#0a0a0a;
+              border:1px solid #333;
+              color:#fff;
+              padding:8px;
+              border-radius:8px;
+              cursor:pointer;
             "
-          >
-
-            <label
-              for="nuevo-presupuesto"
-              style="
-                font-size:.75rem;
-                color:#38bdf8;
-              "
-            >
-              <i class="fa-solid fa-money-bill"></i>
-              Monto total
-            </label>
-
-            <input
-              type="number"
-              id="nuevo-presupuesto"
-              placeholder="Monto total (Bs)"
-              min="0"
-              step="0.01"
-            />
-
-          </div>
-
-
-          <div
-            style="
-              display:flex;
-              flex-direction:column;
-              gap:3px;
-            "
-          >
-
-            <label
-              for="nuevo-adelanto"
-              style="
-                font-size:.75rem;
-                color:#f59e0b;
-              "
-            >
-              <i class="fa-solid fa-hand-holding-dollar"></i>
-              Adelanto
-            </label>
-
-            <input
-              type="number"
-              id="nuevo-adelanto"
-              placeholder="Adelanto (Bs)"
-              min="0"
-              step="0.01"
-            />
-
-          </div>
-
-
-          <div
-            style="
-              display:flex;
-              flex-direction:column;
-              gap:3px;
-            "
-          >
-
-            <label
-              for="nuevo-fecha"
-              style="
-                font-size:.75rem;
-                color:#a3a3a3;
-              "
-            >
-              <i class="fa-regular fa-calendar font-amber"></i>
-              Fecha de entrega
-            </label>
-
-            <input
-              type="date"
-              id="nuevo-fecha"
-              title="Seleccionar fecha de entrega"
-              style="
-                width:100%;
-                box-sizing:border-box;
-                background:#0a0a0a;
-                border:1px solid #333;
-                color:#fff;
-                padding:8px;
-                border-radius:8px;
-                cursor:pointer;
-              "
-            />
-
-          </div>
+          />
 
         </div>
 
+
+        <!-- RESUMEN -->
 
         <div
           id="nuevo-resumen-montos"
@@ -821,7 +803,9 @@
       </form>
 
 
-      <!-- GESTIÓN DE INGRESOS ARRIBA -->
+      <!-- ===================================================
+           REGISTRADOS + GESTIÓN INGRESOS
+      ==================================================== -->
 
       <div
         style="
@@ -844,6 +828,8 @@
           (<span id="total-proyectos">0</span>)
         </h3>
 
+
+        <!-- ESTE BOTÓN QUEDA ARRIBA -->
 
         <button
           type="button"
@@ -877,9 +863,9 @@
 </div>
 
 
-<!-- ========================================================= -->
-<!-- GESTIÓN DE INGRESOS -->
-<!-- ========================================================= -->
+<!-- =========================================================
+     GESTIÓN DE INGRESOS
+========================================================= -->
 
 <div
   id="modal-ingresos"
@@ -916,15 +902,21 @@
       <div>
 
         <h2 style="margin:0;">
-          <i class="fa-solid fa-money-bill-trend-up font-amber"></i>
+
+          <i
+            class="fa-solid fa-money-bill-trend-up font-amber"
+          ></i>
+
           Gestión de Ingresos
+
         </h2>
 
         <p
           class="subtitle"
           style="margin:5px 0 0;"
         >
-          Registro mensual de ingresos y saldos pendientes.
+          Cada proyecto aparece automáticamente.
+          Solo registra el total que efectivamente recibiste.
         </p>
 
       </div>
@@ -932,7 +924,7 @@
     </div>
 
 
-    <!-- SELECTOR DE MES -->
+    <!-- MES -->
 
     <div
       style="
@@ -987,8 +979,10 @@
             padding:9px;
           "
         >
+
           <i class="fa-solid fa-file-pdf"></i>
           Exportar PDF
+
         </button>
 
       </div>
@@ -1006,90 +1000,10 @@
         gap:8px;
         margin-bottom:12px;
       "
-    >
-
-      <div
-        style="
-          background:rgba(255,255,255,.04);
-          border:1px solid rgba(255,255,255,.08);
-          border-radius:8px;
-          padding:9px;
-        "
-      >
-
-        <div
-          style="
-            color:#a3a3a3;
-            font-size:.72rem;
-          "
-        >
-          Proyectos
-        </div>
-
-        <strong id="ing-resumen-proyectos">
-          0
-        </strong>
-
-      </div>
+    ></div>
 
 
-      <div
-        style="
-          background:rgba(74,222,128,.06);
-          border:1px solid rgba(74,222,128,.2);
-          border-radius:8px;
-          padding:9px;
-        "
-      >
-
-        <div
-          style="
-            color:#4ade80;
-            font-size:.72rem;
-          "
-        >
-          Cobrado
-        </div>
-
-        <strong
-          id="ing-resumen-cobrado"
-          style="color:#4ade80;"
-        >
-          Bs. 0
-        </strong>
-
-      </div>
-
-
-      <div
-        style="
-          background:rgba(239,68,68,.06);
-          border:1px solid rgba(239,68,68,.2);
-          border-radius:8px;
-          padding:9px;
-        "
-      >
-
-        <div
-          style="
-            color:#ef4444;
-            font-size:.72rem;
-          "
-        >
-          Pendiente
-        </div>
-
-        <strong
-          id="ing-resumen-pendiente"
-          style="color:#ef4444;"
-        >
-          Bs. 0
-        </strong>
-
-      </div>
-
-    </div>
-
+    <!-- MENSAJE -->
 
     <div
       id="ingreso-mensaje"
@@ -1102,12 +1016,30 @@
     ></div>
 
 
+    <!-- LISTA -->
+
     <div id="lista-ingresos"></div>
 
   </div>
 
 </div>
 
+
+<!-- =========================================================
+     FIREBASE
+========================================================= -->
+
+<script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+
+<script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
+
+<script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+
+
+<script src="script.js"></script>
+
+
+<!-- FUNCIONES BÁSICAS -->
 
 <script>
 
@@ -1119,7 +1051,7 @@ function irASeccion(id) {
   if (el) {
 
     el.scrollIntoView({
-      behavior:"auto"
+      behavior:"smooth"
     });
 
   }
@@ -1129,30 +1061,54 @@ function irASeccion(id) {
 
 function abrirModalAdmin() {
 
-  document
-    .getElementById("modal-admin")
-    ?.classList
-    .remove("hidden");
+  const modal =
+    document.getElementById(
+      "modal-admin"
+    );
+
+  if (modal) {
+
+    modal.classList.remove(
+      "hidden"
+    );
+
+  }
 
 }
 
 
 function cerrarModalAdmin() {
 
-  document
-    .getElementById("modal-admin")
-    ?.classList
-    .add("hidden");
+  const modal =
+    document.getElementById(
+      "modal-admin"
+    );
+
+  if (modal) {
+
+    modal.classList.add(
+      "hidden"
+    );
+
+  }
 
 }
 
 
 function cerrarGestionIngresos() {
 
-  document
-    .getElementById("modal-ingresos")
-    ?.classList
-    .add("hidden");
+  const modal =
+    document.getElementById(
+      "modal-ingresos"
+    );
+
+  if (modal) {
+
+    modal.classList.add(
+      "hidden"
+    );
+
+  }
 
 }
 
@@ -1160,29 +1116,30 @@ function cerrarGestionIngresos() {
 function abrirGestionIngresos() {
 
   if (
-    typeof renderGestionIngresos === "function"
+    typeof renderGestionIngresos ===
+    "function"
   ) {
 
     renderGestionIngresos();
 
   }
 
-  document
-    .getElementById("modal-ingresos")
-    ?.classList
-    .remove("hidden");
+  const modal =
+    document.getElementById(
+      "modal-ingresos"
+    );
+
+  if (modal) {
+
+    modal.classList.remove(
+      "hidden"
+    );
+
+  }
 
 }
 
-
 </script>
-
-
-<script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
-
-<script src="script.js"></script>
 
 </body>
 </html>
