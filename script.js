@@ -1,4 +1,3 @@
-```javascript
 // ============================================================
 // HN MUEBLES - SCRIPT PRINCIPAL
 // Firebase Authentication + Firestore + Storage
@@ -2583,7 +2582,7 @@ async function registrarPago(
 
 
 // ============================================================
-// 18. EXPORTAR PDF - VERSIÓN PROFESIONAL
+// 18. EXPORTAR PDF
 // ============================================================
 
 function exportarIngresosPDF() {
@@ -2607,10 +2606,6 @@ function exportarIngresosPDF() {
 
     console.error(
       "jsPDF no disponible."
-    );
-
-    alert(
-      "No se pudo generar el PDF porque jsPDF no está disponible."
     );
 
     return;
@@ -2650,14 +2645,10 @@ function exportarIngresosPDF() {
 
 
   const doc =
-    new jsPDF({
-      orientation: "landscape",
-      unit: "mm",
-      format: "a4"
-    });
+    new jsPDF();
 
 
-  const [anio, mes] =
+  const [anio,mes] =
     filtro.split("-");
 
 
@@ -2679,62 +2670,23 @@ function exportarIngresosPDF() {
   ];
 
 
-  const nombreMes =
-    nombresMes[
-      Number(mes) - 1
-    ] || mes;
+  doc.setFontSize(18);
+
+  doc.text(
+    "HN MUEBLES",
+    14,
+    18
+  );
 
 
-  // ----------------------------------------------------------
-  // COLORES
-  // ----------------------------------------------------------
+  doc.setFontSize(12);
 
-  const negro =
-    [20, 20, 20];
+  doc.text(
+    `Registro de Ingresos - ${nombresMes[Number(mes)-1]} ${anio}`,
+    14,
+    27
+  );
 
-  const gris =
-    [95, 95, 95];
-
-  const grisClaro =
-    [235, 235, 235];
-
-  const blanco =
-    [255, 255, 255];
-
-  const dorado =
-    [156, 113, 81];
-
-  const verde =
-    [22, 163, 74];
-
-  const rojo =
-    [220, 38, 38];
-
-  const azul =
-    [37, 99, 235];
-
-
-  // ----------------------------------------------------------
-  // FECHA DE GENERACIÓN
-  // ----------------------------------------------------------
-
-  const ahora =
-    new Date();
-
-
-  const fechaGeneracion =
-    `${String(
-      ahora.getDate()
-    ).padStart(2,"0")}/${
-      String(
-        ahora.getMonth() + 1
-      ).padStart(2,"0")
-    }/${ahora.getFullYear()}`;
-
-
-  // ----------------------------------------------------------
-  // CÁLCULOS
-  // ----------------------------------------------------------
 
   let totalProyecto = 0;
 
@@ -2785,11 +2737,11 @@ function exportarIngresosPDF() {
 
         return [
 
-          ingreso.codigo || "-",
+          ingreso.codigo || "",
 
-          ingreso.cliente || "-",
+          ingreso.cliente || "",
 
-          ingreso.mueble || "-",
+          ingreso.mueble || "",
 
           `Bs. ${formatearMonto(total)}`,
 
@@ -2805,283 +2757,6 @@ function exportarIngresosPDF() {
     );
 
 
-  // ----------------------------------------------------------
-  // ENCABEZADO
-  // ----------------------------------------------------------
-
-  doc.setFillColor(
-    ...negro
-  );
-
-  doc.rect(
-    0,
-    0,
-    297,
-    35,
-    "F"
-  );
-
-
-  doc.setTextColor(
-    ...blanco
-  );
-
-
-  doc.setFont(
-    "helvetica",
-    "bold"
-  );
-
-  doc.setFontSize(
-    22
-  );
-
-
-  doc.text(
-    "HN MUEBLES",
-    15,
-    15
-  );
-
-
-  doc.setFont(
-    "helvetica",
-    "normal"
-  );
-
-  doc.setFontSize(
-    10
-  );
-
-
-  doc.setTextColor(
-    215,
-    215,
-    215
-  );
-
-
-  doc.text(
-    "GESTIÓN FINANCIERA",
-    15,
-    23
-  );
-
-
-  doc.text(
-    `Generado: ${fechaGeneracion}`,
-    282,
-    15,
-    {
-      align: "right"
-    }
-  );
-
-
-  doc.text(
-    "Documento interno de gestión",
-    282,
-    23,
-    {
-      align: "right"
-    }
-  );
-
-
-  // ----------------------------------------------------------
-  // TÍTULO DEL PERÍODO
-  // ----------------------------------------------------------
-
-  doc.setTextColor(
-    ...negro
-  );
-
-
-  doc.setFont(
-    "helvetica",
-    "bold"
-  );
-
-  doc.setFontSize(
-    17
-  );
-
-
-  doc.text(
-    `Registro de Ingresos — ${nombreMes} ${anio}`,
-    15,
-    47
-  );
-
-
-  doc.setFont(
-    "helvetica",
-    "normal"
-  );
-
-  doc.setFontSize(
-    9
-  );
-
-
-  doc.setTextColor(
-    ...gris
-  );
-
-
-  doc.text(
-    "Resumen de proyectos, cobros y saldos pendientes del período seleccionado.",
-    15,
-    54
-  );
-
-
-  // ----------------------------------------------------------
-  // TARJETAS DE RESUMEN
-  // ----------------------------------------------------------
-
-  const cardY =
-    62;
-
-  const cardW =
-    63;
-
-  const cardH =
-    27;
-
-  const separacion =
-    7;
-
-
-  const tarjetas = [
-
-    {
-      titulo: "PROYECTOS",
-      valor: String(lista.length),
-      color: azul
-    },
-
-    {
-      titulo: "TOTAL CONTRATADO",
-      valor:
-        `Bs. ${formatearMonto(totalProyecto)}`,
-      color: dorado
-    },
-
-    {
-      titulo: "TOTAL COBRADO",
-      valor:
-        `Bs. ${formatearMonto(totalCobrado)}`,
-      color: verde
-
-    },
-
-    {
-      titulo: "PENDIENTE",
-      valor:
-        `Bs. ${formatearMonto(totalPendiente)}`,
-      color: rojo
-    }
-
-  ];
-
-
-  tarjetas.forEach(
-    (tarjeta, index) => {
-
-      const x =
-        15 +
-        index *
-          (cardW + separacion);
-
-
-      doc.setFillColor(
-        248,
-        248,
-        248
-      );
-
-
-      doc.setDrawColor(
-        225,
-        225,
-        225
-      );
-
-
-      doc.roundedRect(
-        x,
-        cardY,
-        cardW,
-        cardH,
-        3,
-        3,
-        "FD"
-      );
-
-
-      doc.setFillColor(
-        ...tarjeta.color
-      );
-
-
-      doc.roundedRect(
-        x,
-        cardY,
-        3,
-        cardH,
-        1.5,
-        1.5,
-        "F"
-      );
-
-
-      doc.setTextColor(
-        ...gris
-      );
-
-
-      doc.setFont(
-        "helvetica",
-        "bold"
-      );
-
-      doc.setFontSize(
-        7
-      );
-
-
-      doc.text(
-        tarjeta.titulo,
-        x + 8,
-        cardY + 8
-      );
-
-
-      doc.setTextColor(
-        ...negro
-      );
-
-
-      doc.setFontSize(
-        13
-      );
-
-
-      doc.text(
-        tarjeta.valor,
-        x + 8,
-        cardY + 19
-      );
-
-    }
-  );
-
-
-  // ----------------------------------------------------------
-  // TABLA
-  // ----------------------------------------------------------
-
   if (
     typeof doc.autoTable ===
     "function"
@@ -3089,434 +2764,75 @@ function exportarIngresosPDF() {
 
     doc.autoTable({
 
-      startY:
-        cardY + cardH + 12,
-
-      margin: {
-        left: 15,
-        right: 15
-      },
+      startY: 35,
 
       head: [[
-
-        "CÓDIGO",
-        "CLIENTE",
-        "PROYECTO",
-        "TOTAL",
-        "ADELANTO",
-        "COBRADO",
-        "PENDIENTE"
-
+        "Código",
+        "Cliente",
+        "Proyecto",
+        "Total",
+        "Adelanto",
+        "Cobrado",
+        "Pendiente"
       ]],
 
-      body:
-        filas,
-
-      theme:
-        "grid",
+      body: filas,
 
       styles: {
-
-        font:
-          "helvetica",
-
-        fontSize:
-          8,
-
-        cellPadding:
-          3.2,
-
-        textColor:
-          negro,
-
-        lineColor:
-          [220,220,220],
-
-        lineWidth:
-          0.2,
-
-        valign:
-          "middle"
-
-      },
-
-      headStyles: {
-
-        fillColor:
-          negro,
-
-        textColor:
-          blanco,
-
-        fontStyle:
-          "bold",
-
-        fontSize:
-          8,
-
-        halign:
-          "center",
-
-        cellPadding:
-          3.5
-
-      },
-
-      alternateRowStyles: {
-
-        fillColor:
-          [248,248,248]
-
-      },
-
-      columnStyles: {
-
-        0: {
-          halign:
-            "center",
-          cellWidth:
-            28
-        },
-
-        1: {
-          cellWidth:
-            43
-        },
-
-        2: {
-          cellWidth:
-            55
-        },
-
-        3: {
-          halign:
-            "right",
-          cellWidth:
-            38
-        },
-
-        4: {
-          halign:
-            "right",
-          cellWidth:
-            38
-        },
-
-        5: {
-          halign:
-            "right",
-          cellWidth:
-            38
-        },
-
-        6: {
-          halign:
-            "right",
-          cellWidth:
-            38
-        }
-
-      },
-
-      didParseCell:
-        function(data) {
-
-          if (
-            data.section ===
-            "body"
-          ) {
-
-            if (
-              data.column.index === 6
-            ) {
-
-              data.cell.styles.textColor =
-                rojo;
-
-            }
-
-            if (
-              data.column.index === 5
-            ) {
-
-              data.cell.styles.textColor =
-                verde;
-
-            }
-
-          }
-
-        },
-
-      didDrawPage:
-        function() {
-
-          agregarPiePDF(
-            doc
-          );
-
-        }
+        fontSize: 8
+      }
 
     });
 
   }
 
 
-  // ----------------------------------------------------------
-  // RESUMEN FINAL
-  // ----------------------------------------------------------
-
   const finalY =
     doc.lastAutoTable
       ? doc.lastAutoTable.finalY + 10
-      : 110;
+      : 45;
 
 
-  const resumenX =
-    185;
+  doc.setFontSize(10);
 
 
-  const resumenW =
-    97;
-
-
-  const resumenH =
-    45;
-
-
-  doc.setFillColor(
-    248,
-    248,
-    248
-  );
-
-
-  doc.setDrawColor(
-    220,
-    220,
-    220
-  );
-
-
-  doc.roundedRect(
-    resumenX,
-    finalY,
-    resumenW,
-    resumenH,
-    3,
-    3,
-    "FD"
-  );
-
-
-  doc.setTextColor(
-    ...negro
-  );
-
-
-  doc.setFont(
-    "helvetica",
-    "bold"
-  );
-
-  doc.setFontSize(
-    9
+  doc.text(
+    `Total proyectos: ${lista.length}`,
+    14,
+    finalY
   );
 
 
   doc.text(
-    "RESUMEN FINANCIERO",
-    resumenX + 7,
-    finalY + 8
-  );
-
-
-  doc.setFont(
-    "helvetica",
-    "normal"
-  );
-
-  doc.setFontSize(
-    8
-  );
-
-
-  doc.setTextColor(
-    ...gris
+    `Total contratado: Bs. ${formatearMonto(totalProyecto)}`,
+    14,
+    finalY + 7
   );
 
 
   doc.text(
-    "Total contratado:",
-    resumenX + 7,
-    finalY + 16
+    `Total adelantos: Bs. ${formatearMonto(totalAdelanto)}`,
+    14,
+    finalY + 14
   );
 
 
   doc.text(
-    `Bs. ${formatearMonto(totalProyecto)}`,
-    resumenX + resumenW - 7,
-    finalY + 16,
-    {
-      align:
-        "right"
-    }
-  );
-
-
-  doc.text(
-    "Adelantos:",
-    resumenX + 7,
-    finalY + 23
-  );
-
-
-  doc.text(
-    `Bs. ${formatearMonto(totalAdelanto)}`,
-    resumenX + resumenW - 7,
-    finalY + 23,
-    {
-      align:
-        "right"
-    }
-  );
-
-
-  doc.setTextColor(
-    ...verde
-  );
-
-
-  doc.text(
-    "Total cobrado:",
-    resumenX + 7,
-    finalY + 30
-  );
-
-
-  doc.text(
-    `Bs. ${formatearMonto(totalCobrado)}`,
-    resumenX + resumenW - 7,
-    finalY + 30,
-    {
-      align:
-        "right"
-    }
-  );
-
-
-  doc.setTextColor(
-    ...rojo
-  );
-
-
-  doc.text(
-    "Total pendiente:",
-    resumenX + 7,
-    finalY + 37
-  );
-
-
-  doc.text(
-    `Bs. ${formatearMonto(totalPendiente)}`,
-    resumenX + resumenW - 7,
-    finalY + 37,
-    {
-      align:
-        "right"
-    }
-  );
-
-
-  // ----------------------------------------------------------
-  // NOTA
-  // ----------------------------------------------------------
-
-  doc.setTextColor(
-    ...gris
-  );
-
-  doc.setFontSize(
-    7
-  );
-
-
-  doc.text(
-    "Este documento corresponde al registro interno de ingresos de HN Muebles.",
-    15,
-    finalY + 15
-  );
-
-
-  doc.text(
-    "Los valores reflejan la información registrada en el sistema al momento de generar este reporte.",
-    15,
+    `Total cobrado: Bs. ${formatearMonto(totalCobrado)}`,
+    14,
     finalY + 21
   );
 
 
-  // ----------------------------------------------------------
-  // GUARDAR
-  // ----------------------------------------------------------
+  doc.text(
+    `Total pendiente: Bs. ${formatearMonto(totalPendiente)}`,
+    14,
+    finalY + 28
+  );
+
 
   doc.save(
-    `HN-Muebles-Gestion-Ingresos-${filtro}.pdf`
-  );
-
-}
-
-
-// ============================================================
-// FUNCIÓN AUXILIAR PARA PIE DE PÁGINA DEL PDF
-// ============================================================
-
-function agregarPiePDF(doc) {
-
-  const paginas =
-    doc.internal.getNumberOfPages();
-
-
-  const paginaActual =
-    doc.internal.getCurrentPageInfo
-      ? doc.internal
-          .getCurrentPageInfo()
-          .pageNumber
-      : paginas;
-
-
-  doc.setFont(
-    "helvetica",
-    "normal"
-  );
-
-
-  doc.setFontSize(
-    7
-  );
-
-
-  doc.setTextColor(
-    120,
-    120,
-    120
-  );
-
-
-  doc.text(
-    "HN MUEBLES · Gestión de Ingresos",
-    15,
-    203
-  );
-
-
-  doc.text(
-    `Página ${paginaActual} de ${paginas}`,
-    282,
-    203,
-    {
-      align:
-        "right"
-    }
+    `HN-Muebles-Ingresos-${filtro}.pdf`
   );
 
 }
@@ -4075,9 +3391,9 @@ async function publicarTrabajoPortafolio(e) {
   }
 
 
+  // Máximo aproximado por archivo
   const MAX_IMAGEN =
     15 * 1024 * 1024;
-
 
   const MAX_VIDEO =
     100 * 1024 * 1024;
@@ -4582,6 +3898,7 @@ async function eliminarTrabajoPortafolio(
 
   try {
 
+    // Primero eliminamos archivos de Storage
     if (
       trabajo.media &&
       Array.isArray(trabajo.media)
@@ -4619,6 +3936,7 @@ async function eliminarTrabajoPortafolio(
     }
 
 
+    // Luego eliminamos documento
     await db
       .collection("portafolio")
       .doc(id)
@@ -4670,4 +3988,3 @@ function escaparHTML(texto) {
   return div.innerHTML;
 
 }
-```
