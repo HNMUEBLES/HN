@@ -1,122 +1,225 @@
 // ============================================================
 // HN MUEBLES - SCRIPT PRINCIPAL
 // Firebase Authentication + Firestore
+// Gestión de Proyectos + Gestión de Ingresos
+// ============================================================
+
+
+// ============================================================
+// 1. FIREBASE
 // ============================================================
 
 const firebaseConfig = {
+
   apiKey: "AIzaSyCLrVUpGCTxFxuMR0ATlwj2t3osSP0dD7Y",
-  authDomain: "hn-muebles.firebaseapp.com",
-  projectId: "hn-muebles",
-  storageBucket: "hn-muebles.firebasestorage.app",
-  messagingSenderId: "175601256381",
-  appId: "1:175601256381:web:db2031a56faa87a02bf4d4",
-  measurementId: "G-8PJGERB67Q"
+
+  authDomain:
+    "hn-muebles.firebaseapp.com",
+
+  projectId:
+    "hn-muebles",
+
+  storageBucket:
+    "hn-muebles.firebasestorage.app",
+
+  messagingSenderId:
+    "175601256381",
+
+  appId:
+    "1:175601256381:web:db2031a56faa87a02bf4d4",
+
+  measurementId:
+    "G-8PJGERB67Q"
 };
+
 
 firebase.initializeApp(firebaseConfig);
 
-const db = firebase.firestore();
-const auth = firebase.auth();
 
-const EMAIL_ADMIN = "hn24muebles@gmail.com";
+const db =
+  firebase.firestore();
+
+
+const auth =
+  firebase.auth();
+
+
+const EMAIL_ADMIN =
+  "hn24muebles@gmail.com";
+
 
 let proyectos = [];
+
+let ingresos = [];
+
 let esAdmin = false;
 
 
 // ============================================================
-// UTILIDADES
+// 2. UTILIDADES
 // ============================================================
 
 function formatearMonto(valor) {
-  const num = Number(valor);
 
-  if (isNaN(num)) return "0";
+  const num =
+    Number(valor) || 0;
 
   return Number.isInteger(num)
     ? num.toString()
-    : num.toString();
+    : num.toFixed(2);
+
 }
 
 
 function generarCodigoAleatorio() {
 
-  const caracteres = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+  const caracteres =
+    "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+
   let aleatorio = "";
 
-  for (let i = 0; i < 5; i++) {
-    aleatorio += caracteres.charAt(
-      Math.floor(Math.random() * caracteres.length)
-    );
+  for (
+    let i = 0;
+    i < 5;
+    i++
+  ) {
+
+    aleatorio +=
+      caracteres.charAt(
+        Math.floor(
+          Math.random() *
+          caracteres.length
+        )
+      );
+
   }
 
   return `HN${aleatorio}`;
+
 }
 
 
 function llenarCodigoAutomatico() {
 
-  const inputCod =
-    document.getElementById("nuevo-codigo");
+  const input =
+    document.getElementById(
+      "nuevo-codigo"
+    );
 
-  if (inputCod) {
-    inputCod.value =
+  if (input) {
+
+    input.value =
       generarCodigoAleatorio();
+
   }
+
 }
 
 
 function copiarCodigoAlPortapapeles(codigo) {
 
-  navigator.clipboard.writeText(codigo)
+  navigator.clipboard
+    .writeText(codigo)
+    .then(() => {
+
+      const boton =
+        document.querySelector(
+          `[data-copy-code="${codigo}"]`
+        );
+
+      if (boton) {
+
+        const textoOriginal =
+          boton.innerText;
+
+        boton.innerText =
+          "Copiado ✓";
+
+        setTimeout(() => {
+
+          boton.innerText =
+            textoOriginal;
+
+        }, 1200);
+
+      }
+
+    })
     .catch(error => {
-      console.error("Error al copiar código:", error);
+
+      console.error(
+        "Error copiando:",
+        error
+      );
+
     });
+
 }
 
 
 function irInicio() {
 
-  if (typeof mostrarSeccion === "function") {
-    mostrarSeccion("inicio");
-  }
+  window.scrollTo({
+    top:0,
+    behavior:"smooth"
+  });
+
 }
 
 
 // ============================================================
-// AUTENTICACIÓN
+// 3. AUTENTICACIÓN
 // ============================================================
 
-auth.onAuthStateChanged(async (user) => {
+auth.onAuthStateChanged(
+  async (user) => {
 
-  if (user) {
+    if (user) {
 
-    console.log(
-      "Usuario autenticado:",
-      user.email
-    );
-
-    if (
-      user.email.toLowerCase() ===
-      EMAIL_ADMIN.toLowerCase()
-    ) {
-
-      esAdmin = true;
-
-      mostrarPanelAdministrador();
-
-      await cargarProyectosDesdeNube();
-
-      renderProyectosAdmin();
-
-    } else {
-
-      console.warn(
-        "Usuario no autorizado:",
+      console.log(
+        "Usuario autenticado:",
         user.email
       );
 
-      await auth.signOut();
+
+      if (
+        user.email &&
+        user.email.toLowerCase() ===
+        EMAIL_ADMIN.toLowerCase()
+      ) {
+
+        esAdmin = true;
+
+        mostrarPanelAdministrador();
+
+        await cargarProyectosDesdeNube();
+
+        await cargarIngresosDesdeNube();
+
+        renderProyectosAdmin();
+
+        renderGestionIngresos();
+
+      }
+
+      else {
+
+        console.warn(
+          "Usuario no autorizado:",
+          user.email
+        );
+
+        await auth.signOut();
+
+        esAdmin = false;
+
+        ocultarPanelAdministrador();
+
+      }
+
+    }
+
+    else {
 
       esAdmin = false;
 
@@ -124,87 +227,93 @@ auth.onAuthStateChanged(async (user) => {
 
     }
 
-  } else {
-
-    console.log(
-      "No hay sesión activa."
-    );
-
-    esAdmin = false;
-
-    ocultarPanelAdministrador();
   }
-});
+);
 
 
 // ============================================================
-// MOSTRAR / OCULTAR ADMIN
+// 4. MOSTRAR / OCULTAR ADMIN
 // ============================================================
 
 function mostrarPanelAdministrador() {
 
-  const divLogin =
-    document.getElementById("admin-login");
+  const login =
+    document.getElementById(
+      "admin-login"
+    );
 
-  const divPanel =
-    document.getElementById("admin-panel");
+  const panel =
+    document.getElementById(
+      "admin-panel"
+    );
 
-  const btnReportes =
-    document.getElementById("btn-reportes");
 
-  if (divLogin) {
-    divLogin.classList.add("hidden");
+  if (login) {
+
+    login.classList.add(
+      "hidden"
+    );
+
   }
 
-  if (divPanel) {
-    divPanel.classList.remove("hidden");
+
+  if (panel) {
+
+    panel.classList.remove(
+      "hidden"
+    );
+
   }
 
-  if (btnReportes) {
-    btnReportes.classList.remove("hidden");
-  }
 }
 
 
 function ocultarPanelAdministrador() {
 
-  const divLogin =
-    document.getElementById("admin-login");
+  const login =
+    document.getElementById(
+      "admin-login"
+    );
 
-  const divPanel =
-    document.getElementById("admin-panel");
+  const panel =
+    document.getElementById(
+      "admin-panel"
+    );
 
-  const btnReportes =
-    document.getElementById("btn-reportes");
 
-  if (divPanel) {
-    divPanel.classList.add("hidden");
+  if (panel) {
+
+    panel.classList.add(
+      "hidden"
+    );
+
   }
 
-  if (divLogin) {
-    divLogin.classList.remove("hidden");
+
+  if (login) {
+
+    login.classList.remove(
+      "hidden"
+    );
+
   }
 
-  if (btnReportes) {
-    btnReportes.classList.add("hidden");
-  }
 }
 
 
 // ============================================================
-// DOM
+// 5. LOGIN
 // ============================================================
 
 document.addEventListener(
   "DOMContentLoaded",
   function () {
 
-    // ========================================================
-    // LOGIN
-    // ========================================================
-
     const formLogin =
-      document.getElementById("form-login");
+      document.getElementById(
+        "form-login"
+      );
+
 
     if (formLogin) {
 
@@ -214,45 +323,35 @@ document.addEventListener(
 
           e.preventDefault();
 
-          const emailInput =
-            document.getElementById("input-email");
 
-          const passInput =
-            document.getElementById("input-pass");
+          const email =
+            document.getElementById(
+              "input-email"
+            )?.value.trim();
+
+
+          const password =
+            document.getElementById(
+              "input-pass"
+            )?.value;
+
 
           const errorMsg =
             document.getElementById(
               "login-error-msg"
             );
 
-          const email =
-            emailInput
-              ? emailInput.value.trim()
-              : "";
-
-          const password =
-            passInput
-              ? passInput.value
-              : "";
-
-          if (!email || !password) {
-
-            if (errorMsg) {
-
-              errorMsg.textContent =
-                "Ingresa tu correo y contraseña.";
-
-              errorMsg.classList.remove("hidden");
-            }
-
-            return;
-          }
 
           try {
 
             if (errorMsg) {
-              errorMsg.classList.add("hidden");
+
+              errorMsg.classList.add(
+                "hidden"
+              );
+
             }
+
 
             const resultado =
               await auth.signInWithEmailAndPassword(
@@ -260,10 +359,13 @@ document.addEventListener(
                 password
               );
 
+
             const usuario =
               resultado.user;
 
+
             if (
+              !usuario.email ||
               usuario.email.toLowerCase() !==
               EMAIL_ADMIN.toLowerCase()
             ) {
@@ -271,27 +373,52 @@ document.addEventListener(
               await auth.signOut();
 
               throw new Error(
-                "Esta cuenta no es administradora."
+                "NO_AUTORIZADO"
               );
+
             }
+
+
+            const passInput =
+              document.getElementById(
+                "input-pass"
+              );
+
 
             if (passInput) {
-              passInput.value = "";
+
+              passInput.value =
+                "";
+
             }
 
-          } catch (error) {
+          }
+
+          catch (error) {
 
             console.error(
-              "Error de autenticación:",
+              "Error login:",
               error
             );
 
+
+            const passInput =
+              document.getElementById(
+                "input-pass"
+              );
+
+
             if (passInput) {
-              passInput.value = "";
+
+              passInput.value =
+                "";
+
             }
+
 
             let mensaje =
               "No se pudo iniciar sesión.";
+
 
             if (
               error.code ===
@@ -300,7 +427,9 @@ document.addEventListener(
 
               mensaje =
                 "Correo o contraseña incorrectos.";
+
             }
+
 
             if (
               error.code ===
@@ -309,7 +438,9 @@ document.addEventListener(
 
               mensaje =
                 "El correo electrónico no es válido.";
+
             }
+
 
             if (
               error.code ===
@@ -318,16 +449,20 @@ document.addEventListener(
 
               mensaje =
                 "Demasiados intentos. Espera unos minutos.";
+
             }
+
 
             if (
               error.message ===
-              "Esta cuenta no es administradora."
+              "NO_AUTORIZADO"
             ) {
 
               mensaje =
                 "Esta cuenta no tiene permisos de administrador.";
+
             }
+
 
             if (errorMsg) {
 
@@ -337,10 +472,14 @@ document.addEventListener(
               errorMsg.classList.remove(
                 "hidden"
               );
+
             }
+
           }
+
         }
       );
+
     }
 
 
@@ -349,7 +488,10 @@ document.addEventListener(
     // ========================================================
 
     const formBuscar =
-      document.getElementById("form-buscar");
+      document.getElementById(
+        "form-buscar"
+      );
+
 
     if (formBuscar) {
 
@@ -359,92 +501,92 @@ document.addEventListener(
 
           e.preventDefault();
 
-          const codigoInput =
-            document.getElementById(
-              "input-codigo"
-            );
-
-          if (!codigoInput) return;
 
           const codigo =
-            codigoInput.value
+            document.getElementById(
+              "input-codigo"
+            )?.value
               .trim()
               .toUpperCase();
 
-          buscarProyectoPublico(codigo);
+
+          if (codigo) {
+
+            await buscarProyectoPublico(
+              codigo
+            );
+
+          }
+
         }
       );
+
     }
 
 
     // ========================================================
-    // CÁLCULO DE SALDO
+    // CÁLCULO SALDO NUEVO PROYECTO
     // ========================================================
 
-    const inputPresupuestoNuevo =
+    const presupuestoInput =
       document.getElementById(
         "nuevo-presupuesto"
       );
 
-    const inputAdelantoNuevo =
+
+    const adelantoInput =
       document.getElementById(
         "nuevo-adelanto"
       );
 
 
-    function calcularSaldoEnVivo() {
+    function calcularSaldoNuevo() {
 
-      const pres =
-        parseFloat(
-          inputPresupuestoNuevo
-            ? inputPresupuestoNuevo.value
-            : 0
+      const total =
+        Number(
+          presupuestoInput?.value
         ) || 0;
 
-      const adel =
-        parseFloat(
-          inputAdelantoNuevo
-            ? inputAdelantoNuevo.value
-            : 0
+
+      const adelanto =
+        Number(
+          adelantoInput?.value
         ) || 0;
 
-      const saldoFinal =
-        pres - adel;
 
-      const lblSaldo =
+      const saldo =
+        Math.max(
+          total - adelanto,
+          0
+        );
+
+
+      const label =
         document.getElementById(
           "lbl-nuevo-saldo"
         );
 
-      if (lblSaldo) {
 
-        lblSaldo.innerText =
-          `Bs. ${formatearMonto(saldoFinal)}`;
+      if (label) {
 
-        lblSaldo.style.color =
-          saldoFinal > 0
-            ? "#ef4444"
-            : "#4ade80";
+        label.innerText =
+          `Bs. ${formatearMonto(saldo)}`;
+
       }
+
     }
 
 
-    if (inputPresupuestoNuevo) {
-
-      inputPresupuestoNuevo.addEventListener(
-        "input",
-        calcularSaldoEnVivo
-      );
-    }
+    presupuestoInput?.addEventListener(
+      "input",
+      calcularSaldoNuevo
+    );
 
 
-    if (inputAdelantoNuevo) {
-
-      inputAdelantoNuevo.addEventListener(
-        "input",
-        calcularSaldoEnVivo
-      );
-    }
+    adelantoInput?.addEventListener(
+      "input",
+      calcularSaldoNuevo
+    );
 
 
     // ========================================================
@@ -456,6 +598,7 @@ document.addEventListener(
         "form-nuevo-proyecto"
       );
 
+
     if (formNuevo) {
 
       formNuevo.addEventListener(
@@ -464,120 +607,127 @@ document.addEventListener(
 
           e.preventDefault();
 
+
           if (
             !esAdmin ||
             !auth.currentUser
           ) {
 
-            console.warn(
-              "Sesión de administrador no activa."
-            );
-
             return;
+
           }
 
-          const usuario =
-            auth.currentUser.email.toLowerCase();
 
           if (
-            usuario !==
+            auth.currentUser.email.toLowerCase() !==
             EMAIL_ADMIN.toLowerCase()
           ) {
 
-            console.warn(
-              "Usuario sin permisos."
-            );
-
             return;
+
           }
 
 
-          const codIn =
+          const codigo =
             document.getElementById(
               "nuevo-codigo"
-            );
+            )?.value
+              .trim()
+              .toUpperCase()
+              ||
+              generarCodigoAleatorio();
 
-          const cliIn =
+
+          const cliente =
             document.getElementById(
               "nuevo-cliente"
-            );
+            )?.value.trim()
+            || "";
 
-          const mueIn =
+
+          const mueble =
             document.getElementById(
               "nuevo-mueble"
-            );
+            )?.value.trim()
+            || "";
 
-          const telIn =
+
+          const telefono =
             document.getElementById(
               "nuevo-telefono"
-            );
-
-          const presIn =
-            document.getElementById(
-              "nuevo-presupuesto"
-            );
-
-          const adelIn =
-            document.getElementById(
-              "nuevo-adelanto"
-            );
-
-          const fechaIn =
-            document.getElementById(
-              "nuevo-fecha"
-            );
-
-
-          let codigoGenerado =
-            codIn
-              ? codIn.value
-                  .trim()
-                  .toUpperCase()
-              : "";
-
-
-          if (!codigoGenerado) {
-
-            codigoGenerado =
-              generarCodigoAleatorio();
-          }
+            )?.value.trim()
+            || "";
 
 
           const presupuesto =
-            presIn
-              ? parseFloat(
-                  presIn.value
-                ) || 0
-              : 0;
+            Number(
+              document.getElementById(
+                "nuevo-presupuesto"
+              )?.value
+            ) || 0;
 
 
           const adelanto =
-            adelIn
-              ? parseFloat(
-                  adelIn.value
-                ) || 0
-              : 0;
+            Number(
+              document.getElementById(
+                "nuevo-adelanto"
+              )?.value
+            ) || 0;
 
 
-          const nuevoProyectoObj = {
+          const fechaEntrega =
+            document.getElementById(
+              "nuevo-fecha"
+            )?.value
+            || "";
 
-            codigo:
-              codigoGenerado,
 
-            cliente:
-              cliIn
-                ? cliIn.value.trim()
-                : "",
+          const pendiente =
+            Math.max(
+              presupuesto -
+              adelanto,
+              0
+            );
 
-            mueble:
-              mueIn
-                ? mueIn.value.trim()
-                : "",
 
-            telefono:
-              telIn
-                ? telIn.value.trim()
-                : "",
+          // ==================================================
+          // REFERENCIAS
+          // ==================================================
+
+          const proyectoRef =
+            db.collection(
+              "proyectos"
+            ).doc();
+
+
+          const ingresoRef =
+            db.collection(
+              "ingresos"
+            ).doc();
+
+
+          const publicoRef =
+            db.collection(
+              "proyectos_publicos"
+            ).doc(
+              proyectoRef.id
+            );
+
+
+          // ==================================================
+          // PROYECTO PRIVADO
+          // ==================================================
+
+          const proyecto =
+          {
+
+            codigo,
+
+            cliente,
+
+            mueble,
+
+            telefono,
 
             estado:
               "Diseño Aprobado",
@@ -588,114 +738,222 @@ document.addEventListener(
             detalles:
               "Diseño confirmado por WhatsApp. Listo para corte.",
 
-            presupuesto:
-              presupuesto,
+            presupuesto,
 
-            adelanto:
+            adelanto,
+
+            fechaEntrega,
+
+            creadoEn:
+              firebase.firestore.FieldValue.serverTimestamp()
+
+          };
+
+
+          // ==================================================
+          // REGISTRO DE INGRESO
+          // ==================================================
+
+          const ingreso =
+          {
+
+            proyectoId:
+              proyectoRef.id,
+
+            codigo,
+
+            cliente,
+
+            mueble,
+
+            presupuesto,
+
+            adelanto,
+
+            pagosFinales: 0,
+
+            cobrado:
               adelanto,
 
-            saldo:
-              presupuesto - adelanto,
+            pendiente,
 
-            fechaEntrega:
-              fechaIn
-                ? fechaIn.value
-                : ""
+            fechaCreacion:
+              firebase.firestore.FieldValue.serverTimestamp(),
+
+            fechaUltimoPago:
+              adelanto > 0
+                ? firebase.firestore.FieldValue.serverTimestamp()
+                : null
+
+          };
+
+
+          // ==================================================
+          // INFORMACIÓN PÚBLICA
+          // NO INCLUYE DINERO
+          // ==================================================
+
+          const proyectoPublico =
+          {
+
+            codigo,
+
+            cliente,
+
+            mueble,
+
+            estado:
+              "Diseño Aprobado",
+
+            progreso:
+              20,
+
+            detalles:
+              "Diseño confirmado por WhatsApp. Listo para corte.",
+
+            fechaEntrega
+
           };
 
 
           try {
 
-            // GUARDAR EN FIRESTORE
-            await db
-              .collection("proyectos")
-              .add(
-                nuevoProyectoObj
-              );
+            // =================================================
+            // TODO EN UNA SOLA OPERACIÓN
+            // =================================================
+
+            const batch =
+              db.batch();
 
 
+            batch.set(
+              proyectoRef,
+              proyecto
+            );
+
+
+            batch.set(
+              ingresoRef,
+              ingreso
+            );
+
+
+            batch.set(
+              publicoRef,
+              proyectoPublico
+            );
+
+
+            await batch.commit();
+
+
+            // =================================================
             // LIMPIAR FORMULARIO
-            if (codIn)
-              codIn.value = "";
+            // =================================================
 
-            if (cliIn)
-              cliIn.value = "";
-
-            if (mueIn)
-              mueIn.value = "";
-
-            if (telIn)
-              telIn.value = "";
-
-            if (presIn)
-              presIn.value = "";
-
-            if (adelIn)
-              adelIn.value = "";
-
-            if (fechaIn)
-              fechaIn.value = "";
+            document.getElementById(
+              "nuevo-codigo"
+            ).value = "";
 
 
-            // ACTUALIZAR AUTOMÁTICAMENTE
+            document.getElementById(
+              "nuevo-cliente"
+            ).value = "";
+
+
+            document.getElementById(
+              "nuevo-mueble"
+            ).value = "";
+
+
+            document.getElementById(
+              "nuevo-telefono"
+            ).value = "";
+
+
+            document.getElementById(
+              "nuevo-presupuesto"
+            ).value = "";
+
+
+            document.getElementById(
+              "nuevo-adelanto"
+            ).value = "";
+
+
+            document.getElementById(
+              "nuevo-fecha"
+            ).value = "";
+
+
+            calcularSaldoNuevo();
+
+
+            // =================================================
+            // ACTUALIZAR DATOS
+            // =================================================
+
             await cargarProyectosDesdeNube();
+
+            await cargarIngresosDesdeNube();
 
             renderProyectosAdmin();
 
+            renderGestionIngresos();
 
-            // IMPORTANTE:
-            // NO HAY ALERT()
-            // NO HAY VENTANA EMERGENTE
+          }
 
-          } catch (error) {
+          catch (error) {
 
             console.error(
-              "Error al guardar proyecto:",
+              "Error creando proyecto:",
               error
             );
 
-            // Tampoco mostramos popup.
-            // El error queda registrado
-            // en la consola del navegador.
+            mostrarMensajeInterno(
+              "No se pudo guardar. Revisa las Rules de Firestore.",
+              true
+            );
+
           }
 
         }
       );
+
     }
 
 
     // ========================================================
-    // FILTRO MENSUAL
+    // FILTRO INGRESOS
     // ========================================================
 
-    const selectMes =
+    const filtroIngresos =
       document.getElementById(
-        "filtro-mes"
+        "filtro-ingresos-mes"
       );
 
-    if (selectMes) {
 
-      const fechaActual =
+    if (filtroIngresos) {
+
+      const ahora =
         new Date();
 
-      const anio =
-        fechaActual.getFullYear();
 
-      const mes =
-        String(
-          fechaActual.getMonth() + 1
-        ).padStart(2, "0");
+      filtroIngresos.value =
+        `${ahora.getFullYear()}-${String(
+          ahora.getMonth() + 1
+        ).padStart(2,"0")}`;
 
-      selectMes.value =
-        `${anio}-${mes}`;
 
-      selectMes.addEventListener(
+      filtroIngresos.addEventListener(
         "change",
         function () {
 
-          renderProyectosAdmin();
+          renderGestionIngresos();
+
         }
       );
+
     }
 
   }
@@ -703,7 +961,46 @@ document.addEventListener(
 
 
 // ============================================================
-// CERRAR SESIÓN
+// 6. MENSAJE INTERNO
+// SIN POPUPS
+// ============================================================
+
+function mostrarMensajeInterno(
+  mensaje,
+  error = false
+) {
+
+  const elemento =
+    document.getElementById(
+      "ingreso-mensaje"
+    );
+
+
+  if (!elemento) return;
+
+
+  elemento.textContent =
+    mensaje;
+
+
+  elemento.style.color =
+    error
+      ? "#ef4444"
+      : "#4ade80";
+
+
+  setTimeout(() => {
+
+    elemento.textContent =
+      "";
+
+  }, 3000);
+
+}
+
+
+// ============================================================
+// 7. CERRAR SESIÓN
 // ============================================================
 
 async function cerrarSesionAdmin() {
@@ -716,57 +1013,75 @@ async function cerrarSesionAdmin() {
 
     ocultarPanelAdministrador();
 
+    const modal =
+      document.getElementById(
+        "modal-ingresos"
+      );
+
+
+    if (modal) {
+
+      modal.classList.add(
+        "hidden"
+      );
+
+    }
+
+
     irInicio();
 
-  } catch (error) {
+  }
+
+  catch (error) {
 
     console.error(
       "Error cerrando sesión:",
       error
     );
+
   }
+
 }
 
 
 // ============================================================
-// CARGAR PROYECTOS
+// 8. CARGAR PROYECTOS
 // ============================================================
 
 async function cargarProyectosDesdeNube() {
 
+  if (
+    !auth.currentUser ||
+    !esAdmin
+  ) {
+
+    return;
+
+  }
+
+
   try {
 
-    if (
-      !auth.currentUser ||
-      !esAdmin
-    ) {
-
-      console.warn(
-        "Usuario no autenticado."
-      );
-
-      return;
-    }
-
-
-    const querySnapshot =
+    const snapshot =
       await db
-        .collection("proyectos")
+        .collection(
+          "proyectos"
+        )
         .get();
 
 
     proyectos = [];
 
 
-    querySnapshot.forEach(
-      (docSnap) => {
+    snapshot.forEach(
+      doc => {
 
         proyectos.push({
 
           id:
-            docSnap.id,
+            doc.id,
 
-          ...docSnap.data()
+          ...doc.data()
 
         });
 
@@ -774,35 +1089,92 @@ async function cargarProyectosDesdeNube() {
     );
 
 
-    if (esAdmin) {
+  }
 
-      renderProyectosAdmin();
-    }
-
-
-    procesarEnlaceDirectoUrl();
-
-
-  } catch (error) {
+  catch (error) {
 
     console.error(
       "Error cargando proyectos:",
       error
     );
+
   }
+
 }
 
 
 // ============================================================
-// BÚSQUEDA PÚBLICA
+// 9. CARGAR INGRESOS
 // ============================================================
 
-async function buscarProyectoPublico(codigo) {
+async function cargarIngresosDesdeNube() {
+
+  if (
+    !auth.currentUser ||
+    !esAdmin
+  ) {
+
+    return;
+
+  }
+
+
+  try {
+
+    const snapshot =
+      await db
+        .collection(
+          "ingresos"
+        )
+        .get();
+
+
+    ingresos = [];
+
+
+    snapshot.forEach(
+      doc => {
+
+        ingresos.push({
+
+          id:
+            doc.id,
+
+          ...doc.data()
+
+        });
+
+      }
+    );
+
+
+  }
+
+  catch (error) {
+
+    console.error(
+      "Error cargando ingresos:",
+      error
+    );
+
+  }
+
+}
+
+
+// ============================================================
+// 10. BÚSQUEDA PÚBLICA
+// ============================================================
+
+async function buscarProyectoPublico(
+  codigo
+) {
 
   const errorMsg =
     document.getElementById(
       "mensaje-error"
     );
+
 
   const resultBox =
     document.getElementById(
@@ -828,261 +1200,89 @@ async function buscarProyectoPublico(codigo) {
 
     if (snapshot.empty) {
 
-      if (resultBox)
-        resultBox.classList.add(
-          "hidden"
-        );
+      resultBox?.classList.add(
+        "hidden"
+      );
 
-      if (errorMsg)
-        errorMsg.classList.remove(
-          "hidden"
-        );
+      errorMsg?.classList.remove(
+        "hidden"
+      );
 
       return;
+
     }
 
 
-    const doc =
-      snapshot.docs[0];
+    const data =
+      snapshot.docs[0].data();
 
-    const encontrado =
-      doc.data();
 
-
-    if (errorMsg)
-      errorMsg.classList.add(
-        "hidden"
-      );
-
-    if (resultBox)
-      resultBox.classList.remove(
-        "hidden"
-      );
-
-
-    const codigoEl =
-      document.getElementById(
-        "res-codigo"
-      );
-
-    const muebleEl =
-      document.getElementById(
-        "res-mueble"
-      );
-
-    const clienteEl =
-      document.getElementById(
-        "res-cliente"
-      );
-
-    const estadoEl =
-      document.getElementById(
-        "res-estado"
-      );
-
-    const porcentajeEl =
-      document.getElementById(
-        "res-porcentaje"
-      );
-
-    const barEl =
-      document.getElementById(
-        "res-bar-fill"
-      );
-
-    const detallesEl =
-      document.getElementById(
-        "res-detalles"
-      );
-
-
-    if (codigoEl)
-      codigoEl.innerText =
-        encontrado.codigo || "";
-
-    if (muebleEl)
-      muebleEl.innerText =
-        encontrado.mueble || "";
-
-    if (clienteEl)
-      clienteEl.innerText =
-        `Cliente: ${encontrado.cliente || ""}`;
-
-    if (estadoEl)
-      estadoEl.innerText =
-        encontrado.estado || "";
-
-    if (porcentajeEl)
-      porcentajeEl.innerText =
-        `${encontrado.progreso || 0}%`;
-
-    if (barEl)
-      barEl.style.width =
-        `${encontrado.progreso || 0}%`;
-
-    if (detallesEl)
-      detallesEl.innerText =
-        encontrado.detalles ||
-        `El proyecto se encuentra en etapa de ${encontrado.estado || ""}.`;
-
-
-  } catch (error) {
-
-    console.error(
-      "Error buscando proyecto público:",
-      error
-    );
-
-    if (resultBox)
-      resultBox.classList.add(
-        "hidden"
-      );
-
-    if (errorMsg) {
-
-      errorMsg.innerText =
-        "No se pudo consultar el proyecto.";
-
-      errorMsg.classList.remove(
-        "hidden"
-      );
-    }
-  }
-}
-
-
-// ============================================================
-// ENLACE DIRECTO
-// ============================================================
-
-function procesarEnlaceDirectoUrl() {
-
-  const urlParams =
-    new URLSearchParams(
-      window.location.search
-    );
-
-  const codigoUrl =
-    urlParams.get("codigo");
-
-
-  if (!codigoUrl) return;
-
-
-  setTimeout(() => {
-
-    const inputCodigo =
-      document.getElementById(
-        "input-codigo"
-      );
-
-    const formBuscar =
-      document.getElementById(
-        "form-buscar"
-      );
-
-
-    if (inputCodigo) {
-
-      inputCodigo.value =
-        codigoUrl
-          .trim()
-          .toUpperCase();
-    }
-
-
-    if (formBuscar) {
-
-      formBuscar.dispatchEvent(
-        new Event(
-          "submit",
-          {
-            cancelable: true,
-            bubbles: true
-          }
-        )
-      );
-    }
-
-  }, 400);
-}
-
-
-// ============================================================
-// NAVEGACIÓN
-// ============================================================
-
-function mostrarSeccion(seccionId) {
-
-  const secciones = [
-    "sec-inicio",
-    "sec-rastreo",
-    "sec-admin",
-    "sec-reportes"
-  ];
-
-
-  secciones.forEach(
-    id => {
-
-      const el =
-        document.getElementById(id);
-
-      if (el)
-        el.classList.add(
-          "hidden"
-        );
-    }
-  );
-
-
-  const botones = [
-    "btn-inicio",
-    "btn-rastreo",
-    "btn-admin",
-    "btn-reportes"
-  ];
-
-
-  botones.forEach(
-    id => {
-
-      const el =
-        document.getElementById(id);
-
-      if (el)
-        el.classList.remove(
-          "active"
-        );
-    }
-  );
-
-
-  const secDestino =
-    document.getElementById(
-      `sec-${seccionId}`
-    );
-
-  const btnDestino =
-    document.getElementById(
-      `btn-${seccionId}`
-    );
-
-
-  if (secDestino)
-    secDestino.classList.remove(
+    errorMsg?.classList.add(
       "hidden"
     );
 
-  if (btnDestino)
-    btnDestino.classList.add(
-      "active"
+
+    resultBox?.classList.remove(
+      "hidden"
     );
+
+
+    document.getElementById(
+      "res-codigo"
+    ).innerText =
+      data.codigo || "";
+
+
+    document.getElementById(
+      "res-mueble"
+    ).innerText =
+      data.mueble || "";
+
+
+    document.getElementById(
+      "res-cliente"
+    ).innerText =
+      `Cliente: ${data.cliente || ""}`;
+
+
+    document.getElementById(
+      "res-estado"
+    ).innerText =
+      data.estado || "";
+
+
+    document.getElementById(
+      "res-porcentaje"
+    ).innerText =
+      `${data.progreso || 0}%`;
+
+  }
+
+  catch (error) {
+
+    console.error(
+      "Error búsqueda pública:",
+      error
+    );
+
+    resultBox?.classList.add(
+      "hidden"
+    );
+
+    errorMsg.innerText =
+      "No se pudo consultar el proyecto.";
+
+    errorMsg.classList.remove(
+      "hidden"
+    );
+
+  }
+
 }
 
 
 // ============================================================
-// RENDER ADMIN
+// 11. RENDER PROYECTOS ADMIN
 // ============================================================
 
 function renderProyectosAdmin() {
@@ -1095,162 +1295,68 @@ function renderProyectosAdmin() {
       "lista-proyectos-admin"
     );
 
-  const totalEl =
+
+  const total =
     document.getElementById(
       "total-proyectos"
     );
 
 
-  if (totalEl)
-    totalEl.innerText =
+  if (total) {
+
+    total.innerText =
       proyectos.length;
+
+  }
 
 
   if (!container) return;
 
 
-  const selectMes =
-    document.getElementById(
-      "filtro-mes"
-    );
-
-  const mesSeleccionado =
-    selectMes
-      ? selectMes.value
-      : "";
+  container.innerHTML =
+    "";
 
 
-  let proyectosFiltradosMes =
-    proyectos.filter(
-      p => {
+  const etapas =
+  [
 
-        if (
-          !p.fechaEntrega ||
-          p.fechaEntrega.trim() === ""
-        ) {
-          return true;
-        }
-
-        if (mesSeleccionado) {
-
-          return p.fechaEntrega
-            .startsWith(
-              mesSeleccionado
-            );
-        }
-
-        return true;
-      }
-    );
-
-
-  let totalPresupuestoMes = 0;
-  let totalAdelantoMes = 0;
-  let totalSaldoMes = 0;
-
-
-  proyectosFiltradosMes.forEach(
-    p => {
-
-      const pres =
-        Number(
-          p.presupuesto
-        ) || 0;
-
-      const adel =
-        Number(
-          p.adelanto
-        ) || 0;
-
-      const saldo =
-        pres - adel;
-
-      totalPresupuestoMes +=
-        pres;
-
-      totalAdelantoMes +=
-        adel;
-
-      totalSaldoMes +=
-        saldo;
-    }
-  );
-
-
-  const reporteCant =
-    document.getElementById(
-      "reporte-cant-mes"
-    );
-
-  const reportePres =
-    document.getElementById(
-      "reporte-presupuesto-mes"
-    );
-
-  const reporteAdel =
-    document.getElementById(
-      "reporte-adelanto-mes"
-    );
-
-  const reporteSaldo =
-    document.getElementById(
-      "reporte-saldo-mes"
-    );
-
-
-  if (reporteCant)
-    reporteCant.innerText =
-      proyectosFiltradosMes.length;
-
-  if (reportePres)
-    reportePres.innerText =
-      `Bs. ${formatearMonto(
-        totalPresupuestoMes
-      )}`;
-
-  if (reporteAdel)
-    reporteAdel.innerText =
-      `Bs. ${formatearMonto(
-        totalAdelantoMes
-      )}`;
-
-  if (reporteSaldo)
-    reporteSaldo.innerText =
-      `Bs. ${formatearMonto(
-        totalSaldoMes
-      )}`;
-
-
-  container.innerHTML = "";
-
-
-  const etapas = [
     "Diseño Aprobado",
+
     "Corte",
+
     "Armado",
+
     "Instalación",
+
     "Finalizado"
+
   ];
 
 
   proyectos.forEach(
-    (p, index) => {
+    (p,index) => {
 
       const presupuesto =
         Number(
           p.presupuesto
         ) || 0;
 
+
       const adelanto =
         Number(
           p.adelanto
         ) || 0;
 
+
       const saldo =
-        presupuesto - adelanto;
+        Math.max(
+          presupuesto -
+          adelanto,
+          0
+        );
 
 
-      const fechaFormateada =
+      const fecha =
         p.fechaEntrega
           ? p.fechaEntrega
               .split("-")
@@ -1270,273 +1376,208 @@ function renderProyectosAdmin() {
 
 
       card.style.cssText =
-        "background:rgba(255,255,255,0.05);" +
-        "border:1px solid rgba(255,255,255,0.1);" +
-        "border-radius:12px;" +
-        "padding:1.2rem;" +
-        "margin-bottom:1rem;";
+        `
+        background:rgba(255,255,255,.05);
+        border:1px solid rgba(255,255,255,.1);
+        border-radius:12px;
+        padding:1.2rem;
+        margin-bottom:1rem;
+        `;
 
 
-      let botonesEtapas =
+      const botones =
         etapas.map(
-          (est, idx) => {
+          (estado,idx) => {
 
-            const activeStyle =
-              p.estado === est
-                ? "background:#f59e0b;color:#000;font-weight:bold;"
-                : "background:rgba(255,255,255,0.1);color:#fff;";
-
-
-            const porcentaje =
-              (idx + 1) * 20;
+            const activo =
+              p.estado === estado;
 
 
             return `
+
               <button
                 type="button"
+                onclick="cambiarEstadoPorId(
+                  '${p.id}',
+                  ${idx},
+                  ${(idx+1)*20}
+                )"
                 style="
                   border:none;
-                  padding:0.4rem 0.7rem;
+                  padding:.4rem .7rem;
                   border-radius:6px;
                   cursor:pointer;
-                  font-size:0.8rem;
-                  margin:0.2rem;
-                  ${activeStyle}
+                  font-size:.8rem;
+                  margin:.2rem;
+
+                  ${
+                    activo
+                      ? "background:#f59e0b;color:#000;font-weight:bold;"
+                      : "background:rgba(255,255,255,.1);color:#fff;"
+                  }
                 "
-                onclick="cambiarEstadoPorId('${p.id}',${idx},${porcentaje})"
               >
-                ${est}
+                ${estado}
               </button>
+
             `;
+
           }
         ).join("");
 
 
-      card.innerHTML = `
+      card.innerHTML =
+      `
 
-        <div style="
-          display:flex;
-          justify-content:space-between;
-          align-items:flex-start;
-          gap:1rem;
-          flex-wrap:wrap;
-        ">
+        <div
+          id="info-view-${index}"
+        >
 
           <div
-            id="info-view-${index}"
-            style="flex:1;min-width:280px;"
+            style="
+              display:flex;
+              justify-content:space-between;
+              gap:10px;
+              flex-wrap:wrap;
+            "
           >
 
-            <div style="
-              display:flex;
-              align-items:center;
-              gap:0.5rem;
-              flex-wrap:wrap;
-            ">
+            <div>
 
-              <div style="
-                display:flex;
-                align-items:center;
-                gap:0.4rem;
-              ">
-
-                <span style="
+              <span
+                style="
                   background:#f59e0b;
                   color:#000;
-                  padding:0.2rem 0.6rem;
+                  padding:.2rem .6rem;
                   border-radius:4px;
                   font-weight:bold;
-                  font-size:0.85rem;
-                ">
-                  ${p.codigo || ""}
-                </span>
+                  font-size:.85rem;
+                "
+              >
+                ${p.codigo || ""}
+              </span>
 
-                <button
-                  type="button"
-                  onclick="copiarCodigoAlPortapapeles('${p.codigo || ""}')"
-                  style="
-                    background:rgba(255,255,255,0.1);
-                    color:#fff;
-                    border:1px solid rgba(255,255,255,0.2);
-                    padding:0.2rem 0.5rem;
-                    border-radius:4px;
-                    cursor:pointer;
-                    font-size:0.75rem;
-                  "
-                >
-                  Copiar
-                </button>
 
-              </div>
-
-              <strong>
+              <strong
+                style="
+                  margin-left:.4rem;
+                "
+              >
                 ${p.mueble || ""}
               </strong>
 
-            </div>
+
+              <p
+                style="
+                  margin:.4rem 0;
+                  color:#a3a3a3;
+                  font-size:.85rem;
+                "
+              >
+                Cliente:
+                ${p.cliente || ""}
+                |
+                Tel:
+                ${p.telefono || "Sin registrar"}
+              </p>
 
 
-            <p style="
-              margin:0.4rem 0;
-              color:#a3a3a3;
-              font-size:0.85rem;
-            ">
-              Cliente: ${p.cliente || ""}
-              |
-              Tel: ${p.telefono || "Sin registrar"}
-            </p>
-
-
-            <p style="
-              margin:0.2rem 0 0.7rem 0;
-              color:#38bdf8;
-              font-size:0.85rem;
-            ">
-              Entrega estimada:
-              <strong>
-                ${fechaFormateada}
-              </strong>
-            </p>
-
-
-            <!-- =================================================
-                 CUADROS DE DINERO
-                 ================================================= -->
-
-            <div style="
-              display:grid;
-              grid-template-columns:repeat(3, minmax(0, 1fr));
-              gap:8px;
-              margin:0.8rem 0;
-            ">
-
-              <!-- TOTAL -->
-              <div style="
-                background:rgba(56,189,248,0.08);
-                border:1px solid rgba(56,189,248,0.30);
-                border-radius:10px;
-                padding:0.75rem;
-                text-align:center;
-              ">
-
-                <div style="
+              <p
+                style="
                   color:#38bdf8;
-                  font-size:0.72rem;
-                  font-weight:bold;
-                  text-transform:uppercase;
-                  letter-spacing:0.5px;
-                  margin-bottom:4px;
-                ">
-                  Total
+                  font-size:.85rem;
+                "
+              >
+                Entrega:
+                <strong>
+                  ${fecha}
+                </strong>
+              </p>
+
+
+              <div
+                style="
+                  display:flex;
+                  gap:6px;
+                  flex-wrap:wrap;
+                  margin-top:8px;
+                "
+              >
+
+                <div
+                  style="
+                    background:rgba(56,189,248,.07);
+                    border:1px solid rgba(56,189,248,.25);
+                    color:#38bdf8;
+                    padding:7px;
+                    border-radius:7px;
+                    font-size:.8rem;
+                  "
+                >
+                  Total:
+                  <strong>
+                    Bs. ${formatearMonto(presupuesto)}
+                  </strong>
                 </div>
 
-                <div style="
-                  color:#fff;
-                  font-size:1rem;
-                  font-weight:bold;
-                ">
-                  Bs. ${formatearMonto(
-                    presupuesto
-                  )}
+
+                <div
+                  style="
+                    background:rgba(245,158,11,.07);
+                    border:1px solid rgba(245,158,11,.25);
+                    color:#f59e0b;
+                    padding:7px;
+                    border-radius:7px;
+                    font-size:.8rem;
+                  "
+                >
+                  Adelanto:
+                  <strong>
+                    Bs. ${formatearMonto(adelanto)}
+                  </strong>
                 </div>
 
-              </div>
 
-
-              <!-- ADELANTO -->
-              <div style="
-                background:rgba(245,158,11,0.08);
-                border:1px solid rgba(245,158,11,0.30);
-                border-radius:10px;
-                padding:0.75rem;
-                text-align:center;
-              ">
-
-                <div style="
-                  color:#f59e0b;
-                  font-size:0.72rem;
-                  font-weight:bold;
-                  text-transform:uppercase;
-                  letter-spacing:0.5px;
-                  margin-bottom:4px;
-                ">
-                  Adelanto
-                </div>
-
-                <div style="
-                  color:#fff;
-                  font-size:1rem;
-                  font-weight:bold;
-                ">
-                  Bs. ${formatearMonto(
-                    adelanto
-                  )}
-                </div>
-
-              </div>
-
-
-              <!-- PENDIENTE -->
-              <div style="
-                background:rgba(239,68,68,0.08);
-                border:1px solid rgba(239,68,68,0.30);
-                border-radius:10px;
-                padding:0.75rem;
-                text-align:center;
-              ">
-
-                <div style="
-                  color:#ef4444;
-                  font-size:0.72rem;
-                  font-weight:bold;
-                  text-transform:uppercase;
-                  letter-spacing:0.5px;
-                  margin-bottom:4px;
-                ">
-                  Pendiente
-                </div>
-
-                <div style="
-                  color:#fff;
-                  font-size:1rem;
-                  font-weight:bold;
-                ">
-                  Bs. ${formatearMonto(
-                    saldo
-                  )}
+                <div
+                  style="
+                    background:rgba(239,68,68,.07);
+                    border:1px solid rgba(239,68,68,.25);
+                    color:#ef4444;
+                    padding:7px;
+                    border-radius:7px;
+                    font-size:.8rem;
+                  "
+                >
+                  Pendiente:
+                  <strong>
+                    Bs. ${formatearMonto(saldo)}
+                  </strong>
                 </div>
 
               </div>
 
-            </div>
 
+              <div
+                style="
+                  margin-top:.7rem;
+                "
+              >
+                ${botones}
+              </div>
 
-            <!-- ETAPAS -->
-
-            <div style="
-              margin-top:0.5rem;
-            ">
-              ${botonesEtapas}
-            </div>
-
-
-            <!-- WHATSAPP -->
-
-            <div style="
-              margin-top:0.8rem;
-            ">
 
               <button
                 type="button"
                 onclick="notificarWhatsApp(${index})"
                 style="
+                  margin-top:.6rem;
                   background:#16a34a;
                   color:white;
                   border:none;
-                  padding:0.4rem 0.8rem;
+                  padding:.4rem .8rem;
                   border-radius:6px;
                   cursor:pointer;
-                  font-size:0.85rem;
+                  font-size:.85rem;
                   font-weight:bold;
                 "
               >
@@ -1545,68 +1586,72 @@ function renderProyectosAdmin() {
 
             </div>
 
-          </div>
 
-
-          <!-- BOTONES -->
-
-          <div style="
-            display:flex;
-            gap:0.5rem;
-          ">
-
-            <button
-              type="button"
-              onclick="activarEdicionInline(${index})"
+            <div
               style="
-                background:#3b82f6;
-                color:white;
-                border:none;
-                padding:0.6rem 0.8rem;
-                border-radius:8px;
-                cursor:pointer;
+                display:flex;
+                gap:5px;
               "
             >
-              ✏️
-            </button>
+
+              <button
+                type="button"
+                onclick="activarEdicionInline(${index})"
+                style="
+                  background:#3b82f6;
+                  color:#fff;
+                  border:none;
+                  padding:.6rem .8rem;
+                  border-radius:8px;
+                  cursor:pointer;
+                "
+              >
+                ✏️
+              </button>
 
 
-            <button
-              type="button"
-              onclick="eliminarProyecto('${p.id}')"
-              style="
-                background:#ef4444;
-                color:white;
-                border:none;
-                padding:0.6rem 0.8rem;
-                border-radius:8px;
-                cursor:pointer;
-              "
-            >
-              🗑️
-            </button>
+              <button
+                type="button"
+                onclick="eliminarProyecto('${p.id}')"
+                style="
+                  background:#ef4444;
+                  color:#fff;
+                  border:none;
+                  padding:.6rem .8rem;
+                  border-radius:8px;
+                  cursor:pointer;
+                "
+              >
+                🗑️
+              </button>
+
+            </div>
 
           </div>
 
         </div>
+
       `;
 
 
-      container.appendChild(card);
+      container.appendChild(
+        card
+      );
 
     }
   );
+
 }
 
 
 // ============================================================
-// CAMBIAR ESTADO
+// 12. CAMBIAR ESTADO
 // ============================================================
 
 async function cambiarEstadoPorId(
-  idFirebase,
+  id,
   etapaIdx,
-  nuevoProgreso
+  progreso
 ) {
 
   if (
@@ -1614,24 +1659,29 @@ async function cambiarEstadoPorId(
     !auth.currentUser
   ) {
 
-    console.warn(
-      "Sesión de administrador no válida."
-    );
-
     return;
+
   }
 
 
-  const etapas = [
+  const etapas =
+  [
+
     "Diseño Aprobado",
+
     "Corte",
+
     "Armado",
+
     "Instalación",
+
     "Finalizado"
+
   ];
 
 
-  const descripciones = [
+  const descripciones =
+  [
 
     "El diseño ha sido aprobado por WhatsApp. El proyecto ingresa a producción.",
 
@@ -1646,53 +1696,95 @@ async function cambiarEstadoPorId(
   ];
 
 
-  const nuevoEstado =
+  const estado =
     etapas[etapaIdx];
 
-  const nuevaDesc =
+
+  const detalles =
     descripciones[etapaIdx];
 
 
   try {
 
-    await db
-      .collection("proyectos")
-      .doc(idFirebase)
-      .update({
+    const batch =
+      db.batch();
 
-        estado:
-          nuevoEstado,
 
-        progreso:
-          nuevoProgreso,
+    const proyectoRef =
+      db
+        .collection("proyectos")
+        .doc(id);
 
-        detalles:
-          nuevaDesc
 
-      });
+    batch.update(
+      proyectoRef,
+      {
+        estado,
+        progreso,
+        detalles
+      }
+    );
+
+
+    const publicoQuery =
+      await db
+        .collection(
+          "proyectos_publicos"
+        )
+        .where(
+          "codigo",
+          "==",
+          proyectos.find(
+            p => p.id === id
+          )?.codigo
+        )
+        .limit(1)
+        .get();
+
+
+    publicoQuery.forEach(
+      doc => {
+
+        batch.update(
+          doc.ref,
+          {
+            estado,
+            progreso,
+            detalles
+          }
+        );
+
+      }
+    );
+
+
+    await batch.commit();
 
 
     await cargarProyectosDesdeNube();
 
     renderProyectosAdmin();
 
+  }
 
-  } catch (error) {
+  catch (error) {
 
     console.error(
-      "Error actualizando estado:",
+      "Error estado:",
       error
     );
+
   }
+
 }
 
 
 // ============================================================
-// ELIMINAR PROYECTO
+// 13. ELIMINAR PROYECTO
 // ============================================================
 
 async function eliminarProyecto(
-  idFirebase
+  id
 ) {
 
   if (
@@ -1700,55 +1792,121 @@ async function eliminarProyecto(
     !auth.currentUser
   ) {
 
-    console.warn(
-      "Sesión de administrador no válida."
-    );
-
     return;
-  }
 
-
-  if (
-    !confirm(
-      "¿Deseas eliminar este proyecto de la nube?"
-    )
-  ) {
-
-    return;
   }
 
 
   try {
 
-    await db
-      .collection("proyectos")
-      .doc(idFirebase)
-      .delete();
+    const proyecto =
+      proyectos.find(
+        p => p.id === id
+      );
+
+
+    const batch =
+      db.batch();
+
+
+    batch.delete(
+      db
+        .collection("proyectos")
+        .doc(id)
+    );
+
+
+    if (proyecto) {
+
+      const publicSnap =
+        await db
+          .collection(
+            "proyectos_publicos"
+          )
+          .where(
+            "codigo",
+            "==",
+            proyecto.codigo
+          )
+          .limit(1)
+          .get();
+
+
+      publicSnap.forEach(
+        doc => {
+
+          batch.delete(
+            doc.ref
+          );
+
+        }
+      );
+
+
+      const ingresoSnap =
+        await db
+          .collection(
+            "ingresos"
+          )
+          .where(
+            "proyectoId",
+            "==",
+            id
+          )
+          .limit(1)
+          .get();
+
+
+      ingresoSnap.forEach(
+        doc => {
+
+          batch.delete(
+            doc.ref
+          );
+
+        }
+      );
+
+    }
+
+
+    await batch.commit();
 
 
     await cargarProyectosDesdeNube();
 
+    await cargarIngresosDesdeNube();
+
+
     renderProyectosAdmin();
 
+    renderGestionIngresos();
 
-  } catch (error) {
+  }
+
+  catch (error) {
 
     console.error(
       "Error eliminando:",
       error
     );
+
   }
+
 }
 
 
 // ============================================================
-// EDITAR PROYECTO
+// 14. EDITAR PROYECTO
 // ============================================================
 
-function activarEdicionInline(index) {
+function activarEdicionInline(
+  index
+) {
 
   const p =
     proyectos[index];
+
 
   const info =
     document.getElementById(
@@ -1759,13 +1917,16 @@ function activarEdicionInline(index) {
   if (!info || !p) return;
 
 
-  info.innerHTML = `
+  info.innerHTML =
+  `
 
-    <div style="
-      display:flex;
-      flex-direction:column;
-      gap:8px;
-    ">
+    <div
+      style="
+        display:flex;
+        flex-direction:column;
+        gap:7px;
+      "
+    >
 
       <input
         id="edit-codigo-${index}"
@@ -1792,12 +1953,14 @@ function activarEdicionInline(index) {
       >
 
       <input
+        type="number"
         id="edit-presupuesto-${index}"
         value="${p.presupuesto || 0}"
         placeholder="Presupuesto"
       >
 
       <input
+        type="number"
         id="edit-adelanto-${index}"
         value="${p.adelanto || 0}"
         placeholder="Adelanto"
@@ -1808,6 +1971,7 @@ function activarEdicionInline(index) {
         id="edit-fecha-${index}"
         value="${p.fechaEntrega || ""}"
       >
+
 
       <div>
 
@@ -1825,6 +1989,7 @@ function activarEdicionInline(index) {
         >
           Guardar
         </button>
+
 
         <button
           type="button"
@@ -1844,12 +2009,18 @@ function activarEdicionInline(index) {
       </div>
 
     </div>
+
   `;
+
 }
 
 
+// ============================================================
+// 15. GUARDAR EDICIÓN
+// ============================================================
+
 async function guardarEdicionInline(
-  idFirebase,
+  id,
   index
 ) {
 
@@ -1858,15 +2029,12 @@ async function guardarEdicionInline(
     !auth.currentUser
   ) {
 
-    console.warn(
-      "Sesión de administrador no válida."
-    );
-
     return;
+
   }
 
 
-  const nuevoCodigo =
+  const codigo =
     document.getElementById(
       `edit-codigo-${index}`
     ).value
@@ -1874,41 +2042,41 @@ async function guardarEdicionInline(
       .toUpperCase();
 
 
-  const nuevoCliente =
+  const cliente =
     document.getElementById(
       `edit-cliente-${index}`
     ).value.trim();
 
 
-  const nuevoMueble =
+  const mueble =
     document.getElementById(
       `edit-mueble-${index}`
     ).value.trim();
 
 
-  const nuevoTelefono =
+  const telefono =
     document.getElementById(
       `edit-telefono-${index}`
     ).value.trim();
 
 
-  const nuevoPresupuesto =
-    parseFloat(
+  const presupuesto =
+    Number(
       document.getElementById(
         `edit-presupuesto-${index}`
       ).value
     ) || 0;
 
 
-  const nuevoAdelanto =
-    parseFloat(
+  const adelanto =
+    Number(
       document.getElementById(
         `edit-adelanto-${index}`
       ).value
     ) || 0;
 
 
-  const nuevaFecha =
+  const fecha =
     document.getElementById(
       `edit-fecha-${index}`
     ).value;
@@ -1918,62 +2086,921 @@ async function guardarEdicionInline(
 
     await db
       .collection("proyectos")
-      .doc(idFirebase)
+      .doc(id)
       .update({
 
-        codigo:
-          nuevoCodigo,
+        codigo,
 
-        cliente:
-          nuevoCliente,
+        cliente,
 
-        mueble:
-          nuevoMueble,
+        mueble,
 
-        telefono:
-          nuevoTelefono,
+        telefono,
 
-        presupuesto:
-          nuevoPresupuesto,
+        presupuesto,
 
-        adelanto:
-          nuevoAdelanto,
+        adelanto,
 
-        saldo:
-          nuevoPresupuesto -
-          nuevoAdelanto,
-
-        fechaEntrega:
-          nuevaFecha
+        fechaEntrega:fecha
 
       });
 
 
+    // Actualizar ingreso relacionado
+
+    const ingresoSnap =
+      await db
+        .collection(
+          "ingresos"
+        )
+        .where(
+          "proyectoId",
+          "==",
+          id
+        )
+        .limit(1)
+        .get();
+
+
+    if (!ingresoSnap.empty) {
+
+      const ingresoDoc =
+        ingresoSnap.docs[0];
+
+
+      const ingreso =
+        ingresoDoc.data();
+
+
+      const pagosFinales =
+        Number(
+          ingreso.pagosFinales
+        ) || 0;
+
+
+      const cobrado =
+        adelanto +
+        pagosFinales;
+
+
+      const pendiente =
+        Math.max(
+          presupuesto -
+          cobrado,
+          0
+        );
+
+
+      await ingresoDoc.ref.update({
+
+        codigo,
+
+        cliente,
+
+        mueble,
+
+        presupuesto,
+
+        adelanto,
+
+        cobrado,
+
+        pendiente
+
+      });
+
+    }
+
+
     await cargarProyectosDesdeNube();
+
+    await cargarIngresosDesdeNube();
+
 
     renderProyectosAdmin();
 
+    renderGestionIngresos();
 
-  } catch (error) {
+  }
+
+  catch (error) {
 
     console.error(
-      "Error actualizando:",
+      "Error editando:",
       error
     );
+
   }
+
 }
 
 
 // ============================================================
-// WHATSAPP
+// 16. GESTIÓN DE INGRESOS
 // ============================================================
 
-function notificarWhatsApp(index) {
+function renderGestionIngresos() {
 
-  if (!esAdmin) {
+  if (!esAdmin) return;
+
+
+  const container =
+    document.getElementById(
+      "lista-ingresos"
+    );
+
+
+  if (!container) return;
+
+
+  const filtro =
+    document.getElementById(
+      "filtro-ingresos-mes"
+    )?.value
+    || "";
+
+
+  let lista =
+    [...ingresos];
+
+
+  if (filtro) {
+
+    lista =
+      lista.filter(
+        ingreso => {
+
+          let fecha = null;
+
+
+          if (
+            ingreso.fechaCreacion &&
+            ingreso.fechaCreacion.toDate
+          ) {
+
+            fecha =
+              ingreso
+                .fechaCreacion
+                .toDate();
+
+          }
+
+
+          if (!fecha) {
+
+            return true;
+
+          }
+
+
+          const mes =
+            `${fecha.getFullYear()}-${String(
+              fecha.getMonth()+1
+            ).padStart(2,"0")}`;
+
+
+          return mes === filtro;
+
+        }
+      );
+
+  }
+
+
+  let totalCobrado = 0;
+
+  let totalPendiente = 0;
+
+
+  lista.forEach(
+    ingreso => {
+
+      totalCobrado +=
+        Number(
+          ingreso.cobrado
+        ) || 0;
+
+
+      totalPendiente +=
+        Number(
+          ingreso.pendiente
+        ) || 0;
+
+    }
+  );
+
+
+  document.getElementById(
+    "ing-resumen-proyectos"
+  ).innerText =
+    lista.length;
+
+
+  document.getElementById(
+    "ing-resumen-cobrado"
+  ).innerText =
+    `Bs. ${formatearMonto(totalCobrado)}`;
+
+
+  document.getElementById(
+    "ing-resumen-pendiente"
+  ).innerText =
+    `Bs. ${formatearMonto(totalPendiente)}`;
+
+
+  container.innerHTML =
+    "";
+
+
+  if (!lista.length) {
+
+    container.innerHTML =
+      `
+      <div
+        style="
+          text-align:center;
+          color:#777;
+          padding:25px;
+        "
+      >
+        No hay registros para este mes.
+      </div>
+      `;
 
     return;
+
   }
+
+
+  lista.forEach(
+    ingreso => {
+
+      const card =
+        document.createElement(
+          "div"
+        );
+
+
+      card.style.cssText =
+        `
+        background:rgba(255,255,255,.035);
+        border:1px solid rgba(255,255,255,.09);
+        border-radius:9px;
+        padding:10px;
+        margin-bottom:7px;
+        `;
+
+
+      const presupuesto =
+        Number(
+          ingreso.presupuesto
+        ) || 0;
+
+
+      const adelanto =
+        Number(
+          ingreso.adelanto
+        ) || 0;
+
+
+      const cobrado =
+        Number(
+          ingreso.cobrado
+        ) || 0;
+
+
+      const pendiente =
+        Math.max(
+          presupuesto -
+          cobrado,
+          0
+        );
+
+
+      card.innerHTML =
+      `
+
+        <div
+          style="
+            display:flex;
+            justify-content:space-between;
+            gap:8px;
+            align-items:flex-start;
+          "
+        >
+
+          <div>
+
+            <strong>
+              ${ingreso.cliente || ""}
+            </strong>
+
+            <div
+              style="
+                color:#a3a3a3;
+                font-size:.75rem;
+                margin-top:2px;
+              "
+            >
+              ${ingreso.codigo || ""}
+              ·
+              ${ingreso.mueble || ""}
+            </div>
+
+          </div>
+
+
+          <div
+            style="
+              color:#38bdf8;
+              font-weight:bold;
+              font-size:.85rem;
+            "
+          >
+            Total:
+            Bs. ${formatearMonto(presupuesto)}
+          </div>
+
+        </div>
+
+
+        <div
+          style="
+            display:grid;
+            grid-template-columns:repeat(3,1fr);
+            gap:5px;
+            margin-top:8px;
+          "
+        >
+
+          <div
+            style="
+              background:rgba(245,158,11,.06);
+              border:1px solid rgba(245,158,11,.2);
+              color:#f59e0b;
+              border-radius:6px;
+              padding:6px;
+              font-size:.72rem;
+            "
+          >
+            Adelanto
+            <strong
+              style="display:block;"
+            >
+              Bs. ${formatearMonto(adelanto)}
+            </strong>
+          </div>
+
+
+          <div
+            style="
+              background:rgba(74,222,128,.06);
+              border:1px solid rgba(74,222,128,.2);
+              color:#4ade80;
+              border-radius:6px;
+              padding:6px;
+              font-size:.72rem;
+            "
+          >
+            Cobrado
+            <strong
+              style="display:block;"
+            >
+              Bs. ${formatearMonto(cobrado)}
+            </strong>
+          </div>
+
+
+          <div
+            style="
+              background:rgba(239,68,68,.06);
+              border:1px solid rgba(239,68,68,.2);
+              color:#ef4444;
+              border-radius:6px;
+              padding:6px;
+              font-size:.72rem;
+            "
+          >
+            Pendiente
+            <strong
+              style="display:block;"
+            >
+              Bs. ${formatearMonto(pendiente)}
+            </strong>
+          </div>
+
+        </div>
+
+
+        ${
+          pendiente > 0
+          ?
+
+          `
+
+          <div
+            style="
+              display:flex;
+              gap:5px;
+              margin-top:8px;
+            "
+          >
+
+            <input
+              type="number"
+              min="0"
+              step="0.01"
+              id="pago-${ingreso.id}"
+              placeholder="Monto pagado"
+              style="
+                flex:1;
+                background:#0a0a0a;
+                border:1px solid #333;
+                color:#fff;
+                padding:7px;
+                border-radius:6px;
+                box-sizing:border-box;
+              "
+            >
+
+
+            <button
+              type="button"
+              onclick="registrarPago('${ingreso.id}')"
+              style="
+                background:#16a34a;
+                color:#fff;
+                border:none;
+                border-radius:6px;
+                padding:7px 10px;
+                cursor:pointer;
+                font-weight:bold;
+              "
+            >
+              Registrar pago
+            </button>
+
+          </div>
+
+          `
+
+          :
+
+          `
+
+          <div
+            style="
+              margin-top:8px;
+              color:#4ade80;
+              font-size:.78rem;
+              text-align:center;
+            "
+          >
+            <i class="fa-solid fa-circle-check"></i>
+            Proyecto pagado completamente
+          </div>
+
+          `
+
+        }
+
+      `;
+
+
+      container.appendChild(
+        card
+      );
+
+    }
+  );
+
+}
+
+
+// ============================================================
+// 17. REGISTRAR PAGO
+// ============================================================
+
+async function registrarPago(
+  ingresoId
+) {
+
+  if (
+    !esAdmin ||
+    !auth.currentUser
+  ) {
+
+    return;
+
+  }
+
+
+  const input =
+    document.getElementById(
+      `pago-${ingresoId}`
+    );
+
+
+  const monto =
+    Number(
+      input?.value
+    ) || 0;
+
+
+  if (monto <= 0) {
+
+    return;
+
+  }
+
+
+  const ingreso =
+    ingresos.find(
+      i => i.id === ingresoId
+    );
+
+
+  if (!ingreso) return;
+
+
+  const presupuesto =
+    Number(
+      ingreso.presupuesto
+    ) || 0;
+
+
+  const cobradoActual =
+    Number(
+      ingreso.cobrado
+    ) || 0;
+
+
+  const pendienteActual =
+    Math.max(
+      presupuesto -
+      cobradoActual,
+      0
+    );
+
+
+  const pago =
+    Math.min(
+      monto,
+      pendienteActual
+    );
+
+
+  if (pago <= 0) return;
+
+
+  const pagosFinalesActuales =
+    Number(
+      ingreso.pagosFinales
+    ) || 0;
+
+
+  const nuevosPagosFinales =
+    pagosFinalesActuales +
+    pago;
+
+
+  const nuevoCobrado =
+    cobradoActual +
+    pago;
+
+
+  const nuevoPendiente =
+    Math.max(
+      presupuesto -
+      nuevoCobrado,
+      0
+    );
+
+
+  try {
+
+    await db
+      .collection(
+        "ingresos"
+      )
+      .doc(ingresoId)
+      .update({
+
+        pagosFinales:
+          nuevosPagosFinales,
+
+        cobrado:
+          nuevoCobrado,
+
+        pendiente:
+          nuevoPendiente,
+
+        fechaUltimoPago:
+          firebase.firestore.FieldValue.serverTimestamp()
+
+      });
+
+
+    await cargarIngresosDesdeNube();
+
+    renderGestionIngresos();
+
+  }
+
+  catch (error) {
+
+    console.error(
+      "Error registrando pago:",
+      error
+    );
+
+  }
+
+}
+
+
+// ============================================================
+// 18. EXPORTAR PDF
+// ============================================================
+
+function exportarIngresosPDF() {
+
+  if (!esAdmin) return;
+
+
+  const filtro =
+    document.getElementById(
+      "filtro-ingresos-mes"
+    )?.value
+    || "";
+
+
+  if (!filtro) return;
+
+
+  const lista =
+    ingresos.filter(
+      ingreso => {
+
+        if (
+          !ingreso.fechaCreacion ||
+          !ingreso.fechaCreacion.toDate
+        ) {
+
+          return true;
+
+        }
+
+
+        const fecha =
+          ingreso
+            .fechaCreacion
+            .toDate();
+
+
+        const mes =
+          `${fecha.getFullYear()}-${String(
+            fecha.getMonth()+1
+          ).padStart(2,"0")}`;
+
+
+        return mes === filtro;
+
+      }
+    );
+
+
+  const jsPDF =
+    window.jspdf.jsPDF;
+
+
+  const doc =
+    new jsPDF();
+
+
+  const [anio,mes] =
+    filtro.split("-");
+
+
+  const nombresMes =
+  [
+
+    "Enero",
+
+    "Febrero",
+
+    "Marzo",
+
+    "Abril",
+
+    "Mayo",
+
+    "Junio",
+
+    "Julio",
+
+    "Agosto",
+
+    "Septiembre",
+
+    "Octubre",
+
+    "Noviembre",
+
+    "Diciembre"
+
+  ];
+
+
+  doc.setFontSize(18);
+
+  doc.text(
+    "HN MUEBLES",
+    14,
+    18
+  );
+
+
+  doc.setFontSize(12);
+
+  doc.text(
+    `Registro de Ingresos - ${nombresMes[Number(mes)-1]} ${anio}`,
+    14,
+    27
+  );
+
+
+  let totalProyecto = 0;
+
+  let totalAdelanto = 0;
+
+  let totalCobrado = 0;
+
+  let totalPendiente = 0;
+
+
+  const filas =
+    lista.map(
+      ingreso => {
+
+        const total =
+          Number(
+            ingreso.presupuesto
+          ) || 0;
+
+
+        const adelanto =
+          Number(
+            ingreso.adelanto
+          ) || 0;
+
+
+        const cobrado =
+          Number(
+            ingreso.cobrado
+          ) || 0;
+
+
+        const pendiente =
+          Math.max(
+            total -
+            cobrado,
+            0
+          );
+
+
+        totalProyecto +=
+          total;
+
+
+        totalAdelanto +=
+          adelanto;
+
+
+        totalCobrado +=
+          cobrado;
+
+
+        totalPendiente +=
+          pendiente;
+
+
+        return [
+
+          ingreso.codigo || "",
+
+          ingreso.cliente || "",
+
+          ingreso.mueble || "",
+
+          `Bs. ${formatearMonto(total)}`,
+
+          `Bs. ${formatearMonto(adelanto)}`,
+
+          `Bs. ${formatearMonto(cobrado)}`,
+
+          `Bs. ${formatearMonto(pendiente)}`
+
+        ];
+
+      }
+    );
+
+
+  doc.autoTable({
+
+    startY:35,
+
+    head:
+    [[
+
+      "Código",
+
+      "Cliente",
+
+      "Proyecto",
+
+      "Total",
+
+      "Adelanto",
+
+      "Cobrado",
+
+      "Pendiente"
+
+    ]],
+
+    body:filas,
+
+    styles:{
+      fontSize:8
+    },
+
+    headStyles:{
+      fontStyle:"bold"
+    }
+
+  });
+
+
+  const finalY =
+    doc.lastAutoTable.finalY + 10;
+
+
+  doc.setFontSize(10);
+
+
+  doc.text(
+    `Total proyectos: ${lista.length}`,
+    14,
+    finalY
+  );
+
+
+  doc.text(
+    `Total contratado: Bs. ${formatearMonto(totalProyecto)}`,
+    14,
+    finalY + 7
+  );
+
+
+  doc.text(
+    `Total adelantos: Bs. ${formatearMonto(totalAdelanto)}`,
+    14,
+    finalY + 14
+  );
+
+
+  doc.text(
+    `Total cobrado: Bs. ${formatearMonto(totalCobrado)}`,
+    14,
+    finalY + 21
+  );
+
+
+  doc.text(
+    `Total pendiente: Bs. ${formatearMonto(totalPendiente)}`,
+    14,
+    finalY + 28
+  );
+
+
+  doc.save(
+    `HN-Muebles-Ingresos-${filtro}.pdf`
+  );
+
+}
+
+
+// ============================================================
+// 19. WHATSAPP
+// ============================================================
+
+function notificarWhatsApp(
+  index
+) {
+
+  if (!esAdmin) return;
 
 
   const p =
@@ -1981,63 +3008,71 @@ function notificarWhatsApp(index) {
 
 
   if (
-    !p.telefono ||
-    p.telefono.trim() === ""
+    !p ||
+    !p.telefono
   ) {
 
     return;
+
   }
 
 
-  let num =
+  let numero =
     p.telefono
       .toString()
-      .replace(/\D/g, "");
+      .replace(
+        /\D/g,
+        ""
+      );
 
 
   if (
-    !num.startsWith("591") &&
-    num.length === 8
+    !numero.startsWith("591") &&
+    numero.length === 8
   ) {
 
-    num =
-      "591" + num;
+    numero =
+      "591" +
+      numero;
+
   }
 
 
-  const linkBase =
+  const link =
     window.location.origin +
-    window.location.pathname;
+    window.location.pathname +
+    `?codigo=${encodeURIComponent(
+      p.codigo
+    )}`;
 
 
-  const linkDirecto =
-    `${linkBase}?codigo=${p.codigo}`;
+  const fecha =
+    p.fechaEntrega
+      ? p.fechaEntrega
+          .split("-")
+          .reverse()
+          .join("/")
+      : "Por coordinar";
 
 
   const mensaje =
-    `Hola *${p.cliente}* 👋, desde *HN Muebles* te informamos el estado de tu proyecto *"${p.mueble}"*:
+`Hola *${p.cliente}* 👋, desde *HN Muebles* te informamos el estado de tu proyecto *"${p.mueble}"*:
 
 🛠️ *Estado:* ${p.estado}
 
 📊 *Progreso:* ${p.progreso}%
 
-📅 *Fecha Estimada de Entrega:* ${
-      p.fechaEntrega
-        ? p.fechaEntrega
-            .split("-")
-            .reverse()
-            .join("/")
-        : "Por coordinar"
-    }
+📅 *Fecha estimada de entrega:* ${fecha}
 
 🔍 *Consulta el estado de tu proyecto:*
-${linkDirecto}`;
+${link}`;
 
 
   window.open(
-    `https://wa.me/${num}?text=${encodeURIComponent(
+    `https://wa.me/${numero}?text=${encodeURIComponent(
       mensaje
     )}`,
     "_blank"
   );
+
 }
