@@ -1,7 +1,7 @@
 // ============================================================
 // HN MUEBLES - SCRIPT PRINCIPAL
-// Firebase Authentication + Firestore
-// Gestión de Proyectos + Gestión de Ingresos
+// Firebase Authentication + Firestore + Storage
+// Proyectos + Ingresos + Portafolio
 // ============================================================
 
 
@@ -34,18 +34,13 @@ const firebaseConfig = {
 };
 
 
-firebase.initializeApp(
-  firebaseConfig
-);
+firebase.initializeApp(firebaseConfig);
 
+const db = firebase.firestore();
 
-const db =
-  firebase.firestore();
+const auth = firebase.auth();
 
-
-const auth =
-  firebase.auth();
-
+const storage = firebase.storage();
 
 const EMAIL_ADMIN =
   "hn24muebles@gmail.com";
@@ -57,6 +52,8 @@ let ingresos = [];
 
 let esAdmin = false;
 
+let portafolio = [];
+
 
 // ============================================================
 // 2. UTILIDADES
@@ -64,8 +61,7 @@ let esAdmin = false;
 
 function formatearMonto(valor) {
 
-  const num =
-    Number(valor) || 0;
+  const num = Number(valor) || 0;
 
   return Number.isInteger(num)
     ? num.toString()
@@ -83,13 +79,11 @@ function generarCodigoAleatorio() {
 
   for (let i = 0; i < 5; i++) {
 
-    aleatorio +=
-      caracteres.charAt(
-        Math.floor(
-          Math.random() *
-          caracteres.length
-        )
-      );
+    aleatorio += caracteres.charAt(
+      Math.floor(
+        Math.random() * caracteres.length
+      )
+    );
 
   }
 
@@ -101,9 +95,7 @@ function generarCodigoAleatorio() {
 function llenarCodigoAutomatico() {
 
   const input =
-    document.getElementById(
-      "nuevo-codigo"
-    );
+    document.getElementById("nuevo-codigo");
 
   if (input) {
 
@@ -115,9 +107,7 @@ function llenarCodigoAutomatico() {
 }
 
 
-function copiarCodigoAlPortapapeles(
-  codigo
-) {
+function copiarCodigoAlPortapapeles(codigo) {
 
   navigator.clipboard
     .writeText(codigo)
@@ -172,138 +162,103 @@ function irInicio() {
 // 3. AUTENTICACIÓN
 // ============================================================
 
-auth.onAuthStateChanged(
-  async (user) => {
+auth.onAuthStateChanged(async (user) => {
 
-    console.log(
-      "CAMBIO DE AUTENTICACIÓN:",
-      user
-    );
-
-
-    if (!user) {
-
-      esAdmin = false;
-
-      ocultarPanelAdministrador();
-
-      return;
-
-    }
+  console.log(
+    "CAMBIO DE AUTENTICACIÓN:",
+    user
+  );
 
 
-    console.log(
-      "Usuario conectado:",
+  if (!user) {
+
+    esAdmin = false;
+
+    ocultarPanelAdministrador();
+
+    return;
+
+  }
+
+
+  const emailUsuario =
+    (user.email || "")
+      .trim()
+      .toLowerCase();
+
+
+  const emailAdmin =
+    EMAIL_ADMIN
+      .trim()
+      .toLowerCase();
+
+
+  if (emailUsuario !== emailAdmin) {
+
+    console.warn(
+      "Cuenta no autorizada:",
       user.email
     );
 
+    esAdmin = false;
 
-    const emailUsuario =
-      (user.email || "")
-        .trim()
-        .toLowerCase();
+    ocultarPanelAdministrador();
 
-
-    const emailAdmin =
-      EMAIL_ADMIN
-        .trim()
-        .toLowerCase();
-
-
-    if (
-      emailUsuario !==
-      emailAdmin
-    ) {
-
-      console.warn(
-        "Cuenta autenticada pero no es administrador:",
-        user.email
-      );
-
-      esAdmin = false;
-
-      ocultarPanelAdministrador();
-
-      return;
-
-    }
-
-
-    // ========================================================
-    // ADMINISTRADOR CORRECTO
-    // ========================================================
-
-    esAdmin = true;
-
-
-    console.log(
-      "ADMINISTRADOR AUTORIZADO"
-    );
-
-
-    mostrarPanelAdministrador();
-
-
-    try {
-
-      await cargarProyectosDesdeNube();
-
-      await cargarIngresosDesdeNube();
-
-
-      renderProyectosAdmin();
-
-      renderGestionIngresos();
-
-
-    }
-
-    catch (error) {
-
-      console.error(
-        "Error cargando panel:",
-        error
-      );
-
-    }
+    return;
 
   }
-);
+
+
+  esAdmin = true;
+
+  mostrarPanelAdministrador();
+
+
+  try {
+
+    await cargarProyectosDesdeNube();
+
+    await cargarIngresosDesdeNube();
+
+    await cargarPortafolioAdmin();
+
+    renderProyectosAdmin();
+
+    renderGestionIngresos();
+
+  }
+
+  catch (error) {
+
+    console.error(
+      "Error cargando panel:",
+      error
+    );
+
+  }
+
+});
 
 
 // ============================================================
-// 4. MOSTRAR / OCULTAR ADMIN
+// 4. ADMIN
 // ============================================================
 
 function mostrarPanelAdministrador() {
 
   const login =
-    document.getElementById(
-      "admin-login"
-    );
+    document.getElementById("admin-login");
 
   const panel =
-    document.getElementById(
-      "admin-panel"
-    );
+    document.getElementById("admin-panel");
 
 
-  if (login) {
-
-    login.classList.add(
-      "hidden"
-    );
-
-  }
+  if (login)
+    login.classList.add("hidden");
 
 
-  if (panel) {
-
-    panel.classList.remove(
-      "hidden"
-    );
-
-  }
+  if (panel)
+    panel.classList.remove("hidden");
 
 }
 
@@ -311,38 +266,24 @@ function mostrarPanelAdministrador() {
 function ocultarPanelAdministrador() {
 
   const login =
-    document.getElementById(
-      "admin-login"
-    );
+    document.getElementById("admin-login");
 
   const panel =
-    document.getElementById(
-      "admin-panel"
-    );
+    document.getElementById("admin-panel");
 
 
-  if (panel) {
-
-    panel.classList.add(
-      "hidden"
-    );
-
-  }
+  if (panel)
+    panel.classList.add("hidden");
 
 
-  if (login) {
-
-    login.classList.remove(
-      "hidden"
-    );
-
-  }
+  if (login)
+    login.classList.remove("hidden");
 
 }
 
 
 // ============================================================
-// 5. LOGIN
+// 5. DOM READY
 // ============================================================
 
 document.addEventListener(
@@ -350,10 +291,12 @@ document.addEventListener(
   function () {
 
 
+    // ========================================================
+    // LOGIN
+    // ========================================================
+
     const formLogin =
-      document.getElementById(
-        "form-login"
-      );
+      document.getElementById("form-login");
 
 
     if (formLogin) {
@@ -366,22 +309,13 @@ document.addEventListener(
 
 
           const emailInput =
-            document.getElementById(
-              "input-email"
-            );
-
+            document.getElementById("input-email");
 
           const passwordInput =
-            document.getElementById(
-              "input-pass"
-            );
-
+            document.getElementById("input-pass");
 
           const errorMsg =
-            document.getElementById(
-              "login-error-msg"
-            );
-
+            document.getElementById("login-error-msg");
 
           const boton =
             formLogin.querySelector(
@@ -394,20 +328,15 @@ document.addEventListener(
               .trim()
               .toLowerCase();
 
-
           const password =
-            passwordInput?.value
-            || "";
+            passwordInput?.value || "";
 
 
           if (errorMsg) {
 
-            errorMsg.textContent =
-              "";
+            errorMsg.textContent = "";
 
-            errorMsg.classList.add(
-              "hidden"
-            );
+            errorMsg.classList.add("hidden");
 
           }
 
@@ -419,9 +348,7 @@ document.addEventListener(
               errorMsg.textContent =
                 "Ingresa tu correo y contraseña.";
 
-              errorMsg.classList.remove(
-                "hidden"
-              );
+              errorMsg.classList.remove("hidden");
 
             }
 
@@ -434,8 +361,7 @@ document.addEventListener(
 
             if (boton) {
 
-              boton.disabled =
-                true;
+              boton.disabled = true;
 
               boton.dataset.textoOriginal =
                 boton.innerText;
@@ -446,24 +372,15 @@ document.addEventListener(
             }
 
 
-            const resultado =
-              await auth
-                .signInWithEmailAndPassword(
-                  email,
-                  password
-                );
-
-
-            console.log(
-              "LOGIN FIREBASE EXITOSO:",
-              resultado.user.email
+            await auth.signInWithEmailAndPassword(
+              email,
+              password
             );
 
 
             if (passwordInput) {
 
-              passwordInput.value =
-                "";
+              passwordInput.value = "";
 
             }
 
@@ -472,7 +389,7 @@ document.addEventListener(
           catch (error) {
 
             console.error(
-              "ERROR COMPLETO DE FIREBASE LOGIN:",
+              "ERROR LOGIN:",
               error
             );
 
@@ -484,71 +401,46 @@ document.addEventListener(
             switch (error.code) {
 
               case "auth/invalid-credential":
-
                 mensaje =
                   "Correo o contraseña incorrectos.";
-
                 break;
-
 
               case "auth/wrong-password":
-
                 mensaje =
                   "La contraseña es incorrecta.";
-
                 break;
-
 
               case "auth/user-not-found":
-
                 mensaje =
                   "No existe una cuenta con ese correo.";
-
                 break;
-
 
               case "auth/invalid-email":
-
                 mensaje =
                   "El correo electrónico no es válido.";
-
                 break;
-
 
               case "auth/user-disabled":
-
                 mensaje =
-                  "Esta cuenta está deshabilitada en Firebase.";
-
+                  "Esta cuenta está deshabilitada.";
                 break;
-
 
               case "auth/too-many-requests":
-
                 mensaje =
-                  "Demasiados intentos. Espera unos minutos e inténtalo nuevamente.";
-
+                  "Demasiados intentos. Espera unos minutos.";
                 break;
-
 
               case "auth/network-request-failed":
-
                 mensaje =
-                  "No hay conexión con Firebase. Revisa tu Internet.";
-
+                  "No hay conexión con Firebase.";
                 break;
-
 
               case "auth/operation-not-allowed":
-
                 mensaje =
-                  "El acceso con correo y contraseña no está habilitado en Firebase Authentication.";
-
+                  "El acceso con correo y contraseña no está habilitado.";
                 break;
 
-
               default:
-
                 mensaje =
                   `Error de acceso: ${
                     error.message ||
@@ -564,9 +456,7 @@ document.addEventListener(
               errorMsg.textContent =
                 mensaje;
 
-              errorMsg.classList.remove(
-                "hidden"
-              );
+              errorMsg.classList.remove("hidden");
 
             }
 
@@ -576,12 +466,11 @@ document.addEventListener(
 
             if (boton) {
 
-              boton.disabled =
-                false;
+              boton.disabled = false;
 
               boton.innerText =
-                boton.dataset.textoOriginal
-                || "Ingresar";
+                boton.dataset.textoOriginal ||
+                "Ingresar";
 
             }
 
@@ -598,9 +487,7 @@ document.addEventListener(
     // ========================================================
 
     const formBuscar =
-      document.getElementById(
-        "form-buscar"
-      );
+      document.getElementById("form-buscar");
 
 
     if (formBuscar) {
@@ -635,14 +522,13 @@ document.addEventListener(
 
 
     // ========================================================
-    // CÁLCULO SALDO NUEVO PROYECTO
+    // CÁLCULO SALDO
     // ========================================================
 
     const presupuestoInput =
       document.getElementById(
         "nuevo-presupuesto"
       );
-
 
     const adelantoInput =
       document.getElementById(
@@ -676,12 +562,10 @@ document.addEventListener(
           "nuevo-total-preview"
         );
 
-
       const adelantoPreview =
         document.getElementById(
           "nuevo-adelanto-preview"
         );
-
 
       const saldoPreview =
         document.getElementById(
@@ -689,28 +573,19 @@ document.addEventListener(
         );
 
 
-      if (totalPreview) {
-
+      if (totalPreview)
         totalPreview.innerText =
           `Bs. ${formatearMonto(total)}`;
 
-      }
 
-
-      if (adelantoPreview) {
-
+      if (adelantoPreview)
         adelantoPreview.innerText =
           `Bs. ${formatearMonto(adelanto)}`;
 
-      }
 
-
-      if (saldoPreview) {
-
+      if (saldoPreview)
         saldoPreview.innerText =
           `Bs. ${formatearMonto(saldo)}`;
-
-      }
 
     }
 
@@ -720,12 +595,10 @@ document.addEventListener(
       calcularSaldoNuevo
     );
 
-
     adelantoInput?.addEventListener(
       "input",
       calcularSaldoNuevo
     );
-
 
     calcularSaldoNuevo();
 
@@ -814,46 +687,35 @@ document.addEventListener(
           const fechaEntrega =
             document.getElementById(
               "nuevo-fecha"
-            )?.value
-            || "";
+            )?.value || "";
 
 
           const pendiente =
             Math.max(
-              presupuesto -
-              adelanto,
+              presupuesto - adelanto,
               0
             );
 
 
           const proyectoRef =
-            db
-              .collection("proyectos")
-              .doc();
+            db.collection("proyectos").doc();
 
 
           const ingresoRef =
-            db
-              .collection("ingresos")
-              .doc();
+            db.collection("ingresos").doc();
 
 
           const publicoRef =
             db
               .collection("proyectos_publicos")
-              .doc(
-                proyectoRef.id
-              );
+              .doc(proyectoRef.id);
 
 
           const proyecto = {
 
             codigo,
-
             cliente,
-
             mueble,
-
             telefono,
 
             estado:
@@ -866,9 +728,7 @@ document.addEventListener(
               "Diseño confirmado por WhatsApp. Listo para corte.",
 
             presupuesto,
-
             adelanto,
-
             fechaEntrega,
 
             creadoEn:
@@ -883,16 +743,13 @@ document.addEventListener(
               proyectoRef.id,
 
             codigo,
-
             cliente,
-
             mueble,
-
             presupuesto,
-
             adelanto,
 
-            pagosFinales: 0,
+            pagosFinales:
+              0,
 
             cobrado:
               adelanto,
@@ -913,9 +770,7 @@ document.addEventListener(
           const proyectoPublico = {
 
             codigo,
-
             cliente,
-
             mueble,
 
             estado:
@@ -943,12 +798,10 @@ document.addEventListener(
               proyecto
             );
 
-
             batch.set(
               ingresoRef,
               ingreso
             );
-
 
             batch.set(
               publicoRef,
@@ -956,115 +809,47 @@ document.addEventListener(
             );
 
 
-            // ==================================================
-            // GUARDAMOS LAS 3 COLECCIONES JUNTAS
-            // ==================================================
-
             await batch.commit();
 
 
-            // ==================================================
-            // LIMPIAR FORMULARIO
-            // ==================================================
-
-            const campoCodigo =
-              document.getElementById(
-                "nuevo-codigo"
-              );
-
-            const campoCliente =
-              document.getElementById(
-                "nuevo-cliente"
-              );
-
-            const campoMueble =
-              document.getElementById(
-                "nuevo-mueble"
-              );
-
-            const campoTelefono =
-              document.getElementById(
-                "nuevo-telefono"
-              );
-
-            const campoPresupuesto =
-              document.getElementById(
-                "nuevo-presupuesto"
-              );
-
-            const campoAdelanto =
-              document.getElementById(
-                "nuevo-adelanto"
-              );
-
-            const campoFecha =
-              document.getElementById(
-                "nuevo-fecha"
-              );
+            document.getElementById(
+              "nuevo-codigo"
+            ).value =
+              generarCodigoAleatorio();
 
 
-            if (campoCodigo) {
-
-              campoCodigo.value =
-                generarCodigoAleatorio();
-
-            }
+            document.getElementById(
+              "nuevo-cliente"
+            ).value = "";
 
 
-            if (campoCliente) {
-
-              campoCliente.value =
-                "";
-
-            }
+            document.getElementById(
+              "nuevo-mueble"
+            ).value = "";
 
 
-            if (campoMueble) {
-
-              campoMueble.value =
-                "";
-
-            }
+            document.getElementById(
+              "nuevo-telefono"
+            ).value = "";
 
 
-            if (campoTelefono) {
-
-              campoTelefono.value =
-                "";
-
-            }
+            document.getElementById(
+              "nuevo-presupuesto"
+            ).value = "";
 
 
-            if (campoPresupuesto) {
-
-              campoPresupuesto.value =
-                "";
-
-            }
+            document.getElementById(
+              "nuevo-adelanto"
+            ).value = "";
 
 
-            if (campoAdelanto) {
-
-              campoAdelanto.value =
-                "";
-
-            }
-
-
-            if (campoFecha) {
-
-              campoFecha.value =
-                "";
-
-            }
+            document.getElementById(
+              "nuevo-fecha"
+            ).value = "";
 
 
             calcularSaldoNuevo();
 
-
-            // ==================================================
-            // ACTUALIZAR TODO AUTOMÁTICAMENTE
-            // ==================================================
 
             await cargarProyectosDesdeNube();
 
@@ -1076,7 +861,7 @@ document.addEventListener(
             renderGestionIngresos();
 
 
-            mostrarMensajeInterno(
+            alert(
               "Proyecto guardado correctamente."
             );
 
@@ -1090,9 +875,8 @@ document.addEventListener(
             );
 
 
-            mostrarMensajeInterno(
-              "No se pudo guardar. Revisa las Rules de Firestore.",
-              true
+            alert(
+              "No se pudo guardar el proyecto. Revisa las Rules de Firestore."
             );
 
           }
@@ -1122,7 +906,7 @@ document.addEventListener(
       filtroIngresos.value =
         `${ahora.getFullYear()}-${String(
           ahora.getMonth() + 1
-        ).padStart(2, "0")}`;
+        ).padStart(2,"0")}`;
 
 
       filtroIngresos.addEventListener(
@@ -1136,12 +920,58 @@ document.addEventListener(
 
     }
 
+
+    // ========================================================
+    // PORTAFOLIO
+    // ========================================================
+
+    cargarPortafolioPublico();
+
+
+    const fotosInput =
+      document.getElementById(
+        "portfolio-fotos"
+      );
+
+    const videosInput =
+      document.getElementById(
+        "portfolio-videos"
+      );
+
+
+    fotosInput?.addEventListener(
+      "change",
+      mostrarPreviewArchivos
+    );
+
+
+    videosInput?.addEventListener(
+      "change",
+      mostrarPreviewArchivos
+    );
+
+
+    const formPortfolio =
+      document.getElementById(
+        "form-portafolio"
+      );
+
+
+    if (formPortfolio) {
+
+      formPortfolio.addEventListener(
+        "submit",
+        publicarTrabajoPortafolio
+      );
+
+    }
+
   }
 );
 
 
 // ============================================================
-// 6. MENSAJE INTERNO
+// 6. MENSAJE
 // ============================================================
 
 function mostrarMensajeInterno(
@@ -1149,37 +979,10 @@ function mostrarMensajeInterno(
   error = false
 ) {
 
-  const elemento =
-    document.getElementById(
-      "ingreso-mensaje"
-    );
-
-
-  if (!elemento) {
-
-    console.log(mensaje);
-
-    return;
-
-  }
-
-
-  elemento.textContent =
-    mensaje;
-
-
-  elemento.style.color =
-    error
-      ? "#ef4444"
-      : "#4ade80";
-
-
-  setTimeout(() => {
-
-    elemento.textContent =
-      "";
-
-  }, 3000);
+  console.log(
+    error ? "ERROR:" : "OK:",
+    mensaje
+  );
 
 }
 
@@ -1199,19 +1002,26 @@ async function cerrarSesionAdmin() {
     ocultarPanelAdministrador();
 
 
-    const modal =
+    const modalIngresos =
       document.getElementById(
         "modal-ingresos"
       );
 
 
-    if (modal) {
-
-      modal.classList.add(
-        "hidden"
+    const modalPortfolio =
+      document.getElementById(
+        "modal-portafolio"
       );
 
-    }
+
+    modalIngresos?.classList.add(
+      "hidden"
+    );
+
+
+    modalPortfolio?.classList.add(
+      "hidden"
+    );
 
 
     irInicio();
@@ -1231,7 +1041,7 @@ async function cerrarSesionAdmin() {
 
 
 // ============================================================
-// 8. CARGAR PROYECTOS
+// 8. PROYECTOS
 // ============================================================
 
 async function cargarProyectosDesdeNube() {
@@ -1257,20 +1067,18 @@ async function cargarProyectosDesdeNube() {
     proyectos = [];
 
 
-    snapshot.forEach(
-      doc => {
+    snapshot.forEach(doc => {
 
-        proyectos.push({
+      proyectos.push({
 
-          id:
-            doc.id,
+        id:
+          doc.id,
 
-          ...doc.data()
+        ...doc.data()
 
-        });
+      });
 
-      }
-    );
+    });
 
   }
 
@@ -1287,7 +1095,7 @@ async function cargarProyectosDesdeNube() {
 
 
 // ============================================================
-// 9. CARGAR INGRESOS
+// 9. INGRESOS
 // ============================================================
 
 async function cargarIngresosDesdeNube() {
@@ -1313,20 +1121,18 @@ async function cargarIngresosDesdeNube() {
     ingresos = [];
 
 
-    snapshot.forEach(
-      doc => {
+    snapshot.forEach(doc => {
 
-        ingresos.push({
+      ingresos.push({
 
-          id:
-            doc.id,
+        id:
+          doc.id,
 
-          ...doc.data()
+        ...doc.data()
 
-        });
+      });
 
-      }
-    );
+    });
 
   }
 
@@ -1354,7 +1160,6 @@ async function buscarProyectoPublico(
     document.getElementById(
       "mensaje-error"
     );
-
 
   const resultBox =
     document.getElementById(
@@ -1398,7 +1203,6 @@ async function buscarProyectoPublico(
     errorMsg?.classList.add(
       "hidden"
     );
-
 
     resultBox?.classList.remove(
       "hidden"
@@ -1486,55 +1290,43 @@ function renderProyectosAdmin() {
     );
 
 
-  if (total) {
-
+  if (total)
     total.innerText =
       proyectos.length;
-
-  }
 
 
   if (!container) return;
 
 
-  container.innerHTML =
-    "";
+  container.innerHTML = "";
 
 
   const etapas = [
 
     "Diseño Aprobado",
-
     "Corte",
-
     "Armado",
-
     "Instalación",
-
     "Finalizado"
 
   ];
 
 
   proyectos.forEach(
-    (p, index) => {
+    (p,index) => {
+
 
       const presupuesto =
-        Number(
-          p.presupuesto
-        ) || 0;
+        Number(p.presupuesto) || 0;
 
 
       const adelanto =
-        Number(
-          p.adelanto
-        ) || 0;
+        Number(p.adelanto) || 0;
 
 
       const saldo =
         Math.max(
-          presupuesto -
-          adelanto,
+          presupuesto - adelanto,
           0
         );
 
@@ -1549,35 +1341,31 @@ function renderProyectosAdmin() {
 
 
       const card =
-        document.createElement(
-          "div"
-        );
+        document.createElement("div");
 
 
       card.className =
         "admin-card";
 
 
-      card.style.cssText =
-        `
+      card.style.cssText = `
         background:rgba(255,255,255,.05);
         border:1px solid rgba(255,255,255,.1);
         border-radius:12px;
         padding:1.2rem;
         margin-bottom:1rem;
-        `;
+      `;
 
 
       const botones =
         etapas.map(
-          (estado, idx) => {
+          (estado,idx) => {
 
             const activo =
               p.estado === estado;
 
 
             return `
-
               <button
                 type="button"
                 onclick="cambiarEstadoPorId(
@@ -1592,7 +1380,6 @@ function renderProyectosAdmin() {
                   cursor:pointer;
                   font-size:.8rem;
                   margin:.2rem;
-
                   ${
                     activo
                       ? "background:#f59e0b;color:#000;font-weight:bold;"
@@ -1602,55 +1389,45 @@ function renderProyectosAdmin() {
               >
                 ${estado}
               </button>
-
             `;
 
           }
         ).join("");
 
 
-      card.innerHTML =
-      `
+      card.innerHTML = `
 
         <div id="info-view-${index}">
 
-          <div
-            style="
-              display:flex;
-              justify-content:space-between;
-              gap:10px;
-              flex-wrap:wrap;
-            "
-          >
+          <div style="
+            display:flex;
+            justify-content:space-between;
+            gap:10px;
+            flex-wrap:wrap;
+          ">
 
             <div style="flex:1;min-width:260px;">
 
-              <span
-                style="
-                  background:#f59e0b;
-                  color:#000;
-                  padding:.2rem .6rem;
-                  border-radius:4px;
-                  font-weight:bold;
-                  font-size:.85rem;
-                "
-              >
+              <span style="
+                background:#f59e0b;
+                color:#000;
+                padding:.2rem .6rem;
+                border-radius:4px;
+                font-weight:bold;
+                font-size:.85rem;
+              ">
                 ${p.codigo || ""}
               </span>
-
 
               <strong style="margin-left:.4rem;">
                 ${p.mueble || ""}
               </strong>
 
-
-              <p
-                style="
-                  margin:.4rem 0;
-                  color:#a3a3a3;
-                  font-size:.85rem;
-                "
-              >
+              <p style="
+                margin:.4rem 0;
+                color:#a3a3a3;
+                font-size:.85rem;
+              ">
                 Cliente:
                 ${p.cliente || ""}
                 |
@@ -1658,35 +1435,21 @@ function renderProyectosAdmin() {
                 ${p.telefono || "Sin registrar"}
               </p>
 
-
-              <p
-                style="
-                  color:#38bdf8;
-                  font-size:.85rem;
-                "
-              >
+              <p style="
+                color:#38bdf8;
+                font-size:.85rem;
+              ">
                 Entrega:
-                <strong>
-                  ${fecha}
-                </strong>
+                <strong>${fecha}</strong>
               </p>
 
 
-              <!-- =================================================
-                   CAJAS FINANCIERAS
-                   ================================================= -->
-
-              <div
-                style="
-                  display:grid;
-                  grid-template-columns:
-                    repeat(3,minmax(0,1fr));
-                  gap:10px;
-                  margin-top:12px;
-                "
-              >
-
-                <!-- MONTO TOTAL -->
+              <div style="
+                display:grid;
+                grid-template-columns:repeat(3,minmax(0,1fr));
+                gap:10px;
+                margin-top:12px;
+              ">
 
                 <div
                   class="financial-box"
@@ -1697,30 +1460,23 @@ function renderProyectosAdmin() {
                   "
                 >
 
-                  <span
-                    style="
-                      font-size:.75rem;
-                      opacity:.85;
-                      margin-bottom:5px;
-                    "
-                  >
+                  <span style="
+                    font-size:.75rem;
+                    opacity:.85;
+                    margin-bottom:5px;
+                  ">
                     Monto total
                   </span>
 
-                  <strong
-                    style="
-                      font-size:1.05rem;
-                      line-height:1.2;
-                      white-space:nowrap;
-                    "
-                  >
+                  <strong style="
+                    font-size:1.05rem;
+                    white-space:nowrap;
+                  ">
                     Bs. ${formatearMonto(presupuesto)}
                   </strong>
 
                 </div>
 
-
-                <!-- ADELANTO -->
 
                 <div
                   class="financial-box"
@@ -1731,30 +1487,23 @@ function renderProyectosAdmin() {
                   "
                 >
 
-                  <span
-                    style="
-                      font-size:.75rem;
-                      opacity:.85;
-                      margin-bottom:5px;
-                    "
-                  >
+                  <span style="
+                    font-size:.75rem;
+                    opacity:.85;
+                    margin-bottom:5px;
+                  ">
                     Adelanto
                   </span>
 
-                  <strong
-                    style="
-                      font-size:1.05rem;
-                      line-height:1.2;
-                      white-space:nowrap;
-                    "
-                  >
+                  <strong style="
+                    font-size:1.05rem;
+                    white-space:nowrap;
+                  ">
                     Bs. ${formatearMonto(adelanto)}
                   </strong>
 
                 </div>
 
-
-                <!-- PENDIENTE -->
 
                 <div
                   class="financial-box"
@@ -1765,23 +1514,18 @@ function renderProyectosAdmin() {
                   "
                 >
 
-                  <span
-                    style="
-                      font-size:.75rem;
-                      opacity:.85;
-                      margin-bottom:5px;
-                    "
-                  >
+                  <span style="
+                    font-size:.75rem;
+                    opacity:.85;
+                    margin-bottom:5px;
+                  ">
                     Pendiente
                   </span>
 
-                  <strong
-                    style="
-                      font-size:1.05rem;
-                      line-height:1.2;
-                      white-space:nowrap;
-                    "
-                  >
+                  <strong style="
+                    font-size:1.05rem;
+                    white-space:nowrap;
+                  ">
                     Bs. ${formatearMonto(saldo)}
                   </strong>
 
@@ -1790,18 +1534,10 @@ function renderProyectosAdmin() {
               </div>
 
 
-              <!-- ETAPAS -->
-
-              <div
-                style="
-                  margin-top:.7rem;
-                "
-              >
+              <div style="margin-top:.7rem;">
                 ${botones}
               </div>
 
-
-              <!-- WHATSAPP -->
 
               <button
                 type="button"
@@ -1824,17 +1560,11 @@ function renderProyectosAdmin() {
             </div>
 
 
-            <!-- =================================================
-                 ACCIONES
-                 ================================================= -->
-
-            <div
-              style="
-                display:flex;
-                gap:5px;
-                align-items:flex-start;
-              "
-            >
+            <div style="
+              display:flex;
+              gap:5px;
+              align-items:flex-start;
+            ">
 
               <button
                 type="button"
@@ -1848,7 +1578,6 @@ function renderProyectosAdmin() {
               >
                 ✏️
               </button>
-
 
               <button
                 type="button"
@@ -1868,13 +1597,10 @@ function renderProyectosAdmin() {
           </div>
 
         </div>
-
       `;
 
 
-      container.appendChild(
-        card
-      );
+      container.appendChild(card);
 
     }
   );
@@ -1895,23 +1621,15 @@ async function cambiarEstadoPorId(
   if (
     !esAdmin ||
     !auth.currentUser
-  ) {
-
-    return;
-
-  }
+  ) return;
 
 
   const etapas = [
 
     "Diseño Aprobado",
-
     "Corte",
-
     "Armado",
-
     "Instalación",
-
     "Finalizado"
 
   ];
@@ -1980,20 +1698,18 @@ async function cambiarEstadoPorId(
         .get();
 
 
-    publicoQuery.forEach(
-      doc => {
+    publicoQuery.forEach(doc => {
 
-        batch.update(
-          doc.ref,
-          {
-            estado,
-            progreso,
-            detalles
-          }
-        );
+      batch.update(
+        doc.ref,
+        {
+          estado,
+          progreso,
+          detalles
+        }
+      );
 
-      }
-    );
+    });
 
 
     await batch.commit();
@@ -2021,18 +1737,19 @@ async function cambiarEstadoPorId(
 // 13. ELIMINAR PROYECTO
 // ============================================================
 
-async function eliminarProyecto(
-  id
-) {
+async function eliminarProyecto(id) {
 
   if (
     !esAdmin ||
     !auth.currentUser
-  ) {
+  ) return;
 
-    return;
 
-  }
+  if (
+    !confirm(
+      "¿Seguro que quieres eliminar este proyecto?"
+    )
+  ) return;
 
 
   try {
@@ -2068,15 +1785,11 @@ async function eliminarProyecto(
           .get();
 
 
-      publicSnap.forEach(
-        doc => {
+      publicSnap.forEach(doc => {
 
-          batch.delete(
-            doc.ref
-          );
+        batch.delete(doc.ref);
 
-        }
-      );
+      });
 
 
       const ingresoSnap =
@@ -2091,15 +1804,11 @@ async function eliminarProyecto(
           .get();
 
 
-      ingresoSnap.forEach(
-        doc => {
+      ingresoSnap.forEach(doc => {
 
-          batch.delete(
-            doc.ref
-          );
+        batch.delete(doc.ref);
 
-        }
-      );
+      });
 
     }
 
@@ -2134,9 +1843,7 @@ async function eliminarProyecto(
 // 14. EDITAR PROYECTO
 // ============================================================
 
-function activarEdicionInline(
-  index
-) {
+function activarEdicionInline(index) {
 
   const p =
     proyectos[index];
@@ -2151,16 +1858,13 @@ function activarEdicionInline(
   if (!info || !p) return;
 
 
-  info.innerHTML =
-  `
+  info.innerHTML = `
 
-    <div
-      style="
-        display:flex;
-        flex-direction:column;
-        gap:7px;
-      "
-    >
+    <div style="
+      display:flex;
+      flex-direction:column;
+      gap:7px;
+    ">
 
       <input
         id="edit-codigo-${index}"
@@ -2168,13 +1872,11 @@ function activarEdicionInline(
         placeholder="Código"
       >
 
-
       <input
         id="edit-cliente-${index}"
         value="${p.cliente || ""}"
         placeholder="Cliente"
       >
-
 
       <input
         id="edit-mueble-${index}"
@@ -2182,13 +1884,11 @@ function activarEdicionInline(
         placeholder="Mueble"
       >
 
-
       <input
         id="edit-telefono-${index}"
         value="${p.telefono || ""}"
         placeholder="WhatsApp"
       >
-
 
       <input
         type="number"
@@ -2199,7 +1899,6 @@ function activarEdicionInline(
         step="0.01"
       >
 
-
       <input
         type="number"
         id="edit-adelanto-${index}"
@@ -2209,13 +1908,11 @@ function activarEdicionInline(
         step="0.01"
       >
 
-
       <input
         type="date"
         id="edit-fecha-${index}"
         value="${p.fechaEntrega || ""}"
       >
-
 
       <div>
 
@@ -2233,7 +1930,6 @@ function activarEdicionInline(
         >
           Guardar
         </button>
-
 
         <button
           type="button"
@@ -2271,11 +1967,7 @@ async function guardarEdicionInline(
   if (
     !esAdmin ||
     !auth.currentUser
-  ) {
-
-    return;
-
-  }
+  ) return;
 
 
   const proyectoAnterior =
@@ -2344,26 +2036,15 @@ async function guardarEdicionInline(
       .update({
 
         codigo,
-
         cliente,
-
         mueble,
-
         telefono,
-
         presupuesto,
-
         adelanto,
-
-        fechaEntrega:
-          fecha
+        fechaEntrega: fecha
 
       });
 
-
-    // ========================================================
-    // ACTUALIZAR INGRESOS
-    // ========================================================
 
     const ingresoSnap =
       await db
@@ -2382,7 +2063,6 @@ async function guardarEdicionInline(
       const ingresoDoc =
         ingresoSnap.docs[0];
 
-
       const ingreso =
         ingresoDoc.data();
 
@@ -2400,8 +2080,7 @@ async function guardarEdicionInline(
 
       const pendiente =
         Math.max(
-          presupuesto -
-          cobrado,
+          presupuesto - cobrado,
           0
         );
 
@@ -2409,27 +2088,17 @@ async function guardarEdicionInline(
       await ingresoDoc.ref.update({
 
         codigo,
-
         cliente,
-
         mueble,
-
         presupuesto,
-
         adelanto,
-
         cobrado,
-
         pendiente
 
       });
 
     }
 
-
-    // ========================================================
-    // ACTUALIZAR PROYECTO PÚBLICO
-    // ========================================================
 
     const publicoSnap =
       await db
@@ -2450,13 +2119,9 @@ async function guardarEdicionInline(
       await doc.ref.update({
 
         codigo,
-
         cliente,
-
         mueble,
-
-        fechaEntrega:
-          fecha
+        fechaEntrega: fecha
 
       });
 
@@ -2473,7 +2138,7 @@ async function guardarEdicionInline(
     renderGestionIngresos();
 
 
-    mostrarMensajeInterno(
+    alert(
       "Proyecto actualizado correctamente."
     );
 
@@ -2486,10 +2151,8 @@ async function guardarEdicionInline(
       error
     );
 
-
-    mostrarMensajeInterno(
-      "No se pudo actualizar el proyecto.",
-      true
+    alert(
+      "No se pudo actualizar el proyecto."
     );
 
   }
@@ -2498,7 +2161,7 @@ async function guardarEdicionInline(
 
 
 // ============================================================
-// 16. GESTIÓN DE INGRESOS
+// 16. GESTIÓN INGRESOS
 // ============================================================
 
 function renderGestionIngresos() {
@@ -2518,8 +2181,7 @@ function renderGestionIngresos() {
   const filtro =
     document.getElementById(
       "ingresos-mes"
-    )?.value
-    || "";
+    )?.value || "";
 
 
   let lista =
@@ -2541,24 +2203,19 @@ function renderGestionIngresos() {
           ) {
 
             fecha =
-              ingreso
-                .fechaCreacion
-                .toDate();
+              ingreso.fechaCreacion.toDate();
 
           }
 
 
-          if (!fecha) {
-
+          if (!fecha)
             return true;
-
-          }
 
 
           const mes =
             `${fecha.getFullYear()}-${String(
               fecha.getMonth() + 1
-            ).padStart(2, "0")}`;
+            ).padStart(2,"0")}`;
 
 
           return mes === filtro;
@@ -2592,68 +2249,38 @@ function renderGestionIngresos() {
   );
 
 
-  const resumenProyectos =
-    document.getElementById(
-      "ing-resumen-proyectos"
-    );
+  document.getElementById(
+    "ing-resumen-proyectos"
+  ).innerText =
+    lista.length;
 
 
-  const resumenCobrado =
-    document.getElementById(
-      "ing-resumen-cobrado"
-    );
+  document.getElementById(
+    "ing-resumen-cobrado"
+  ).innerText =
+    `Bs. ${formatearMonto(totalCobrado)}`;
 
 
-  const resumenPendiente =
-    document.getElementById(
-      "ing-resumen-pendiente"
-    );
+  document.getElementById(
+    "ing-resumen-pendiente"
+  ).innerText =
+    `Bs. ${formatearMonto(totalPendiente)}`;
 
 
-  if (resumenProyectos) {
-
-    resumenProyectos.innerText =
-      lista.length;
-
-  }
-
-
-  if (resumenCobrado) {
-
-    resumenCobrado.innerText =
-      `Bs. ${formatearMonto(totalCobrado)}`;
-
-  }
-
-
-  if (resumenPendiente) {
-
-    resumenPendiente.innerText =
-      `Bs. ${formatearMonto(totalPendiente)}`;
-
-  }
-
-
-  container.innerHTML =
-    "";
+  container.innerHTML = "";
 
 
   if (!lista.length) {
 
-    container.innerHTML =
-      `
-
-      <div
-        style="
-          text-align:center;
-          color:#777;
-          padding:25px;
-        "
-      >
+    container.innerHTML = `
+      <div style="
+        text-align:center;
+        color:#777;
+        padding:25px;
+      ">
         No hay registros para este mes.
       </div>
-
-      `;
+    `;
 
     return;
 
@@ -2664,58 +2291,44 @@ function renderGestionIngresos() {
     ingreso => {
 
       const card =
-        document.createElement(
-          "div"
-        );
+        document.createElement("div");
 
 
-      card.style.cssText =
-        `
+      card.style.cssText = `
         background:rgba(255,255,255,.035);
         border:1px solid rgba(255,255,255,.09);
         border-radius:9px;
         padding:10px;
         margin-bottom:7px;
-        `;
+      `;
 
 
       const presupuesto =
-        Number(
-          ingreso.presupuesto
-        ) || 0;
+        Number(ingreso.presupuesto) || 0;
 
 
       const adelanto =
-        Number(
-          ingreso.adelanto
-        ) || 0;
+        Number(ingreso.adelanto) || 0;
 
 
       const cobrado =
-        Number(
-          ingreso.cobrado
-        ) || 0;
+        Number(ingreso.cobrado) || 0;
 
 
       const pendiente =
         Math.max(
-          presupuesto -
-          cobrado,
+          presupuesto - cobrado,
           0
         );
 
 
-      card.innerHTML =
-      `
+      card.innerHTML = `
 
-        <div
-          style="
-            display:flex;
-            justify-content:space-between;
-            gap:8px;
-            align-items:flex-start;
-          "
-        >
+        <div style="
+          display:flex;
+          justify-content:space-between;
+          gap:8px;
+        ">
 
           <div>
 
@@ -2723,13 +2336,10 @@ function renderGestionIngresos() {
               ${ingreso.cliente || ""}
             </strong>
 
-            <div
-              style="
-                color:#a3a3a3;
-                font-size:.75rem;
-                margin-top:2px;
-              "
-            >
+            <div style="
+              color:#a3a3a3;
+              font-size:.75rem;
+            ">
               ${ingreso.codigo || ""}
               ·
               ${ingreso.mueble || ""}
@@ -2737,14 +2347,11 @@ function renderGestionIngresos() {
 
           </div>
 
-
-          <div
-            style="
-              color:#38bdf8;
-              font-weight:bold;
-              font-size:.85rem;
-            "
-          >
+          <div style="
+            color:#38bdf8;
+            font-weight:bold;
+            font-size:.85rem;
+          ">
             Total:
             Bs. ${formatearMonto(presupuesto)}
           </div>
@@ -2752,75 +2359,32 @@ function renderGestionIngresos() {
         </div>
 
 
-        <div
-          style="
-            display:grid;
-            grid-template-columns:repeat(3,1fr);
-            gap:5px;
-            margin-top:8px;
-          "
-        >
+        <div style="
+          display:grid;
+          grid-template-columns:repeat(3,1fr);
+          gap:5px;
+          margin-top:8px;
+        ">
 
-          <div
-            style="
-              background:rgba(245,158,11,.06);
-              border:1px solid rgba(245,158,11,.2);
-              color:#f59e0b;
-              border-radius:6px;
-              padding:6px;
-              font-size:.72rem;
-            "
-          >
+          <div class="summary-box amber">
             Adelanto
-
-            <strong
-              style="display:block;"
-            >
+            <strong>
               Bs. ${formatearMonto(adelanto)}
             </strong>
-
           </div>
 
-
-          <div
-            style="
-              background:rgba(74,222,128,.06);
-              border:1px solid rgba(74,222,128,.2);
-              color:#4ade80;
-              border-radius:6px;
-              padding:6px;
-              font-size:.72rem;
-            "
-          >
+          <div class="summary-box green">
             Cobrado
-
-            <strong
-              style="display:block;"
-            >
+            <strong>
               Bs. ${formatearMonto(cobrado)}
             </strong>
-
           </div>
 
-
-          <div
-            style="
-              background:rgba(239,68,68,.06);
-              border:1px solid rgba(239,68,68,.2);
-              color:#ef4444;
-              border-radius:6px;
-              padding:6px;
-              font-size:.72rem;
-            "
-          >
+          <div class="summary-box red">
             Pendiente
-
-            <strong
-              style="display:block;"
-            >
+            <strong>
               Bs. ${formatearMonto(pendiente)}
             </strong>
-
           </div>
 
         </div>
@@ -2832,14 +2396,11 @@ function renderGestionIngresos() {
           ?
 
           `
-
-          <div
-            style="
-              display:flex;
-              gap:5px;
-              margin-top:8px;
-            "
-          >
+          <div style="
+            display:flex;
+            gap:5px;
+            margin-top:8px;
+          ">
 
             <input
               type="number"
@@ -2847,17 +2408,7 @@ function renderGestionIngresos() {
               step="0.01"
               id="pago-${ingreso.id}"
               placeholder="Monto pagado"
-              style="
-                flex:1;
-                background:#0a0a0a;
-                border:1px solid #333;
-                color:#fff;
-                padding:7px;
-                border-radius:6px;
-                box-sizing:border-box;
-              "
             >
-
 
             <button
               type="button"
@@ -2876,25 +2427,20 @@ function renderGestionIngresos() {
             </button>
 
           </div>
-
           `
 
           :
 
           `
-
-          <div
-            style="
-              margin-top:8px;
-              color:#4ade80;
-              font-size:.78rem;
-              text-align:center;
-            "
-          >
+          <div style="
+            margin-top:8px;
+            color:#4ade80;
+            font-size:.78rem;
+            text-align:center;
+          ">
             <i class="fa-solid fa-circle-check"></i>
             Proyecto pagado completamente
           </div>
-
           `
 
         }
@@ -2902,9 +2448,7 @@ function renderGestionIngresos() {
       `;
 
 
-      container.appendChild(
-        card
-      );
+      container.appendChild(card);
 
     }
   );
@@ -2923,11 +2467,7 @@ async function registrarPago(
   if (
     !esAdmin ||
     !auth.currentUser
-  ) {
-
-    return;
-
-  }
+  ) return;
 
 
   const input =
@@ -2937,16 +2477,11 @@ async function registrarPago(
 
 
   const monto =
-    Number(
-      input?.value
-    ) || 0;
+    Number(input?.value) || 0;
 
 
-  if (monto <= 0) {
-
+  if (monto <= 0)
     return;
-
-  }
 
 
   const ingreso =
@@ -2955,25 +2490,21 @@ async function registrarPago(
     );
 
 
-  if (!ingreso) return;
+  if (!ingreso)
+    return;
 
 
   const presupuesto =
-    Number(
-      ingreso.presupuesto
-    ) || 0;
+    Number(ingreso.presupuesto) || 0;
 
 
   const cobradoActual =
-    Number(
-      ingreso.cobrado
-    ) || 0;
+    Number(ingreso.cobrado) || 0;
 
 
   const pendienteActual =
     Math.max(
-      presupuesto -
-      cobradoActual,
+      presupuesto - cobradoActual,
       0
     );
 
@@ -2985,7 +2516,8 @@ async function registrarPago(
     );
 
 
-  if (pago <= 0) return;
+  if (pago <= 0)
+    return;
 
 
   const pagosFinalesActuales =
@@ -2995,19 +2527,16 @@ async function registrarPago(
 
 
   const nuevosPagosFinales =
-    pagosFinalesActuales +
-    pago;
+    pagosFinalesActuales + pago;
 
 
   const nuevoCobrado =
-    cobradoActual +
-    pago;
+    cobradoActual + pago;
 
 
   const nuevoPendiente =
     Math.max(
-      presupuesto -
-      nuevoCobrado,
+      presupuesto - nuevoCobrado,
       0
     );
 
@@ -3064,11 +2593,24 @@ function exportarIngresosPDF() {
   const filtro =
     document.getElementById(
       "ingresos-mes"
-    )?.value
-    || "";
+    )?.value || "";
 
 
   if (!filtro) return;
+
+
+  if (
+    !window.jspdf ||
+    !window.jspdf.jsPDF
+  ) {
+
+    console.error(
+      "jsPDF no disponible."
+    );
+
+    return;
+
+  }
 
 
   const lista =
@@ -3078,43 +2620,24 @@ function exportarIngresosPDF() {
         if (
           !ingreso.fechaCreacion ||
           !ingreso.fechaCreacion.toDate
-        ) {
-
+        )
           return true;
-
-        }
 
 
         const fecha =
-          ingreso
-            .fechaCreacion
-            .toDate();
+          ingreso.fechaCreacion.toDate();
 
 
         const mes =
           `${fecha.getFullYear()}-${String(
             fecha.getMonth() + 1
-          ).padStart(2, "0")}`;
+          ).padStart(2,"0")}`;
 
 
         return mes === filtro;
 
       }
     );
-
-
-  if (
-    !window.jspdf ||
-    !window.jspdf.jsPDF
-  ) {
-
-    console.error(
-      "jsPDF no está disponible."
-    );
-
-    return;
-
-  }
 
 
   const jsPDF =
@@ -3125,34 +2648,23 @@ function exportarIngresosPDF() {
     new jsPDF();
 
 
-  const [anio, mes] =
+  const [anio,mes] =
     filtro.split("-");
 
 
   const nombresMes = [
 
     "Enero",
-
     "Febrero",
-
     "Marzo",
-
     "Abril",
-
     "Mayo",
-
     "Junio",
-
     "Julio",
-
     "Agosto",
-
     "Septiembre",
-
     "Octubre",
-
     "Noviembre",
-
     "Diciembre"
 
   ];
@@ -3170,7 +2682,7 @@ function exportarIngresosPDF() {
   doc.setFontSize(12);
 
   doc.text(
-    `Registro de Ingresos - ${nombresMes[Number(mes) - 1]} ${anio}`,
+    `Registro de Ingresos - ${nombresMes[Number(mes)-1]} ${anio}`,
     14,
     27
   );
@@ -3209,26 +2721,18 @@ function exportarIngresosPDF() {
 
         const pendiente =
           Math.max(
-            total -
-            cobrado,
+            total - cobrado,
             0
           );
 
 
-        totalProyecto +=
-          total;
+        totalProyecto += total;
 
+        totalAdelanto += adelanto;
 
-        totalAdelanto +=
-          adelanto;
+        totalCobrado += cobrado;
 
-
-        totalCobrado +=
-          cobrado;
-
-
-        totalPendiente +=
-          pendiente;
+        totalPendiente += pendiente;
 
 
         return [
@@ -3263,31 +2767,19 @@ function exportarIngresosPDF() {
       startY: 35,
 
       head: [[
-
         "Código",
-
         "Cliente",
-
         "Proyecto",
-
         "Total",
-
         "Adelanto",
-
         "Cobrado",
-
         "Pendiente"
-
       ]],
 
       body: filas,
 
       styles: {
         fontSize: 8
-      },
-
-      headStyles: {
-        fontStyle: "bold"
       }
 
     });
@@ -3350,9 +2842,7 @@ function exportarIngresosPDF() {
 // 19. WHATSAPP
 // ============================================================
 
-function notificarWhatsApp(
-  index
-) {
+function notificarWhatsApp(index) {
 
   if (!esAdmin) return;
 
@@ -3364,20 +2854,13 @@ function notificarWhatsApp(
   if (
     !p ||
     !p.telefono
-  ) {
-
-    return;
-
-  }
+  ) return;
 
 
   let numero =
     p.telefono
       .toString()
-      .replace(
-        /\D/g,
-        ""
-      );
+      .replace(/\D/g,"");
 
 
   if (
@@ -3386,8 +2869,7 @@ function notificarWhatsApp(
   ) {
 
     numero =
-      "591" +
-      numero;
+      "591" + numero;
 
   }
 
@@ -3428,5 +2910,1081 @@ ${link}`;
     )}`,
     "_blank"
   );
+
+}
+
+
+// ============================================================
+// ============================================================
+// PORTAFOLIO
+// ============================================================
+// ============================================================
+
+
+// ============================================================
+// 20. CARGAR PORTAFOLIO PÚBLICO
+// ============================================================
+
+async function cargarPortafolioPublico() {
+
+  const container =
+    document.getElementById(
+      "portfolio-grid"
+    );
+
+
+  if (!container)
+    return;
+
+
+  try {
+
+    const snapshot =
+      await db
+        .collection("portafolio")
+        .orderBy(
+          "creadoEn",
+          "desc"
+        )
+        .get();
+
+
+    portafolio = [];
+
+
+    snapshot.forEach(doc => {
+
+      portafolio.push({
+
+        id:
+          doc.id,
+
+        ...doc.data()
+
+      });
+
+    });
+
+
+    renderPortafolioPublico();
+
+  }
+
+  catch (error) {
+
+    console.error(
+      "Error cargando portafolio:",
+      error
+    );
+
+
+    container.innerHTML = `
+
+      <div class="portfolio-empty">
+
+        <i class="fa-solid fa-images"></i>
+
+        <p>
+          Nuestro portafolio estará disponible próximamente.
+        </p>
+
+      </div>
+
+    `;
+
+  }
+
+}
+
+
+// ============================================================
+// 21. RENDER PORTAFOLIO PÚBLICO
+// ============================================================
+
+function renderPortafolioPublico() {
+
+  const container =
+    document.getElementById(
+      "portfolio-grid"
+    );
+
+
+  if (!container)
+    return;
+
+
+  container.innerHTML = "";
+
+
+  if (!portafolio.length) {
+
+    container.innerHTML = `
+
+      <div class="portfolio-empty">
+
+        <i
+          class="fa-solid fa-images"
+          style="
+            font-size:2rem;
+            color:#9c7151;
+            margin-bottom:10px;
+          "
+        ></i>
+
+        <p>
+          Próximamente mostraremos nuestros trabajos aquí.
+        </p>
+
+      </div>
+
+    `;
+
+    return;
+
+  }
+
+
+  portafolio.forEach(
+    trabajo => {
+
+      const card =
+        document.createElement("article");
+
+
+      card.className =
+        "portfolio-card";
+
+
+      const media =
+        trabajo.media || [];
+
+
+      const primerMedia =
+        media[0];
+
+
+      let mediaHTML = "";
+
+
+      if (primerMedia) {
+
+        if (
+          primerMedia.tipo === "video"
+        ) {
+
+          mediaHTML = `
+
+            <div class="portfolio-media">
+
+              <video
+                src="${primerMedia.url}"
+                muted
+                playsinline
+                preload="metadata"
+                controls
+              ></video>
+
+              <div class="portfolio-video-badge">
+                <i class="fa-solid fa-video"></i>
+                Video
+              </div>
+
+            </div>
+
+          `;
+
+        }
+
+        else {
+
+          mediaHTML = `
+
+            <div class="portfolio-media">
+
+              <img
+                src="${primerMedia.url}"
+                alt="${trabajo.titulo || "Trabajo HN Muebles"}"
+                loading="lazy"
+              />
+
+              ${
+                media.length > 1
+                  ? `
+                    <div class="portfolio-video-badge">
+                      <i class="fa-solid fa-images"></i>
+                      ${media.length} archivos
+                    </div>
+                  `
+                  : ""
+              }
+
+            </div>
+
+          `;
+
+        }
+
+      }
+
+
+      card.innerHTML = `
+
+        ${mediaHTML}
+
+        <div class="portfolio-card-body">
+
+          <div class="portfolio-card-title">
+            ${escaparHTML(
+              trabajo.titulo || "Proyecto HN Muebles"
+            )}
+          </div>
+
+          <div class="portfolio-card-description">
+            ${escaparHTML(
+              trabajo.descripcion || ""
+            )}
+          </div>
+
+        </div>
+
+      `;
+
+
+      container.appendChild(card);
+
+    }
+  );
+
+}
+
+
+// ============================================================
+// 22. CARGAR PORTAFOLIO ADMIN
+// ============================================================
+
+async function cargarPortafolioAdmin() {
+
+  if (
+    !esAdmin ||
+    !auth.currentUser
+  ) return;
+
+
+  try {
+
+    const snapshot =
+      await db
+        .collection("portafolio")
+        .orderBy(
+          "creadoEn",
+          "desc"
+        )
+        .get();
+
+
+    portafolio = [];
+
+
+    snapshot.forEach(doc => {
+
+      portafolio.push({
+
+        id:
+          doc.id,
+
+        ...doc.data()
+
+      });
+
+    });
+
+
+    renderPortafolioAdmin();
+
+  }
+
+  catch (error) {
+
+    console.error(
+      "Error cargando portafolio admin:",
+      error
+    );
+
+  }
+
+}
+
+
+// ============================================================
+// 23. PREVIEW ARCHIVOS
+// ============================================================
+
+function mostrarPreviewArchivos() {
+
+  const container =
+    document.getElementById(
+      "portfolio-files-preview"
+    );
+
+
+  const fotos =
+    Array.from(
+      document.getElementById(
+        "portfolio-fotos"
+      )?.files || []
+    );
+
+
+  const videos =
+    Array.from(
+      document.getElementById(
+        "portfolio-videos"
+      )?.files || []
+    );
+
+
+  if (!container)
+    return;
+
+
+  container.innerHTML = "";
+
+
+  [...fotos,...videos].forEach(
+    archivo => {
+
+      const div =
+        document.createElement("div");
+
+
+      div.className =
+        "file-preview";
+
+
+      const url =
+        URL.createObjectURL(archivo);
+
+
+      if (
+        archivo.type.startsWith("video/")
+      ) {
+
+        div.innerHTML = `
+
+          <video
+            src="${url}"
+            muted
+          ></video>
+
+          <span class="file-preview-type">
+            <i class="fa-solid fa-video"></i>
+            Video
+          </span>
+
+        `;
+
+      }
+
+      else {
+
+        div.innerHTML = `
+
+          <img
+            src="${url}"
+            alt=""
+          >
+
+          <span class="file-preview-type">
+            <i class="fa-solid fa-image"></i>
+            Foto
+          </span>
+
+        `;
+
+      }
+
+
+      container.appendChild(div);
+
+    }
+  );
+
+}
+
+
+// ============================================================
+// 24. PUBLICAR TRABAJO
+// ============================================================
+
+async function publicarTrabajoPortafolio(e) {
+
+  e.preventDefault();
+
+
+  if (
+    !esAdmin ||
+    !auth.currentUser
+  ) {
+
+    alert(
+      "Debes iniciar sesión como administrador."
+    );
+
+    return;
+
+  }
+
+
+  const titulo =
+    document.getElementById(
+      "portfolio-titulo"
+    )?.value.trim()
+    || "";
+
+
+  const descripcion =
+    document.getElementById(
+      "portfolio-descripcion"
+    )?.value.trim()
+    || "";
+
+
+  const fotos =
+    Array.from(
+      document.getElementById(
+        "portfolio-fotos"
+      )?.files || []
+    );
+
+
+  const videos =
+    Array.from(
+      document.getElementById(
+        "portfolio-videos"
+      )?.files || []
+    );
+
+
+  const archivos =
+    [...fotos,...videos];
+
+
+  if (!titulo) {
+
+    alert(
+      "Escribe el nombre del trabajo."
+    );
+
+    return;
+
+  }
+
+
+  if (!archivos.length) {
+
+    alert(
+      "Selecciona al menos una foto o un video."
+    );
+
+    return;
+
+  }
+
+
+  // Máximo aproximado por archivo
+  const MAX_IMAGEN =
+    15 * 1024 * 1024;
+
+  const MAX_VIDEO =
+    100 * 1024 * 1024;
+
+
+  for (
+    const archivo of archivos
+  ) {
+
+    if (
+      archivo.type.startsWith("image/") &&
+      archivo.size > MAX_IMAGEN
+    ) {
+
+      alert(
+        `La imagen "${archivo.name}" supera los 15 MB.`
+      );
+
+      return;
+
+    }
+
+
+    if (
+      archivo.type.startsWith("video/") &&
+      archivo.size > MAX_VIDEO
+    ) {
+
+      alert(
+        `El video "${archivo.name}" supera los 100 MB.`
+      );
+
+      return;
+
+    }
+
+  }
+
+
+  const boton =
+    document.getElementById(
+      "btn-publicar-portafolio"
+    );
+
+
+  const progressContainer =
+    document.getElementById(
+      "portfolio-upload-progress"
+    );
+
+
+  const progressBar =
+    document.getElementById(
+      "portfolio-progress-bar"
+    );
+
+
+  const progressText =
+    document.getElementById(
+      "portfolio-progress-text"
+    );
+
+
+  const progressPercent =
+    document.getElementById(
+      "portfolio-progress-percent"
+    );
+
+
+  try {
+
+    if (boton) {
+
+      boton.disabled = true;
+
+      boton.innerHTML =
+        '<i class="fa-solid fa-spinner fa-spin"></i> Subiendo...';
+
+    }
+
+
+    progressContainer?.classList.remove(
+      "hidden"
+    );
+
+
+    const media =
+      [];
+
+
+    for (
+      let i = 0;
+      i < archivos.length;
+      i++
+    ) {
+
+      const archivo =
+        archivos[i];
+
+
+      if (progressText) {
+
+        progressText.innerText =
+          `Subiendo ${i + 1} de ${archivos.length}: ${archivo.name}`;
+
+      }
+
+
+      const tipo =
+        archivo.type.startsWith("video/")
+          ? "video"
+          : "imagen";
+
+
+      const extension =
+        archivo.name
+          .split(".")
+          .pop()
+          .toLowerCase();
+
+
+      const nombreSeguro =
+        `${Date.now()}_${Math.random()
+          .toString(36)
+          .substring(2,9)}.${extension}`;
+
+
+      const ruta =
+        `portafolio/${auth.currentUser.uid}/${nombreSeguro}`;
+
+
+      const ref =
+        storage.ref(ruta);
+
+
+      const uploadTask =
+        ref.put(
+          archivo,
+          {
+            contentType:
+              archivo.type
+          }
+        );
+
+
+      await new Promise(
+        (resolve,reject) => {
+
+          uploadTask.on(
+
+            "state_changed",
+
+            snapshot => {
+
+              const porcentajeArchivo =
+                snapshot.totalBytes
+                  ? (
+                      snapshot.bytesTransferred /
+                      snapshot.totalBytes
+                    ) * 100
+                  : 0;
+
+
+              const porcentajeTotal =
+                (
+                  (i + porcentajeArchivo / 100) /
+                  archivos.length
+                ) * 100;
+
+
+              if (progressBar) {
+
+                progressBar.style.width =
+                  `${porcentajeTotal}%`;
+
+              }
+
+
+              if (progressPercent) {
+
+                progressPercent.innerText =
+                  `${Math.round(
+                    porcentajeTotal
+                  )}%`;
+
+              }
+
+            },
+
+            error => {
+
+              reject(error);
+
+            },
+
+            async () => {
+
+              try {
+
+                const url =
+                  await uploadTask.snapshot
+                    .ref
+                    .getDownloadURL();
+
+
+                media.push({
+
+                  tipo,
+                  url,
+                  ruta,
+                  nombre:
+                    archivo.name
+
+                });
+
+
+                resolve();
+
+              }
+
+              catch (error) {
+
+                reject(error);
+
+              }
+
+            }
+
+          );
+
+        }
+      );
+
+    }
+
+
+    if (progressText) {
+
+      progressText.innerText =
+        "Guardando información...";
+
+    }
+
+
+    await db
+      .collection("portafolio")
+      .add({
+
+        titulo,
+
+        descripcion,
+
+        media,
+
+        creadoPor:
+          auth.currentUser.email,
+
+        creadoEn:
+          firebase.firestore.FieldValue.serverTimestamp()
+
+      });
+
+
+    alert(
+      "Trabajo publicado correctamente."
+    );
+
+
+    document.getElementById(
+      "form-portafolio"
+    ).reset();
+
+
+    document.getElementById(
+      "portfolio-files-preview"
+    ).innerHTML =
+      "";
+
+
+    progressContainer?.classList.add(
+      "hidden"
+    );
+
+
+    if (progressBar)
+      progressBar.style.width =
+        "0%";
+
+
+    await cargarPortafolioAdmin();
+
+    await cargarPortafolioPublico();
+
+  }
+
+  catch (error) {
+
+    console.error(
+      "ERROR SUBIENDO PORTAFOLIO:",
+      error
+    );
+
+
+    alert(
+      "No se pudo publicar el trabajo. Revisa las Storage Rules y Firestore Rules."
+    );
+
+  }
+
+  finally {
+
+    if (boton) {
+
+      boton.disabled = false;
+
+      boton.innerHTML =
+        '<i class="fa-solid fa-cloud-arrow-up"></i> Publicar Trabajo';
+
+    }
+
+  }
+
+}
+
+
+// ============================================================
+// 25. RENDER ADMIN PORTAFOLIO
+// ============================================================
+
+function renderPortafolioAdmin() {
+
+  const container =
+    document.getElementById(
+      "lista-portafolio-admin"
+    );
+
+
+  const total =
+    document.getElementById(
+      "total-portafolio"
+    );
+
+
+  if (total)
+    total.innerText =
+      portafolio.length;
+
+
+  if (!container)
+    return;
+
+
+  container.innerHTML = "";
+
+
+  if (!portafolio.length) {
+
+    container.innerHTML = `
+
+      <div style="
+        text-align:center;
+        color:#777;
+        padding:25px;
+      ">
+
+        Todavía no tienes trabajos publicados.
+
+      </div>
+
+    `;
+
+    return;
+
+  }
+
+
+  portafolio.forEach(
+    trabajo => {
+
+      const card =
+        document.createElement("div");
+
+
+      card.className =
+        "portfolio-admin-card";
+
+
+      const primerMedia =
+        trabajo.media?.[0];
+
+
+      const thumb =
+        primerMedia?.url || "";
+
+
+      card.innerHTML = `
+
+        ${
+          primerMedia?.tipo === "video"
+
+          ?
+
+          `
+          <video
+            src="${thumb}"
+            class="portfolio-admin-thumb"
+            muted
+            preload="metadata"
+          ></video>
+          `
+
+          :
+
+          `
+          <img
+            src="${thumb}"
+            class="portfolio-admin-thumb"
+            alt=""
+          >
+          `
+        }
+
+
+        <div class="portfolio-admin-info">
+
+          <strong>
+            ${escaparHTML(
+              trabajo.titulo || ""
+            )}
+          </strong>
+
+          <p>
+            ${escaparHTML(
+              trabajo.descripcion || ""
+            )}
+          </p>
+
+          <p>
+            ${
+              trabajo.media?.length || 0
+            }
+            archivo(s)
+          </p>
+
+        </div>
+
+
+        <div class="portfolio-admin-actions">
+
+          <button
+            type="button"
+            class="delete-portfolio-btn"
+            onclick="eliminarTrabajoPortafolio('${trabajo.id}')"
+          >
+            <i class="fa-solid fa-trash"></i>
+            Eliminar
+          </button>
+
+        </div>
+
+      `;
+
+
+      container.appendChild(card);
+
+    }
+  );
+
+}
+
+
+// ============================================================
+// 26. ELIMINAR TRABAJO PORTAFOLIO
+// ============================================================
+
+async function eliminarTrabajoPortafolio(
+  id
+) {
+
+  if (
+    !esAdmin ||
+    !auth.currentUser
+  ) return;
+
+
+  const trabajo =
+    portafolio.find(
+      p => p.id === id
+    );
+
+
+  if (!trabajo)
+    return;
+
+
+  if (
+    !confirm(
+      "¿Seguro que quieres eliminar este trabajo del portafolio?"
+    )
+  ) return;
+
+
+  try {
+
+    // Primero eliminamos archivos de Storage
+    if (
+      trabajo.media &&
+      Array.isArray(trabajo.media)
+    ) {
+
+      for (
+        const archivo
+        of trabajo.media
+      ) {
+
+        if (archivo.ruta) {
+
+          try {
+
+            await storage
+              .ref(archivo.ruta)
+              .delete();
+
+          }
+
+          catch (error) {
+
+            console.warn(
+              "No se pudo eliminar archivo:",
+              archivo.ruta,
+              error
+            );
+
+          }
+
+        }
+
+      }
+
+    }
+
+
+    // Luego eliminamos documento
+    await db
+      .collection("portafolio")
+      .doc(id)
+      .delete();
+
+
+    await cargarPortafolioAdmin();
+
+    await cargarPortafolioPublico();
+
+
+    alert(
+      "Trabajo eliminado correctamente."
+    );
+
+  }
+
+  catch (error) {
+
+    console.error(
+      "Error eliminando portafolio:",
+      error
+    );
+
+
+    alert(
+      "No se pudo eliminar el trabajo."
+    );
+
+  }
+
+}
+
+
+// ============================================================
+// 27. ESCAPAR HTML
+// ============================================================
+
+function escaparHTML(texto) {
+
+  const div =
+    document.createElement("div");
+
+
+  div.textContent =
+    texto || "";
+
+
+  return div.innerHTML;
 
 }
