@@ -1,11 +1,28 @@
 @import url('https://fonts.googleapis.com/css2?family=Mont:wght@400;500;600;700;800;900&display=swap');
 @import url('https://fonts.googleapis.com/css2?family=The+Bold+Font&display=swap');
 
-* { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Mont', sans-serif; }
-html { scroll-behavior: smooth; }
-body { background-color: #0d0b0a; color: #f5f3f0; min-height: 100vh; }
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  font-family: 'Mont', sans-serif;
+}
 
-/* NAVBAR */
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  background-color: #0d0b0a;
+  color: #f5f3f0;
+  min-height: 100vh;
+}
+
+
+/* ============================================================
+   NAVBAR
+   ============================================================ */
+
 .navbar {
   display: flex;
   justify-content: space-between;
@@ -21,10 +38,25 @@ body { background-color: #0d0b0a; color: #f5f3f0; min-height: 100vh; }
   border-bottom: 1px solid rgba(139, 107, 85, 0.2);
 }
 
-.logo-container { display: flex; align-items: center; gap: 0.75rem; cursor: pointer; }
-.logo-img { height: 40px; width: auto; object-fit: contain; }
+.logo-container {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  cursor: pointer;
+}
 
-.nav-links { display: flex; gap: 0.5rem; flex-wrap: wrap; }
+.logo-img {
+  height: 40px;
+  width: auto;
+  object-fit: contain;
+}
+
+.nav-links {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
 .nav-links button {
   background: transparent;
   border: 1px solid transparent;
@@ -37,13 +69,24 @@ body { background-color: #0d0b0a; color: #f5f3f0; min-height: 100vh; }
   transition: all 0.3s ease;
   font-family: 'Mont', sans-serif;
 }
-.nav-links button:hover { background-color: rgba(139, 107, 85, 0.15); border-color: rgba(139, 107, 85, 0.3); }
 
-/* SECCIÓN SUPERIOR CON FOTO FIJA Y 2 COLUMNAS */
+.nav-links button:hover {
+  background-color: rgba(139, 107, 85, 0.15);
+  border-color: rgba(139, 107, 85, 0.3);
+}
+
+
+/* ============================================================
+   HERO
+   ============================================================ */
+
 .hero-fixed-banner {
   height: 100vh;
   width: 100%;
-  background-image: url('assets/fondo.jpg'), url('assets/fondo.png'), url('assets/fondo.jpeg');
+  background-image:
+    url('assets/fondo.jpg'),
+    url('assets/fondo.png'),
+    url('assets/fondo.jpeg');
   background-size: cover;
   background-position: center;
   background-attachment: fixed;
@@ -73,7 +116,11 @@ body { background-color: #0d0b0a; color: #f5f3f0; min-height: 100vh; }
   align-items: center;
 }
 
-/* Columna Izquierda: Título HN MUEBLES con The Bold Font y completamente blanco */
+
+/* ============================================================
+   HERO IZQUIERDO
+   ============================================================ */
+
 .hero-title-big {
   font-family: 'The Bold Font', sans-serif;
   font-size: 4rem;
@@ -104,7 +151,11 @@ body { background-color: #0d0b0a; color: #f5f3f0; min-height: 100vh; }
   color: #e5ded7;
 }
 
-/* Columna Derecha: Tarjeta de Seguimiento (Estilo Roble Mate) */
+
+/* ============================================================
+   TARJETA DE SEGUIMIENTO
+   ============================================================ */
+
 .modern-tracking-card {
   background: rgba(22, 19, 17, 0.9);
   border: 1px solid rgba(139, 107, 85, 0.35);
@@ -184,6 +235,7 @@ body { background-color: #0d0b0a; color: #f5f3f0; min-height: 100vh; }
   font-family: 'Mont', sans-serif;
   transition: all 0.3s;
 }
+
 .input-wrapper input[type="text"]:focus {
   border-color: #9c7151;
   box-shadow: 0 0 0 2px rgba(156, 113, 81, 0.2);
@@ -202,12 +254,17 @@ body { background-color: #0d0b0a; color: #f5f3f0; min-height: 100vh; }
   transition: background 0.2s, transform 0.2s;
   box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
 }
+
 .btn-primary-modern:hover {
   background: #9c7151;
   transform: translateY(-1px);
 }
 
-/* Caja de resultados dentro de la tarjeta */
+
+/* ============================================================
+   RESULTADO
+   ============================================================ */
+
 .result-box-modern {
   margin-top: 1.2rem;
   background: rgba(13, 11, 10, 0.6);
@@ -237,7 +294,11 @@ body { background-color: #0d0b0a; color: #f5f3f0; min-height: 100vh; }
   font-weight: 500;
 }
 
-/* CONTENEDOR INFERIOR */
+
+/* ============================================================
+   CONTENIDO
+   ============================================================ */
+
 .black-content-container {
   position: relative;
   background-color: #0d0b0a;
@@ -263,7 +324,11 @@ body { background-color: #0d0b0a; color: #f5f3f0; min-height: 100vh; }
   font-weight: 700;
 }
 
-/* GRILLA DE 5 PASOS */
+
+/* ============================================================
+   PASOS
+   ============================================================ */
+
 .steps-grid-5 {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
@@ -279,7 +344,10 @@ body { background-color: #0d0b0a; color: #f5f3f0; min-height: 100vh; }
   padding: 1.5rem;
   transition: border-color 0.3s;
 }
-.step-box:hover { border-color: rgba(156, 113, 81, 0.5); }
+
+.step-box:hover {
+  border-color: rgba(156, 113, 81, 0.5);
+}
 
 .step-icon {
   font-size: 1.5rem;
@@ -300,7 +368,11 @@ body { background-color: #0d0b0a; color: #f5f3f0; min-height: 100vh; }
   line-height: 1.4;
 }
 
-/* VENTANA FLOTANTE (MODAL ADMIN) */
+
+/* ============================================================
+   MODAL ADMIN
+   ============================================================ */
+
 .modal-overlay {
   position: fixed;
   inset: 0;
@@ -337,9 +409,34 @@ body { background-color: #0d0b0a; color: #f5f3f0; min-height: 100vh; }
   cursor: pointer;
   transition: color 0.2s;
 }
-.modal-close:hover { color: #fff; }
 
-select, .admin-select, input[type="text"], input[type="password"] {
+.modal-close:hover {
+  color: #fff;
+}
+
+
+/* ============================================================
+   CAMPOS ADMIN
+   ============================================================ */
+
+/*
+   IMPORTANTE:
+   Antes los inputs number podían quedar con el estilo
+   predeterminado del navegador.
+
+   Ahora texto, password, número y fecha tienen
+   exactamente el mismo tratamiento visual.
+*/
+
+select,
+.admin-select,
+input[type="text"],
+input[type="password"],
+input[type="number"],
+input[type="date"],
+input[type="email"],
+textarea {
+  width: 100%;
   background-color: #0d0b0a;
   border: 1px solid #332b25;
   border-radius: 8px;
@@ -348,41 +445,203 @@ select, .admin-select, input[type="text"], input[type="password"] {
   outline: none;
   font-size: 0.9rem;
   font-family: 'Mont', sans-serif;
-  transition: border-color 0.15s ease, background-color 0.15s ease;
+  transition:
+    border-color 0.15s ease,
+    background-color 0.15s ease,
+    box-shadow 0.15s ease;
 }
-select:focus, .admin-select:focus, input:focus { 
-  border-color: #9c7151; 
+
+select:focus,
+.admin-select:focus,
+input:focus,
+textarea:focus {
+  border-color: #9c7151;
   background-color: #120f0d;
+  box-shadow: 0 0 0 2px rgba(156, 113, 81, 0.12);
 }
 
-/* UTILIDADES */
-.hidden { display: none !important; }
-.badge { background: rgba(156, 113, 81, 0.15); padding: 2px 6px; border-radius: 4px; font-size: 0.75rem; color: #c49a7a; font-family: monospace; border: 1px solid rgba(156, 113, 81, 0.3); }
-.error-msg { background: rgba(239, 68, 68, 0.15); color: #f87171; border: 1px solid rgba(239, 68, 68, 0.3); padding: 8px 12px; border-radius: 8px; font-size: 0.85rem; margin-top: 10px; }
 
-/* FOOTER */
+/* Evita que los números se vean visualmente pequeños */
+
+input[type="number"] {
+  min-height: 44px;
+  font-size: 0.95rem;
+}
+
+
+/* Fecha */
+
+input[type="date"] {
+  min-height: 44px;
+}
+
+
+/* Placeholder */
+
+input::placeholder,
+textarea::placeholder {
+  color: #77706a;
+}
+
+
+/* ============================================================
+   CAJAS FINANCIERAS
+   ============================================================ */
+
+.financial-box {
+  width: 100%;
+  min-height: 78px;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: 13px 15px;
+  border-radius: 9px;
+}
+
+
+/* ============================================================
+   BOTONES PEQUEÑOS ADMIN
+   ============================================================ */
+
+.admin-action-btn {
+  border: none;
+  padding: 0.42rem 0.58rem;
+  border-radius: 7px;
+  cursor: pointer;
+  font-size: 0.78rem;
+  line-height: 1;
+}
+
+
+/* ============================================================
+   UTILIDADES
+   ============================================================ */
+
+.hidden {
+  display: none !important;
+}
+
+.badge {
+  background: rgba(156, 113, 81, 0.15);
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-size: 0.75rem;
+  color: #c49a7a;
+  font-family: monospace;
+  border: 1px solid rgba(156, 113, 81, 0.3);
+}
+
+.error-msg {
+  background: rgba(239, 68, 68, 0.15);
+  color: #f87171;
+  border: 1px solid rgba(239, 68, 68, 0.3);
+  padding: 8px 12px;
+  border-radius: 8px;
+  font-size: 0.85rem;
+  margin-top: 10px;
+}
+
+
+/* ============================================================
+   FOOTER
+   ============================================================ */
+
 .footer {
   border-top: 1px solid #221c18;
   background: #090706;
   padding: 3rem 1.5rem;
   text-align: center;
 }
-.footer p { color: #b3a69c; font-size: 0.9rem; margin-bottom: 1rem; }
-.social-buttons { display: flex; justify-content: center; gap: 1rem; flex-wrap: wrap; margin-bottom: 1.5rem; }
-.btn-social { text-decoration: none; color: #fff; padding: 0.6rem 1.2rem; border-radius: 8px; font-weight: 600; font-size: 0.85rem; display: inline-flex; align-items: center; gap: 0.5rem; }
-.btn-wa { background-color: #16a34a; }
-.btn-ig { background: linear-gradient(45deg, #7c3aed, #db2777); }
-.copyright { color: #665b53 !important; font-size: 0.75rem !important; }
 
-/* RESPONSIVE PARA CELULARES */
+.footer p {
+  color: #b3a69c;
+  font-size: 0.9rem;
+  margin-bottom: 1rem;
+}
+
+.social-buttons {
+  display: flex;
+  justify-content: center;
+  gap: 1rem;
+  flex-wrap: wrap;
+  margin-bottom: 1.5rem;
+}
+
+.btn-social {
+  text-decoration: none;
+  color: #fff;
+  padding: 0.6rem 1.2rem;
+  border-radius: 8px;
+  font-weight: 600;
+  font-size: 0.85rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.btn-wa {
+  background-color: #16a34a;
+}
+
+.btn-ig {
+  background: linear-gradient(45deg, #7c3aed, #db2777);
+}
+
+.copyright {
+  color: #665b53 !important;
+  font-size: 0.75rem !important;
+}
+
+
+/* ============================================================
+   RESPONSIVE
+   ============================================================ */
+
 @media (max-width: 768px) {
-  .navbar { padding: 0.75rem 1rem; }
-  .nav-links { gap: 0.3rem; }
-  .nav-links button { padding: 0.4rem 0.6rem; font-size: 0.8rem; }
-  .hero-fixed-banner { height: auto !important; min-height: 100vh; padding-top: 90px !important; padding-bottom: 3rem; }
-  .hero-split-container { grid-template-columns: 1fr; gap: 2rem; text-align: center; }
-  .hero-title-big { font-size: 2.7rem !important; line-height: 1.1; } 
-  .hero-highlights { justify-content: center; }
-  .search-form-modern { align-items: stretch; }
-  .modal-box { max-width: 100%; padding: 1.5rem; }
+
+  .navbar {
+    padding: 0.75rem 1rem;
+  }
+
+  .nav-links {
+    gap: 0.3rem;
+  }
+
+  .nav-links button {
+    padding: 0.4rem 0.6rem;
+    font-size: 0.8rem;
+  }
+
+  .hero-fixed-banner {
+    height: auto !important;
+    min-height: 100vh;
+    padding-top: 90px !important;
+    padding-bottom: 3rem;
+  }
+
+  .hero-split-container {
+    grid-template-columns: 1fr;
+    gap: 2rem;
+    text-align: center;
+  }
+
+  .hero-title-big {
+    font-size: 2.7rem !important;
+    line-height: 1.1;
+  }
+
+  .hero-highlights {
+    justify-content: center;
+  }
+
+  .search-form-modern {
+    align-items: stretch;
+  }
+
+  .modal-box {
+    max-width: 100%;
+    padding: 1.5rem;
+  }
+
 }
