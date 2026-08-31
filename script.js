@@ -11,48 +11,24 @@
 // ============================================================
 
 const firebaseConfig = {
-
   apiKey: "AIzaSyCLrVUpGCTxFxuMR0ATlwj2t3osSP0dD7Y",
-
-  authDomain:
-    "hn-muebles.firebaseapp.com",
-
-  projectId:
-    "hn-muebles",
-
-  storageBucket:
-    "hn-muebles.firebasestorage.app",
-
-  messagingSenderId:
-    "175601256381",
-
-  appId:
-    "1:175601256381:web:db2031a56faa87a02bf4d4",
-
-  measurementId:
-    "G-8PJGERB67Q"
+  authDomain: "hn-muebles.firebaseapp.com",
+  projectId: "hn-muebles",
+  storageBucket: "hn-muebles.firebasestorage.app",
+  messagingSenderId: "175601256381",
+  appId: "1:175601256381:web:db2031a56faa87a02bf4d4",
+  measurementId: "G-8PJGERB67Q"
 };
-
 
 firebase.initializeApp(firebaseConfig);
 
+const db = firebase.firestore();
+const auth = firebase.auth();
 
-const db =
-  firebase.firestore();
-
-
-const auth =
-  firebase.auth();
-
-
-const EMAIL_ADMIN =
-  "hn24muebles@gmail.com";
-
+const EMAIL_ADMIN = "hn24muebles@gmail.com";
 
 let proyectos = [];
-
 let ingresos = [];
-
 let esAdmin = false;
 
 
@@ -61,14 +37,11 @@ let esAdmin = false;
 // ============================================================
 
 function formatearMonto(valor) {
-
-  const num =
-    Number(valor) || 0;
+  const num = Number(valor) || 0;
 
   return Number.isInteger(num)
     ? num.toString()
     : num.toFixed(2);
-
 }
 
 
@@ -79,39 +52,27 @@ function generarCodigoAleatorio() {
 
   let aleatorio = "";
 
-  for (
-    let i = 0;
-    i < 5;
-    i++
-  ) {
+  for (let i = 0; i < 5; i++) {
 
-    aleatorio +=
-      caracteres.charAt(
-        Math.floor(
-          Math.random() *
-          caracteres.length
-        )
-      );
+    aleatorio += caracteres.charAt(
+      Math.floor(
+        Math.random() * caracteres.length
+      )
+    );
 
   }
 
   return `HN${aleatorio}`;
-
 }
 
 
 function llenarCodigoAutomatico() {
 
   const input =
-    document.getElementById(
-      "nuevo-codigo"
-    );
+    document.getElementById("nuevo-codigo");
 
   if (input) {
-
-    input.value =
-      generarCodigoAleatorio();
-
+    input.value = generarCodigoAleatorio();
   }
 
 }
@@ -133,14 +94,10 @@ function copiarCodigoAlPortapapeles(codigo) {
         const textoOriginal =
           boton.innerText;
 
-        boton.innerText =
-          "Copiado ✓";
+        boton.innerText = "Copiado ✓";
 
         setTimeout(() => {
-
-          boton.innerText =
-            textoOriginal;
-
+          boton.innerText = textoOriginal;
         }, 1200);
 
       }
@@ -172,64 +129,101 @@ function irInicio() {
 // 3. AUTENTICACIÓN
 // ============================================================
 
-auth.onAuthStateChanged(
-  async (user) => {
+auth.onAuthStateChanged(async (user) => {
 
-    if (user) {
+  console.log(
+    "Estado Firebase Auth:",
+    user ? user.email : "SIN SESIÓN"
+  );
 
-      console.log(
-        "Usuario autenticado:",
-        user.email
+
+  if (!user) {
+
+    esAdmin = false;
+
+    ocultarPanelAdministrador();
+
+    return;
+  }
+
+
+  const correoUsuario =
+    (user.email || "").trim().toLowerCase();
+
+  const correoAdmin =
+    EMAIL_ADMIN.trim().toLowerCase();
+
+
+  console.log(
+    "Correo conectado:",
+    correoUsuario
+  );
+
+  console.log(
+    "Correo administrador:",
+    correoAdmin
+  );
+
+
+  // ==========================================================
+  // VALIDACIÓN DEL ADMINISTRADOR
+  // ==========================================================
+
+  if (correoUsuario === correoAdmin) {
+
+    esAdmin = true;
+
+    mostrarPanelAdministrador();
+
+    try {
+
+      await cargarProyectosDesdeNube();
+
+      await cargarIngresosDesdeNube();
+
+      renderProyectosAdmin();
+
+      renderGestionIngresos();
+
+    }
+
+    catch (error) {
+
+      console.error(
+        "Error cargando datos del administrador:",
+        error
       );
 
-
-      if (
-        user.email &&
-        user.email.toLowerCase() ===
-        EMAIL_ADMIN.toLowerCase()
-      ) {
-
-        esAdmin = true;
-
-        mostrarPanelAdministrador();
-
-        await cargarProyectosDesdeNube();
-
-        await cargarIngresosDesdeNube();
-
-        renderProyectosAdmin();
-
-        renderGestionIngresos();
-
-      }
-
-      else {
-
-        console.warn(
-          "Usuario no autorizado:",
-          user.email
-        );
-
-        await auth.signOut();
-
-        esAdmin = false;
-
-        ocultarPanelAdministrador();
-
-      }
-
     }
 
-    else {
-
-      esAdmin = false;
-
-      ocultarPanelAdministrador();
-
-    }
-
+    return;
   }
-);
+
+
+  // ==========================================================
+  // CUENTA NO AUTORIZADA
+  // ==========================================================
+
+  console.warn(
+    "Usuario autenticado pero no autorizado:",
+    user.email
+  );
+
+  esAdmin = false;
+
+  ocultarPanelAdministrador();
+
+  try {
+    await auth.signOut();
+  }
+  catch (error) {
+    console.error(
+      "Error cerrando sesión no autorizada:",
+      error
+    );
+  }
+
+});
 
 
 // ============================================================
@@ -239,31 +233,19 @@ auth.onAuthStateChanged(
 function mostrarPanelAdministrador() {
 
   const login =
-    document.getElementById(
-      "admin-login"
-    );
+    document.getElementById("admin-login");
 
   const panel =
-    document.getElementById(
-      "admin-panel"
-    );
+    document.getElementById("admin-panel");
 
 
   if (login) {
-
-    login.classList.add(
-      "hidden"
-    );
-
+    login.classList.add("hidden");
   }
 
 
   if (panel) {
-
-    panel.classList.remove(
-      "hidden"
-    );
-
+    panel.classList.remove("hidden");
   }
 
 }
@@ -272,31 +254,19 @@ function mostrarPanelAdministrador() {
 function ocultarPanelAdministrador() {
 
   const login =
-    document.getElementById(
-      "admin-login"
-    );
+    document.getElementById("admin-login");
 
   const panel =
-    document.getElementById(
-      "admin-panel"
-    );
+    document.getElementById("admin-panel");
 
 
   if (panel) {
-
-    panel.classList.add(
-      "hidden"
-    );
-
+    panel.classList.add("hidden");
   }
 
 
   if (login) {
-
-    login.classList.remove(
-      "hidden"
-    );
-
+    login.classList.remove("hidden");
   }
 
 }
@@ -311,9 +281,7 @@ document.addEventListener(
   function () {
 
     const formLogin =
-      document.getElementById(
-        "form-login"
-      );
+      document.getElementById("form-login");
 
 
     if (formLogin) {
@@ -326,15 +294,17 @@ document.addEventListener(
 
 
           const email =
-            document.getElementById(
-              "input-email"
-            )?.value.trim();
+            document
+              .getElementById("input-email")
+              ?.value
+              .trim()
+              .toLowerCase();
 
 
           const password =
-            document.getElementById(
-              "input-pass"
-            )?.value;
+            document
+              .getElementById("input-pass")
+              ?.value;
 
 
           const errorMsg =
@@ -343,16 +313,43 @@ document.addEventListener(
             );
 
 
-          try {
+          if (errorMsg) {
+
+            errorMsg.classList.add("hidden");
+
+            errorMsg.textContent = "";
+
+          }
+
+
+          if (!email || !password) {
 
             if (errorMsg) {
 
-              errorMsg.classList.add(
+              errorMsg.textContent =
+                "Ingresa tu correo y contraseña.";
+
+              errorMsg.classList.remove(
                 "hidden"
               );
 
             }
 
+            return;
+          }
+
+
+          try {
+
+            console.log(
+              "Intentando iniciar sesión con:",
+              email
+            );
+
+
+            // ==================================================
+            // LOGIN FIREBASE
+            // ==================================================
 
             const resultado =
               await auth.signInWithEmailAndPassword(
@@ -365,10 +362,31 @@ document.addEventListener(
               resultado.user;
 
 
+            console.log(
+              "Login Firebase correcto:",
+              usuario.email
+            );
+
+
+            // ==================================================
+            // VERIFICAR ADMIN
+            // ==================================================
+
+            const correoUsuario =
+              (usuario.email || "")
+                .trim()
+                .toLowerCase();
+
+
+            const correoAdmin =
+              EMAIL_ADMIN
+                .trim()
+                .toLowerCase();
+
+
             if (
-              !usuario.email ||
-              usuario.email.toLowerCase() !==
-              EMAIL_ADMIN.toLowerCase()
+              correoUsuario !==
+              correoAdmin
             ) {
 
               await auth.signOut();
@@ -380,6 +398,15 @@ document.addEventListener(
             }
 
 
+            // ==================================================
+            // ADMIN CORRECTO
+            // ==================================================
+
+            esAdmin = true;
+
+            mostrarPanelAdministrador();
+
+
             const passInput =
               document.getElementById(
                 "input-pass"
@@ -387,18 +414,27 @@ document.addEventListener(
 
 
             if (passInput) {
-
-              passInput.value =
-                "";
-
+              passInput.value = "";
             }
+
+
+            // Cargar información
+
+            await cargarProyectosDesdeNube();
+
+            await cargarIngresosDesdeNube();
+
+            renderProyectosAdmin();
+
+            renderGestionIngresos();
+
 
           }
 
           catch (error) {
 
             console.error(
-              "Error login:",
+              "ERROR COMPLETO LOGIN:",
               error
             );
 
@@ -410,10 +446,7 @@ document.addEventListener(
 
 
             if (passInput) {
-
-              passInput.value =
-                "";
-
+              passInput.value = "";
             }
 
 
@@ -421,35 +454,86 @@ document.addEventListener(
               "No se pudo iniciar sesión.";
 
 
-            if (
-              error.code ===
-              "auth/invalid-credential"
-            ) {
+            switch (error.code) {
 
-              mensaje =
-                "Correo o contraseña incorrectos.";
+              case "auth/invalid-credential":
 
-            }
+                mensaje =
+                  "Correo o contraseña incorrectos.";
 
-
-            if (
-              error.code ===
-              "auth/invalid-email"
-            ) {
-
-              mensaje =
-                "El correo electrónico no es válido.";
-
-            }
+                break;
 
 
-            if (
-              error.code ===
-              "auth/too-many-requests"
-            ) {
+              case "auth/invalid-login-credentials":
 
-              mensaje =
-                "Demasiados intentos. Espera unos minutos.";
+                mensaje =
+                  "Correo o contraseña incorrectos.";
+
+                break;
+
+
+              case "auth/user-not-found":
+
+                mensaje =
+                  "No existe una cuenta con ese correo.";
+
+                break;
+
+
+              case "auth/wrong-password":
+
+                mensaje =
+                  "La contraseña es incorrecta.";
+
+                break;
+
+
+              case "auth/invalid-email":
+
+                mensaje =
+                  "El correo electrónico no es válido.";
+
+                break;
+
+
+              case "auth/too-many-requests":
+
+                mensaje =
+                  "Demasiados intentos. Espera unos minutos e inténtalo nuevamente.";
+
+                break;
+
+
+              case "auth/user-disabled":
+
+                mensaje =
+                  "Esta cuenta de administrador está deshabilitada.";
+
+                break;
+
+
+              case "auth/network-request-failed":
+
+                mensaje =
+                  "No hay conexión con Firebase. Revisa tu internet.";
+
+                break;
+
+
+              case "auth/operation-not-allowed":
+
+                mensaje =
+                  "El inicio de sesión por correo y contraseña no está habilitado en Firebase.";
+
+                break;
+
+
+              case "auth/api-key-not-valid.-please-pass-a-valid-api-key.":
+
+                mensaje =
+                  "La configuración de Firebase no es válida.";
+
+                break;
 
             }
 
@@ -504,9 +588,9 @@ document.addEventListener(
 
 
           const codigo =
-            document.getElementById(
-              "input-codigo"
-            )?.value
+            document
+              .getElementById("input-codigo")
+              ?.value
               .trim()
               .toUpperCase();
 
@@ -645,15 +729,10 @@ document.addEventListener(
             !auth.currentUser
           ) {
 
-            return;
-
-          }
-
-
-          if (
-            auth.currentUser.email.toLowerCase() !==
-            EMAIL_ADMIN.toLowerCase()
-          ) {
+            mostrarMensajeInterno(
+              "Debes iniciar sesión como administrador.",
+              true
+            );
 
             return;
 
@@ -661,9 +740,9 @@ document.addEventListener(
 
 
           const codigo =
-            document.getElementById(
-              "nuevo-codigo"
-            )?.value
+            document
+              .getElementById("nuevo-codigo")
+              ?.value
               .trim()
               .toUpperCase()
             ||
@@ -671,75 +750,71 @@ document.addEventListener(
 
 
           const cliente =
-            document.getElementById(
-              "nuevo-cliente"
-            )?.value.trim()
+            document
+              .getElementById("nuevo-cliente")
+              ?.value
+              .trim()
             || "";
 
 
           const mueble =
-            document.getElementById(
-              "nuevo-mueble"
-            )?.value.trim()
+            document
+              .getElementById("nuevo-mueble")
+              ?.value
+              .trim()
             || "";
 
 
           const telefono =
-            document.getElementById(
-              "nuevo-telefono"
-            )?.value.trim()
+            document
+              .getElementById("nuevo-telefono")
+              ?.value
+              .trim()
             || "";
 
 
           const presupuesto =
             Number(
-              document.getElementById(
-                "nuevo-presupuesto"
-              )?.value
+              document
+                .getElementById("nuevo-presupuesto")
+                ?.value
             ) || 0;
 
 
           const adelanto =
             Number(
-              document.getElementById(
-                "nuevo-adelanto"
-              )?.value
+              document
+                .getElementById("nuevo-adelanto")
+                ?.value
             ) || 0;
 
 
           const fechaEntrega =
-            document.getElementById(
-              "nuevo-fecha"
-            )?.value
+            document
+              .getElementById("nuevo-fecha")
+              ?.value
             || "";
 
 
           const pendiente =
             Math.max(
-              presupuesto -
-              adelanto,
+              presupuesto - adelanto,
               0
             );
 
 
           const proyectoRef =
-            db.collection(
-              "proyectos"
-            ).doc();
+            db.collection("proyectos").doc();
 
 
           const ingresoRef =
-            db.collection(
-              "ingresos"
-            ).doc();
+            db.collection("ingresos").doc();
 
 
           const publicoRef =
-            db.collection(
-              "proyectos_publicos"
-            ).doc(
-              proyectoRef.id
-            );
+            db
+              .collection("proyectos_publicos")
+              .doc(proyectoRef.id);
 
 
           const proyecto = {
@@ -916,6 +991,7 @@ document.addEventListener(
               error
             );
 
+
             mostrarMensajeInterno(
               "No se pudo guardar. Revisa las Rules de Firestore.",
               true
@@ -1076,9 +1152,7 @@ async function cargarProyectosDesdeNube() {
 
     const snapshot =
       await db
-        .collection(
-          "proyectos"
-        )
+        .collection("proyectos")
         .get();
 
 
@@ -1134,9 +1208,7 @@ async function cargarIngresosDesdeNube() {
 
     const snapshot =
       await db
-        .collection(
-          "ingresos"
-        )
+        .collection("ingresos")
         .get();
 
 
@@ -1196,9 +1268,7 @@ async function buscarProyectoPublico(
 
     const snapshot =
       await db
-        .collection(
-          "proyectos_publicos"
-        )
+        .collection("proyectos_publicos")
         .where(
           "codigo",
           "==",
@@ -1504,11 +1574,6 @@ function renderProyectosAdmin() {
               </p>
 
 
-              <!-- =================================================
-                   INFORMACIÓN ECONÓMICA
-                   BLOQUES GRANDES
-                   ================================================= -->
-
               <div
                 style="
                   display:grid;
@@ -1518,8 +1583,6 @@ function renderProyectosAdmin() {
                   margin-top:12px;
                 "
               >
-
-                <!-- TOTAL -->
 
                 <div
                   style="
@@ -1561,8 +1624,6 @@ function renderProyectosAdmin() {
                 </div>
 
 
-                <!-- ADELANTO -->
-
                 <div
                   style="
                     background:rgba(245,158,11,.07);
@@ -1602,8 +1663,6 @@ function renderProyectosAdmin() {
 
                 </div>
 
-
-                <!-- PENDIENTE -->
 
                 <div
                   style="
@@ -1724,9 +1783,7 @@ function renderProyectosAdmin() {
       `;
 
 
-      container.appendChild(
-        card
-      );
+      container.appendChild(card);
 
     }
   );
@@ -1822,9 +1879,7 @@ async function cambiarEstadoPorId(
 
     const publicoQuery =
       await db
-        .collection(
-          "proyectos_publicos"
-        )
+        .collection("proyectos_publicos")
         .where(
           "codigo",
           "==",
@@ -1912,9 +1967,7 @@ async function eliminarProyecto(
 
       const publicSnap =
         await db
-          .collection(
-            "proyectos_publicos"
-          )
+          .collection("proyectos_publicos")
           .where(
             "codigo",
             "==",
@@ -1937,9 +1990,7 @@ async function eliminarProyecto(
 
       const ingresoSnap =
         await db
-          .collection(
-            "ingresos"
-          )
+          .collection("ingresos")
           .where(
             "proyectoId",
             "==",
@@ -1968,7 +2019,6 @@ async function eliminarProyecto(
     await cargarProyectosDesdeNube();
 
     await cargarIngresosDesdeNube();
-
 
     renderProyectosAdmin();
 
@@ -2192,10 +2242,6 @@ async function guardarEdicionInline(
 
   try {
 
-    // ========================================================
-    // ACTUALIZAR PROYECTO
-    // ========================================================
-
     await db
       .collection("proyectos")
       .doc(id)
@@ -2218,15 +2264,9 @@ async function guardarEdicionInline(
       });
 
 
-    // ========================================================
-    // ACTUALIZAR INGRESO
-    // ========================================================
-
     const ingresoSnap =
       await db
-        .collection(
-          "ingresos"
-        )
+        .collection("ingresos")
         .where(
           "proyectoId",
           "==",
@@ -2286,15 +2326,9 @@ async function guardarEdicionInline(
     }
 
 
-    // ========================================================
-    // ACTUALIZAR INFORMACIÓN PÚBLICA
-    // ========================================================
-
     const publicoSnap =
       await db
-        .collection(
-          "proyectos_publicos"
-        )
+        .collection("proyectos_publicos")
         .where(
           "codigo",
           "==",
@@ -2326,7 +2360,6 @@ async function guardarEdicionInline(
     await cargarProyectosDesdeNube();
 
     await cargarIngresosDesdeNube();
-
 
     renderProyectosAdmin();
 
@@ -2881,9 +2914,7 @@ async function registrarPago(
   try {
 
     await db
-      .collection(
-        "ingresos"
-      )
+      .collection("ingresos")
       .doc(ingresoId)
       .update({
 
