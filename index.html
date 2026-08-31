@@ -17,754 +17,691 @@
     href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@700;800&display=swap"
     rel="stylesheet"
   />
+
+  <!-- PDF -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
 </head>
 
 <body>
 
-  <!-- =========================================================
-       NAVBAR
-  ========================================================== -->
+<!-- =========================================================
+     NAVBAR
+========================================================= -->
 
-  <header class="navbar">
+<header class="navbar">
 
-    <div
-      class="logo-container"
-      onclick="window.scrollTo({top: 0, behavior: 'smooth'})"
+  <div
+    class="logo-container"
+    onclick="window.scrollTo({top:0,behavior:'smooth'})"
+  >
+    <img
+      src="assets/logo.png"
+      alt="HN Muebles Logo"
+      class="logo-img"
+      onerror="this.style.display='none'"
+    />
+  </div>
+
+  <nav class="nav-links">
+
+    <button
+      onclick="window.scrollTo({top:0,behavior:'smooth'})"
+      class="active"
     >
-      <img
-        src="assets/logo.png"
-        alt="HN Muebles Logo"
-        class="logo-img"
-        onerror="this.style.display='none'"
-      />
-    </div>
+      Inicio
+    </button>
 
-    <nav class="nav-links">
+    <button onclick="irASeccion('sec-ruta-explicativa')">
+      Ruta de Seguimiento
+    </button>
 
-      <button
-        onclick="window.scrollTo({top: 0, behavior: 'smooth'})"
-        class="active"
+    <button onclick="abrirModalAdmin()">
+      <i class="fa-solid fa-lock"></i>
+      Admin
+    </button>
+
+  </nav>
+
+</header>
+
+
+<!-- =========================================================
+     HERO
+========================================================= -->
+
+<section class="hero-fixed-banner">
+
+  <div class="hero-split-container">
+
+    <div class="hero-about-col">
+
+      <h1 class="hero-title-big">
+        HN MUEBLES
+      </h1>
+
+      <p
+        class="about-text"
+        style="
+          font-size:1.15rem;
+          line-height:1.6;
+          margin-top:.8rem;
+          margin-bottom:1.5rem;
+        "
       >
-        Inicio
-      </button>
+        Diseñamos y fabricamos muebles a medida para transformar tus espacios.
+        Creamos cada proyecto de forma personalizada, combinando diseño,
+        funcionalidad y calidad en cada detalle.
+      </p>
 
-      <button onclick="irASeccion('sec-ruta-explicativa')">
-        Ruta de Seguimiento
-      </button>
+      <div class="hero-highlights">
 
-      <button onclick="abrirModalAdmin()">
-        <i class="fa-solid fa-lock"></i>
-        Admin
-      </button>
+        <span>
+          <i class="fa-solid fa-circle-check font-amber"></i>
+          Melamina premium
+        </span>
 
-    </nav>
-
-  </header>
-
-
-  <!-- =========================================================
-       HERO
-  ========================================================== -->
-
-  <section class="hero-fixed-banner">
-
-    <div class="hero-split-container">
-
-      <!-- IZQUIERDA -->
-
-      <div class="hero-about-col">
-
-        <h1 class="hero-title-big">
-          HN MUEBLES
-        </h1>
-
-        <p
-          class="about-text"
-          style="
-            font-size:1.15rem;
-            line-height:1.6;
-            margin-top:0.8rem;
-            margin-bottom:1.5rem;
-          "
-        >
-          Diseñamos y fabricamos muebles a medida para transformar tus espacios.
-          Creamos cada proyecto de forma personalizada, combinando diseño,
-          funcionalidad y calidad en cada detalle.
-        </p>
-
-        <div class="hero-highlights">
-
-          <span>
-            <i class="fa-solid fa-circle-check font-amber"></i>
-            Melamina premium
-          </span>
-
-          <span>
-            <i class="fa-solid fa-circle-check font-amber"></i>
-            Diseños personalizados
-          </span>
-
-        </div>
-
-      </div>
-
-
-      <!-- DERECHA -->
-
-      <div class="hero-tracking-col">
-
-        <div class="modern-tracking-card">
-
-          <div class="card-icon-header">
-            <i class="fa-solid fa-box-open font-amber"></i>
-          </div>
-
-          <h2>
-            Seguimiento de Pedido
-          </h2>
-
-          <p class="subtitle">
-            Ingresa tu código único para revisar el estado actual
-            de tu mueble en el taller.
-          </p>
-
-          <form
-            id="form-buscar"
-            class="search-form-modern"
-          >
-
-            <div class="input-wrapper">
-
-              <i class="fa-solid fa-magnifying-glass"></i>
-
-              <input
-                type="text"
-                id="input-codigo"
-                placeholder="Ej: HN-001"
-                required
-              />
-
-            </div>
-
-            <button
-              type="submit"
-              class="btn-primary-modern"
-            >
-              Consultar Estado
-            </button>
-
-          </form>
-
-
-          <div
-            id="mensaje-error"
-            class="error-msg hidden"
-          >
-            <i class="fa-solid fa-circle-exclamation"></i>
-            No se encontró ningún proyecto con ese código.
-          </div>
-
-
-          <div
-            id="resultado-proyecto"
-            class="hidden result-box-modern"
-          >
-
-            <div>
-
-              <span
-                id="res-codigo"
-                class="badge"
-              ></span>
-
-              <h3
-                id="res-mueble"
-                style="
-                  font-size:1.1rem;
-                  margin-top:6px;
-                  color:#fff;
-                "
-              ></h3>
-
-              <p
-                id="res-cliente"
-                style="
-                  font-size:0.85rem;
-                  color:#a3a3a3;
-                "
-              ></p>
-
-            </div>
-
-
-            <div class="result-status-row">
-
-              <span>
-                Estado:
-                <strong
-                  id="res-estado"
-                  class="font-amber"
-                ></strong>
-              </span>
-
-              <span class="progress-pill">
-
-                <strong id="res-porcentaje">
-                  0%
-                </strong>
-
-              </span>
-
-            </div>
-
-          </div>
-
-        </div>
+        <span>
+          <i class="fa-solid fa-circle-check font-amber"></i>
+          Diseños personalizados
+        </span>
 
       </div>
 
     </div>
 
-  </section>
 
+    <!-- SEGUIMIENTO -->
 
-  <!-- =========================================================
-       RUTA DE SEGUIMIENTO
-  ========================================================== -->
+    <div class="hero-tracking-col">
 
-  <main class="black-content-container">
+      <div class="modern-tracking-card">
 
-    <section
-      id="sec-ruta-explicativa"
-      class="content-section"
-    >
-
-      <div
-        class="section-inner"
-        style="max-width:1050px;"
-      >
+        <div class="card-icon-header">
+          <i class="fa-solid fa-box-open font-amber"></i>
+        </div>
 
         <h2>
-
-          <i class="fa-solid fa-route font-amber"></i>
-
-          ¿Cómo es la Ruta de tu Mueble?
-
+          Seguimiento de Pedido
         </h2>
 
         <p class="subtitle">
-          Conoce los 5 pasos detallados por los que pasa tu proyecto
-          desde el taller hasta tu hogar
+          Ingresa tu código único para revisar el estado actual de tu mueble.
         </p>
-
-
-        <div class="steps-grid-5">
-
-
-          <!-- PASO 1 -->
-
-          <div class="step-box">
-
-            <div class="step-icon">
-              <i class="fa-solid fa-file-signature"></i>
-            </div>
-
-            <div class="step-title">
-              1. Diseño Aprobado
-            </div>
-
-            <div class="step-desc">
-              Validación de medidas, planos y visto bueno del cliente.
-            </div>
-
-          </div>
-
-
-          <!-- PASO 2 -->
-
-          <div class="step-box">
-
-            <div class="step-icon">
-              <i class="fa-solid fa-scissors"></i>
-            </div>
-
-            <div class="step-title">
-              2. Corte
-            </div>
-
-            <div class="step-desc">
-              Optimización y corte exacto de los tableros de melamina.
-            </div>
-
-          </div>
-
-
-          <!-- PASO 3 -->
-
-          <div class="step-box">
-
-            <div class="step-icon">
-              <i class="fa-solid fa-hammer"></i>
-            </div>
-
-            <div class="step-title">
-              3. Armado
-            </div>
-
-            <div class="step-desc">
-              Ensamblaje estructural del mueble y colocación de cantos.
-            </div>
-
-          </div>
-
-
-          <!-- PASO 4 -->
-
-          <div class="step-box">
-
-            <div class="step-icon">
-              <i class="fa-solid fa-truck-fast"></i>
-            </div>
-
-            <div class="step-title">
-              4. Instalación
-            </div>
-
-            <div class="step-desc">
-              Traslado y montaje profesional en el domicilio del cliente.
-            </div>
-
-          </div>
-
-
-          <!-- PASO 5 -->
-
-          <div
-            class="step-box"
-            style="border-color:rgba(16,185,129,0.4);"
-          >
-
-            <div
-              class="step-icon"
-              style="color:#10b981;"
-            >
-              <i class="fa-solid fa-circle-check"></i>
-            </div>
-
-            <div class="step-title">
-              5. Finalizado
-            </div>
-
-            <div class="step-desc">
-              Proyecto entregado con total satisfacción y listo para usarse.
-            </div>
-
-          </div>
-
-        </div>
-
-      </div>
-
-    </section>
-
-
-    <!-- =======================================================
-         FOOTER
-    ======================================================== -->
-
-    <footer class="footer">
-
-      <p>
-        ¿Tienes dudas sobre tu proyecto?
-        Contáctanos directamente:
-      </p>
-
-      <div class="social-buttons">
-
-        <a
-          href="https://wa.me/59162037033?text=Hola%20HN%20Muebles"
-          target="_blank"
-          class="btn-social btn-wa"
-        >
-          <i class="fa-brands fa-whatsapp"></i>
-          WhatsApp (+591 62037033)
-        </a>
-
-        <a
-          href="https://www.instagram.com/hnmuebles/"
-          target="_blank"
-          class="btn-social btn-ig"
-        >
-          <i class="fa-brands fa-instagram"></i>
-          Instagram (@hnmuebles)
-        </a>
-
-      </div>
-
-      <p class="copyright">
-        © 2026 HN Muebles. Todos los derechos reservados.
-      </p>
-
-    </footer>
-
-  </main>
-
-
-  <!-- =========================================================
-       MODAL ADMIN
-  ========================================================== -->
-
-  <div
-    id="modal-admin"
-    class="modal-overlay hidden"
-  >
-
-    <div class="modal-box">
-
-      <button
-        class="modal-close"
-        onclick="cerrarModalAdmin()"
-      >
-        &times;
-      </button>
-
-
-      <!-- =====================================================
-           LOGIN
-      ====================================================== -->
-
-      <div id="admin-login">
-
-        <i
-          class="fa-solid fa-lock font-amber"
-          style="
-            font-size:2rem;
-            margin-bottom:0.5rem;
-            display:block;
-            text-align:center;
-          "
-        ></i>
-
-        <h2
-          style="
-            text-align:center;
-            margin-bottom:0.5rem;
-          "
-        >
-          Panel Administrador
-        </h2>
-
-        <p
-          class="subtitle"
-          style="text-align:center;"
-        >
-          Ingresa tus credenciales seguras
-        </p>
-
 
         <form
-          id="form-login"
-          class="login-form"
-          style="
-            display:flex;
-            gap:10px;
-            flex-direction:column;
-          "
+          id="form-buscar"
+          class="search-form-modern"
         >
 
-          <input
-            type="email"
-            id="input-email"
-            placeholder="Correo electrónico..."
-            required
-            style="
-              width:100%;
-              padding:10px;
-              box-sizing:border-box;
-              background:#0a0a0a;
-              border:1px solid #333;
-              color:#fff;
-              border-radius:8px;
-            "
-          />
+          <div class="input-wrapper">
 
-          <input
-            type="password"
-            id="input-pass"
-            placeholder="Contraseña..."
-            required
-            style="
-              width:100%;
-              padding:10px;
-              box-sizing:border-box;
-              background:#0a0a0a;
-              border:1px solid #333;
-              color:#fff;
-              border-radius:8px;
-            "
-          />
+            <i class="fa-solid fa-magnifying-glass"></i>
+
+            <input
+              type="text"
+              id="input-codigo"
+              placeholder="Ej: HN-001"
+              required
+            />
+
+          </div>
 
           <button
             type="submit"
             class="btn-primary-modern"
-            style="
-              width:100%;
-              border-radius:8px;
-              padding:0.75rem;
-            "
           >
-            Iniciar Sesión
+            Consultar Estado
           </button>
 
         </form>
 
 
         <div
-          id="login-error-msg"
-          class="hidden"
-          style="
-            color:#ef4444;
-            font-size:0.85rem;
-            text-align:center;
-            margin-top:8px;
-          "
-        ></div>
+          id="mensaje-error"
+          class="error-msg hidden"
+        >
+          <i class="fa-solid fa-circle-exclamation"></i>
+          No se encontró ningún proyecto con ese código.
+        </div>
+
+
+        <div
+          id="resultado-proyecto"
+          class="hidden result-box-modern"
+        >
+
+          <div>
+
+            <span
+              id="res-codigo"
+              class="badge"
+            ></span>
+
+            <h3
+              id="res-mueble"
+              style="
+                font-size:1.1rem;
+                margin-top:6px;
+                color:#fff;
+              "
+            ></h3>
+
+            <p
+              id="res-cliente"
+              style="
+                font-size:.85rem;
+                color:#a3a3a3;
+              "
+            ></p>
+
+          </div>
+
+          <div class="result-status-row">
+
+            <span>
+              Estado:
+              <strong
+                id="res-estado"
+                class="font-amber"
+              ></strong>
+            </span>
+
+            <span class="progress-pill">
+              <strong id="res-porcentaje">
+                0%
+              </strong>
+            </span>
+
+          </div>
+
+        </div>
+
+      </div>
+
+    </div>
+
+  </div>
+
+</section>
+
+
+<!-- =========================================================
+     RUTA
+========================================================= -->
+
+<main class="black-content-container">
+
+<section
+  id="sec-ruta-explicativa"
+  class="content-section"
+>
+
+  <div
+    class="section-inner"
+    style="max-width:1050px;"
+  >
+
+    <h2>
+      <i class="fa-solid fa-route font-amber"></i>
+      ¿Cómo es la Ruta de tu Mueble?
+    </h2>
+
+    <p class="subtitle">
+      Conoce los 5 pasos por los que pasa tu proyecto desde el taller hasta tu hogar.
+    </p>
+
+
+    <div class="steps-grid-5">
+
+      <div class="step-box">
+
+        <div class="step-icon">
+          <i class="fa-solid fa-file-signature"></i>
+        </div>
+
+        <div class="step-title">
+          1. Diseño Aprobado
+        </div>
+
+        <div class="step-desc">
+          Validación de medidas, planos y visto bueno del cliente.
+        </div>
 
       </div>
 
 
-      <!-- =====================================================
-           PANEL ADMIN
-      ====================================================== -->
+      <div class="step-box">
 
-      <div id="admin-panel" class="hidden">
+        <div class="step-icon">
+          <i class="fa-solid fa-scissors"></i>
+        </div>
+
+        <div class="step-title">
+          2. Corte
+        </div>
+
+        <div class="step-desc">
+          Optimización y corte exacto de los tableros de melamina.
+        </div>
+
+      </div>
 
 
-        <!-- CABECERA -->
+      <div class="step-box">
+
+        <div class="step-icon">
+          <i class="fa-solid fa-hammer"></i>
+        </div>
+
+        <div class="step-title">
+          3. Armado
+        </div>
+
+        <div class="step-desc">
+          Ensamblaje estructural del mueble y colocación de cantos.
+        </div>
+
+      </div>
+
+
+      <div class="step-box">
+
+        <div class="step-icon">
+          <i class="fa-solid fa-truck-fast"></i>
+        </div>
+
+        <div class="step-title">
+          4. Instalación
+        </div>
+
+        <div class="step-desc">
+          Traslado y montaje profesional en el domicilio del cliente.
+        </div>
+
+      </div>
+
+
+      <div
+        class="step-box"
+        style="border-color:rgba(16,185,129,.4);"
+      >
+
+        <div
+          class="step-icon"
+          style="color:#10b981;"
+        >
+          <i class="fa-solid fa-circle-check"></i>
+        </div>
+
+        <div class="step-title">
+          5. Finalizado
+        </div>
+
+        <div class="step-desc">
+          Proyecto entregado con total satisfacción y listo para usarse.
+        </div>
+
+      </div>
+
+    </div>
+
+  </div>
+
+</section>
+
+
+<!-- =========================================================
+     FOOTER
+========================================================= -->
+
+<footer class="footer">
+
+  <p>
+    ¿Tienes dudas sobre tu proyecto?
+    Contáctanos directamente:
+  </p>
+
+  <div class="social-buttons">
+
+    <a
+      href="https://wa.me/59162037033?text=Hola%20HN%20Muebles"
+      target="_blank"
+      class="btn-social btn-wa"
+    >
+      <i class="fa-brands fa-whatsapp"></i>
+      WhatsApp (+591 62037033)
+    </a>
+
+
+    <a
+      href="https://www.instagram.com/hnmuebles/"
+      target="_blank"
+      class="btn-social btn-ig"
+    >
+      <i class="fa-brands fa-instagram"></i>
+      Instagram (@hnmuebles)
+    </a>
+
+  </div>
+
+  <p class="copyright">
+    © 2026 HN Muebles. Todos los derechos reservados.
+  </p>
+
+</footer>
+
+</main>
+
+
+<!-- =========================================================
+     MODAL ADMIN
+========================================================= -->
+
+<div
+  id="modal-admin"
+  class="modal-overlay hidden"
+>
+
+  <div class="modal-box">
+
+    <button
+      class="modal-close"
+      onclick="cerrarModalAdmin()"
+    >
+      &times;
+    </button>
+
+
+    <!-- LOGIN -->
+
+    <div id="admin-login">
+
+      <i
+        class="fa-solid fa-lock font-amber"
+        style="
+          font-size:2rem;
+          margin-bottom:.5rem;
+          display:block;
+          text-align:center;
+        "
+      ></i>
+
+      <h2 style="text-align:center;">
+        Panel Administrador
+      </h2>
+
+      <p
+        class="subtitle"
+        style="text-align:center;"
+      >
+        Ingresa tus credenciales seguras
+      </p>
+
+
+      <form
+        id="form-login"
+        class="login-form"
+        style="
+          display:flex;
+          gap:10px;
+          flex-direction:column;
+        "
+      >
+
+        <input
+          type="email"
+          id="input-email"
+          placeholder="Correo electrónico..."
+          required
+          style="
+            width:100%;
+            padding:10px;
+            background:#0a0a0a;
+            border:1px solid #333;
+            color:#fff;
+            border-radius:8px;
+          "
+        />
+
+
+        <input
+          type="password"
+          id="input-pass"
+          placeholder="Contraseña..."
+          required
+          style="
+            width:100%;
+            padding:10px;
+            background:#0a0a0a;
+            border:1px solid #333;
+            color:#fff;
+            border-radius:8px;
+          "
+        />
+
+
+        <button
+          type="submit"
+          class="btn-primary-modern"
+          style="
+            width:100%;
+            border-radius:8px;
+            padding:.75rem;
+          "
+        >
+          Iniciar Sesión
+        </button>
+
+      </form>
+
+
+      <div
+        id="login-error-msg"
+        class="hidden"
+        style="
+          color:#ef4444;
+          font-size:.85rem;
+          text-align:center;
+          margin-top:8px;
+        "
+      ></div>
+
+    </div>
+
+
+    <!-- =====================================================
+         PANEL ADMIN
+    ====================================================== -->
+
+    <div
+      id="admin-panel"
+      class="hidden"
+    >
+
+      <div
+        style="
+          display:flex;
+          justify-content:space-between;
+          align-items:center;
+          margin-bottom:1rem;
+        "
+      >
+
+        <h2 style="margin:0;">
+          <i class="fa-solid fa-sliders font-amber"></i>
+          Gestión
+        </h2>
+
+
+        <button
+          onclick="cerrarSesionAdmin()"
+          style="
+            background:transparent;
+            border:1px solid #ef4444;
+            color:#ef4444;
+            padding:4px 8px;
+            border-radius:6px;
+            cursor:pointer;
+            font-size:.8rem;
+          "
+        >
+          <i class="fa-solid fa-right-from-bracket"></i>
+          Salir
+        </button>
+
+      </div>
+
+
+      <!-- BOTÓN INGRESOS -->
+
+      <button
+        type="button"
+        onclick="abrirGestionIngresos()"
+        style="
+          width:100%;
+          background:rgba(245,158,11,.08);
+          border:1px solid rgba(245,158,11,.35);
+          color:#f59e0b;
+          padding:10px;
+          border-radius:8px;
+          cursor:pointer;
+          margin-bottom:1rem;
+          font-weight:bold;
+        "
+      >
+        <i class="fa-solid fa-chart-line"></i>
+        Gestión de Ingresos
+      </button>
+
+
+      <!-- NUEVO PROYECTO -->
+
+      <form
+        id="form-nuevo-proyecto"
+        class="admin-form"
+        style="
+          background:rgba(255,255,255,.03);
+          padding:1rem;
+          border-radius:8px;
+          margin-bottom:1.5rem;
+        "
+      >
+
+        <h3
+          style="
+            font-size:1rem;
+            margin-bottom:.75rem;
+          "
+        >
+          <i class="fa-solid fa-plus font-amber"></i>
+          Nuevo Proyecto
+        </h3>
+
+
+        <!-- CÓDIGO -->
 
         <div
           style="
             display:flex;
-            justify-content:space-between;
-            align-items:center;
-            margin-bottom:1rem;
-            gap:10px;
+            gap:6px;
+            margin-bottom:8px;
           "
         >
 
-          <h2 style="margin:0;">
-
-            <i class="fa-solid fa-sliders font-amber"></i>
-
-            Gestión
-
-          </h2>
-
+          <input
+            type="text"
+            id="nuevo-codigo"
+            placeholder="Código (Ej: HN-001)"
+            style="flex:1;"
+          />
 
           <button
-            onclick="cerrarSesionAdmin()"
+            type="button"
+            onclick="llenarCodigoAutomatico()"
+            class="btn-primary-modern"
             style="
-              background:transparent;
-              border:1px solid #ef4444;
-              color:#ef4444;
-              padding:4px 8px;
-              border-radius:6px;
-              cursor:pointer;
-              font-size:0.8rem;
+              padding:0 10px;
+              font-size:.8rem;
             "
           >
-
-            <i class="fa-solid fa-right-from-bracket"></i>
-
-            Salir
-
+            Generar
           </button>
 
         </div>
 
 
-        <!-- ===================================================
-             BOTÓN GESTIÓN DE INGRESOS
-        ==================================================== -->
+        <!-- DATOS -->
 
-        <button
-          type="button"
-          onclick="abrirGestionIngresos()"
+        <div
           style="
-            width:100%;
-            margin-bottom:1.2rem;
-            background:linear-gradient(
-              135deg,
-              #f59e0b,
-              #d97706
-            );
-            color:#000;
-            border:none;
-            padding:12px;
-            border-radius:9px;
-            cursor:pointer;
-            font-weight:800;
-            font-size:0.95rem;
+            display:grid;
+            grid-template-columns:1fr 1fr;
+            gap:6px;
+            margin-bottom:8px;
           "
         >
 
-          <i class="fa-solid fa-chart-line"></i>
+          <input
+            type="text"
+            id="nuevo-cliente"
+            placeholder="Cliente"
+            required
+          />
 
-          Gestión de Ingresos
+          <input
+            type="text"
+            id="nuevo-mueble"
+            placeholder="Mueble"
+            required
+          />
 
-        </button>
-
-
-        <!-- ===================================================
-             NUEVO PROYECTO
-        ==================================================== -->
-
-        <form
-          id="form-nuevo-proyecto"
-          class="admin-form"
-          style="
-            background:rgba(255,255,255,0.03);
-            padding:1rem;
-            border-radius:8px;
-            margin-bottom:1.5rem;
-            border:1px solid rgba(255,255,255,0.06);
-          "
-        >
-
-          <h3
-            style="
-              font-size:1rem;
-              margin-bottom:0.75rem;
-            "
-          >
-
-            <i class="fa-solid fa-plus font-amber"></i>
-
-            Nuevo Proyecto
-
-          </h3>
+          <input
+            type="text"
+            id="nuevo-telefono"
+            placeholder="WhatsApp"
+          />
 
 
-          <!-- CÓDIGO -->
+          <!-- TOTAL -->
 
           <div
             style="
-              display:flex;
-              gap:6px;
-              margin-bottom:8px;
+              background:rgba(56,189,248,.06);
+              border:1px solid rgba(56,189,248,.25);
+              border-radius:8px;
+              padding:2px;
             "
           >
-
-            <input
-              type="text"
-              id="nuevo-codigo"
-              placeholder="Código (Ej: HN-001)"
-              style="
-                flex:1;
-                background:#0a0a0a;
-                border:1px solid #333;
-                color:#fff;
-                padding:8px;
-                border-radius:8px;
-                box-sizing:border-box;
-              "
-            />
-
-            <button
-              type="button"
-              onclick="llenarCodigoAutomatico()"
-              class="btn-primary-modern"
-              style="
-                padding:0 10px;
-                font-size:0.8rem;
-              "
-            >
-              Generar
-            </button>
-
-          </div>
-
-
-          <!-- DATOS -->
-
-          <div
-            style="
-              display:grid;
-              grid-template-columns:1fr 1fr;
-              gap:6px;
-              margin-bottom:8px;
-            "
-          >
-
-
-            <input
-              type="text"
-              id="nuevo-cliente"
-              placeholder="Cliente"
-              required
-              style="
-                background:#0a0a0a;
-                border:1px solid #333;
-                color:#fff;
-                padding:8px;
-                border-radius:8px;
-                box-sizing:border-box;
-              "
-            />
-
-
-            <input
-              type="text"
-              id="nuevo-mueble"
-              placeholder="Mueble"
-              required
-              style="
-                background:#0a0a0a;
-                border:1px solid #333;
-                color:#fff;
-                padding:8px;
-                border-radius:8px;
-                box-sizing:border-box;
-              "
-            />
-
-
-            <input
-              type="text"
-              id="nuevo-telefono"
-              placeholder="WhatsApp"
-              style="
-                background:#0a0a0a;
-                border:1px solid #333;
-                color:#fff;
-                padding:8px;
-                border-radius:8px;
-                box-sizing:border-box;
-              "
-            />
-
-
-            <!-- TOTAL -->
 
             <input
               type="number"
               id="nuevo-presupuesto"
-              placeholder="Total (Bs)"
+              placeholder="Monto total (Bs)"
               min="0"
               step="0.01"
               style="
                 width:100%;
+                background:transparent;
+                border:none;
+                color:#38bdf8;
                 box-sizing:border-box;
-                background:#0a0a0a;
-                border:1px solid #333;
-                color:#fff;
-                padding:8px;
-                border-radius:8px;
               "
             />
 
+          </div>
 
-            <!-- ADELANTO -->
+
+          <!-- ADELANTO -->
+
+          <div
+            style="
+              background:rgba(245,158,11,.06);
+              border:1px solid rgba(245,158,11,.25);
+              border-radius:8px;
+              padding:2px;
+            "
+          >
 
             <input
               type="number"
@@ -774,668 +711,440 @@
               step="0.01"
               style="
                 width:100%;
+                background:transparent;
+                border:none;
+                color:#f59e0b;
                 box-sizing:border-box;
-                background:#0a0a0a;
-                border:1px solid #333;
-                color:#fff;
-                padding:8px;
-                border-radius:8px;
               "
             />
-
-
-            <!-- FECHA -->
-
-            <div
-              style="
-                display:flex;
-                flex-direction:column;
-                gap:3px;
-              "
-            >
-
-              <label
-                for="nuevo-fecha"
-                style="
-                  font-size:0.75rem;
-                  color:#a3a3a3;
-                "
-              >
-
-                <i
-                  class="fa-regular fa-calendar font-amber"
-                ></i>
-
-                Fecha de entrega
-
-              </label>
-
-
-              <input
-                type="date"
-                id="nuevo-fecha"
-                title="Seleccionar fecha de entrega"
-                style="
-                  width:100%;
-                  box-sizing:border-box;
-                  background:#0a0a0a;
-                  border:1px solid #333;
-                  color:#fff;
-                  padding:8px;
-                  border-radius:8px;
-                  cursor:pointer;
-                "
-              />
-
-            </div>
 
           </div>
 
 
-          <!-- SALDO CALCULADO -->
+          <!-- PENDIENTE -->
 
           <div
             style="
-              background:rgba(245,158,11,0.05);
-              border:1px solid rgba(245,158,11,0.18);
+              background:rgba(239,68,68,.06);
+              border:1px solid rgba(239,68,68,.25);
               border-radius:8px;
-              padding:9px 10px;
-              margin-bottom:10px;
+              padding:8px;
+              color:#ef4444;
+              font-size:.85rem;
               display:flex;
-              justify-content:space-between;
               align-items:center;
+              justify-content:space-between;
             "
           >
 
-            <span
-              style="
-                color:#a3a3a3;
-                font-size:0.85rem;
-              "
-            >
-              Saldo pendiente:
+            <span>
+              Pendiente
             </span>
 
-            <strong
-              id="lbl-nuevo-saldo"
-              style="
-                color:#f87171;
-                font-size:1rem;
-              "
-            >
+            <strong id="lbl-nuevo-saldo">
               Bs. 0
             </strong>
 
           </div>
 
 
-          <button
-            type="submit"
-            class="btn-primary-modern"
-            style="width:100%;"
+          <!-- FECHA -->
+
+          <div
+            style="
+              display:flex;
+              flex-direction:column;
+              gap:3px;
+            "
           >
 
-            Guardar Proyecto
+            <label
+              for="nuevo-fecha"
+              style="
+                font-size:.75rem;
+                color:#a3a3a3;
+              "
+            >
+              <i class="fa-regular fa-calendar font-amber"></i>
+              Fecha de entrega
+            </label>
 
-          </button>
+            <input
+              type="date"
+              id="nuevo-fecha"
+              title="Seleccionar fecha de entrega"
+              style="
+                width:100%;
+                box-sizing:border-box;
+                background:#0a0a0a;
+                border:1px solid #333;
+                color:#fff;
+                padding:8px;
+                border-radius:8px;
+                cursor:pointer;
+              "
+            />
 
-        </form>
-
-
-        <!-- ===================================================
-             PROYECTOS REGISTRADOS
-        ==================================================== -->
-
-        <h3
-          style="
-            font-size:1rem;
-            margin-bottom:0.5rem;
-          "
-        >
-
-          Registrados
-          (<span id="total-proyectos">0</span>)
-
-        </h3>
-
-
-        <div
-          id="lista-proyectos-admin"
-          class="projects-list"
-          style="
-            max-height:200px;
-            overflow-y:auto;
-          "
-        ></div>
-
-      </div>
-
-    </div>
-
-  </div>
-
-
-  <!-- =========================================================
-       VENTANA INDEPENDIENTE:
-       GESTIÓN DE INGRESOS
-  ========================================================== -->
-
-  <div
-    id="modal-ingresos"
-    class="modal-overlay hidden"
-  >
-
-    <div
-      class="modal-box"
-      style="
-        max-width:900px;
-        width:95%;
-      "
-    >
-
-      <button
-        class="modal-close"
-        onclick="cerrarGestionIngresos()"
-      >
-        &times;
-      </button>
-
-
-      <!-- CABECERA -->
-
-      <div
-        style="
-          display:flex;
-          justify-content:space-between;
-          align-items:center;
-          gap:10px;
-          margin-bottom:1rem;
-          flex-wrap:wrap;
-        "
-      >
-
-        <div>
-
-          <h2 style="margin:0;">
-
-            <i class="fa-solid fa-chart-line font-amber"></i>
-
-            Gestión de Ingresos
-
-          </h2>
-
-          <p
-            class="subtitle"
-            style="margin-top:5px;"
-          >
-            Registro de ingresos de HN Muebles
-          </p>
+          </div>
 
         </div>
 
 
         <button
-          type="button"
-          onclick="cerrarGestionIngresos()"
-          style="
-            background:#333;
-            color:#fff;
-            border:none;
-            padding:8px 12px;
-            border-radius:7px;
-            cursor:pointer;
-          "
-        >
-          Volver
-        </button>
-
-      </div>
-
-
-      <!-- FILTRO MES -->
-
-      <div
-        style="
-          display:flex;
-          gap:8px;
-          align-items:end;
-          flex-wrap:wrap;
-          margin-bottom:1rem;
-          padding:1rem;
-          background:rgba(255,255,255,0.03);
-          border:1px solid rgba(255,255,255,0.07);
-          border-radius:10px;
-        "
-      >
-
-        <div
-          style="
-            flex:1;
-            min-width:180px;
-          "
-        >
-
-          <label
-            style="
-              display:block;
-              color:#a3a3a3;
-              font-size:0.75rem;
-              margin-bottom:4px;
-            "
-          >
-            Mes
-          </label>
-
-          <input
-            type="month"
-            id="filtro-mes-ingresos"
-            style="
-              width:100%;
-              box-sizing:border-box;
-              background:#0a0a0a;
-              border:1px solid #333;
-              color:#fff;
-              padding:9px;
-              border-radius:8px;
-            "
-          />
-
-        </div>
-
-
-        <button
-          type="button"
-          onclick="exportarIngresosPDF()"
-          style="
-            background:#16a34a;
-            color:#fff;
-            border:none;
-            padding:10px 14px;
-            border-radius:8px;
-            cursor:pointer;
-            font-weight:bold;
-          "
-        >
-
-          <i class="fa-solid fa-file-pdf"></i>
-
-          Exportar PDF
-
-        </button>
-
-      </div>
-
-
-      <!-- RESUMEN -->
-
-      <div
-        style="
-          display:grid;
-          grid-template-columns:repeat(3,1fr);
-          gap:8px;
-          margin-bottom:1rem;
-        "
-      >
-
-        <div
-          style="
-            background:rgba(255,255,255,0.04);
-            border:1px solid rgba(255,255,255,0.08);
-            padding:12px;
-            border-radius:9px;
-          "
-        >
-
-          <div
-            style="
-              color:#a3a3a3;
-              font-size:0.75rem;
-            "
-          >
-            Proyectos
-          </div>
-
-          <strong
-            id="ingresos-total-proyectos"
-            style="font-size:1.2rem;"
-          >
-            0
-          </strong>
-
-        </div>
-
-
-        <div
-          style="
-            background:rgba(255,255,255,0.04);
-            border:1px solid rgba(255,255,255,0.08);
-            padding:12px;
-            border-radius:9px;
-          "
-        >
-
-          <div
-            style="
-              color:#a3a3a3;
-              font-size:0.75rem;
-            "
-          >
-            Adelantos
-          </div>
-
-          <strong
-            id="ingresos-total-adelantos"
-            style="
-              font-size:1.2rem;
-              color:#f59e0b;
-            "
-          >
-            Bs. 0
-          </strong>
-
-        </div>
-
-
-        <div
-          style="
-            background:rgba(255,255,255,0.04);
-            border:1px solid rgba(255,255,255,0.08);
-            padding:12px;
-            border-radius:9px;
-          "
-        >
-
-          <div
-            style="
-              color:#a3a3a3;
-              font-size:0.75rem;
-            "
-          >
-            Saldo / Ganancia
-          </div>
-
-          <strong
-            id="ingresos-total-saldo"
-            style="
-              font-size:1.2rem;
-              color:#10b981;
-            "
-          >
-            Bs. 0
-          </strong>
-
-        </div>
-
-      </div>
-
-
-      <!-- FORMULARIO DE REGISTRO -->
-
-      <div
-        style="
-          background:rgba(255,255,255,0.03);
-          border:1px solid rgba(255,255,255,0.07);
-          padding:1rem;
-          border-radius:10px;
-          margin-bottom:1rem;
-        "
-      >
-
-        <h3
-          style="
-            font-size:0.95rem;
-            margin-top:0;
-          "
-        >
-
-          <i class="fa-solid fa-plus font-amber"></i>
-
-          Registrar ingreso final
-
-        </h3>
-
-
-        <div
-          style="
-            display:grid;
-            grid-template-columns:1fr 1fr 1fr;
-            gap:7px;
-          "
-        >
-
-          <input
-            type="text"
-            id="ingreso-codigo"
-            placeholder="Código proyecto"
-            style="
-              background:#0a0a0a;
-              border:1px solid #333;
-              color:#fff;
-              padding:9px;
-              border-radius:8px;
-              box-sizing:border-box;
-            "
-          />
-
-          <input
-            type="text"
-            id="ingreso-cliente"
-            placeholder="Cliente"
-            style="
-              background:#0a0a0a;
-              border:1px solid #333;
-              color:#fff;
-              padding:9px;
-              border-radius:8px;
-              box-sizing:border-box;
-            "
-          />
-
-          <input
-            type="number"
-            id="ingreso-monto"
-            placeholder="Saldo cobrado (Bs)"
-            min="0"
-            step="0.01"
-            style="
-              background:#0a0a0a;
-              border:1px solid #333;
-              color:#fff;
-              padding:9px;
-              border-radius:8px;
-              box-sizing:border-box;
-            "
-          />
-
-        </div>
-
-
-        <button
-          type="button"
-          onclick="registrarIngresoManual()"
+          type="submit"
           class="btn-primary-modern"
-          style="
-            width:100%;
-            margin-top:8px;
-          "
+          style="width:100%;"
         >
-
-          Registrar ingreso
-
+          Guardar Proyecto
         </button>
 
-      </div>
+      </form>
 
 
       <!-- LISTA -->
 
-      <div>
+      <h3
+        style="
+          font-size:1rem;
+          margin-bottom:.5rem;
+        "
+      >
+        Registrados
+        (<span id="total-proyectos">0</span>)
+      </h3>
 
-        <h3
-          style="
-            font-size:0.95rem;
-            margin-bottom:0.5rem;
-          "
-        >
-
-          Registros del mes
-
-        </h3>
-
-
-        <div
-          id="lista-ingresos"
-          style="
-            max-height:280px;
-            overflow-y:auto;
-          "
-        ></div>
-
-      </div>
+      <div
+        id="lista-proyectos-admin"
+        class="projects-list"
+        style="
+          max-height:200px;
+          overflow-y:auto;
+        "
+      ></div>
 
     </div>
 
   </div>
 
+</div>
+
+
+<!-- =========================================================
+     VENTANA INDEPENDIENTE: GESTIÓN DE INGRESOS
+========================================================= -->
+
+<div
+  id="modal-ingresos"
+  class="modal-overlay hidden"
+>
+
+  <div
+    class="modal-box"
+    style="
+      max-width:720px;
+      width:94%;
+    "
+  >
+
+    <button
+      class="modal-close"
+      onclick="cerrarGestionIngresos()"
+    >
+      &times;
+    </button>
+
+
+    <div
+      style="
+        display:flex;
+        justify-content:space-between;
+        align-items:center;
+        gap:10px;
+        margin-bottom:1rem;
+        padding-right:35px;
+      "
+    >
+
+      <div>
+
+        <h2 style="margin:0;">
+          <i class="fa-solid fa-chart-line font-amber"></i>
+          Gestión de Ingresos
+        </h2>
+
+        <p
+          class="subtitle"
+          style="margin:.3rem 0 0;"
+        >
+          Control de cobros de HN Muebles
+        </p>
+
+      </div>
+
+    </div>
+
+
+    <!-- RESUMEN -->
+
+    <div
+      style="
+        display:grid;
+        grid-template-columns:repeat(3,1fr);
+        gap:6px;
+        margin-bottom:12px;
+      "
+    >
+
+      <div
+        style="
+          background:rgba(56,189,248,.06);
+          border:1px solid rgba(56,189,248,.25);
+          padding:9px;
+          border-radius:8px;
+        "
+      >
+
+        <small style="color:#a3a3a3;">
+          Proyectos
+        </small>
+
+        <strong
+          id="ing-resumen-proyectos"
+          style="
+            display:block;
+            color:#38bdf8;
+            font-size:1.1rem;
+          "
+        >
+          0
+        </strong>
+
+      </div>
+
+
+      <div
+        style="
+          background:rgba(245,158,11,.06);
+          border:1px solid rgba(245,158,11,.25);
+          padding:9px;
+          border-radius:8px;
+        "
+      >
+
+        <small style="color:#a3a3a3;">
+          Cobrado
+        </small>
+
+        <strong
+          id="ing-resumen-cobrado"
+          style="
+            display:block;
+            color:#f59e0b;
+            font-size:1.1rem;
+          "
+        >
+          Bs. 0
+        </strong>
+
+      </div>
+
+
+      <div
+        style="
+          background:rgba(239,68,68,.06);
+          border:1px solid rgba(239,68,68,.25);
+          padding:9px;
+          border-radius:8px;
+        "
+      >
+
+        <small style="color:#a3a3a3;">
+          Pendiente
+        </small>
+
+        <strong
+          id="ing-resumen-pendiente"
+          style="
+            display:block;
+            color:#ef4444;
+            font-size:1.1rem;
+          "
+        >
+          Bs. 0
+        </strong>
+
+      </div>
+
+    </div>
+
+
+    <!-- FILTRO -->
+
+    <div
+      style="
+        display:flex;
+        gap:6px;
+        align-items:center;
+        margin-bottom:10px;
+      "
+    >
 
-  <!-- =========================================================
-       SCRIPTS UI
-  ========================================================== -->
+      <input
+        type="month"
+        id="filtro-ingresos-mes"
+        style="
+          flex:1;
+          background:#0a0a0a;
+          border:1px solid #333;
+          color:#fff;
+          padding:8px;
+          border-radius:8px;
+        "
+      />
 
-  <script>
 
-    function irASeccion(id) {
+      <button
+        type="button"
+        onclick="exportarIngresosPDF()"
+        style="
+          background:#dc2626;
+          color:white;
+          border:none;
+          padding:8px 10px;
+          border-radius:8px;
+          cursor:pointer;
+        "
+      >
+        <i class="fa-solid fa-file-pdf"></i>
+        PDF
+      </button>
 
-      const elemento =
-        document.getElementById(id);
+    </div>
 
-      if (elemento) {
 
-        elemento.scrollIntoView({
-          behavior: "smooth"
-        });
+    <!-- LISTA INGRESOS -->
 
-      }
+    <div
+      id="lista-ingresos"
+      style="
+        max-height:390px;
+        overflow-y:auto;
+      "
+    ></div>
 
-    }
 
+    <div
+      id="ingreso-mensaje"
+      style="
+        color:#a3a3a3;
+        text-align:center;
+        padding:15px;
+        font-size:.85rem;
+      "
+    ></div>
 
-    function abrirModalAdmin() {
+  </div>
 
-      const modal =
-        document.getElementById("modal-admin");
+</div>
 
-      if (modal) {
 
-        modal.classList.remove("hidden");
+<!-- =========================================================
+     UI
+========================================================= -->
 
-      }
+<script>
 
-    }
+function irASeccion(id) {
 
+  const elemento =
+    document.getElementById(id);
 
-    function cerrarModalAdmin() {
+  if (elemento) {
 
-      const modal =
-        document.getElementById("modal-admin");
+    elemento.scrollIntoView({
+      behavior:"smooth"
+    });
 
-      if (modal) {
+  }
 
-        modal.classList.add("hidden");
+}
 
-      }
 
-    }
+function abrirModalAdmin() {
 
+  const modal =
+    document.getElementById("modal-admin");
 
-    function abrirGestionIngresos() {
+  if (modal) {
 
-      const modalIngresos =
-        document.getElementById("modal-ingresos");
+    modal.classList.remove("hidden");
 
-      const modalAdmin =
-        document.getElementById("modal-admin");
+  }
 
+}
 
-      if (modalAdmin) {
 
-        modalAdmin.classList.add("hidden");
+function cerrarModalAdmin() {
 
-      }
+  const modal =
+    document.getElementById("modal-admin");
 
+  if (modal) {
 
-      if (modalIngresos) {
+    modal.classList.add("hidden");
 
-        modalIngresos.classList.remove("hidden");
+  }
 
-      }
+}
 
 
-      if (typeof cargarGestionIngresos === "function") {
+function abrirGestionIngresos() {
 
-        cargarGestionIngresos();
+  if (typeof renderGestionIngresos === "function") {
 
-      }
+    renderGestionIngresos();
 
-    }
+  }
 
+  const modal =
+    document.getElementById("modal-ingresos");
 
-    function cerrarGestionIngresos() {
+  if (modal) {
 
-      const modalIngresos =
-        document.getElementById("modal-ingresos");
+    modal.classList.remove("hidden");
 
-      if (modalIngresos) {
+  }
 
-        modalIngresos.classList.add("hidden");
+}
 
-      }
 
+function cerrarGestionIngresos() {
 
-      const modalAdmin =
-        document.getElementById("modal-admin");
+  const modal =
+    document.getElementById("modal-ingresos");
 
-      if (modalAdmin) {
+  if (modal) {
 
-        modalAdmin.classList.remove("hidden");
+    modal.classList.add("hidden");
 
-      }
+  }
 
-    }
+}
 
+</script>
 
-    function exportarIngresosPDF() {
 
-      if (
-        typeof generarPDFIngresos === "function"
-      ) {
+<!-- =========================================================
+     FIREBASE
+========================================================= -->
 
-        generarPDFIngresos();
+<script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
 
-      } else {
+<script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
 
-        alert(
-          "La función de exportación todavía no está disponible."
-        );
+<script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
 
-      }
-
-    }
-
-  </script>
-
-
-  <!-- =========================================================
-       FIREBASE
-  ========================================================== -->
-
-  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
-
-  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
-
-  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
-
-  <script src="script.js"></script>
+<script src="script.js"></script>
 
 </body>
 </html>
