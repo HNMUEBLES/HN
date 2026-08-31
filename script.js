@@ -1,8 +1,7 @@
 // ============================================================
-// HN MUEBLES
-// SCRIPT PRINCIPAL
+// HN MUEBLES - SCRIPT PRINCIPAL
 // Firebase Authentication + Firestore
-// Proyectos + Ingresos mensuales
+// Gestión de Proyectos + Gestión de Ingresos
 // ============================================================
 
 
@@ -12,8 +11,7 @@
 
 const firebaseConfig = {
 
-  apiKey:
-    "AIzaSyCLrVUpGCTxFxuMR0ATlwj2t3osSP0dD7Y",
+  apiKey: "AIzaSyCLrVUpGCTxFxuMR0ATlwj2t3osSP0dD7Y",
 
   authDomain:
     "hn-muebles.firebaseapp.com",
@@ -32,7 +30,6 @@ const firebaseConfig = {
 
   measurementId:
     "G-8PJGERB67Q"
-
 };
 
 
@@ -70,80 +67,6 @@ function formatearMonto(valor) {
   return Number.isInteger(num)
     ? num.toString()
     : num.toFixed(2);
-
-}
-
-
-function obtenerMesActual() {
-
-  const ahora =
-    new Date();
-
-  return `${ahora.getFullYear()}-${String(
-    ahora.getMonth() + 1
-  ).padStart(2, "0")}`;
-
-}
-
-
-function obtenerMesDeFecha(fecha) {
-
-  if (!fecha) return null;
-
-  let date = null;
-
-  if (
-    fecha &&
-    typeof fecha.toDate === "function"
-  ) {
-
-    date = fecha.toDate();
-
-  }
-
-  else if (fecha instanceof Date) {
-
-    date = fecha;
-
-  }
-
-  else if (typeof fecha === "string") {
-
-    date = new Date(fecha);
-
-  }
-
-  if (
-    !date ||
-    Number.isNaN(date.getTime())
-  ) {
-
-    return null;
-
-  }
-
-  return `${date.getFullYear()}-${String(
-    date.getMonth() + 1
-  ).padStart(2, "0")}`;
-
-}
-
-
-function convertirFechaParaMes(fecha) {
-
-  const mes =
-    obtenerMesDeFecha(fecha);
-
-  return mes || obtenerMesActual();
-
-}
-
-
-function compararMeses(a, b) {
-
-  if (!a || !b) return 0;
-
-  return a.localeCompare(b);
 
 }
 
@@ -217,7 +140,7 @@ function copiarCodigoAlPortapapeles(codigo) {
           boton.innerText =
             textoOriginal;
 
-        }, 700);
+        }, 1200);
 
       }
 
@@ -237,8 +160,8 @@ function copiarCodigoAlPortapapeles(codigo) {
 function irInicio() {
 
   window.scrollTo({
-    top: 0,
-    behavior: "auto"
+    top:0,
+    behavior:"smooth"
   });
 
 }
@@ -249,7 +172,7 @@ function irInicio() {
 // ============================================================
 
 auth.onAuthStateChanged(
-  async user => {
+  async (user) => {
 
     if (user) {
 
@@ -281,6 +204,11 @@ auth.onAuthStateChanged(
 
       else {
 
+        console.warn(
+          "Usuario no autorizado:",
+          user.email
+        );
+
         await auth.signOut();
 
         esAdmin = false;
@@ -309,45 +237,77 @@ auth.onAuthStateChanged(
 
 function mostrarPanelAdministrador() {
 
-  document
-    .getElementById("admin-login")
-    ?.classList
-    .add("hidden");
+  const login =
+    document.getElementById(
+      "admin-login"
+    );
 
-  document
-    .getElementById("admin-panel")
-    ?.classList
-    .remove("hidden");
+  const panel =
+    document.getElementById(
+      "admin-panel"
+    );
+
+
+  if (login) {
+
+    login.classList.add(
+      "hidden"
+    );
+
+  }
+
+
+  if (panel) {
+
+    panel.classList.remove(
+      "hidden"
+    );
+
+  }
 
 }
 
 
 function ocultarPanelAdministrador() {
 
-  document
-    .getElementById("admin-panel")
-    ?.classList
-    .add("hidden");
+  const login =
+    document.getElementById(
+      "admin-login"
+    );
 
-  document
-    .getElementById("admin-login")
-    ?.classList
-    .remove("hidden");
+  const panel =
+    document.getElementById(
+      "admin-panel"
+    );
+
+
+  if (panel) {
+
+    panel.classList.add(
+      "hidden"
+    );
+
+  }
+
+
+  if (login) {
+
+    login.classList.remove(
+      "hidden"
+    );
+
+  }
 
 }
 
 
 // ============================================================
-// 5. DOM READY
+// 5. LOGIN
 // ============================================================
 
 document.addEventListener(
   "DOMContentLoaded",
   function () {
-
-    // --------------------------------------------------------
-    // LOGIN
-    // --------------------------------------------------------
 
     const formLogin =
       document.getElementById(
@@ -365,16 +325,15 @@ document.addEventListener(
 
 
           const email =
-            document
-              .getElementById("input-email")
-              ?.value
-              .trim();
+            document.getElementById(
+              "input-email"
+            )?.value.trim();
 
 
           const password =
-            document
-              .getElementById("input-pass")
-              ?.value;
+            document.getElementById(
+              "input-pass"
+            )?.value;
 
 
           const errorMsg =
@@ -385,9 +344,13 @@ document.addEventListener(
 
           try {
 
-            errorMsg?.classList.add(
-              "hidden"
-            );
+            if (errorMsg) {
+
+              errorMsg.classList.add(
+                "hidden"
+              );
+
+            }
 
 
             const resultado =
@@ -424,7 +387,8 @@ document.addEventListener(
 
             if (passInput) {
 
-              passInput.value = "";
+              passInput.value =
+                "";
 
             }
 
@@ -446,7 +410,8 @@ document.addEventListener(
 
             if (passInput) {
 
-              passInput.value = "";
+              passInput.value =
+                "";
 
             }
 
@@ -518,9 +483,9 @@ document.addEventListener(
     }
 
 
-    // --------------------------------------------------------
+    // ========================================================
     // BÚSQUEDA PÚBLICA
-    // --------------------------------------------------------
+    // ========================================================
 
     const formBuscar =
       document.getElementById(
@@ -538,9 +503,9 @@ document.addEventListener(
 
 
           const codigo =
-            document
-              .getElementById("input-codigo")
-              ?.value
+            document.getElementById(
+              "input-codigo"
+            )?.value
               .trim()
               .toUpperCase();
 
@@ -559,9 +524,9 @@ document.addEventListener(
     }
 
 
-    // --------------------------------------------------------
-    // MONTOS DEL NUEVO PROYECTO
-    // --------------------------------------------------------
+    // ========================================================
+    // CÁLCULO SALDO NUEVO PROYECTO
+    // ========================================================
 
     const presupuestoInput =
       document.getElementById(
@@ -655,9 +620,9 @@ document.addEventListener(
     calcularSaldoNuevo();
 
 
-    // --------------------------------------------------------
+    // ========================================================
     // NUEVO PROYECTO
-    // --------------------------------------------------------
+    // ========================================================
 
     const formNuevo =
       document.getElementById(
@@ -684,106 +649,96 @@ document.addEventListener(
           }
 
 
+          if (
+            auth.currentUser.email.toLowerCase() !==
+            EMAIL_ADMIN.toLowerCase()
+          ) {
+
+            return;
+
+          }
+
+
           const codigo =
-            document
-              .getElementById(
-                "nuevo-codigo"
-              )
-              ?.value
+            document.getElementById(
+              "nuevo-codigo"
+            )?.value
               .trim()
               .toUpperCase()
-            ||
-            generarCodigoAleatorio();
+              ||
+              generarCodigoAleatorio();
 
 
           const cliente =
-            document
-              .getElementById(
-                "nuevo-cliente"
-              )
-              ?.value
-              .trim()
+            document.getElementById(
+              "nuevo-cliente"
+            )?.value.trim()
             || "";
 
 
           const mueble =
-            document
-              .getElementById(
-                "nuevo-mueble"
-              )
-              ?.value
-              .trim()
+            document.getElementById(
+              "nuevo-mueble"
+            )?.value.trim()
             || "";
 
 
           const telefono =
-            document
-              .getElementById(
-                "nuevo-telefono"
-              )
-              ?.value
-              .trim()
+            document.getElementById(
+              "nuevo-telefono"
+            )?.value.trim()
             || "";
 
 
           const presupuesto =
             Number(
-              document
-                .getElementById(
-                  "nuevo-presupuesto"
-                )
-                ?.value
+              document.getElementById(
+                "nuevo-presupuesto"
+              )?.value
             ) || 0;
 
 
           const adelanto =
             Number(
-              document
-                .getElementById(
-                  "nuevo-adelanto"
-                )
-                ?.value
+              document.getElementById(
+                "nuevo-adelanto"
+              )?.value
             ) || 0;
 
 
           const fechaEntrega =
-            document
-              .getElementById(
-                "nuevo-fecha"
-              )
-              ?.value
+            document.getElementById(
+              "nuevo-fecha"
+            )?.value
             || "";
 
 
           const pendiente =
             Math.max(
-              presupuesto - adelanto,
+              presupuesto -
+              adelanto,
               0
             );
 
 
           const proyectoRef =
-            db
-              .collection("proyectos")
-              .doc();
+            db.collection(
+              "proyectos"
+            ).doc();
 
 
           const ingresoRef =
-            db
-              .collection("ingresos")
-              .doc();
+            db.collection(
+              "ingresos"
+            ).doc();
 
 
           const publicoRef =
-            db
-              .collection("proyectos_publicos")
-              .doc(
-                proyectoRef.id
-              );
-
-
-          const ahora =
-            firebase.firestore.Timestamp.now();
+            db.collection(
+              "proyectos_publicos"
+            ).doc(
+              proyectoRef.id
+            );
 
 
           const proyecto = {
@@ -812,7 +767,7 @@ document.addEventListener(
             fechaEntrega,
 
             creadoEn:
-              ahora
+              firebase.firestore.FieldValue.serverTimestamp()
 
           };
 
@@ -832,8 +787,7 @@ document.addEventListener(
 
             adelanto,
 
-            pagosFinales:
-              0,
+            pagosFinales:0,
 
             cobrado:
               adelanto,
@@ -841,24 +795,12 @@ document.addEventListener(
             pendiente,
 
             fechaCreacion:
-              ahora,
+              firebase.firestore.FieldValue.serverTimestamp(),
 
             fechaUltimoPago:
               adelanto > 0
-                ? ahora
-                : null,
-
-            // HISTORIAL DE PAGOS
-            pagos:
-              adelanto > 0
-                ? [
-                    {
-                      monto: adelanto,
-                      tipo: "Adelanto",
-                      fecha: ahora
-                    }
-                  ]
-                : []
+                ? firebase.firestore.FieldValue.serverTimestamp()
+                : null
 
           };
 
@@ -954,7 +896,6 @@ document.addEventListener(
 
             await cargarIngresosDesdeNube();
 
-
             renderProyectosAdmin();
 
             renderGestionIngresos();
@@ -967,7 +908,6 @@ document.addEventListener(
               "Error creando proyecto:",
               error
             );
-
 
             mostrarMensajeInterno(
               "No se pudo guardar. Revisa las Rules de Firestore.",
@@ -982,9 +922,9 @@ document.addEventListener(
     }
 
 
-    // --------------------------------------------------------
-    // MES DE INGRESOS
-    // --------------------------------------------------------
+    // ========================================================
+    // FILTRO INGRESOS
+    // ========================================================
 
     const filtroIngresos =
       document.getElementById(
@@ -994,8 +934,14 @@ document.addEventListener(
 
     if (filtroIngresos) {
 
+      const ahora =
+        new Date();
+
+
       filtroIngresos.value =
-        obtenerMesActual();
+        `${ahora.getFullYear()}-${String(
+          ahora.getMonth() + 1
+        ).padStart(2,"0")}`;
 
 
       filtroIngresos.addEventListener(
@@ -1028,7 +974,13 @@ function mostrarMensajeInterno(
     );
 
 
-  if (!elemento) return;
+  if (!elemento) {
+
+    console.log(mensaje);
+
+    return;
+
+  }
 
 
   elemento.textContent =
@@ -1046,7 +998,7 @@ function mostrarMensajeInterno(
     elemento.textContent =
       "";
 
-  }, 2000);
+  }, 3000);
 
 }
 
@@ -1066,12 +1018,19 @@ async function cerrarSesionAdmin() {
     ocultarPanelAdministrador();
 
 
-    document
-      .getElementById(
+    const modal =
+      document.getElementById(
         "modal-ingresos"
-      )
-      ?.classList
-      .add("hidden");
+      );
+
+
+    if (modal) {
+
+      modal.classList.add(
+        "hidden"
+      );
+
+    }
 
 
     irInicio();
@@ -1110,7 +1069,9 @@ async function cargarProyectosDesdeNube() {
 
     const snapshot =
       await db
-        .collection("proyectos")
+        .collection(
+          "proyectos"
+        )
         .get();
 
 
@@ -1131,7 +1092,6 @@ async function cargarProyectosDesdeNube() {
 
       }
     );
-
 
   }
 
@@ -1167,7 +1127,9 @@ async function cargarIngresosDesdeNube() {
 
     const snapshot =
       await db
-        .collection("ingresos")
+        .collection(
+          "ingresos"
+        )
         .get();
 
 
@@ -1188,7 +1150,6 @@ async function cargarIngresosDesdeNube() {
 
       }
     );
-
 
   }
 
@@ -1381,7 +1342,7 @@ function renderProyectosAdmin() {
 
 
   proyectos.forEach(
-    (p, index) => {
+    (p,index) => {
 
       const presupuesto =
         Number(
@@ -1395,22 +1356,10 @@ function renderProyectosAdmin() {
         ) || 0;
 
 
-      const ingreso =
-        ingresos.find(
-          i =>
-            i.proyectoId === p.id
-        );
-
-
-      const cobrado =
-        ingreso
-          ? Number(ingreso.cobrado) || 0
-          : adelanto;
-
-
       const saldo =
         Math.max(
-          presupuesto - cobrado,
+          presupuesto -
+          adelanto,
           0
         );
 
@@ -1434,58 +1383,59 @@ function renderProyectosAdmin() {
         "admin-card";
 
 
-      card.style.cssText = `
+      card.style.cssText =
+        `
         background:rgba(255,255,255,.05);
         border:1px solid rgba(255,255,255,.1);
         border-radius:12px;
         padding:1.2rem;
         margin-bottom:1rem;
-      `;
+        `;
 
 
       const botones =
-        etapas
-          .map(
-            (estado, idx) => {
+        etapas.map(
+          (estado,idx) => {
 
-              const activo =
-                p.estado === estado;
-
-
-              return `
-
-                <button
-                  type="button"
-                  onclick="cambiarEstadoPorId(
-                    '${p.id}',
-                    ${idx},
-                    ${(idx + 1) * 20}
-                  )"
-                  style="
-                    border:none;
-                    padding:.4rem .7rem;
-                    border-radius:6px;
-                    cursor:pointer;
-                    font-size:.8rem;
-                    margin:.2rem;
-                    ${
-                      activo
-                        ? "background:#f59e0b;color:#000;font-weight:bold;"
-                        : "background:rgba(255,255,255,.1);color:#fff;"
-                    }
-                  "
-                >
-                  ${estado}
-                </button>
-
-              `;
-
-            }
-          )
-          .join("");
+            const activo =
+              p.estado === estado;
 
 
-      card.innerHTML = `
+            return `
+
+              <button
+                type="button"
+                onclick="cambiarEstadoPorId(
+                  '${p.id}',
+                  ${idx},
+                  ${(idx+1)*20}
+                )"
+                style="
+                  border:none;
+                  padding:.4rem .7rem;
+                  border-radius:6px;
+                  cursor:pointer;
+                  font-size:.8rem;
+                  margin:.2rem;
+
+                  ${
+                    activo
+                      ? "background:#f59e0b;color:#000;font-weight:bold;"
+                      : "background:rgba(255,255,255,.1);color:#fff;"
+                  }
+                "
+              >
+                ${estado}
+              </button>
+
+            `;
+
+          }
+        ).join("");
+
+
+      card.innerHTML =
+      `
 
         <div id="info-view-${index}">
 
@@ -1556,6 +1506,9 @@ function renderProyectosAdmin() {
                 "
               >
 
+                <!-- ESTOS SON SOLO INFORMACIÓN.
+                     NO TIENEN onclick NI ABREN VENTANAS -->
+
                 <div
                   style="
                     background:rgba(56,189,248,.07);
@@ -1564,6 +1517,8 @@ function renderProyectosAdmin() {
                     padding:7px;
                     border-radius:7px;
                     font-size:.8rem;
+                    cursor:default;
+                    user-select:none;
                   "
                 >
                   Total:
@@ -1581,6 +1536,8 @@ function renderProyectosAdmin() {
                     padding:7px;
                     border-radius:7px;
                     font-size:.8rem;
+                    cursor:default;
+                    user-select:none;
                   "
                 >
                   Adelanto:
@@ -1598,6 +1555,8 @@ function renderProyectosAdmin() {
                     padding:7px;
                     border-radius:7px;
                     font-size:.8rem;
+                    cursor:default;
+                    user-select:none;
                   "
                 >
                   Pendiente:
@@ -1609,7 +1568,11 @@ function renderProyectosAdmin() {
               </div>
 
 
-              <div style="margin-top:.7rem;">
+              <div
+                style="
+                  margin-top:.7rem;
+                "
+              >
                 ${botones}
               </div>
 
@@ -1682,7 +1645,9 @@ function renderProyectosAdmin() {
       `;
 
 
-      container.appendChild(card);
+      container.appendChild(
+        card
+      );
 
     }
   );
@@ -1776,38 +1741,34 @@ async function cambiarEstadoPorId(
       );
 
 
-    if (proyecto) {
-
-      const publicoQuery =
-        await db
-          .collection(
-            "proyectos_publicos"
-          )
-          .where(
-            "codigo",
-            "==",
-            proyecto.codigo
-          )
-          .limit(1)
-          .get();
+    const publicoQuery =
+      await db
+        .collection(
+          "proyectos_publicos"
+        )
+        .where(
+          "codigo",
+          "==",
+          proyecto?.codigo
+        )
+        .limit(1)
+        .get();
 
 
-      publicoQuery.forEach(
-        doc => {
+    publicoQuery.forEach(
+      doc => {
 
-          batch.update(
-            doc.ref,
-            {
-              estado,
-              progreso,
-              detalles
-            }
-          );
+        batch.update(
+          doc.ref,
+          {
+            estado,
+            progreso,
+            detalles
+          }
+        );
 
-        }
-      );
-
-    }
+      }
+    );
 
 
     await batch.commit();
@@ -1897,7 +1858,9 @@ async function eliminarProyecto(
 
       const ingresoSnap =
         await db
-          .collection("ingresos")
+          .collection(
+            "ingresos"
+          )
           .where(
             "proyectoId",
             "==",
@@ -1967,7 +1930,8 @@ function activarEdicionInline(
   if (!info || !p) return;
 
 
-  info.innerHTML = `
+  info.innerHTML =
+  `
 
     <div
       style="
@@ -1983,11 +1947,13 @@ function activarEdicionInline(
         placeholder="Código"
       >
 
+
       <input
         id="edit-cliente-${index}"
         value="${p.cliente || ""}"
         placeholder="Cliente"
       >
+
 
       <input
         id="edit-mueble-${index}"
@@ -1995,11 +1961,13 @@ function activarEdicionInline(
         placeholder="Mueble"
       >
 
+
       <input
         id="edit-telefono-${index}"
         value="${p.telefono || ""}"
         placeholder="WhatsApp"
       >
+
 
       <input
         type="number"
@@ -2008,12 +1976,14 @@ function activarEdicionInline(
         placeholder="Presupuesto"
       >
 
+
       <input
         type="number"
         id="edit-adelanto-${index}"
         value="${p.adelanto || 0}"
         placeholder="Adelanto"
       >
+
 
       <input
         type="date"
@@ -2084,68 +2054,51 @@ async function guardarEdicionInline(
 
 
   const codigo =
-    document
-      .getElementById(
-        `edit-codigo-${index}`
-      )
-      .value
+    document.getElementById(
+      `edit-codigo-${index}`
+    ).value
       .trim()
       .toUpperCase();
 
 
   const cliente =
-    document
-      .getElementById(
-        `edit-cliente-${index}`
-      )
-      .value
-      .trim();
+    document.getElementById(
+      `edit-cliente-${index}`
+    ).value.trim();
 
 
   const mueble =
-    document
-      .getElementById(
-        `edit-mueble-${index}`
-      )
-      .value
-      .trim();
+    document.getElementById(
+      `edit-mueble-${index}`
+    ).value.trim();
 
 
   const telefono =
-    document
-      .getElementById(
-        `edit-telefono-${index}`
-      )
-      .value
-      .trim();
+    document.getElementById(
+      `edit-telefono-${index}`
+    ).value.trim();
 
 
   const presupuesto =
     Number(
-      document
-        .getElementById(
-          `edit-presupuesto-${index}`
-        )
-        .value
+      document.getElementById(
+        `edit-presupuesto-${index}`
+      ).value
     ) || 0;
 
 
   const adelanto =
     Number(
-      document
-        .getElementById(
-          `edit-adelanto-${index}`
-        )
-        .value
+      document.getElementById(
+        `edit-adelanto-${index}`
+      ).value
     ) || 0;
 
 
   const fecha =
-    document
-      .getElementById(
-        `edit-fecha-${index}`
-      )
-      .value;
+    document.getElementById(
+      `edit-fecha-${index}`
+    ).value;
 
 
   try {
@@ -2167,14 +2120,16 @@ async function guardarEdicionInline(
 
         adelanto,
 
-        fechaEntrega: fecha
+        fechaEntrega:fecha
 
       });
 
 
     const ingresoSnap =
       await db
-        .collection("ingresos")
+        .collection(
+          "ingresos"
+        )
         .where(
           "proyectoId",
           "==",
@@ -2207,7 +2162,8 @@ async function guardarEdicionInline(
 
       const pendiente =
         Math.max(
-          presupuesto - cobrado,
+          presupuesto -
+          cobrado,
           0
         );
 
@@ -2231,6 +2187,40 @@ async function guardarEdicionInline(
       });
 
     }
+
+
+    // También actualizamos la información pública
+    const publicoSnap =
+      await db
+        .collection(
+          "proyectos_publicos"
+        )
+        .where(
+          "codigo",
+          "==",
+          pCodigoAnterior(id)
+        )
+        .limit(1)
+        .get();
+
+
+    publicoSnap.forEach(
+      doc => {
+
+        doc.ref.update({
+
+          codigo,
+
+          cliente,
+
+          mueble,
+
+          fechaEntrega:fecha
+
+        });
+
+      }
+    );
 
 
     await cargarProyectosDesdeNube();
@@ -2257,102 +2247,23 @@ async function guardarEdicionInline(
 
 
 // ============================================================
-// 16. PROYECTOS QUE DEBEN APARECER EN UN MES
+// OBTENER CÓDIGO ANTERIOR DE PROYECTO
 // ============================================================
 
-function proyectoDebeAparecerEnMes(
-  ingreso,
-  mesSeleccionado
-) {
+function pCodigoAnterior(id) {
 
-  if (!ingreso || !mesSeleccionado) {
-
-    return false;
-
-  }
-
-
-  const fechaCreacion =
-    obtenerMesDeFecha(
-      ingreso.fechaCreacion
+  const proyecto =
+    proyectos.find(
+      p => p.id === id
     );
 
-
-  if (!fechaCreacion) {
-
-    return true;
-
-  }
-
-
-  const fechaFin =
-    ingreso.fechaFinalizacion
-      ? obtenerMesDeFecha(
-          ingreso.fechaFinalizacion
-        )
-      : null;
-
-
-  // Todavía no existía en ese mes
-  if (
-    compararMeses(
-      mesSeleccionado,
-      fechaCreacion
-    ) < 0
-  ) {
-
-    return false;
-
-  }
-
-
-  // Si ya estaba completamente pagado,
-  // deja de arrastrarse después de ese mes.
-  if (
-    fechaFin &&
-    compararMeses(
-      mesSeleccionado,
-      fechaFin
-    ) > 0
-  ) {
-
-    return false;
-
-  }
-
-
-  return true;
+  return proyecto?.codigo || "";
 
 }
 
 
 // ============================================================
-// 17. PAGOS DEL MES
-// ============================================================
-
-function obtenerPagosDelMes(
-  ingreso,
-  mesSeleccionado
-) {
-
-  const pagos =
-    Array.isArray(ingreso.pagos)
-      ? ingreso.pagos
-      : [];
-
-
-  return pagos.filter(
-    pago =>
-      obtenerMesDeFecha(
-        pago.fecha
-      ) === mesSeleccionado
-  );
-
-}
-
-
-// ============================================================
-// 18. GESTIÓN DE INGRESOS
+// 16. GESTIÓN DE INGRESOS
 // ============================================================
 
 function renderGestionIngresos() {
@@ -2369,47 +2280,65 @@ function renderGestionIngresos() {
   if (!container) return;
 
 
-  const filtroInput =
+  // IMPORTANTE:
+  // El HTML utiliza ingresos-mes.
+  const filtro =
     document.getElementById(
       "ingresos-mes"
-    );
+    )?.value
+    || "";
 
 
-  const filtro =
-    filtroInput?.value
-    || obtenerMesActual();
+  let lista =
+    [...ingresos];
 
 
-  if (
-    filtroInput &&
-    !filtroInput.value
-  ) {
+  if (filtro) {
 
-    filtroInput.value =
-      filtro;
+    lista =
+      lista.filter(
+        ingreso => {
+
+          let fecha = null;
+
+
+          if (
+            ingreso.fechaCreacion &&
+            ingreso.fechaCreacion.toDate
+          ) {
+
+            fecha =
+              ingreso
+                .fechaCreacion
+                .toDate();
+
+          }
+
+
+          if (!fecha) {
+
+            return true;
+
+          }
+
+
+          const mes =
+            `${fecha.getFullYear()}-${String(
+              fecha.getMonth()+1
+            ).padStart(2,"0")}`;
+
+
+          return mes === filtro;
+
+        }
+      );
 
   }
 
 
-  // ----------------------------------------------------------
-  // PROYECTOS DEL MES
-  // ----------------------------------------------------------
+  let totalCobrado = 0;
 
-  const lista =
-    ingresos.filter(
-      ingreso =>
-        proyectoDebeAparecerEnMes(
-          ingreso,
-          filtro
-        )
-    );
-
-
-  let totalCobrado =
-    0;
-
-  let totalPendiente =
-    0;
+  let totalPendiente = 0;
 
 
   lista.forEach(
@@ -2422,16 +2351,9 @@ function renderGestionIngresos() {
 
 
       totalPendiente +=
-        Math.max(
-          Number(
-            ingreso.presupuesto
-          ) || 0
-          -
-          Number(
-            ingreso.cobrado
-          ) || 0,
-          0
-        );
+        Number(
+          ingreso.pendiente
+        ) || 0;
 
     }
   );
@@ -2466,9 +2388,7 @@ function renderGestionIngresos() {
   if (resumenCobrado) {
 
     resumenCobrado.innerText =
-      `Bs. ${formatearMonto(
-        totalCobrado
-      )}`;
+      `Bs. ${formatearMonto(totalCobrado)}`;
 
   }
 
@@ -2476,9 +2396,7 @@ function renderGestionIngresos() {
   if (resumenPendiente) {
 
     resumenPendiente.innerText =
-      `Bs. ${formatearMonto(
-        totalPendiente
-      )}`;
+      `Bs. ${formatearMonto(totalPendiente)}`;
 
   }
 
@@ -2489,7 +2407,8 @@ function renderGestionIngresos() {
 
   if (!lista.length) {
 
-    container.innerHTML = `
+    container.innerHTML =
+      `
 
       <div
         style="
@@ -2498,58 +2417,15 @@ function renderGestionIngresos() {
           padding:25px;
         "
       >
-
-        <i
-          class="fa-solid fa-calendar-check"
-          style="
-            font-size:1.5rem;
-            margin-bottom:8px;
-          "
-        ></i>
-
-        <div>
-          No hay proyectos registrados para este mes.
-        </div>
-
+        No hay registros para este mes.
       </div>
 
-    `;
+      `;
 
     return;
 
   }
 
-
-  // ----------------------------------------------------------
-  // ORDENAR
-  // ----------------------------------------------------------
-
-  lista.sort(
-    (a, b) => {
-
-      const aFecha =
-        obtenerMesDeFecha(
-          a.fechaCreacion
-        ) || "";
-
-
-      const bFecha =
-        obtenerMesDeFecha(
-          b.fechaCreacion
-        ) || "";
-
-
-      return aFecha.localeCompare(
-        bFecha
-      );
-
-    }
-  );
-
-
-  // ----------------------------------------------------------
-  // CARDS
-  // ----------------------------------------------------------
 
   lista.forEach(
     ingreso => {
@@ -2560,13 +2436,14 @@ function renderGestionIngresos() {
         );
 
 
-      card.style.cssText = `
+      card.style.cssText =
+        `
         background:rgba(255,255,255,.035);
         border:1px solid rgba(255,255,255,.09);
         border-radius:9px;
         padding:10px;
         margin-bottom:7px;
-      `;
+        `;
 
 
       const presupuesto =
@@ -2595,124 +2472,8 @@ function renderGestionIngresos() {
         );
 
 
-      const pagosMes =
-        obtenerPagosDelMes(
-          ingreso,
-          filtro
-        );
-
-
-      const totalPagadoMes =
-        pagosMes.reduce(
-          (total, pago) =>
-            total +
-            (Number(
-              pago.monto
-            ) || 0),
-          0
-        );
-
-
-      const esNuevoEsteMes =
-        obtenerMesDeFecha(
-          ingreso.fechaCreacion
-        ) === filtro;
-
-
-      let pagosHTML =
-        "";
-
-
-      if (pagosMes.length) {
-
-        pagosHTML = `
-
-          <div
-            style="
-              margin-top:8px;
-              border-top:1px solid rgba(255,255,255,.07);
-              padding-top:7px;
-            "
-          >
-
-            <div
-              style="
-                color:#4ade80;
-                font-size:.72rem;
-                margin-bottom:4px;
-              "
-            >
-              <i class="fa-solid fa-clock-rotate-left"></i>
-              Movimientos de este mes
-            </div>
-
-            ${pagosMes
-              .map(
-                pago => {
-
-                  const fechaPago =
-                    obtenerFechaBonita(
-                      pago.fecha
-                    );
-
-
-                  return `
-
-                    <div
-                      style="
-                        display:flex;
-                        justify-content:space-between;
-                        font-size:.74rem;
-                        padding:2px 0;
-                      "
-                    >
-
-                      <span style="color:#aaa;">
-                        ${pago.tipo || "Pago"}
-                        ·
-                        ${fechaPago}
-                      </span>
-
-                      <strong
-                        style="color:#4ade80;"
-                      >
-                        Bs. ${formatearMonto(
-                          pago.monto
-                        )}
-                      </strong>
-
-                    </div>
-
-                  `;
-
-                }
-              )
-              .join("")}
-
-            <div
-              style="
-                text-align:right;
-                color:#4ade80;
-                font-size:.76rem;
-                margin-top:4px;
-              "
-            >
-              Recibido este mes:
-              <strong>
-                Bs. ${formatearMonto(
-                  totalPagadoMes
-                )}
-              </strong>
-            </div>
-
-          </div>
-
-        `;
-
-      }
-
-
-      card.innerHTML = `
+      card.innerHTML =
+      `
 
         <div
           style="
@@ -2741,34 +2502,6 @@ function renderGestionIngresos() {
               ${ingreso.mueble || ""}
             </div>
 
-            ${
-              esNuevoEsteMes
-                ? `
-                  <span
-                    style="
-                      display:inline-block;
-                      margin-top:4px;
-                      color:#38bdf8;
-                      font-size:.68rem;
-                    "
-                  >
-                    NUEVO ESTE MES
-                  </span>
-                `
-                : `
-                  <span
-                    style="
-                      display:inline-block;
-                      margin-top:4px;
-                      color:#f59e0b;
-                      font-size:.68rem;
-                    "
-                  >
-                    PENDIENTE DE MESES ANTERIORES
-                  </span>
-                `
-            }
-
           </div>
 
 
@@ -2780,9 +2513,7 @@ function renderGestionIngresos() {
             "
           >
             Total:
-            Bs. ${formatearMonto(
-              presupuesto
-            )}
+            Bs. ${formatearMonto(presupuesto)}
           </div>
 
         </div>
@@ -2805,17 +2536,16 @@ function renderGestionIngresos() {
               border-radius:6px;
               padding:6px;
               font-size:.72rem;
+              cursor:default;
+              user-select:none;
             "
           >
-
             Adelanto
 
             <strong
               style="display:block;"
             >
-              Bs. ${formatearMonto(
-                adelanto
-              )}
+              Bs. ${formatearMonto(adelanto)}
             </strong>
 
           </div>
@@ -2829,17 +2559,16 @@ function renderGestionIngresos() {
               border-radius:6px;
               padding:6px;
               font-size:.72rem;
+              cursor:default;
+              user-select:none;
             "
           >
-
             Cobrado
 
             <strong
               style="display:block;"
             >
-              Bs. ${formatearMonto(
-                cobrado
-              )}
+              Bs. ${formatearMonto(cobrado)}
             </strong>
 
           </div>
@@ -2853,25 +2582,21 @@ function renderGestionIngresos() {
               border-radius:6px;
               padding:6px;
               font-size:.72rem;
+              cursor:default;
+              user-select:none;
             "
           >
-
             Pendiente
 
             <strong
               style="display:block;"
             >
-              Bs. ${formatearMonto(
-                pendiente
-              )}
+              Bs. ${formatearMonto(pendiente)}
             </strong>
 
           </div>
 
         </div>
-
-
-        ${pagosHTML}
 
 
         ${
@@ -2939,14 +2664,12 @@ function renderGestionIngresos() {
               text-align:center;
             "
           >
-
             <i class="fa-solid fa-circle-check"></i>
-
             Proyecto pagado completamente
-
           </div>
 
           `
+
         }
 
       `;
@@ -2963,66 +2686,7 @@ function renderGestionIngresos() {
 
 
 // ============================================================
-// 19. FECHA BONITA
-// ============================================================
-
-function obtenerFechaBonita(
-  fecha
-) {
-
-  if (!fecha) {
-
-    return "--/--/----";
-
-  }
-
-
-  let date = null;
-
-
-  if (
-    fecha &&
-    typeof fecha.toDate === "function"
-  ) {
-
-    date =
-      fecha.toDate();
-
-  }
-
-  else if (
-    fecha instanceof Date
-  ) {
-
-    date =
-      fecha;
-
-  }
-
-
-  if (
-    !date ||
-    Number.isNaN(
-      date.getTime()
-    )
-  ) {
-
-    return "--/--/----";
-
-  }
-
-
-  return `${String(
-    date.getDate()
-  ).padStart(2, "0")}/${String(
-    date.getMonth() + 1
-  ).padStart(2, "0")}/${date.getFullYear()}`;
-
-}
-
-
-// ============================================================
-// 20. REGISTRAR PAGO
+// 17. REGISTRAR PAGO
 // ============================================================
 
 async function registrarPago(
@@ -3060,8 +2724,7 @@ async function registrarPago(
 
   const ingreso =
     ingresos.find(
-      i =>
-        i.id === ingresoId
+      i => i.id === ingresoId
     );
 
 
@@ -3122,83 +2785,33 @@ async function registrarPago(
     );
 
 
-  const ahora =
-    firebase.firestore.Timestamp.now();
-
-
-  const pagosActuales =
-    Array.isArray(
-      ingreso.pagos
-    )
-      ? [...ingreso.pagos]
-      : [];
-
-
-  pagosActuales.push({
-
-    monto: pago,
-
-    tipo:
-      ingreso.cobrado > 0
-        ? "Pago"
-        : "Adelanto",
-
-    fecha:
-      ahora
-
-  });
-
-
-  const datosUpdate = {
-
-    pagosFinales:
-      nuevosPagosFinales,
-
-    cobrado:
-      nuevoCobrado,
-
-    pendiente:
-      nuevoPendiente,
-
-    pagos:
-      pagosActuales,
-
-    fechaUltimoPago:
-      ahora
-
-  };
-
-
-  // Cuando queda completamente pagado,
-  // guardamos el mes de finalización.
-  if (
-    nuevoPendiente <= 0
-  ) {
-
-    datosUpdate.fechaFinalizacion =
-      ahora;
-
-  }
-
-
   try {
 
     await db
-      .collection("ingresos")
+      .collection(
+        "ingresos"
+      )
       .doc(ingresoId)
-      .update(
-        datosUpdate
-      );
+      .update({
+
+        pagosFinales:
+          nuevosPagosFinales,
+
+        cobrado:
+          nuevoCobrado,
+
+        pendiente:
+          nuevoPendiente,
+
+        fechaUltimoPago:
+          firebase.firestore.FieldValue.serverTimestamp()
+
+      });
 
 
     await cargarIngresosDesdeNube();
 
     renderGestionIngresos();
-
-
-    mostrarMensajeInterno(
-      "Pago registrado correctamente."
-    );
 
   }
 
@@ -3209,19 +2822,13 @@ async function registrarPago(
       error
     );
 
-
-    mostrarMensajeInterno(
-      "No se pudo registrar el pago.",
-      true
-    );
-
   }
 
 }
 
 
 // ============================================================
-// 21. EXPORTAR PDF
+// 18. EXPORTAR PDF
 // ============================================================
 
 function exportarIngresosPDF() {
@@ -3241,11 +2848,33 @@ function exportarIngresosPDF() {
 
   const lista =
     ingresos.filter(
-      ingreso =>
-        proyectoDebeAparecerEnMes(
-          ingreso,
-          filtro
-        )
+      ingreso => {
+
+        if (
+          !ingreso.fechaCreacion ||
+          !ingreso.fechaCreacion.toDate
+        ) {
+
+          return true;
+
+        }
+
+
+        const fecha =
+          ingreso
+            .fechaCreacion
+            .toDate();
+
+
+        const mes =
+          `${fecha.getFullYear()}-${String(
+            fecha.getMonth()+1
+          ).padStart(2,"0")}`;
+
+
+        return mes === filtro;
+
+      }
     );
 
 
@@ -3253,6 +2882,10 @@ function exportarIngresosPDF() {
     !window.jspdf ||
     !window.jspdf.jsPDF
   ) {
+
+    console.error(
+      "jsPDF no está disponible."
+    );
 
     return;
 
@@ -3267,7 +2900,7 @@ function exportarIngresosPDF() {
     new jsPDF();
 
 
-  const [anio, mes] =
+  const [anio,mes] =
     filtro.split("-");
 
 
@@ -3312,25 +2945,19 @@ function exportarIngresosPDF() {
   doc.setFontSize(12);
 
   doc.text(
-    `Registro de Ingresos - ${nombresMes[
-      Number(mes) - 1
-    ]} ${anio}`,
+    `Registro de Ingresos - ${nombresMes[Number(mes)-1]} ${anio}`,
     14,
     27
   );
 
 
-  let totalProyecto =
-    0;
+  let totalProyecto = 0;
 
-  let totalAdelanto =
-    0;
+  let totalAdelanto = 0;
 
-  let totalCobrado =
-    0;
+  let totalCobrado = 0;
 
-  let totalPendiente =
-    0;
+  let totalPendiente = 0;
 
 
   const filas =
@@ -3387,21 +3014,13 @@ function exportarIngresosPDF() {
 
           ingreso.mueble || "",
 
-          `Bs. ${formatearMonto(
-            total
-          )}`,
+          `Bs. ${formatearMonto(total)}`,
 
-          `Bs. ${formatearMonto(
-            adelanto
-          )}`,
+          `Bs. ${formatearMonto(adelanto)}`,
 
-          `Bs. ${formatearMonto(
-            cobrado
-          )}`,
+          `Bs. ${formatearMonto(cobrado)}`,
 
-          `Bs. ${formatearMonto(
-            pendiente
-          )}`
+          `Bs. ${formatearMonto(pendiente)}`
 
         ];
 
@@ -3409,31 +3028,20 @@ function exportarIngresosPDF() {
     );
 
 
-  if (
-    typeof doc.autoTable ===
-    "function"
-  ) {
+  if (typeof doc.autoTable === "function") {
 
     doc.autoTable({
 
       startY:35,
 
-      head: [[
-
+      head:[[
         "Código",
-
         "Cliente",
-
         "Proyecto",
-
         "Total",
-
         "Adelanto",
-
         "Cobrado",
-
         "Pendiente"
-
       ]],
 
       body:filas,
@@ -3468,36 +3076,28 @@ function exportarIngresosPDF() {
 
 
   doc.text(
-    `Total contratado: Bs. ${formatearMonto(
-      totalProyecto
-    )}`,
+    `Total contratado: Bs. ${formatearMonto(totalProyecto)}`,
     14,
     finalY + 7
   );
 
 
   doc.text(
-    `Total adelantos: Bs. ${formatearMonto(
-      totalAdelanto
-    )}`,
+    `Total adelantos: Bs. ${formatearMonto(totalAdelanto)}`,
     14,
     finalY + 14
   );
 
 
   doc.text(
-    `Total cobrado: Bs. ${formatearMonto(
-      totalCobrado
-    )}`,
+    `Total cobrado: Bs. ${formatearMonto(totalCobrado)}`,
     14,
     finalY + 21
   );
 
 
   doc.text(
-    `Total pendiente: Bs. ${formatearMonto(
-      totalPendiente
-    )}`,
+    `Total pendiente: Bs. ${formatearMonto(totalPendiente)}`,
     14,
     finalY + 28
   );
@@ -3511,7 +3111,7 @@ function exportarIngresosPDF() {
 
 
 // ============================================================
-// 22. WHATSAPP
+// 19. WHATSAPP
 // ============================================================
 
 function notificarWhatsApp(
