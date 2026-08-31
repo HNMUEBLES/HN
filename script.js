@@ -1,9 +1,12 @@
 ```javascript
 // ============================================================
 // HN MUEBLES - SCRIPT PRINCIPAL
+// SEGURIDAD: Firebase Authentication + Firestore Rules
 // ============================================================
 
-// --- CONFIGURACIÓN DE FIREBASE ---
+// -------------------------
+// CONFIGURACIÓN FIREBASE
+// -------------------------
 const firebaseConfig = {
   apiKey: "AIzaSyCLrVUpGCTxFxuMR0ATlwj2t3osSP0dD7Y",
   authDomain: "hn-muebles.firebaseapp.com",
@@ -14,20 +17,20 @@ const firebaseConfig = {
   measurementId: "G-8PJGERB67Q"
 };
 
-// Inicializar Firebase
 firebase.initializeApp(firebaseConfig);
 
 const db = firebase.firestore();
 const auth = firebase.auth();
 
-const EMAIL_ADMIN = "hn24muebles@gmail.com";
-
 let proyectos = [];
 let esAdmin = false;
 
+// SOLO TU CORREO PUEDE ADMINISTRAR
+const ADMIN_EMAIL = "hn24muebles@gmail.com";
+
 
 // ============================================================
-// 1. FUNCIONES UTILITARIAS
+// 1. UTILIDADES
 // ============================================================
 
 function formatearMonto(valor) {
@@ -70,8 +73,8 @@ function copiarCodigoAlPortapapeles(codigo) {
     .then(() => {
       alert(`¡Código "${codigo}" copiado al portapapeles!`);
     })
-    .catch((err) => {
-      console.error("Error al copiar código:", err);
+    .catch(error => {
+      console.error("Error al copiar código:", error);
     });
 }
 
@@ -82,92 +85,10 @@ function irInicio() {
 
 
 // ============================================================
-// 2. SEGURIDAD
-// ============================================================
-
-function usuarioEsAdministrador() {
-  const usuario = auth.currentUser;
-
-  return (
-    usuario &&
-    usuario.email &&
-    usuario.email.toLowerCase() === EMAIL_ADMIN.toLowerCase()
-  );
-}
-
-
-// ============================================================
-// 3. DATOS PÚBLICOS DE SEGUIMIENTO
-// ============================================================
-//
-// IMPORTANTE:
-//
-// La colección "proyectos" contiene información privada.
-//
-// La colección "seguimiento" contiene solamente:
-// - código
-// - mueble
-// - cliente
-// - estado
-// - progreso
-// - detalles
-// - fecha de entrega
-//
-// NO contiene:
-// - teléfono
-// - presupuesto
-// - adelanto
-// - saldo
-//
-// ============================================================
-
-function obtenerDatosPublicos(proyecto) {
-  return {
-    codigo: proyecto.codigo || "",
-    mueble: proyecto.mueble || "",
-    cliente: proyecto.cliente || "",
-    estado: proyecto.estado || "",
-    progreso: Number(proyecto.progreso) || 0,
-    detalles: proyecto.detalles || "",
-    fechaEntrega: proyecto.fechaEntrega || ""
-  };
-}
-
-
-async function sincronizarSeguimiento(proyecto) {
-  if (!proyecto || !proyecto.id) return;
-
-  const datosPublicos = obtenerDatosPublicos(proyecto);
-
-  await db
-    .collection("seguimiento")
-    .doc(proyecto.id)
-    .set(datosPublicos);
-}
-
-
-async function eliminarSeguimiento(idFirebase) {
-  if (!idFirebase) return;
-
-  await db
-    .collection("seguimiento")
-    .doc(idFirebase)
-    .delete();
-}
-
-
-// ============================================================
-// 4. CARGA PRIVADA DE PROYECTOS
+// 2. CARGAR PROYECTOS
 // ============================================================
 
 async function cargarProyectosDesdeNube() {
-
-  // Nunca intentar cargar proyectos privados
-  // si no estamos autenticados como administrador.
-  if (!usuarioEsAdministrador()) {
-    proyectos = [];
-    return;
-  }
 
   try {
 
@@ -177,7 +98,7 @@ async function cargarProyectosDesdeNube() {
 
     proyectos = [];
 
-    querySnapshot.forEach((docSnap) => {
+    querySnapshot.forEach(docSnap => {
 
       proyectos.push({
         id: docSnap.id,
@@ -185,22 +106,6 @@ async function cargarProyectosDesdeNube() {
       });
 
     });
-
-    // Sincronizar los proyectos existentes
-    // con la colección pública.
-    for (const proyecto of proyectos) {
-
-      try {
-        await sincronizarSeguimiento(proyecto);
-      } catch (error) {
-        console.error(
-          "Error sincronizando seguimiento:",
-          proyecto.id,
-          error
-        );
-      }
-
-    }
 
     if (esAdmin) {
       renderProyectosAdmin();
@@ -211,21 +116,17 @@ async function cargarProyectosDesdeNube() {
   } catch (error) {
 
     console.error(
-      "Error al cargar proyectos privados:",
+      "Error al cargar proyectos:",
       error
     );
 
-    if (error.code === "permission-denied") {
-      alert(
-        "No tienes permisos para acceder a los proyectos."
-      );
-    }
   }
+
 }
 
 
 // ============================================================
-// 5. ENLACE DIRECTO POR CÓDIGO
+// 3. ENLACE DIRECTO DE SEGUIMIENTO
 // ============================================================
 
 function procesarEnlaceDirectoUrl() {
@@ -240,16 +141,22 @@ function procesarEnlaceDirectoUrl() {
 
   setTimeout(() => {
 
+    if (
+      typeof mostrarSeccion === "function"
+    ) {
+      mostrarSeccion("rastreo");
+    }
+
     const inputCodigo =
       document.getElementById("input-codigo");
+
+    const formBuscar =
+      document.getElementById("form-buscar");
 
     if (inputCodigo) {
       inputCodigo.value =
         codigoUrl.toUpperCase();
     }
-
-    const formBuscar =
-      document.getElementById("form-buscar");
 
     if (formBuscar) {
       formBuscar.dispatchEvent(
@@ -265,7 +172,7 @@ function procesarEnlaceDirectoUrl() {
 
 
 // ============================================================
-// 6. NAVEGACIÓN
+// 4. NAVEGACIÓN
 // ============================================================
 
 function mostrarSeccion(seccionId) {
@@ -277,7 +184,7 @@ function mostrarSeccion(seccionId) {
     "sec-reportes"
   ];
 
-  secciones.forEach((id) => {
+  secciones.forEach(id => {
 
     const el =
       document.getElementById(id);
@@ -296,7 +203,7 @@ function mostrarSeccion(seccionId) {
     "btn-reportes"
   ];
 
-  botones.forEach((id) => {
+  botones.forEach(id => {
 
     const el =
       document.getElementById(id);
@@ -330,7 +237,99 @@ function mostrarSeccion(seccionId) {
 
 
 // ============================================================
-// 7. DOM
+// 5. AUTENTICACIÓN FIREBASE
+// ============================================================
+
+auth.onAuthStateChanged(async user => {
+
+  if (
+    user &&
+    user.email &&
+    user.email.toLowerCase() ===
+      ADMIN_EMAIL.toLowerCase()
+  ) {
+
+    // ADMINISTRADOR AUTENTICADO
+    esAdmin = true;
+
+    mostrarPanelAdmin();
+
+    await cargarProyectosDesdeNube();
+
+    renderProyectosAdmin();
+
+  } else {
+
+    // NO ADMINISTRADOR
+    esAdmin = false;
+
+    ocultarPanelAdmin();
+
+  }
+
+});
+
+
+// ============================================================
+// MOSTRAR PANEL ADMIN
+// ============================================================
+
+function mostrarPanelAdmin() {
+
+  const divLogin =
+    document.getElementById("admin-login");
+
+  const divPanel =
+    document.getElementById("admin-panel");
+
+  if (divLogin) {
+    divLogin.classList.add("hidden");
+  }
+
+  if (divPanel) {
+    divPanel.classList.remove("hidden");
+  }
+
+  const btnReportes =
+    document.getElementById("btn-reportes");
+
+  if (btnReportes) {
+    btnReportes.classList.remove("hidden");
+  }
+}
+
+
+// ============================================================
+// OCULTAR PANEL ADMIN
+// ============================================================
+
+function ocultarPanelAdmin() {
+
+  const divLogin =
+    document.getElementById("admin-login");
+
+  const divPanel =
+    document.getElementById("admin-panel");
+
+  if (divPanel) {
+    divPanel.classList.add("hidden");
+  }
+
+  if (divLogin) {
+    divLogin.classList.remove("hidden");
+  }
+
+  const btnReportes =
+    document.getElementById("btn-reportes");
+
+  if (btnReportes) {
+    btnReportes.classList.add("hidden");
+  }
+}
+
+
+// ============================================================
+// 6. DOM
 // ============================================================
 
 document.addEventListener(
@@ -339,7 +338,7 @@ document.addEventListener(
 
 
     // ========================================================
-    // BÚSQUEDA PÚBLICA
+    // BUSCAR PROYECTO
     // ========================================================
 
     const formBuscar =
@@ -349,14 +348,12 @@ document.addEventListener(
 
       formBuscar.addEventListener(
         "submit",
-        async function (e) {
+        function (e) {
 
           e.preventDefault();
 
           const codigoInput =
-            document.getElementById(
-              "input-codigo"
-            );
+            document.getElementById("input-codigo");
 
           if (!codigoInput) return;
 
@@ -364,7 +361,6 @@ document.addEventListener(
             codigoInput.value
               .trim()
               .toUpperCase();
-
 
           const errorMsg =
             document.getElementById(
@@ -377,41 +373,16 @@ document.addEventListener(
             );
 
 
-          try {
-
-            // IMPORTANTE:
-            // El cliente SOLO consulta "seguimiento".
-            //
-            // Nunca consulta "proyectos".
-
-            const snapshot =
-              await db
-                .collection("seguimiento")
-                .where("codigo", "==", codigo)
-                .limit(1)
-                .get();
+          const encontrado =
+            proyectos.find(
+              p =>
+                p.codigo &&
+                p.codigo.toUpperCase() ===
+                  codigo
+            );
 
 
-            if (snapshot.empty) {
-
-              if (resultBox) {
-                resultBox.classList.add("hidden");
-              }
-
-              if (errorMsg) {
-                errorMsg.classList.remove("hidden");
-              }
-
-              return;
-            }
-
-
-            const doc =
-              snapshot.docs[0];
-
-            const encontrado =
-              doc.data();
-
+          if (encontrado) {
 
             if (errorMsg) {
               errorMsg.classList.add("hidden");
@@ -422,92 +393,78 @@ document.addEventListener(
             }
 
 
-            const resCodigo =
+            const codigoEl =
               document.getElementById(
                 "res-codigo"
               );
 
-            const resMueble =
+            const muebleEl =
               document.getElementById(
                 "res-mueble"
               );
 
-            const resCliente =
+            const clienteEl =
               document.getElementById(
                 "res-cliente"
               );
 
-            const resEstado =
+            const estadoEl =
               document.getElementById(
                 "res-estado"
               );
 
-            const resPorcentaje =
+            const porcentajeEl =
               document.getElementById(
                 "res-porcentaje"
               );
 
-            const resBarFill =
+            const barra =
               document.getElementById(
                 "res-bar-fill"
               );
 
-            const resDetalles =
+            const detallesEl =
               document.getElementById(
                 "res-detalles"
               );
 
 
-            if (resCodigo) {
-              resCodigo.innerText =
-                encontrado.codigo || "";
-            }
+            if (codigoEl)
+              codigoEl.innerText =
+                encontrado.codigo;
 
-            if (resMueble) {
-              resMueble.innerText =
-                encontrado.mueble || "";
-            }
+            if (muebleEl)
+              muebleEl.innerText =
+                encontrado.mueble;
 
-            if (resCliente) {
-              resCliente.innerText =
-                `Cliente: ${encontrado.cliente || ""}`;
-            }
+            if (clienteEl)
+              clienteEl.innerText =
+                `Cliente: ${encontrado.cliente}`;
 
-            if (resEstado) {
-              resEstado.innerText =
-                encontrado.estado || "";
-            }
+            if (estadoEl)
+              estadoEl.innerText =
+                encontrado.estado;
 
-            if (resPorcentaje) {
-              resPorcentaje.innerText =
-                `${Number(encontrado.progreso) || 0}%`;
-            }
+            if (porcentajeEl)
+              porcentajeEl.innerText =
+                `${encontrado.progreso}%`;
 
-            if (resBarFill) {
-              resBarFill.style.width =
-                `${Number(encontrado.progreso) || 0}%`;
-            }
+            if (barra)
+              barra.style.width =
+                `${encontrado.progreso}%`;
 
-            if (resDetalles) {
-              resDetalles.innerText =
+            if (detallesEl)
+              detallesEl.innerText =
                 encontrado.detalles ||
                 `El proyecto se encuentra en etapa de ${encontrado.estado}.`;
-            }
 
-          } catch (error) {
-
-            console.error(
-              "Error buscando seguimiento:",
-              error
-            );
+          } else {
 
             if (resultBox) {
               resultBox.classList.add("hidden");
             }
 
             if (errorMsg) {
-              errorMsg.innerText =
-                "No se pudo consultar el proyecto.";
               errorMsg.classList.remove("hidden");
             }
 
@@ -515,18 +472,16 @@ document.addEventListener(
 
         }
       );
+
     }
 
 
     // ========================================================
-    // LOGIN ADMIN
+    // LOGIN FIREBASE
     // ========================================================
 
     const formLogin =
-      document.getElementById(
-        "form-login"
-      );
-
+      document.getElementById("form-login");
 
     if (formLogin) {
 
@@ -564,78 +519,7 @@ document.addEventListener(
               : "";
 
 
-          if (!email || !password) {
-            return;
-          }
-
-
           try {
-
-            const credential =
-              await auth.signInWithEmailAndPassword(
-                email,
-                password
-              );
-
-
-            const usuario =
-              credential.user;
-
-
-            // Verificación adicional
-            // del correo autorizado.
-
-            if (
-              !usuario.email ||
-              usuario.email.toLowerCase() !==
-              EMAIL_ADMIN.toLowerCase()
-            ) {
-
-              await auth.signOut();
-
-              throw new Error(
-                "Este usuario no tiene permisos de administrador."
-              );
-            }
-
-
-            esAdmin = true;
-
-
-            const divLogin =
-              document.getElementById(
-                "admin-login"
-              );
-
-            const divPanel =
-              document.getElementById(
-                "admin-panel"
-              );
-
-
-            if (divLogin) {
-              divLogin.classList.add("hidden");
-            }
-
-            if (divPanel) {
-              divPanel.classList.remove("hidden");
-            }
-
-
-            const btnReportes =
-              document.getElementById(
-                "btn-reportes"
-              );
-
-            if (btnReportes) {
-              btnReportes.classList.remove("hidden");
-            }
-
-
-            if (passInput) {
-              passInput.value = "";
-            }
-
 
             if (errorMsg) {
               errorMsg.classList.add("hidden");
@@ -643,23 +527,105 @@ document.addEventListener(
             }
 
 
+            // LOGIN REAL DE FIREBASE
+            const credential =
+              await auth.signInWithEmailAndPassword(
+                email,
+                password
+              );
+
+
+            const user =
+              credential.user;
+
+
+            // VERIFICAR QUE SEA EL ADMIN
+            if (
+              !user.email ||
+              user.email.toLowerCase() !==
+                ADMIN_EMAIL.toLowerCase()
+            ) {
+
+              await auth.signOut();
+
+              throw new Error(
+                "Esta cuenta no tiene permisos de administrador."
+              );
+
+            }
+
+
+            esAdmin = true;
+
+            mostrarPanelAdmin();
+
             await cargarProyectosDesdeNube();
 
             renderProyectosAdmin();
 
 
+            if (passInput) {
+              passInput.value = "";
+            }
+
+
           } catch (error) {
 
             console.error(
-              "Error de autenticación:",
+              "Error de inicio de sesión:",
               error
             );
+
+
+            let mensaje =
+              "No se pudo iniciar sesión.";
+
+
+            if (
+              error.code ===
+              "auth/invalid-credential"
+            ) {
+
+              mensaje =
+                "Correo o contraseña incorrectos.";
+
+            } else if (
+              error.code ===
+              "auth/user-not-found"
+            ) {
+
+              mensaje =
+                "No existe una cuenta con ese correo.";
+
+            } else if (
+              error.code ===
+              "auth/wrong-password"
+            ) {
+
+              mensaje =
+                "Contraseña incorrecta.";
+
+            } else if (
+              error.code ===
+              "auth/too-many-requests"
+            ) {
+
+              mensaje =
+                "Demasiados intentos. Intenta nuevamente más tarde.";
+
+            } else if (
+              error.message
+            ) {
+
+              mensaje =
+                error.message;
+            }
 
 
             if (errorMsg) {
 
               errorMsg.innerText =
-                "Correo o contraseña incorrectos.";
+                mensaje;
 
               errorMsg.classList.remove(
                 "hidden"
@@ -667,9 +633,7 @@ document.addEventListener(
 
             } else {
 
-              alert(
-                "Correo o contraseña incorrectos."
-              );
+              alert(mensaje);
 
             }
 
@@ -738,25 +702,28 @@ document.addEventListener(
           saldoFinal > 0
             ? "#f87171"
             : "#4ade80";
-
       }
 
     }
 
 
     if (inputPresupuestoNuevo) {
+
       inputPresupuestoNuevo.addEventListener(
         "input",
         calcularSaldoEnVivo
       );
+
     }
 
 
     if (inputAdelantoNuevo) {
+
       inputAdelantoNuevo.addEventListener(
         "input",
         calcularSaldoEnVivo
       );
+
     }
 
 
@@ -779,10 +746,28 @@ document.addEventListener(
           e.preventDefault();
 
 
-          if (!usuarioEsAdministrador()) {
+          // VERIFICACIÓN LOCAL
+          if (!esAdmin || !auth.currentUser) {
 
             alert(
-              "Sesión de administrador no válida."
+              "Debes iniciar sesión como administrador."
+            );
+
+            return;
+          }
+
+
+          const user =
+            auth.currentUser;
+
+
+          if (
+            user.email.toLowerCase() !==
+            ADMIN_EMAIL.toLowerCase()
+          ) {
+
+            alert(
+              "No tienes permisos de administrador."
             );
 
             return;
@@ -884,23 +869,10 @@ document.addEventListener(
 
           try {
 
-            // Crear proyecto privado
+            await db
+              .collection("proyectos")
+              .add(nuevoProyectoObj);
 
-            const referencia =
-              await db
-                .collection("proyectos")
-                .add(nuevoProyectoObj);
-
-
-            // Crear solamente los datos públicos
-
-            await sincronizarSeguimiento({
-              id: referencia.id,
-              ...nuevoProyectoObj
-            });
-
-
-            // Limpiar formulario
 
             if (codIn) codIn.value = "";
             if (cliIn) cliIn.value = "";
@@ -926,7 +898,7 @@ document.addEventListener(
             );
 
             alert(
-              "Error al guardar el proyecto."
+              "No se pudo guardar el proyecto."
             );
 
           }
@@ -979,7 +951,7 @@ document.addEventListener(
 
 
 // ============================================================
-// 8. CERRAR SESIÓN
+// 7. CERRAR SESIÓN
 // ============================================================
 
 async function cerrarSesionAdmin() {
@@ -988,62 +960,31 @@ async function cerrarSesionAdmin() {
 
     await auth.signOut();
 
+    esAdmin = false;
+
+    ocultarPanelAdmin();
+
+    irInicio();
+
   } catch (error) {
 
     console.error(
-      "Error cerrando sesión:",
+      "Error al cerrar sesión:",
       error
     );
 
   }
 
-
-  esAdmin = false;
-  proyectos = [];
-
-
-  const divPanel =
-    document.getElementById(
-      "admin-panel"
-    );
-
-  const divLogin =
-    document.getElementById(
-      "admin-login"
-    );
-
-
-  if (divPanel) {
-    divPanel.classList.add("hidden");
-  }
-
-  if (divLogin) {
-    divLogin.classList.remove("hidden");
-  }
-
-
-  const btnReportes =
-    document.getElementById(
-      "btn-reportes"
-    );
-
-  if (btnReportes) {
-    btnReportes.classList.add("hidden");
-  }
-
-
-  irInicio();
 }
 
 
 // ============================================================
-// 9. RENDERIZADO DEL ADMIN
+// 8. RENDERIZAR ADMIN
 // ============================================================
 
 function renderProyectosAdmin() {
 
   if (!esAdmin) return;
-
 
   const container =
     document.getElementById(
@@ -1067,6 +1008,7 @@ function renderProyectosAdmin() {
       "filtro-mes"
     );
 
+
   const mesSeleccionado =
     selectMes
       ? selectMes.value
@@ -1074,7 +1016,7 @@ function renderProyectosAdmin() {
 
 
   let proyectosFiltradosMes =
-    proyectos.filter((p) => {
+    proyectos.filter(p => {
 
       if (
         !p.fechaEntrega ||
@@ -1083,15 +1025,11 @@ function renderProyectosAdmin() {
         return true;
       }
 
-
       if (mesSeleccionado) {
-
         return p.fechaEntrega.startsWith(
           mesSeleccionado
         );
-
       }
-
 
       return true;
 
@@ -1103,7 +1041,7 @@ function renderProyectosAdmin() {
   let totalSaldoMes = 0;
 
 
-  proyectosFiltradosMes.forEach((p) => {
+  proyectosFiltradosMes.forEach(p => {
 
     const pres =
       Number(p.presupuesto) || 0;
@@ -1113,7 +1051,9 @@ function renderProyectosAdmin() {
 
 
     totalPresupuestoMes += pres;
+
     totalAdelantoMes += adel;
+
     totalSaldoMes +=
       pres - adel;
 
@@ -1125,12 +1065,12 @@ function renderProyectosAdmin() {
       "reporte-cant-mes"
     );
 
-  const reportePresupuesto =
+  const reportePres =
     document.getElementById(
       "reporte-presupuesto-mes"
     );
 
-  const reporteAdelanto =
+  const reporteAdel =
     document.getElementById(
       "reporte-adelanto-mes"
     );
@@ -1141,25 +1081,21 @@ function renderProyectosAdmin() {
     );
 
 
-  if (reporteCant) {
+  if (reporteCant)
     reporteCant.innerText =
       proyectosFiltradosMes.length;
-  }
 
-  if (reportePresupuesto) {
-    reportePresupuesto.innerText =
+  if (reportePres)
+    reportePres.innerText =
       `Bs. ${formatearMonto(totalPresupuestoMes)}`;
-  }
 
-  if (reporteAdelanto) {
-    reporteAdelanto.innerText =
+  if (reporteAdel)
+    reporteAdel.innerText =
       `Bs. ${formatearMonto(totalAdelantoMes)}`;
-  }
 
-  if (reporteSaldo) {
+  if (reporteSaldo)
     reporteSaldo.innerText =
       `Bs. ${formatearMonto(totalSaldoMes)}`;
-  }
 
 
   if (!container) return;
@@ -1177,441 +1113,249 @@ function renderProyectosAdmin() {
   ];
 
 
-  proyectos.forEach((p, index) => {
+  proyectos.forEach(
+    (p, index) => {
 
-    const presupuesto =
-      Number(p.presupuesto) || 0;
+      const presupuesto =
+        Number(p.presupuesto) || 0;
 
-    const adelanto =
-      Number(p.adelanto) || 0;
+      const adelanto =
+        Number(p.adelanto) || 0;
 
-    const saldo =
-      presupuesto - adelanto;
-
-
-    const fechaFormateada =
-      p.fechaEntrega
-        ? p.fechaEntrega
-            .split("-")
-            .reverse()
-            .join("/")
-        : "Sin definir";
+      const saldo =
+        presupuesto - adelanto;
 
 
-    const card =
-      document.createElement("div");
+      const fechaFormateada =
+        p.fechaEntrega
+          ? p.fechaEntrega
+              .split("-")
+              .reverse()
+              .join("/")
+          : "Sin definir";
 
 
-    card.className =
-      "admin-card";
+      const card =
+        document.createElement("div");
 
 
-    card.style.cssText =
-      "background: rgba(255,255,255,0.05);" +
-      "border: 1px solid rgba(255,255,255,0.1);" +
-      "border-radius: 12px;" +
-      "padding: 1.2rem;" +
-      "margin-bottom: 1rem;";
+      card.className =
+        "admin-card";
 
 
-    let botonesEtapas =
-      etapas.map((est, idx) => {
-
-        const activeStyle =
-          p.estado === est
-            ? "background:#f59e0b;color:#000;font-weight:bold;"
-            : "background:rgba(255,255,255,0.1);color:#fff;";
-
-
-        const porcentaje =
-          (idx + 1) * 20;
+      card.style.cssText =
+        "background: rgba(255,255,255,0.05);" +
+        "border:1px solid rgba(255,255,255,0.1);" +
+        "border-radius:12px;" +
+        "padding:1.2rem;" +
+        "margin-bottom:1rem;";
 
 
-        return `
-          <button
-            type="button"
-            style="
-              border:none;
-              padding:0.4rem 0.7rem;
-              border-radius:6px;
-              cursor:pointer;
-              font-size:0.8rem;
-              margin:0.2rem;
-              ${activeStyle}
-            "
-            onclick="cambiarEstadoPorId('${p.id}', ${idx}, ${porcentaje})"
-          >
-            ${est}
-          </button>
-        `;
+      let botonesEtapas =
+        etapas.map(
+          (est, idx) => {
 
-      }).join("");
+            const activeStyle =
+              p.estado === est
+                ? "background:#f59e0b;color:#000;font-weight:bold;"
+                : "background:rgba(255,255,255,0.1);color:#fff;";
 
 
-    card.innerHTML = `
-
-      <div
-        style="
-          display:flex;
-          justify-content:space-between;
-          align-items:flex-start;
-          gap:1rem;
-          flex-wrap:wrap;
-        "
-      >
-
-        <div
-          id="info-view-${index}"
-          style="
-            flex:1;
-            min-width:280px;
-          "
-        >
-
-          <div
-            style="
-              display:flex;
-              align-items:center;
-              gap:0.5rem;
-              flex-wrap:wrap;
-            "
-          >
-
-            <div
-              style="
-                display:flex;
-                align-items:center;
-                gap:0.4rem;
-              "
-            >
-
-              <span
-                style="
-                  background:#f59e0b;
-                  color:#000;
-                  padding:0.2rem 0.6rem;
-                  border-radius:4px;
-                  font-weight:bold;
-                  font-size:0.85rem;
-                "
-              >
-                ${p.codigo}
-              </span>
+            const porcentaje =
+              (idx + 1) * 20;
 
 
+            return `
               <button
                 type="button"
-                onclick="copiarCodigoAlPortapapeles('${p.codigo}')"
                 style="
-                  background:rgba(255,255,255,0.1);
-                  color:#fff;
-                  border:1px solid rgba(255,255,255,0.2);
-                  padding:0.2rem 0.5rem;
-                  border-radius:4px;
+                  border:none;
+                  padding:0.4rem 0.7rem;
+                  border-radius:6px;
                   cursor:pointer;
-                  font-size:0.75rem;
+                  font-size:0.8rem;
+                  margin:0.2rem;
+                  ${activeStyle}
                 "
+                onclick="cambiarEstadoPorId('${p.id}', ${idx}, ${porcentaje})"
               >
-                <i class="fa-regular fa-copy"></i>
-                Copiar
+                ${est}
               </button>
+            `;
 
-            </div>
-
-
-            <strong
-              style="font-size:1.05rem;"
-            >
-              ${p.mueble}
-            </strong>
-
-          </div>
+          }
+        ).join("");
 
 
-          <p
-            style="
-              margin:0.4rem 0;
-              color:#a3a3a3;
-              font-size:0.85rem;
-            "
-          >
-            <i class="fa-solid fa-user"></i>
-            Cliente: ${p.cliente}
-            |
-            <i class="fa-solid fa-phone"></i>
-            Tel: ${p.telefono || "Sin registrar"}
-          </p>
-
-
-          <p
-            style="
-              margin:0.2rem 0 0.5rem 0;
-              color:#38bdf8;
-              font-size:0.85rem;
-            "
-          >
-            <i class="fa-regular fa-calendar"></i>
-            Entrega estimada:
-            <strong>${fechaFormateada}</strong>
-          </p>
-
-
-          <div
-            style="
-              background:rgba(0,0,0,0.3);
-              border:1px solid rgba(255,255,255,0.08);
-              padding:0.6rem 0.8rem;
-              border-radius:8px;
-              margin:0.6rem 0;
-              display:flex;
-              gap:1rem;
-              flex-wrap:wrap;
-              font-size:0.85rem;
-            "
-          >
-
-            <div>
-              <span style="color:#a3a3a3;">
-                Total:
-              </span>
-
-              <strong>
-                Bs. ${formatearMonto(presupuesto)}
-              </strong>
-            </div>
-
-
-            <div>
-              <span style="color:#a3a3a3;">
-                Adelanto:
-              </span>
-
-              <strong style="color:#38bdf8;">
-                Bs. ${formatearMonto(adelanto)}
-              </strong>
-            </div>
-
-
-            <div>
-              <span style="color:#a3a3a3;">
-                Saldo:
-              </span>
-
-              <strong
-                style="
-                  color:${saldo > 0
-                    ? "#f87171"
-                    : "#4ade80"};
-                "
-              >
-                Bs. ${formatearMonto(saldo)}
-              </strong>
-            </div>
-
-          </div>
-
-
-          <div
-            style="margin-top:0.5rem;"
-          >
-            ${botonesEtapas}
-          </div>
-
-
-          <div
-            style="margin-top:0.8rem;"
-          >
-
-            <button
-              type="button"
-              onclick="notificarWhatsApp(${index})"
-              style="
-                background:#16a34a;
-                color:white;
-                border:none;
-                padding:0.4rem 0.8rem;
-                border-radius:6px;
-                cursor:pointer;
-                font-size:0.85rem;
-                font-weight:bold;
-                display:inline-flex;
-                align-items:center;
-                gap:0.4rem;
-              "
-            >
-              <i class="fa-brands fa-whatsapp"></i>
-              Notificar por WhatsApp con enlace
-            </button>
-
-          </div>
-
-        </div>
-
+      card.innerHTML = `
 
         <div
-          id="edit-view-${index}"
           style="
-            flex:1;
-            min-width:280px;
-            display:none;
-            background:rgba(0,0,0,0.4);
-            padding:1rem;
-            border-radius:8px;
-            border:1px solid rgba(255,255,255,0.15);
+            display:flex;
+            justify-content:space-between;
+            align-items:flex-start;
+            gap:1rem;
+            flex-wrap:wrap;
           "
         >
 
-          <h4
-            style="
-              margin-bottom:0.6rem;
-              color:#f59e0b;
-              font-size:0.95rem;
-            "
-          >
-            Editar Proyecto
-          </h4>
-
-
           <div
-            style="
-              display:flex;
-              flex-direction:column;
-              gap:0.5rem;
-            "
+            id="info-view-${index}"
+            style="flex:1;min-width:280px;"
           >
-
-            <input
-              type="text"
-              id="input-edit-codigo-${index}"
-              value="${p.codigo}"
-              style="
-                width:100%;
-                padding:0.4rem;
-                background:#0a0a0a;
-                border:1px solid #404040;
-                color:#fff;
-                border-radius:6px;
-                font-size:0.85rem;
-              "
-            >
-
-
-            <input
-              type="text"
-              id="input-edit-cliente-${index}"
-              value="${p.cliente}"
-              style="
-                width:100%;
-                padding:0.4rem;
-                background:#0a0a0a;
-                border:1px solid #404040;
-                color:#fff;
-                border-radius:6px;
-                font-size:0.85rem;
-              "
-            >
-
-
-            <input
-              type="text"
-              id="input-edit-mueble-${index}"
-              value="${p.mueble}"
-              style="
-                width:100%;
-                padding:0.4rem;
-                background:#0a0a0a;
-                border:1px solid #404040;
-                color:#fff;
-                border-radius:6px;
-                font-size:0.85rem;
-              "
-            >
-
-
-            <input
-              type="text"
-              id="input-edit-telefono-${index}"
-              value="${p.telefono || ""}"
-              style="
-                width:100%;
-                padding:0.4rem;
-                background:#0a0a0a;
-                border:1px solid #404040;
-                color:#fff;
-                border-radius:6px;
-                font-size:0.85rem;
-              "
-            >
-
 
             <div
               style="
                 display:flex;
+                align-items:center;
                 gap:0.5rem;
+                flex-wrap:wrap;
               "
             >
 
-              <input
-                type="text"
-                id="input-edit-presupuesto-${index}"
-                value="${formatearMonto(presupuesto)}"
+              <div
                 style="
-                  width:100%;
-                  padding:0.4rem;
-                  background:#0a0a0a;
-                  border:1px solid #404040;
-                  color:#fff;
-                  border-radius:6px;
-                  font-size:0.85rem;
+                  display:flex;
+                  align-items:center;
+                  gap:0.4rem;
                 "
               >
 
+                <span
+                  style="
+                    background:#f59e0b;
+                    color:#000;
+                    padding:0.2rem 0.6rem;
+                    border-radius:4px;
+                    font-weight:bold;
+                    font-size:0.85rem;
+                  "
+                >
+                  ${p.codigo}
+                </span>
 
-              <input
-                type="text"
-                id="input-edit-adelanto-${index}"
-                value="${formatearMonto(adelanto)}"
-                style="
-                  width:100%;
-                  padding:0.4rem;
-                  background:#0a0a0a;
-                  border:1px solid #404040;
-                  color:#fff;
-                  border-radius:6px;
-                  font-size:0.85rem;
-                "
-              >
+
+                <button
+                  type="button"
+                  onclick="copiarCodigoAlPortapapeles('${p.codigo}')"
+                  style="
+                    background:rgba(255,255,255,0.1);
+                    color:#fff;
+                    border:1px solid rgba(255,255,255,0.2);
+                    padding:0.2rem 0.5rem;
+                    border-radius:4px;
+                    cursor:pointer;
+                    font-size:0.75rem;
+                  "
+                >
+                  <i class="fa-regular fa-copy"></i>
+                  Copiar
+                </button>
+
+              </div>
+
+
+              <strong style="font-size:1.05rem;">
+                ${p.mueble}
+              </strong>
 
             </div>
 
 
-            <input
-              type="date"
-              id="input-edit-fecha-${index}"
-              value="${p.fechaEntrega || ""}"
+            <p
               style="
-                width:100%;
-                padding:0.4rem;
-                background:#0a0a0a;
-                border:1px solid #404040;
-                color:#fff;
-                border-radius:6px;
+                margin:0.4rem 0;
+                color:#a3a3a3;
                 font-size:0.85rem;
               "
             >
+              <i class="fa-solid fa-user"></i>
+              Cliente: ${p.cliente}
+              |
+              <i class="fa-solid fa-phone"></i>
+              Tel: ${p.telefono || "Sin registrar"}
+            </p>
+
+
+            <p
+              style="
+                margin:0.2rem 0 0.5rem 0;
+                color:#38bdf8;
+                font-size:0.85rem;
+              "
+            >
+              <i class="fa-regular fa-calendar"></i>
+              Entrega estimada:
+              <strong>${fechaFormateada}</strong>
+            </p>
 
 
             <div
               style="
+                background:rgba(0,0,0,0.3);
+                border:1px solid rgba(255,255,255,0.08);
+                padding:0.6rem 0.8rem;
+                border-radius:8px;
+                margin:0.6rem 0;
                 display:flex;
-                gap:0.5rem;
-                margin-top:0.4rem;
+                gap:1rem;
+                flex-wrap:wrap;
+                font-size:0.85rem;
               "
             >
 
+              <div>
+                <span style="color:#a3a3a3;">
+                  Total:
+                </span>
+
+                <strong>
+                  Bs. ${formatearMonto(presupuesto)}
+                </strong>
+              </div>
+
+
+              <div>
+                <span style="color:#a3a3a3;">
+                  Adelanto:
+                </span>
+
+                <strong style="color:#38bdf8;">
+                  Bs. ${formatearMonto(adelanto)}
+                </strong>
+              </div>
+
+
+              <div>
+                <span style="color:#a3a3a3;">
+                  Saldo:
+                </span>
+
+                <strong
+                  style="
+                    color:
+                    ${saldo > 0
+                      ? "#f87171"
+                      : "#4ade80"};
+                  "
+                >
+                  Bs. ${formatearMonto(saldo)}
+                </strong>
+              </div>
+
+            </div>
+
+
+            <div style="margin-top:0.5rem;">
+              ${botonesEtapas}
+            </div>
+
+
+            <div style="margin-top:0.8rem;">
+
               <button
                 type="button"
-                onclick="guardarEdicionInline('${p.id}', ${index})"
+                onclick="notificarWhatsApp(${index})"
                 style="
                   background:#16a34a;
                   color:white;
@@ -1619,91 +1363,207 @@ function renderProyectosAdmin() {
                   padding:0.4rem 0.8rem;
                   border-radius:6px;
                   cursor:pointer;
-                  font-size:0.8rem;
+                  font-size:0.85rem;
                   font-weight:bold;
                 "
               >
-                Guardar
-              </button>
-
-
-              <button
-                type="button"
-                onclick="cancelarEdicionInline(${index})"
-                style="
-                  background:#404040;
-                  color:white;
-                  border:none;
-                  padding:0.4rem 0.8rem;
-                  border-radius:6px;
-                  cursor:pointer;
-                  font-size:0.8rem;
-                "
-              >
-                Cancelar
+                <i class="fa-brands fa-whatsapp"></i>
+                Notificar por WhatsApp con enlace
               </button>
 
             </div>
 
           </div>
 
-        </div>
 
-
-        <div
-          style="
-            display:flex;
-            gap:0.5rem;
-          "
-        >
-
-          <button
-            type="button"
-            id="btn-edit-toggle-${index}"
-            onclick="activarEdicionInline(${index})"
+          <div
+            id="edit-view-${index}"
             style="
-              background:#3b82f6;
-              color:white;
-              border:none;
-              padding:0.6rem 0.8rem;
+              flex:1;
+              min-width:280px;
+              display:none;
+              background:rgba(0,0,0,0.4);
+              padding:1rem;
               border-radius:8px;
-              cursor:pointer;
+              border:1px solid rgba(255,255,255,0.15);
             "
           >
-            <i class="fa-solid fa-pen-to-square"></i>
-          </button>
+
+            <h4
+              style="
+                margin-bottom:0.6rem;
+                color:#f59e0b;
+                font-size:0.95rem;
+              "
+            >
+              Editar Proyecto
+            </h4>
 
 
-          <button
-            type="button"
-            onclick="eliminarProyecto('${p.id}')"
+            <div
+              style="
+                display:flex;
+                flex-direction:column;
+                gap:0.5rem;
+              "
+            >
+
+              <input
+                type="text"
+                id="input-edit-codigo-${index}"
+                value="${p.codigo}"
+              >
+
+              <input
+                type="text"
+                id="input-edit-cliente-${index}"
+                value="${p.cliente}"
+              >
+
+              <input
+                type="text"
+                id="input-edit-mueble-${index}"
+                value="${p.mueble}"
+              >
+
+              <input
+                type="text"
+                id="input-edit-telefono-${index}"
+                value="${p.telefono || ""}"
+              >
+
+
+              <div
+                style="
+                  display:flex;
+                  gap:0.5rem;
+                "
+              >
+
+                <input
+                  type="text"
+                  id="input-edit-presupuesto-${index}"
+                  value="${formatearMonto(presupuesto)}"
+                >
+
+                <input
+                  type="text"
+                  id="input-edit-adelanto-${index}"
+                  value="${formatearMonto(adelanto)}"
+                >
+
+              </div>
+
+
+              <input
+                type="date"
+                id="input-edit-fecha-${index}"
+                value="${p.fechaEntrega || ""}"
+              >
+
+
+              <div
+                style="
+                  display:flex;
+                  gap:0.5rem;
+                  margin-top:0.4rem;
+                "
+              >
+
+                <button
+                  type="button"
+                  onclick="guardarEdicionInline('${p.id}', ${index})"
+                  style="
+                    background:#16a34a;
+                    color:white;
+                    border:none;
+                    padding:0.4rem 0.8rem;
+                    border-radius:6px;
+                    cursor:pointer;
+                  "
+                >
+                  Guardar
+                </button>
+
+
+                <button
+                  type="button"
+                  onclick="cancelarEdicionInline(${index})"
+                  style="
+                    background:#404040;
+                    color:white;
+                    border:none;
+                    padding:0.4rem 0.8rem;
+                    border-radius:6px;
+                    cursor:pointer;
+                  "
+                >
+                  Cancelar
+                </button>
+
+              </div>
+
+            </div>
+
+          </div>
+
+
+          <div
             style="
-              background:#ef4444;
-              color:white;
-              border:none;
-              padding:0.6rem 0.8rem;
-              border-radius:8px;
-              cursor:pointer;
+              display:flex;
+              gap:0.5rem;
             "
           >
-            <i class="fa-solid fa-trash"></i>
-          </button>
+
+            <button
+              type="button"
+              id="btn-edit-toggle-${index}"
+              onclick="activarEdicionInline(${index})"
+              style="
+                background:#3b82f6;
+                color:white;
+                border:none;
+                padding:0.6rem 0.8rem;
+                border-radius:8px;
+                cursor:pointer;
+              "
+            >
+              <i class="fa-solid fa-pen-to-square"></i>
+            </button>
+
+
+            <button
+              type="button"
+              onclick="eliminarProyecto('${p.id}')"
+              style="
+                background:#ef4444;
+                color:white;
+                border:none;
+                padding:0.6rem 0.8rem;
+                border-radius:8px;
+                cursor:pointer;
+              "
+            >
+              <i class="fa-solid fa-trash"></i>
+            </button>
+
+          </div>
 
         </div>
 
-      </div>
-    `;
+      `;
 
 
-    container.appendChild(card);
+      container.appendChild(card);
 
-  });
+    }
+  );
 
 }
 
 
 // ============================================================
-// 10. EDICIÓN
+// 9. EDICIÓN
 // ============================================================
 
 function activarEdicionInline(index) {
@@ -1724,17 +1584,11 @@ function activarEdicionInline(index) {
     );
 
 
-  if (info) {
-    info.style.display = "none";
-  }
+  if (info) info.style.display = "none";
 
-  if (edit) {
-    edit.style.display = "block";
-  }
+  if (edit) edit.style.display = "block";
 
-  if (btn) {
-    btn.style.display = "none";
-  }
+  if (btn) btn.style.display = "none";
 
 }
 
@@ -1757,23 +1611,17 @@ function cancelarEdicionInline(index) {
     );
 
 
-  if (info) {
-    info.style.display = "block";
-  }
+  if (info) info.style.display = "block";
 
-  if (edit) {
-    edit.style.display = "none";
-  }
+  if (edit) edit.style.display = "none";
 
-  if (btn) {
-    btn.style.display = "block";
-  }
+  if (btn) btn.style.display = "block";
 
 }
 
 
 // ============================================================
-// 11. GUARDAR EDICIÓN
+// 10. GUARDAR EDICIÓN
 // ============================================================
 
 async function guardarEdicionInline(
@@ -1781,22 +1629,24 @@ async function guardarEdicionInline(
   index
 ) {
 
-  if (!usuarioEsAdministrador()) {
+  if (
+    !esAdmin ||
+    !auth.currentUser
+  ) {
 
     alert(
-      "Sesión de administrador no válida."
+      "Sesión de administrador requerida."
     );
 
     return;
+
   }
 
 
   const nuevoCodigo =
     document.getElementById(
       `input-edit-codigo-${index}`
-    ).value
-      .trim()
-      .toUpperCase();
+    ).value.trim().toUpperCase();
 
 
   const nuevoCliente =
@@ -1866,43 +1716,6 @@ async function guardarEdicionInline(
       });
 
 
-    const proyectoActual =
-      proyectos.find(
-        (p) => p.id === idFirebase
-      );
-
-
-    if (proyectoActual) {
-
-      proyectoActual.codigo =
-        nuevoCodigo;
-
-      proyectoActual.cliente =
-        nuevoCliente;
-
-      proyectoActual.mueble =
-        nuevoMueble;
-
-      proyectoActual.telefono =
-        nuevoTelefono;
-
-      proyectoActual.presupuesto =
-        nuevoPresupuesto;
-
-      proyectoActual.adelanto =
-        nuevoAdelanto;
-
-      proyectoActual.fechaEntrega =
-        nuevaFecha;
-
-
-      await sincronizarSeguimiento(
-        proyectoActual
-      );
-
-    }
-
-
     await cargarProyectosDesdeNube();
 
     renderProyectosAdmin();
@@ -1925,7 +1738,7 @@ async function guardarEdicionInline(
 
 
 // ============================================================
-// 12. CAMBIAR ESTADO
+// 11. CAMBIAR ESTADO
 // ============================================================
 
 async function cambiarEstadoPorId(
@@ -1934,13 +1747,17 @@ async function cambiarEstadoPorId(
   nuevoProgreso
 ) {
 
-  if (!usuarioEsAdministrador()) {
+  if (
+    !esAdmin ||
+    !auth.currentUser
+  ) {
 
     alert(
-      "Sesión de administrador no válida."
+      "Sesión de administrador requerida."
     );
 
     return;
+
   }
 
 
@@ -1975,15 +1792,6 @@ async function cambiarEstadoPorId(
     descripciones[etapaIdx];
 
 
-  const proyectoLocal =
-    proyectos.find(
-      (p) => p.id === idFirebase
-    );
-
-
-  if (!proyectoLocal) return;
-
-
   try {
 
     await db
@@ -1991,28 +1799,36 @@ async function cambiarEstadoPorId(
       .doc(idFirebase)
       .update({
 
-        estado: nuevoEstado,
+        estado:
+          nuevoEstado,
 
-        progreso: nuevoProgreso,
+        progreso:
+          nuevoProgreso,
 
-        detalles: nuevaDesc
+        detalles:
+          nuevaDesc
 
       });
 
 
-    proyectoLocal.estado =
-      nuevoEstado;
-
-    proyectoLocal.progreso =
-      nuevoProgreso;
-
-    proyectoLocal.detalles =
-      nuevaDesc;
+    const proyectoLocal =
+      proyectos.find(
+        p => p.id === idFirebase
+      );
 
 
-    await sincronizarSeguimiento(
-      proyectoLocal
-    );
+    if (proyectoLocal) {
+
+      proyectoLocal.estado =
+        nuevoEstado;
+
+      proyectoLocal.progreso =
+        nuevoProgreso;
+
+      proyectoLocal.detalles =
+        nuevaDesc;
+
+    }
 
 
     renderProyectosAdmin();
@@ -2035,20 +1851,24 @@ async function cambiarEstadoPorId(
 
 
 // ============================================================
-// 13. ELIMINAR PROYECTO
+// 12. ELIMINAR
 // ============================================================
 
 async function eliminarProyecto(
   idFirebase
 ) {
 
-  if (!usuarioEsAdministrador()) {
+  if (
+    !esAdmin ||
+    !auth.currentUser
+  ) {
 
     alert(
-      "Sesión de administrador no válida."
+      "Sesión de administrador requerida."
     );
 
     return;
+
   }
 
 
@@ -2067,11 +1887,6 @@ async function eliminarProyecto(
       .collection("proyectos")
       .doc(idFirebase)
       .delete();
-
-
-    await eliminarSeguimiento(
-      idFirebase
-    );
 
 
     await cargarProyectosDesdeNube();
@@ -2096,20 +1911,10 @@ async function eliminarProyecto(
 
 
 // ============================================================
-// 14. WHATSAPP
+// 13. WHATSAPP
 // ============================================================
 
 function notificarWhatsApp(index) {
-
-  if (!usuarioEsAdministrador()) {
-
-    alert(
-      "Sesión de administrador no válida."
-    );
-
-    return;
-  }
-
 
   const p =
     proyectos[index];
@@ -2125,6 +1930,7 @@ function notificarWhatsApp(index) {
     );
 
     return;
+
   }
 
 
@@ -2145,6 +1951,18 @@ function notificarWhatsApp(index) {
   }
 
 
+  const presupuesto =
+    Number(p.presupuesto) || 0;
+
+
+  const adelanto =
+    Number(p.adelanto) || 0;
+
+
+  const saldo =
+    presupuesto - adelanto;
+
+
   const fechaTexto =
     p.fechaEntrega
       ? p.fechaEntrega
@@ -2160,16 +1978,20 @@ function notificarWhatsApp(index) {
 
 
   const linkDirecto =
-    `${linkBase}?codigo=${encodeURIComponent(p.codigo)}`;
+    `${linkBase}?codigo=${p.codigo}`;
 
 
   const mensaje =
-
 `Hola *${p.cliente}* 👋, desde *HN Muebles* te informamos el estado de tu proyecto *"${p.mueble}"*:
 
 🛠️ *Estado:* ${p.estado}
 📊 *Progreso:* ${p.progreso}%
 📅 *Fecha Estimada de Entrega:* ${fechaTexto}
+
+💰 *Resumen Financiero:*
+• Presupuesto Total: Bs. ${formatearMonto(presupuesto)}
+• Adelanto: Bs. ${formatearMonto(adelanto)}
+• Saldo Pendiente: Bs. ${formatearMonto(saldo)}
 
 🔍 *Haz clic en el siguiente enlace para ver el estado de tu proyecto (Código: ${p.codigo}):*
 ${linkDirecto}`;
@@ -2184,69 +2006,6 @@ ${linkDirecto}`;
 
 
 // ============================================================
-// 15. ESTADO INICIAL DE AUTENTICACIÓN
+// FIN DEL SCRIPT
 // ============================================================
-
-auth.onAuthStateChanged(
-  async (user) => {
-
-    if (
-      user &&
-      user.email &&
-      user.email.toLowerCase() ===
-      EMAIL_ADMIN.toLowerCase()
-    ) {
-
-      esAdmin = true;
-
-
-      const divLogin =
-        document.getElementById(
-          "admin-login"
-        );
-
-      const divPanel =
-        document.getElementById(
-          "admin-panel"
-        );
-
-
-      if (divLogin) {
-        divLogin.classList.add(
-          "hidden"
-        );
-      }
-
-      if (divPanel) {
-        divPanel.classList.remove(
-          "hidden"
-        );
-      }
-
-
-      const btnReportes =
-        document.getElementById(
-          "btn-reportes"
-        );
-
-      if (btnReportes) {
-        btnReportes.classList.remove(
-          "hidden"
-        );
-      }
-
-
-      await cargarProyectosDesdeNube();
-
-
-    } else {
-
-      esAdmin = false;
-
-      proyectos = [];
-
-    }
-
-  }
-);
 ```
