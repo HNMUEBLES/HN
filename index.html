@@ -3,11 +3,20 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
   <title>HN Muebles | Fabricación y Diseño a Medida</title>
 
   <link rel="stylesheet" href="styles.css" />
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
-  <link href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@700;800&display=swap" rel="stylesheet">
+
+  <link
+    rel="stylesheet"
+    href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+  />
+
+  <link
+    href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@700;800&display=swap"
+    rel="stylesheet"
+  />
 
   <!-- jsPDF -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
@@ -52,9 +61,9 @@
 </header>
 
 
-<!-- =========================================================
+<!-- ============================================================
      HERO
-========================================================= -->
+============================================================ -->
 
 <section class="hero-fixed-banner">
 
@@ -110,8 +119,10 @@
         </h2>
 
         <p class="subtitle">
-          Ingresa tu código único para revisar el estado actual de tu mueble en el taller.
+          Ingresa tu código único para revisar el estado actual
+          de tu mueble en el taller.
         </p>
+
 
         <form
           id="form-buscar"
@@ -211,9 +222,9 @@
 </section>
 
 
-<!-- =========================================================
+<!-- ============================================================
      CONTENIDO
-========================================================= -->
+============================================================ -->
 
 <main class="black-content-container">
 
@@ -233,7 +244,8 @@
       </h2>
 
       <p class="subtitle">
-        Conoce los 5 pasos detallados por los que pasa tu proyecto desde el taller hasta tu hogar
+        Conoce los 5 pasos detallados por los que pasa tu proyecto
+        desde el taller hasta tu hogar
       </p>
 
 
@@ -336,10 +348,15 @@
   </section>
 
 
+  <!-- ============================================================
+       FOOTER
+  ============================================================ -->
+
   <footer class="footer">
 
     <p>
-      ¿Tienes dudas sobre tu proyecto? Contáctanos directamente:
+      ¿Tienes dudas sobre tu proyecto?
+      Contáctanos directamente:
     </p>
 
     <div class="social-buttons">
@@ -352,7 +369,6 @@
         <i class="fa-brands fa-whatsapp"></i>
         WhatsApp (+591 62037033)
       </a>
-
 
       <a
         href="https://www.instagram.com/hnmuebles/"
@@ -374,9 +390,9 @@
 </main>
 
 
-<!-- =========================================================
+<!-- ============================================================
      ADMIN
-========================================================= -->
+============================================================ -->
 
 <div
   id="modal-admin"
@@ -396,7 +412,9 @@
     </button>
 
 
-    <!-- LOGIN -->
+    <!-- ========================================================
+         LOGIN
+    ========================================================= -->
 
     <div id="admin-login">
 
@@ -453,7 +471,6 @@
           "
         />
 
-
         <input
           type="password"
           id="input-pass"
@@ -469,7 +486,6 @@
             box-sizing:border-box;
           "
         />
-
 
         <button
           type="submit"
@@ -500,12 +516,11 @@
     </div>
 
 
-    <!-- PANEL -->
+    <!-- ========================================================
+         PANEL ADMIN
+    ========================================================= -->
 
-    <div
-      id="admin-panel"
-      class="hidden"
-    >
+    <div id="admin-panel" class="hidden">
 
       <div
         style="
@@ -520,7 +535,6 @@
           <i class="fa-solid fa-sliders font-amber"></i>
           Gestión
         </h2>
-
 
         <button
           onclick="cerrarSesionAdmin()"
@@ -541,37 +555,9 @@
       </div>
 
 
-      <!-- =====================================================
-           GESTIÓN DE INGRESOS - ARRIBA
-      ====================================================== -->
-
-      <div
-        style="
-          display:flex;
-          justify-content:flex-start;
-          margin-bottom:1rem;
-        "
-      >
-
-        <button
-          type="button"
-          onclick="abrirGestionIngresos()"
-          class="btn-primary-modern"
-          style="
-            padding:8px 14px;
-            font-size:0.85rem;
-          "
-        >
-          <i class="fa-solid fa-money-bill-trend-up"></i>
-          Gestión de Ingresos
-        </button>
-
-      </div>
-
-
-      <!-- =====================================================
+      <!-- ======================================================
            NUEVO PROYECTO
-      ====================================================== -->
+      ======================================================= -->
 
       <form
         id="form-nuevo-proyecto"
@@ -595,6 +581,8 @@
         </h3>
 
 
+        <!-- CÓDIGO -->
+
         <div
           style="
             display:flex;
@@ -607,7 +595,10 @@
             type="text"
             id="nuevo-codigo"
             placeholder="Código (Ej: HN-001)"
-            style="flex:1;"
+            style="
+              flex:1;
+              box-sizing:border-box;
+            "
           />
 
           <button
@@ -625,13 +616,18 @@
         </div>
 
 
-        <!-- CAMPOS -->
+        <!-- ====================================================
+             DATOS DEL PROYECTO
+
+             MONTO Y ADELANTO SON INPUTS NORMALES
+             IGUALES A CLIENTE / MUEBLE / WHATSAPP
+        ===================================================== -->
 
         <div
           style="
             display:grid;
             grid-template-columns:1fr 1fr;
-            gap:8px;
+            gap:6px;
             margin-bottom:8px;
           "
         >
@@ -641,147 +637,86 @@
             id="nuevo-cliente"
             placeholder="Cliente"
             required
-            style="width:100%;box-sizing:border-box;"
           />
-
 
           <input
             type="text"
             id="nuevo-mueble"
             placeholder="Mueble"
             required
-            style="width:100%;box-sizing:border-box;"
           />
-
 
           <input
             type="text"
             id="nuevo-telefono"
             placeholder="WhatsApp"
-            style="width:100%;box-sizing:border-box;"
           />
 
 
-          <!-- MONTO -->
+          <!-- MONTO TOTAL -->
 
-          <div
+          <input
+            type="number"
+            id="nuevo-presupuesto"
+            placeholder="Monto total (Bs)"
+            min="0"
+            step="0.01"
             style="
-              display:flex;
-              flex-direction:column;
-              gap:3px;
-              min-width:0;
+              width:100%;
+              box-sizing:border-box;
+              background:#0a0a0a;
+              border:1px solid #333;
+              color:#fff;
+              padding:8px;
+              border-radius:8px;
             "
-          >
-
-            <label
-              for="nuevo-presupuesto"
-              style="
-                font-size:0.75rem;
-                color:#38bdf8;
-              "
-            >
-              <i class="fa-solid fa-money-bill"></i>
-              Monto total
-            </label>
-
-            <input
-              type="number"
-              id="nuevo-presupuesto"
-              placeholder="Monto total (Bs)"
-              min="0"
-              step="0.01"
-              style="
-                width:100%;
-                min-width:0;
-                box-sizing:border-box;
-              "
-            />
-
-          </div>
+          />
 
 
           <!-- ADELANTO -->
 
-          <div
+          <input
+            type="number"
+            id="nuevo-adelanto"
+            placeholder="Adelanto (Bs)"
+            min="0"
+            step="0.01"
             style="
-              display:flex;
-              flex-direction:column;
-              gap:3px;
-              min-width:0;
+              width:100%;
+              box-sizing:border-box;
+              background:#0a0a0a;
+              border:1px solid #333;
+              color:#fff;
+              padding:8px;
+              border-radius:8px;
             "
-          >
-
-            <label
-              for="nuevo-adelanto"
-              style="
-                font-size:0.75rem;
-                color:#f59e0b;
-              "
-            >
-              <i class="fa-solid fa-hand-holding-dollar"></i>
-              Adelanto
-            </label>
-
-            <input
-              type="number"
-              id="nuevo-adelanto"
-              placeholder="Adelanto (Bs)"
-              min="0"
-              step="0.01"
-              style="
-                width:100%;
-                min-width:0;
-                box-sizing:border-box;
-              "
-            />
-
-          </div>
+          />
 
 
           <!-- FECHA -->
 
-          <div
+          <input
+            type="date"
+            id="nuevo-fecha"
+            title="Seleccionar fecha de entrega"
             style="
-              display:flex;
-              flex-direction:column;
-              gap:3px;
-              min-width:0;
+              width:100%;
+              box-sizing:border-box;
+              background:#0a0a0a;
+              border:1px solid #333;
+              color:#fff;
+              padding:8px;
+              border-radius:8px;
+              cursor:pointer;
             "
-          >
-
-            <label
-              for="nuevo-fecha"
-              style="
-                font-size:0.75rem;
-                color:#a3a3a3;
-              "
-            >
-              <i class="fa-regular fa-calendar font-amber"></i>
-              Fecha de entrega
-            </label>
-
-            <input
-              type="date"
-              id="nuevo-fecha"
-              title="Seleccionar fecha de entrega"
-              style="
-                width:100%;
-                box-sizing:border-box;
-                background:#0a0a0a;
-                border:1px solid #333;
-                color:#fff;
-                padding:8px;
-                border-radius:8px;
-                cursor:pointer;
-              "
-            />
-
-          </div>
+          />
 
         </div>
 
 
-        <!-- RESUMEN -->
+        <!-- ====================================================
+             RESUMEN DE MONTOS
+        ===================================================== -->
 
         <div
           id="nuevo-resumen-montos"
@@ -899,7 +834,10 @@
       </form>
 
 
-      <!-- REGISTRADOS -->
+      <!-- ======================================================
+           REGISTRADOS + GESTIÓN INGRESOS
+           SE MANTIENE ARRIBA
+      ======================================================= -->
 
       <div
         style="
@@ -922,6 +860,20 @@
           (<span id="total-proyectos">0</span>)
         </h3>
 
+
+        <button
+          type="button"
+          onclick="abrirGestionIngresos()"
+          class="btn-primary-modern"
+          style="
+            padding:7px 12px;
+            font-size:0.82rem;
+          "
+        >
+          <i class="fa-solid fa-money-bill-trend-up"></i>
+          Gestión de Ingresos
+        </button>
+
       </div>
 
 
@@ -941,9 +893,9 @@
 </div>
 
 
-<!-- =========================================================
+<!-- ============================================================
      GESTIÓN DE INGRESOS
-========================================================= -->
+============================================================ -->
 
 <div
   id="modal-ingresos"
@@ -980,15 +932,21 @@
       <div>
 
         <h2 style="margin:0;">
-          <i class="fa-solid fa-money-bill-trend-up font-amber"></i>
+
+          <i
+            class="fa-solid fa-money-bill-trend-up font-amber"
+          ></i>
+
           Gestión de Ingresos
+
         </h2>
 
         <p
           class="subtitle"
           style="margin:5px 0 0;"
         >
-          Cada proyecto aparece automáticamente. Solo registra el total que efectivamente recibiste.
+          Cada proyecto aparece automáticamente.
+          Solo registra el total que efectivamente recibiste.
         </p>
 
       </div>
@@ -1020,7 +978,7 @@
 
         <input
           type="month"
-          id="ingresos-mes"
+          id="filtro-ingresos-mes"
           style="
             width:100%;
             box-sizing:border-box;
@@ -1051,8 +1009,11 @@
             padding:9px;
           "
         >
+
           <i class="fa-solid fa-file-pdf"></i>
+
           Exportar PDF
+
         </button>
 
       </div>
@@ -1074,8 +1035,8 @@
 
       <div
         style="
-          background:rgba(56,189,248,.06);
-          border:1px solid rgba(56,189,248,.2);
+          background:rgba(255,255,255,.04);
+          border:1px solid rgba(255,255,255,.08);
           border-radius:8px;
           padding:10px;
         "
@@ -1083,7 +1044,7 @@
 
         <div
           style="
-            color:#38bdf8;
+            color:#a3a3a3;
             font-size:.75rem;
           "
         >
@@ -1093,8 +1054,9 @@
         <strong
           id="ing-resumen-proyectos"
           style="
+            display:block;
+            margin-top:3px;
             font-size:1rem;
-            color:#fff;
           "
         >
           0
@@ -1124,8 +1086,10 @@
         <strong
           id="ing-resumen-cobrado"
           style="
-            font-size:1rem;
+            display:block;
+            margin-top:3px;
             color:#4ade80;
+            font-size:1rem;
           "
         >
           Bs. 0
@@ -1155,8 +1119,10 @@
         <strong
           id="ing-resumen-pendiente"
           style="
-            font-size:1rem;
+            display:block;
+            margin-top:3px;
             color:#ef4444;
+            font-size:1rem;
           "
         >
           Bs. 0
@@ -1174,118 +1140,90 @@
 </div>
 
 
-<!-- =========================================================
-     FUNCIONES DEL INDEX
-========================================================= -->
+<!-- ============================================================
+     FUNCIONES BÁSICAS DEL HTML
+============================================================ -->
 
 <script>
 
-function irASeccion(id) {
+  function irASeccion(id) {
 
-  const el =
-    document.getElementById(id);
+    const el =
+      document.getElementById(id);
 
-  if (el) {
+    if (el) {
 
-    el.scrollIntoView({
-      behavior:"smooth"
-    });
+      el.scrollIntoView({
+        behavior:"smooth"
+      });
 
-  }
-
-}
-
-
-function abrirModalAdmin() {
-
-  const modal =
-    document.getElementById(
-      "modal-admin"
-    );
-
-  if (modal) {
-
-    modal.classList.remove(
-      "hidden"
-    );
+    }
 
   }
 
-}
 
+  function abrirModalAdmin() {
 
-function cerrarModalAdmin() {
-
-  const modal =
-    document.getElementById(
-      "modal-admin"
-    );
-
-  if (modal) {
-
-    modal.classList.add(
-      "hidden"
-    );
+    document
+      .getElementById("modal-admin")
+      .classList
+      .remove("hidden");
 
   }
 
-}
 
+  function cerrarModalAdmin() {
 
-function cerrarGestionIngresos() {
-
-  const modal =
-    document.getElementById(
-      "modal-ingresos"
-    );
-
-  if (modal) {
-
-    modal.classList.add(
-      "hidden"
-    );
+    document
+      .getElementById("modal-admin")
+      .classList
+      .add("hidden");
 
   }
 
-}
 
+  function cerrarGestionIngresos() {
 
-function abrirGestionIngresos() {
-
-  if (!esAdmin) return;
-
-  if (
-    typeof renderGestionIngresos ===
-    "function"
-  ) {
-
-    renderGestionIngresos();
+    document
+      .getElementById("modal-ingresos")
+      .classList
+      .add("hidden");
 
   }
 
-  const modal =
-    document.getElementById(
-      "modal-ingresos"
-    );
 
-  if (modal) {
+  function abrirGestionIngresos() {
 
-    modal.classList.remove(
-      "hidden"
-    );
+    if (
+      typeof renderGestionIngresos === "function"
+    ) {
+
+      renderGestionIngresos();
+
+    }
+
+    document
+      .getElementById("modal-ingresos")
+      .classList
+      .remove("hidden");
 
   }
-
-}
 
 </script>
 
 
-<!-- FIREBASE -->
+<!-- ============================================================
+     FIREBASE
+============================================================ -->
 
 <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+
 <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
+
 <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+
+
+<!-- SCRIPT PRINCIPAL -->
 
 <script src="script.js"></script>
 
