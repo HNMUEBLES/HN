@@ -1,4 +1,3 @@
-```javascript
 // ============================================================
 // HN MUEBLES - SCRIPT PRINCIPAL
 // Firebase Authentication + Firestore
@@ -11,24 +10,49 @@
 // ============================================================
 
 const firebaseConfig = {
+
   apiKey: "AIzaSyCLrVUpGCTxFxuMR0ATlwj2t3osSP0dD7Y",
-  authDomain: "hn-muebles.firebaseapp.com",
-  projectId: "hn-muebles",
-  storageBucket: "hn-muebles.firebasestorage.app",
-  messagingSenderId: "175601256381",
-  appId: "1:175601256381:web:db2031a56faa87a02bf4d4",
-  measurementId: "G-8PJGERB67Q"
+
+  authDomain:
+    "hn-muebles.firebaseapp.com",
+
+  projectId:
+    "hn-muebles",
+
+  storageBucket:
+    "hn-muebles.firebasestorage.app",
+
+  messagingSenderId:
+    "175601256381",
+
+  appId:
+    "1:175601256381:web:db2031a56faa87a02bf4d4",
+
+  measurementId:
+    "G-8PJGERB67Q"
+
 };
+
 
 firebase.initializeApp(firebaseConfig);
 
-const db = firebase.firestore();
-const auth = firebase.auth();
 
-const EMAIL_ADMIN = "hn24muebles@gmail.com";
+const db =
+  firebase.firestore();
+
+
+const auth =
+  firebase.auth();
+
+
+const EMAIL_ADMIN =
+  "hn24muebles@gmail.com";
+
 
 let proyectos = [];
+
 let ingresos = [];
+
 let esAdmin = false;
 
 
@@ -37,11 +61,14 @@ let esAdmin = false;
 // ============================================================
 
 function formatearMonto(valor) {
-  const num = Number(valor) || 0;
+
+  const num =
+    Number(valor) || 0;
 
   return Number.isInteger(num)
     ? num.toString()
     : num.toFixed(2);
+
 }
 
 
@@ -54,25 +81,33 @@ function generarCodigoAleatorio() {
 
   for (let i = 0; i < 5; i++) {
 
-    aleatorio += caracteres.charAt(
-      Math.floor(
-        Math.random() * caracteres.length
-      )
-    );
+    aleatorio +=
+      caracteres.charAt(
+        Math.floor(
+          Math.random() *
+          caracteres.length
+        )
+      );
 
   }
 
   return `HN${aleatorio}`;
+
 }
 
 
 function llenarCodigoAutomatico() {
 
   const input =
-    document.getElementById("nuevo-codigo");
+    document.getElementById(
+      "nuevo-codigo"
+    );
 
   if (input) {
-    input.value = generarCodigoAleatorio();
+
+    input.value =
+      generarCodigoAleatorio();
+
   }
 
 }
@@ -94,10 +129,14 @@ function copiarCodigoAlPortapapeles(codigo) {
         const textoOriginal =
           boton.innerText;
 
-        boton.innerText = "Copiado ✓";
+        boton.innerText =
+          "Copiado ✓";
 
         setTimeout(() => {
-          boton.innerText = textoOriginal;
+
+          boton.innerText =
+            textoOriginal;
+
         }, 1200);
 
       }
@@ -129,51 +168,89 @@ function irInicio() {
 // 3. AUTENTICACIÓN
 // ============================================================
 
-auth.onAuthStateChanged(async (user) => {
+auth.onAuthStateChanged(
+  async (user) => {
 
-  console.log(
-    "Estado Firebase Auth:",
-    user ? user.email : "SIN SESIÓN"
-  );
-
-
-  if (!user) {
-
-    esAdmin = false;
-
-    ocultarPanelAdministrador();
-
-    return;
-  }
+    console.log(
+      "CAMBIO DE AUTENTICACIÓN:",
+      user
+    );
 
 
-  const correoUsuario =
-    (user.email || "").trim().toLowerCase();
+    if (!user) {
 
-  const correoAdmin =
-    EMAIL_ADMIN.trim().toLowerCase();
+      esAdmin = false;
 
+      ocultarPanelAdministrador();
 
-  console.log(
-    "Correo conectado:",
-    correoUsuario
-  );
+      return;
 
-  console.log(
-    "Correo administrador:",
-    correoAdmin
-  );
+    }
 
 
-  // ==========================================================
-  // VALIDACIÓN DEL ADMINISTRADOR
-  // ==========================================================
+    console.log(
+      "Usuario conectado:",
+      user.email
+    );
 
-  if (correoUsuario === correoAdmin) {
+
+    /*
+      IMPORTANTE:
+
+      Firebase ya comprobó el correo y contraseña.
+
+      Dejamos el control de seguridad real
+      en las Rules de Firestore.
+
+      Aquí solamente verificamos el correo
+      para mostrar el panel.
+    */
+
+    const emailUsuario =
+      (user.email || "")
+        .trim()
+        .toLowerCase();
+
+
+    const emailAdmin =
+      EMAIL_ADMIN
+        .trim()
+        .toLowerCase();
+
+
+    if (
+      emailUsuario !==
+      emailAdmin
+    ) {
+
+      console.warn(
+        "Cuenta autenticada pero no es administrador:",
+        user.email
+      );
+
+      esAdmin = false;
+
+      ocultarPanelAdministrador();
+
+      return;
+
+    }
+
+
+    // ========================================================
+    // ADMINISTRADOR CORRECTO
+    // ========================================================
 
     esAdmin = true;
 
+
+    console.log(
+      "ADMINISTRADOR AUTORIZADO"
+    );
+
+
     mostrarPanelAdministrador();
+
 
     try {
 
@@ -181,49 +258,25 @@ auth.onAuthStateChanged(async (user) => {
 
       await cargarIngresosDesdeNube();
 
+
       renderProyectosAdmin();
 
       renderGestionIngresos();
+
 
     }
 
     catch (error) {
 
       console.error(
-        "Error cargando datos del administrador:",
+        "Error cargando panel:",
         error
       );
 
     }
 
-    return;
   }
-
-
-  // ==========================================================
-  // CUENTA NO AUTORIZADA
-  // ==========================================================
-
-  console.warn(
-    "Usuario autenticado pero no autorizado:",
-    user.email
-  );
-
-  esAdmin = false;
-
-  ocultarPanelAdministrador();
-
-  try {
-    await auth.signOut();
-  }
-  catch (error) {
-    console.error(
-      "Error cerrando sesión no autorizada:",
-      error
-    );
-  }
-
-});
+);
 
 
 // ============================================================
@@ -233,19 +286,31 @@ auth.onAuthStateChanged(async (user) => {
 function mostrarPanelAdministrador() {
 
   const login =
-    document.getElementById("admin-login");
+    document.getElementById(
+      "admin-login"
+    );
 
   const panel =
-    document.getElementById("admin-panel");
+    document.getElementById(
+      "admin-panel"
+    );
 
 
   if (login) {
-    login.classList.add("hidden");
+
+    login.classList.add(
+      "hidden"
+    );
+
   }
 
 
   if (panel) {
-    panel.classList.remove("hidden");
+
+    panel.classList.remove(
+      "hidden"
+    );
+
   }
 
 }
@@ -254,19 +319,31 @@ function mostrarPanelAdministrador() {
 function ocultarPanelAdministrador() {
 
   const login =
-    document.getElementById("admin-login");
+    document.getElementById(
+      "admin-login"
+    );
 
   const panel =
-    document.getElementById("admin-panel");
+    document.getElementById(
+      "admin-panel"
+    );
 
 
   if (panel) {
-    panel.classList.add("hidden");
+
+    panel.classList.add(
+      "hidden"
+    );
+
   }
 
 
   if (login) {
-    login.classList.remove("hidden");
+
+    login.classList.remove(
+      "hidden"
+    );
+
   }
 
 }
@@ -280,8 +357,15 @@ document.addEventListener(
   "DOMContentLoaded",
   function () {
 
+
+    // ========================================================
+    // FORMULARIO LOGIN
+    // ========================================================
+
     const formLogin =
-      document.getElementById("form-login");
+      document.getElementById(
+        "form-login"
+      );
 
 
     if (formLogin) {
@@ -293,18 +377,16 @@ document.addEventListener(
           e.preventDefault();
 
 
-          const email =
-            document
-              .getElementById("input-email")
-              ?.value
-              .trim()
-              .toLowerCase();
+          const emailInput =
+            document.getElementById(
+              "input-email"
+            );
 
 
-          const password =
-            document
-              .getElementById("input-pass")
-              ?.value;
+          const passwordInput =
+            document.getElementById(
+              "input-pass"
+            );
 
 
           const errorMsg =
@@ -313,11 +395,31 @@ document.addEventListener(
             );
 
 
+          const boton =
+            formLogin.querySelector(
+              'button[type="submit"]'
+            );
+
+
+          const email =
+            emailInput?.value
+              .trim()
+              .toLowerCase();
+
+
+          const password =
+            passwordInput?.value
+              || "";
+
+
           if (errorMsg) {
 
-            errorMsg.classList.add("hidden");
+            errorMsg.textContent =
+              "";
 
-            errorMsg.textContent = "";
+            errorMsg.classList.add(
+              "hidden"
+            );
 
           }
 
@@ -336,10 +438,25 @@ document.addEventListener(
             }
 
             return;
+
           }
 
 
           try {
+
+            if (boton) {
+
+              boton.disabled =
+                true;
+
+              boton.dataset.textoOriginal =
+                boton.innerText;
+
+              boton.innerText =
+                "Ingresando...";
+
+            }
+
 
             console.log(
               "Intentando iniciar sesión con:",
@@ -347,9 +464,9 @@ document.addEventListener(
             );
 
 
-            // ==================================================
-            // LOGIN FIREBASE
-            // ==================================================
+            /*
+              LOGIN DIRECTO CON FIREBASE
+            */
 
             const resultado =
               await auth.signInWithEmailAndPassword(
@@ -358,75 +475,26 @@ document.addEventListener(
               );
 
 
-            const usuario =
-              resultado.user;
-
-
             console.log(
-              "Login Firebase correcto:",
-              usuario.email
+              "LOGIN FIREBASE EXITOSO:",
+              resultado.user.email
             );
 
 
-            // ==================================================
-            // VERIFICAR ADMIN
-            // ==================================================
+            /*
+              No hacemos signOut aquí.
 
-            const correoUsuario =
-              (usuario.email || "")
-                .trim()
-                .toLowerCase();
+              Dejamos que onAuthStateChanged()
+              se encargue de mostrar el administrador.
+            */
 
 
-            const correoAdmin =
-              EMAIL_ADMIN
-                .trim()
-                .toLowerCase();
+            if (passwordInput) {
 
-
-            if (
-              correoUsuario !==
-              correoAdmin
-            ) {
-
-              await auth.signOut();
-
-              throw new Error(
-                "NO_AUTORIZADO"
-              );
+              passwordInput.value =
+                "";
 
             }
-
-
-            // ==================================================
-            // ADMIN CORRECTO
-            // ==================================================
-
-            esAdmin = true;
-
-            mostrarPanelAdministrador();
-
-
-            const passInput =
-              document.getElementById(
-                "input-pass"
-              );
-
-
-            if (passInput) {
-              passInput.value = "";
-            }
-
-
-            // Cargar información
-
-            await cargarProyectosDesdeNube();
-
-            await cargarIngresosDesdeNube();
-
-            renderProyectosAdmin();
-
-            renderGestionIngresos();
 
 
           }
@@ -434,20 +502,9 @@ document.addEventListener(
           catch (error) {
 
             console.error(
-              "ERROR COMPLETO LOGIN:",
+              "ERROR COMPLETO DE FIREBASE LOGIN:",
               error
             );
-
-
-            const passInput =
-              document.getElementById(
-                "input-pass"
-              );
-
-
-            if (passInput) {
-              passInput.value = "";
-            }
 
 
             let mensaje =
@@ -464,10 +521,10 @@ document.addEventListener(
                 break;
 
 
-              case "auth/invalid-login-credentials":
+              case "auth/wrong-password":
 
                 mensaje =
-                  "Correo o contraseña incorrectos.";
+                  "La contraseña es incorrecta.";
 
                 break;
 
@@ -480,18 +537,18 @@ document.addEventListener(
                 break;
 
 
-              case "auth/wrong-password":
-
-                mensaje =
-                  "La contraseña es incorrecta.";
-
-                break;
-
-
               case "auth/invalid-email":
 
                 mensaje =
                   "El correo electrónico no es válido.";
+
+                break;
+
+
+              case "auth/user-disabled":
+
+                mensaje =
+                  "Esta cuenta está deshabilitada en Firebase.";
 
                 break;
 
@@ -504,18 +561,10 @@ document.addEventListener(
                 break;
 
 
-              case "auth/user-disabled":
-
-                mensaje =
-                  "Esta cuenta de administrador está deshabilitada.";
-
-                break;
-
-
               case "auth/network-request-failed":
 
                 mensaje =
-                  "No hay conexión con Firebase. Revisa tu internet.";
+                  "No hay conexión con Firebase. Revisa tu Internet.";
 
                 break;
 
@@ -523,28 +572,17 @@ document.addEventListener(
               case "auth/operation-not-allowed":
 
                 mensaje =
-                  "El inicio de sesión por correo y contraseña no está habilitado en Firebase.";
+                  "El acceso con correo y contraseña no está habilitado en Firebase Authentication.";
 
                 break;
 
 
-              case "auth/api-key-not-valid.-please-pass-a-valid-api-key.":
+              default:
 
                 mensaje =
-                  "La configuración de Firebase no es válida.";
-
-                break;
-
-            }
-
-
-            if (
-              error.message ===
-              "NO_AUTORIZADO"
-            ) {
-
-              mensaje =
-                "Esta cuenta no tiene permisos de administrador.";
+                  `Error de acceso: ${
+                    error.message || error.code || "desconocido"
+                  }`;
 
             }
 
@@ -557,6 +595,21 @@ document.addEventListener(
               errorMsg.classList.remove(
                 "hidden"
               );
+
+            }
+
+          }
+
+          finally {
+
+            if (boton) {
+
+              boton.disabled =
+                false;
+
+              boton.innerText =
+                boton.dataset.textoOriginal
+                || "Ingresar";
 
             }
 
@@ -588,9 +641,9 @@ document.addEventListener(
 
 
           const codigo =
-            document
-              .getElementById("input-codigo")
-              ?.value
+            document.getElementById(
+              "input-codigo"
+            )?.value
               .trim()
               .toUpperCase();
 
@@ -740,9 +793,9 @@ document.addEventListener(
 
 
           const codigo =
-            document
-              .getElementById("nuevo-codigo")
-              ?.value
+            document.getElementById(
+              "nuevo-codigo"
+            )?.value
               .trim()
               .toUpperCase()
             ||
@@ -750,71 +803,75 @@ document.addEventListener(
 
 
           const cliente =
-            document
-              .getElementById("nuevo-cliente")
-              ?.value
-              .trim()
+            document.getElementById(
+              "nuevo-cliente"
+            )?.value.trim()
             || "";
 
 
           const mueble =
-            document
-              .getElementById("nuevo-mueble")
-              ?.value
-              .trim()
+            document.getElementById(
+              "nuevo-mueble"
+            )?.value.trim()
             || "";
 
 
           const telefono =
-            document
-              .getElementById("nuevo-telefono")
-              ?.value
-              .trim()
+            document.getElementById(
+              "nuevo-telefono"
+            )?.value.trim()
             || "";
 
 
           const presupuesto =
             Number(
-              document
-                .getElementById("nuevo-presupuesto")
-                ?.value
+              document.getElementById(
+                "nuevo-presupuesto"
+              )?.value
             ) || 0;
 
 
           const adelanto =
             Number(
-              document
-                .getElementById("nuevo-adelanto")
-                ?.value
+              document.getElementById(
+                "nuevo-adelanto"
+              )?.value
             ) || 0;
 
 
           const fechaEntrega =
-            document
-              .getElementById("nuevo-fecha")
-              ?.value
+            document.getElementById(
+              "nuevo-fecha"
+            )?.value
             || "";
 
 
           const pendiente =
             Math.max(
-              presupuesto - adelanto,
+              presupuesto -
+              adelanto,
               0
             );
 
 
           const proyectoRef =
-            db.collection("proyectos").doc();
+            db
+              .collection("proyectos")
+              .doc();
 
 
           const ingresoRef =
-            db.collection("ingresos").doc();
+            db
+              .collection("ingresos")
+              .doc();
 
 
           const publicoRef =
             db
               .collection("proyectos_publicos")
-              .doc(proyectoRef.id);
+              .doc(
+                proyectoRef.id
+              );
 
 
           const proyecto = {
@@ -972,6 +1029,7 @@ document.addEventListener(
             await cargarProyectosDesdeNube();
 
             await cargarIngresosDesdeNube();
+
 
             renderProyectosAdmin();
 
@@ -1592,8 +1650,6 @@ function renderProyectosAdmin() {
                     padding:11px 13px;
                     border-radius:9px;
                     font-size:.82rem;
-                    cursor:default;
-                    user-select:none;
                     min-height:58px;
                     box-sizing:border-box;
                     display:flex;
@@ -1632,8 +1688,6 @@ function renderProyectosAdmin() {
                     padding:11px 13px;
                     border-radius:9px;
                     font-size:.82rem;
-                    cursor:default;
-                    user-select:none;
                     min-height:58px;
                     box-sizing:border-box;
                     display:flex;
@@ -1672,8 +1726,6 @@ function renderProyectosAdmin() {
                     padding:11px 13px;
                     border-radius:9px;
                     font-size:.82rem;
-                    cursor:default;
-                    user-select:none;
                     min-height:58px;
                     box-sizing:border-box;
                     display:flex;
@@ -1783,7 +1835,9 @@ function renderProyectosAdmin() {
       `;
 
 
-      container.appendChild(card);
+      container.appendChild(
+        card
+      );
 
     }
   );
@@ -2019,6 +2073,7 @@ async function eliminarProyecto(
     await cargarProyectosDesdeNube();
 
     await cargarIngresosDesdeNube();
+
 
     renderProyectosAdmin();
 
@@ -2259,7 +2314,8 @@ async function guardarEdicionInline(
 
         adelanto,
 
-        fechaEntrega: fecha
+        fechaEntrega:
+          fecha
 
       });
 
@@ -2350,7 +2406,8 @@ async function guardarEdicionInline(
 
         mueble,
 
-        fechaEntrega: fecha
+        fechaEntrega:
+          fecha
 
       });
 
@@ -2360,6 +2417,7 @@ async function guardarEdicionInline(
     await cargarProyectosDesdeNube();
 
     await cargarIngresosDesdeNube();
+
 
     renderProyectosAdmin();
 
@@ -2662,8 +2720,6 @@ function renderGestionIngresos() {
               border-radius:6px;
               padding:6px;
               font-size:.72rem;
-              cursor:default;
-              user-select:none;
             "
           >
             Adelanto
@@ -2685,8 +2741,6 @@ function renderGestionIngresos() {
               border-radius:6px;
               padding:6px;
               font-size:.72rem;
-              cursor:default;
-              user-select:none;
             "
           >
             Cobrado
@@ -2708,8 +2762,6 @@ function renderGestionIngresos() {
               border-radius:6px;
               padding:6px;
               font-size:.72rem;
-              cursor:default;
-              user-select:none;
             "
           >
             Pendiente
@@ -3329,4 +3381,3 @@ ${link}`;
   );
 
 }
-```
