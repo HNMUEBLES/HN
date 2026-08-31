@@ -21,573 +21,541 @@
 
 <body>
 
-  <!-- =========================================================
-       NAVBAR
-  ========================================================== -->
-
-  <header class="navbar">
-
-    <div
-      class="logo-container"
-      onclick="window.scrollTo({top: 0, behavior: 'smooth'})"
-    >
-      <img
-        src="assets/logo.png"
-        alt="HN Muebles Logo"
-        class="logo-img"
-        onerror="this.style.display='none'"
-      />
-    </div>
-
-    <nav class="nav-links">
-
-      <button
-        onclick="window.scrollTo({top: 0, behavior: 'smooth'})"
-        class="active"
-      >
-        Inicio
-      </button>
-
-      <button onclick="irASeccion('sec-ruta-explicativa')">
-        Ruta de Seguimiento
-      </button>
-
-      <button onclick="abrirModalAdmin()">
-        <i class="fa-solid fa-lock"></i>
-        Admin
-      </button>
-
-    </nav>
-
-  </header>
-
-
-  <!-- =========================================================
-       HERO
-  ========================================================== -->
-
-  <section class="hero-fixed-banner">
-
-    <div class="hero-split-container">
-
-      <!-- INFORMACIÓN HN MUEBLES -->
-
-      <div class="hero-about-col">
-
-        <h1 class="hero-title-big">
-          HN MUEBLES
-        </h1>
-
-        <p
-          class="about-text"
-          style="
-            font-size:1.15rem;
-            line-height:1.6;
-            margin-top:0.8rem;
-            margin-bottom:1.5rem;
-          "
-        >
-          Diseñamos y fabricamos muebles a medida para transformar tus espacios.
-          Creamos cada proyecto de forma personalizada, combinando diseño,
-          funcionalidad y calidad en cada detalle.
-        </p>
-
-        <div class="hero-highlights">
-
-          <span>
-            <i class="fa-solid fa-circle-check font-amber"></i>
-            Melamina premium
-          </span>
-
-          <span>
-            <i class="fa-solid fa-circle-check font-amber"></i>
-            Diseños personalizados
-          </span>
-
-        </div>
-
-      </div>
-
-
-      <!-- SEGUIMIENTO -->
-
-      <div class="hero-tracking-col">
-
-        <div class="modern-tracking-card">
-
-          <div class="card-icon-header">
-            <i class="fa-solid fa-box-open font-amber"></i>
-          </div>
-
-          <h2>
-            Seguimiento de Pedido
-          </h2>
-
-          <p class="subtitle">
-            Ingresa tu código único para revisar el estado actual de tu mueble en el taller.
-          </p>
-
-          <form
-            id="form-buscar"
-            class="search-form-modern"
-          >
-
-            <div class="input-wrapper">
-
-              <i class="fa-solid fa-magnifying-glass"></i>
-
-              <input
-                type="text"
-                id="input-codigo"
-                placeholder="Ej: HN-001"
-                required
-              />
-
-            </div>
-
-            <button
-              type="submit"
-              class="btn-primary-modern"
-            >
-              Consultar Estado
-            </button>
-
-          </form>
-
-
-          <div
-            id="mensaje-error"
-            class="error-msg hidden"
-          >
-            <i class="fa-solid fa-circle-exclamation"></i>
-            No se encontró ningún proyecto con ese código.
-          </div>
-
-
-          <div
-            id="resultado-proyecto"
-            class="hidden result-box-modern"
-          >
-
-            <div>
-
-              <span
-                id="res-codigo"
-                class="badge"
-              ></span>
-
-              <h3
-                id="res-mueble"
-                style="
-                  font-size:1.1rem;
-                  margin-top:6px;
-                  color:#fff;
-                "
-              ></h3>
-
-              <p
-                id="res-cliente"
-                style="
-                  font-size:0.85rem;
-                  color:#a3a3a3;
-                "
-              ></p>
-
-            </div>
-
-
-            <div class="result-status-row">
-
-              <span>
-                Estado:
-                <strong
-                  id="res-estado"
-                  class="font-amber"
-                ></strong>
-              </span>
-
-              <span class="progress-pill">
-
-                <strong id="res-porcentaje">
-                  0%
-                </strong>
-
-              </span>
-
-            </div>
-
-          </div>
-
-        </div>
-
-      </div>
-
-    </div>
-
-  </section>
-
-
-  <!-- =========================================================
-       CONTENIDO
-  ========================================================== -->
-
-  <main class="black-content-container">
-
-    <section
-      id="sec-ruta-explicativa"
-      class="content-section"
-    >
-
-      <div
-        class="section-inner"
-        style="max-width:1050px;"
-      >
-
-        <h2>
-
-          <i class="fa-solid fa-route font-amber"></i>
-
-          ¿Cómo es la Ruta de tu Mueble?
-
-        </h2>
-
-        <p class="subtitle">
-          Conoce los 5 pasos detallados por los que pasa tu proyecto
-          desde el taller hasta tu hogar
-        </p>
-
-
-        <div class="steps-grid-5">
-
-          <div class="step-box">
-
-            <div class="step-icon">
-              <i class="fa-solid fa-file-signature"></i>
-            </div>
-
-            <div class="step-title">
-              1. Diseño Aprobado
-            </div>
-
-            <div class="step-desc">
-              Validación de medidas, planos y visto bueno del cliente.
-            </div>
-
-          </div>
-
-
-          <div class="step-box">
-
-            <div class="step-icon">
-              <i class="fa-solid fa-scissors"></i>
-            </div>
-
-            <div class="step-title">
-              2. Corte
-            </div>
-
-            <div class="step-desc">
-              Optimización y corte exacto de los tableros de melamina.
-            </div>
-
-          </div>
-
-
-          <div class="step-box">
-
-            <div class="step-icon">
-              <i class="fa-solid fa-hammer"></i>
-            </div>
-
-            <div class="step-title">
-              3. Armado
-            </div>
-
-            <div class="step-desc">
-              Ensamblaje estructural del mueble y colocación de cantos.
-            </div>
-
-          </div>
-
-
-          <div class="step-box">
-
-            <div class="step-icon">
-              <i class="fa-solid fa-truck-fast"></i>
-            </div>
-
-            <div class="step-title">
-              4. Instalación
-            </div>
-
-            <div class="step-desc">
-              Traslado y montaje profesional en el domicilio del cliente.
-            </div>
-
-          </div>
-
-
-          <div
-            class="step-box"
-            style="border-color:rgba(16,185,129,0.4);"
-          >
-
-            <div
-              class="step-icon"
-              style="color:#10b981;"
-            >
-              <i class="fa-solid fa-circle-check"></i>
-            </div>
-
-            <div class="step-title">
-              5. Finalizado
-            </div>
-
-            <div class="step-desc">
-              Proyecto entregado con total satisfacción y listo para usarse.
-            </div>
-
-          </div>
-
-        </div>
-
-      </div>
-
-    </section>
-
-
-    <!-- =======================================================
-         FOOTER
-    ======================================================== -->
-
-    <footer class="footer">
-
-      <p>
-        ¿Tienes dudas sobre tu proyecto?
-        Contáctanos directamente:
-      </p>
-
-      <div class="social-buttons">
-
-        <a
-          href="https://wa.me/59162037033?text=Hola%20HN%20Muebles"
-          target="_blank"
-          class="btn-social btn-wa"
-        >
-          <i class="fa-brands fa-whatsapp"></i>
-          WhatsApp (+591 62037033)
-        </a>
-
-        <a
-          href="https://www.instagram.com/hnmuebles/"
-          target="_blank"
-          class="btn-social btn-ig"
-        >
-          <i class="fa-brands fa-instagram"></i>
-          Instagram (@hnmuebles)
-        </a>
-
-      </div>
-
-      <p class="copyright">
-        © 2026 HN Muebles. Todos los derechos reservados.
-      </p>
-
-    </footer>
-
-  </main>
-
-
-  <!-- =========================================================
-       MODAL ADMIN
-  ========================================================== -->
+<!-- =========================================================
+     NAVBAR
+========================================================= -->
+
+<header class="navbar">
 
   <div
-    id="modal-admin"
-    class="modal-overlay hidden"
+    class="logo-container"
+    onclick="window.scrollTo({top:0,behavior:'smooth'})"
   >
+    <img
+      src="assets/logo.png"
+      alt="HN Muebles Logo"
+      class="logo-img"
+      onerror="this.style.display='none'"
+    />
+  </div>
 
-    <div class="modal-box">
+  <nav class="nav-links">
 
-      <button
-        class="modal-close"
-        onclick="cerrarModalAdmin()"
+    <button onclick="window.scrollTo({top:0,behavior:'smooth'})">
+      Inicio
+    </button>
+
+    <button onclick="irASeccion('sec-ruta-explicativa')">
+      Ruta de Seguimiento
+    </button>
+
+    <button onclick="abrirModalAdmin()">
+      <i class="fa-solid fa-lock"></i>
+      Admin
+    </button>
+
+  </nav>
+
+</header>
+
+
+<!-- =========================================================
+     HERO
+========================================================= -->
+
+<section class="hero-fixed-banner">
+
+  <div class="hero-split-container">
+
+    <div class="hero-about-col">
+
+      <h1 class="hero-title-big">
+        HN MUEBLES
+      </h1>
+
+      <p
+        class="about-text"
+        style="font-size:1.15rem;line-height:1.6;margin-top:.8rem;margin-bottom:1.5rem;"
       >
-        &times;
-      </button>
+        Diseñamos y fabricamos muebles a medida para transformar tus espacios.
+        Creamos cada proyecto de forma personalizada, combinando diseño,
+        funcionalidad y calidad en cada detalle.
+      </p>
+
+      <div class="hero-highlights">
+
+        <span>
+          <i class="fa-solid fa-circle-check font-amber"></i>
+          Melamina premium
+        </span>
+
+        <span>
+          <i class="fa-solid fa-circle-check font-amber"></i>
+          Diseños personalizados
+        </span>
+
+      </div>
+
+    </div>
 
 
-      <!-- =====================================================
-           LOGIN
-      ====================================================== -->
+    <!-- SEGUIMIENTO -->
 
-      <div id="admin-login">
+    <div class="hero-tracking-col">
 
-        <i
-          class="fa-solid fa-lock font-amber"
-          style="
-            font-size:2rem;
-            margin-bottom:0.5rem;
-            display:block;
-            text-align:center;
-          "
-        ></i>
+      <div class="modern-tracking-card">
 
-        <h2
-          style="
-            text-align:center;
-            margin-bottom:0.5rem;
-          "
-        >
-          Panel Administrador
-        </h2>
+        <div class="card-icon-header">
+          <i class="fa-solid fa-box-open font-amber"></i>
+        </div>
 
-        <p
-          class="subtitle"
-          style="text-align:center;"
-        >
-          Ingresa tus credenciales seguras
+        <h2>Seguimiento de Pedido</h2>
+
+        <p class="subtitle">
+          Ingresa tu código único para revisar el estado actual de tu mueble.
         </p>
 
-
         <form
-          id="form-login"
-          class="login-form"
-          style="
-            display:flex;
-            gap:10px;
-            flex-direction:column;
-          "
+          id="form-buscar"
+          class="search-form-modern"
         >
 
-          <input
-            type="email"
-            id="input-email"
-            placeholder="Correo electrónico..."
-            required
-            style="
-              width:100%;
-              padding:10px;
-              background:#0a0a0a;
-              border:1px solid #333;
-              color:#fff;
-              border-radius:8px;
-            "
-          />
+          <div class="input-wrapper">
 
-          <input
-            type="password"
-            id="input-pass"
-            placeholder="Contraseña..."
-            required
-            style="
-              width:100%;
-              padding:10px;
-              background:#0a0a0a;
-              border:1px solid #333;
-              color:#fff;
-              border-radius:8px;
-            "
-          />
+            <i class="fa-solid fa-magnifying-glass"></i>
+
+            <input
+              type="text"
+              id="input-codigo"
+              placeholder="Ej: HN-001"
+              required
+            />
+
+          </div>
 
           <button
             type="submit"
             class="btn-primary-modern"
-            style="
-              width:100%;
-              border-radius:8px;
-              padding:0.75rem;
-            "
           >
-            Iniciar Sesión
+            Consultar Estado
           </button>
 
         </form>
 
 
         <div
-          id="login-error-msg"
-          class="hidden"
-          style="
-            color:#ef4444;
-            font-size:0.85rem;
-            text-align:center;
-            margin-top:8px;
-          "
-        ></div>
+          id="mensaje-error"
+          class="error-msg hidden"
+        >
+          <i class="fa-solid fa-circle-exclamation"></i>
+          No se encontró ningún proyecto con ese código.
+        </div>
+
+
+        <div
+          id="resultado-proyecto"
+          class="hidden result-box-modern"
+        >
+
+          <div>
+
+            <span
+              id="res-codigo"
+              class="badge"
+            ></span>
+
+            <h3
+              id="res-mueble"
+              style="font-size:1.1rem;margin-top:6px;color:#fff;"
+            ></h3>
+
+            <p
+              id="res-cliente"
+              style="font-size:.85rem;color:#a3a3a3;"
+            ></p>
+
+          </div>
+
+          <div class="result-status-row">
+
+            <span>
+              Estado:
+              <strong
+                id="res-estado"
+                class="font-amber"
+              ></strong>
+            </span>
+
+            <span class="progress-pill">
+
+              <strong id="res-porcentaje">
+                0%
+              </strong>
+
+            </span>
+
+          </div>
+
+        </div>
+
+      </div>
+
+    </div>
+
+  </div>
+
+</section>
+
+
+<!-- =========================================================
+     RUTA
+========================================================= -->
+
+<main class="black-content-container">
+
+<section
+  id="sec-ruta-explicativa"
+  class="content-section"
+>
+
+  <div
+    class="section-inner"
+    style="max-width:1050px;"
+  >
+
+    <h2>
+
+      <i class="fa-solid fa-route font-amber"></i>
+
+      ¿Cómo es la Ruta de tu Mueble?
+
+    </h2>
+
+    <p class="subtitle">
+      Conoce los 5 pasos detallados por los que pasa tu proyecto
+      desde el taller hasta tu hogar.
+    </p>
+
+
+    <div class="steps-grid-5">
+
+      <div class="step-box">
+
+        <div class="step-icon">
+          <i class="fa-solid fa-file-signature"></i>
+        </div>
+
+        <div class="step-title">
+          1. Diseño Aprobado
+        </div>
+
+        <div class="step-desc">
+          Validación de medidas, planos y visto bueno del cliente.
+        </div>
 
       </div>
 
 
-      <!-- =====================================================
-           PANEL ADMINISTRADOR
-      ====================================================== -->
+      <div class="step-box">
+
+        <div class="step-icon">
+          <i class="fa-solid fa-scissors"></i>
+        </div>
+
+        <div class="step-title">
+          2. Corte
+        </div>
+
+        <div class="step-desc">
+          Optimización y corte exacto de los tableros de melamina.
+        </div>
+
+      </div>
+
+
+      <div class="step-box">
+
+        <div class="step-icon">
+          <i class="fa-solid fa-hammer"></i>
+        </div>
+
+        <div class="step-title">
+          3. Armado
+        </div>
+
+        <div class="step-desc">
+          Ensamblaje estructural del mueble y colocación de cantos.
+        </div>
+
+      </div>
+
+
+      <div class="step-box">
+
+        <div class="step-icon">
+          <i class="fa-solid fa-truck-fast"></i>
+        </div>
+
+        <div class="step-title">
+          4. Instalación
+        </div>
+
+        <div class="step-desc">
+          Traslado y montaje profesional en el domicilio del cliente.
+        </div>
+
+      </div>
+
 
       <div
-        id="admin-panel"
-        class="hidden"
+        class="step-box"
+        style="border-color:rgba(16,185,129,.4);"
       >
 
         <div
-          style="
-            display:flex;
-            justify-content:space-between;
-            align-items:center;
-            margin-bottom:1rem;
-          "
+          class="step-icon"
+          style="color:#10b981;"
         >
-
-          <h2 style="margin:0;">
-
-            <i class="fa-solid fa-sliders font-amber"></i>
-
-            Gestión
-
-          </h2>
-
-
-          <button
-            onclick="cerrarSesionAdmin()"
-            style="
-              background:transparent;
-              border:1px solid #ef4444;
-              color:#ef4444;
-              padding:4px 8px;
-              border-radius:6px;
-              cursor:pointer;
-              font-size:0.8rem;
-            "
-          >
-
-            <i class="fa-solid fa-right-from-bracket"></i>
-
-            Salir
-
-          </button>
-
+          <i class="fa-solid fa-circle-check"></i>
         </div>
 
+        <div class="step-title">
+          5. Finalizado
+        </div>
 
-        <!-- ===================================================
-             NUEVO PROYECTO
-        ==================================================== -->
+        <div class="step-desc">
+          Proyecto entregado con total satisfacción y listo para usarse.
+        </div>
+
+      </div>
+
+    </div>
+
+  </div>
+
+</section>
+
+
+<!-- =========================================================
+     FOOTER
+========================================================= -->
+
+<footer class="footer">
+
+  <p>
+    ¿Tienes dudas sobre tu proyecto? Contáctanos directamente:
+  </p>
+
+  <div class="social-buttons">
+
+    <a
+      href="https://wa.me/59162037033?text=Hola%20HN%20Muebles"
+      target="_blank"
+      class="btn-social btn-wa"
+    >
+      <i class="fa-brands fa-whatsapp"></i>
+      WhatsApp (+591 62037033)
+    </a>
+
+
+    <a
+      href="https://www.instagram.com/hnmuebles/"
+      target="_blank"
+      class="btn-social btn-ig"
+    >
+      <i class="fa-brands fa-instagram"></i>
+      Instagram (@hnmuebles)
+    </a>
+
+  </div>
+
+  <p class="copyright">
+    © 2026 HN Muebles. Todos los derechos reservados.
+  </p>
+
+</footer>
+
+</main>
+
+
+<!-- =========================================================
+     MODAL ADMINISTRADOR
+========================================================= -->
+
+<div
+  id="modal-admin"
+  class="modal-overlay hidden"
+>
+
+  <div class="modal-box">
+
+    <button
+      class="modal-close"
+      onclick="cerrarModalAdmin()"
+    >
+      &times;
+    </button>
+
+
+    <!-- =====================================================
+         LOGIN
+    ====================================================== -->
+
+    <div id="admin-login">
+
+      <i
+        class="fa-solid fa-lock font-amber"
+        style="font-size:2rem;margin-bottom:.5rem;display:block;text-align:center;"
+      ></i>
+
+      <h2 style="text-align:center;margin-bottom:.5rem;">
+        Panel Administrador
+      </h2>
+
+      <p
+        class="subtitle"
+        style="text-align:center;"
+      >
+        Ingresa tus credenciales seguras
+      </p>
+
+
+      <form
+        id="form-login"
+        class="login-form"
+        style="display:flex;gap:10px;flex-direction:column;"
+      >
+
+        <input
+          type="email"
+          id="input-email"
+          placeholder="Correo electrónico..."
+          required
+          style="width:100%;padding:10px;background:#0a0a0a;border:1px solid #333;color:#fff;border-radius:8px;"
+        />
+
+        <input
+          type="password"
+          id="input-pass"
+          placeholder="Contraseña..."
+          required
+          style="width:100%;padding:10px;background:#0a0a0a;border:1px solid #333;color:#fff;border-radius:8px;"
+        />
+
+        <button
+          type="submit"
+          class="btn-primary-modern"
+          style="width:100%;border-radius:8px;padding:.75rem;"
+        >
+          Iniciar Sesión
+        </button>
+
+      </form>
+
+
+      <div
+        id="login-error-msg"
+        class="hidden"
+        style="color:#ef4444;font-size:.85rem;text-align:center;margin-top:8px;"
+      ></div>
+
+    </div>
+
+
+    <!-- =====================================================
+         PANEL PRINCIPAL ADMIN
+    ====================================================== -->
+
+    <div
+      id="admin-panel"
+      class="hidden"
+    >
+
+      <div
+        style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem;"
+      >
+
+        <h2 style="margin:0;">
+
+          <i class="fa-solid fa-sliders font-amber"></i>
+
+          Gestión
+
+        </h2>
+
+
+        <button
+          onclick="cerrarSesionAdmin()"
+          style="background:transparent;border:1px solid #ef4444;color:#ef4444;padding:4px 8px;border-radius:6px;cursor:pointer;font-size:.8rem;"
+        >
+
+          <i class="fa-solid fa-right-from-bracket"></i>
+
+          Salir
+
+        </button>
+
+      </div>
+
+
+      <!-- ===================================================
+           BOTONES DE SECCIONES
+      ==================================================== -->
+
+      <div
+        style="
+          display:grid;
+          grid-template-columns:1fr 1fr;
+          gap:8px;
+          margin-bottom:1.2rem;
+        "
+      >
+
+        <button
+          type="button"
+          onclick="mostrarVistaAdmin('proyectos')"
+          class="btn-primary-modern"
+        >
+          <i class="fa-solid fa-folder-open"></i>
+          Proyectos
+        </button>
+
+
+        <button
+          type="button"
+          onclick="mostrarVistaAdmin('ingresos')"
+          style="
+            background:#10b981;
+            color:#fff;
+            border:none;
+            padding:.75rem;
+            border-radius:8px;
+            cursor:pointer;
+            font-weight:bold;
+          "
+        >
+          <i class="fa-solid fa-money-bill-wave"></i>
+          Gestión de Ingresos
+        </button>
+
+      </div>
+
+
+      <!-- ===================================================
+           VISTA PROYECTOS
+      ==================================================== -->
+
+      <div id="vista-proyectos">
+
 
         <form
           id="form-nuevo-proyecto"
           class="admin-form"
-          style="
-            background:rgba(255,255,255,0.03);
-            padding:1rem;
-            border-radius:8px;
-            margin-bottom:1.5rem;
-          "
+          style="background:rgba(255,255,255,.03);padding:1rem;border-radius:8px;margin-bottom:1.5rem;"
         >
 
           <h3
-            style="
-              font-size:1rem;
-              margin-bottom:0.75rem;
-            "
+            style="font-size:1rem;margin-bottom:.75rem;"
           >
 
             <i class="fa-solid fa-plus font-amber"></i>
@@ -598,11 +566,7 @@
 
 
           <div
-            style="
-              display:flex;
-              gap:6px;
-              margin-bottom:8px;
-            "
+            style="display:flex;gap:6px;margin-bottom:8px;"
           >
 
             <input
@@ -616,10 +580,7 @@
               type="button"
               onclick="llenarCodigoAutomatico()"
               class="btn-primary-modern"
-              style="
-                padding:0 10px;
-                font-size:0.8rem;
-              "
+              style="padding:0 10px;font-size:.8rem;"
             >
               Generar
             </button>
@@ -673,46 +634,23 @@
             />
 
 
-            <!-- FECHA -->
-
             <div
-              style="
-                display:flex;
-                flex-direction:column;
-                gap:3px;
-              "
+              style="display:flex;flex-direction:column;gap:3px;"
             >
 
               <label
                 for="nuevo-fecha"
-                style="
-                  font-size:0.75rem;
-                  color:#a3a3a3;
-                "
+                style="font-size:.75rem;color:#a3a3a3;"
               >
-
-                <i
-                  class="fa-regular fa-calendar font-amber"
-                ></i>
-
+                <i class="fa-regular fa-calendar font-amber"></i>
                 Fecha de entrega
-
               </label>
 
               <input
                 type="date"
                 id="nuevo-fecha"
                 title="Seleccionar fecha de entrega"
-                style="
-                  width:100%;
-                  box-sizing:border-box;
-                  background:#0a0a0a;
-                  border:1px solid #333;
-                  color:#fff;
-                  padding:8px;
-                  border-radius:8px;
-                  cursor:pointer;
-                "
+                style="width:100%;box-sizing:border-box;background:#0a0a0a;border:1px solid #333;color:#fff;padding:8px;border-radius:8px;cursor:pointer;"
               />
 
             </div>
@@ -720,38 +658,25 @@
           </div>
 
 
-          <!-- SALDO AUTOMÁTICO -->
-
           <div
             style="
-              background:rgba(245,158,11,0.08);
-              border:1px solid rgba(245,158,11,0.25);
-              padding:10px;
+              background:rgba(245,158,11,.08);
+              border:1px solid rgba(245,158,11,.2);
               border-radius:8px;
+              padding:8px;
               margin-bottom:10px;
+              font-size:.9rem;
             "
           >
 
-            <div
-              style="
-                display:flex;
-                justify-content:space-between;
-                align-items:center;
-              "
+            Saldo pendiente:
+
+            <strong
+              id="lbl-nuevo-saldo"
+              class="font-amber"
             >
-
-              <span style="color:#aaa;">
-                Saldo pendiente:
-              </span>
-
-              <strong
-                id="lbl-nuevo-saldo"
-                style="color:#f87171;"
-              >
-                Bs. 0
-              </strong>
-
-            </div>
+              Bs. 0
+            </strong>
 
           </div>
 
@@ -767,184 +692,216 @@
         </form>
 
 
-        <!-- ===================================================
-             RESUMEN FINANCIERO
-        ==================================================== -->
+        <h3
+          style="font-size:1rem;margin-bottom:.5rem;"
+        >
+          Registrados
+          (<span id="total-proyectos">0</span>)
+        </h3>
+
+
+        <div
+          id="lista-proyectos-admin"
+          class="projects-list"
+          style="max-height:300px;overflow-y:auto;"
+        ></div>
+
+      </div>
+
+
+      <!-- ===================================================
+           VISTA INGRESOS
+      ==================================================== -->
+
+      <div
+        id="vista-ingresos"
+        class="hidden"
+      >
 
         <div
           style="
-            background:rgba(16,185,129,0.06);
-            border:1px solid rgba(16,185,129,0.25);
-            border-radius:10px;
-            padding:1rem;
-            margin-bottom:1.5rem;
+            display:flex;
+            justify-content:space-between;
+            align-items:center;
+            gap:10px;
+            margin-bottom:1rem;
+            flex-wrap:wrap;
           "
         >
 
-          <h3
+          <div>
+
+            <h2 style="margin:0;">
+
+              <i class="fa-solid fa-chart-line font-amber"></i>
+
+              Gestión de Ingresos
+
+            </h2>
+
+            <p
+              style="font-size:.8rem;color:#999;margin-top:4px;"
+            >
+              Control privado de cobros de HN Muebles.
+            </p>
+
+          </div>
+
+
+          <button
+            type="button"
+            onclick="mostrarVistaAdmin('proyectos')"
             style="
-              font-size:1rem;
-              margin:0 0 12px 0;
+              background:#404040;
+              color:#fff;
+              border:none;
+              padding:8px 12px;
+              border-radius:7px;
+              cursor:pointer;
+            "
+          >
+            <i class="fa-solid fa-arrow-left"></i>
+            Proyectos
+          </button>
+
+        </div>
+
+
+        <!-- FILTRO -->
+
+        <div
+          style="
+            background:rgba(255,255,255,.04);
+            border:1px solid rgba(255,255,255,.08);
+            border-radius:10px;
+            padding:12px;
+            margin-bottom:12px;
+          "
+        >
+
+          <label
+            for="filtro-ingresos-mes"
+            style="display:block;font-size:.8rem;color:#aaa;margin-bottom:5px;"
+          >
+            <i class="fa-regular fa-calendar"></i>
+            Mes del reporte
+          </label>
+
+          <input
+            type="month"
+            id="filtro-ingresos-mes"
+            style="
+              width:100%;
+              box-sizing:border-box;
+              background:#0a0a0a;
+              border:1px solid #333;
+              color:#fff;
+              padding:9px;
+              border-radius:7px;
+            "
+          />
+
+        </div>
+
+
+        <!-- RESUMEN -->
+
+        <div
+          style="
+            display:grid;
+            grid-template-columns:1fr 1fr;
+            gap:8px;
+            margin-bottom:12px;
+          "
+        >
+
+          <div
+            style="
+              background:rgba(255,255,255,.04);
+              border:1px solid rgba(255,255,255,.08);
+              padding:12px;
+              border-radius:9px;
             "
           >
 
-            <i
-              class="fa-solid fa-chart-line"
-              style="color:#10b981;"
-            ></i>
+            <small style="color:#999;">
+              Total contratado
+            </small>
 
-            Resumen Financiero
+            <div
+              id="ing-total-contratado"
+              style="font-size:1.2rem;font-weight:bold;margin-top:4px;"
+            >
+              Bs. 0
+            </div>
 
-          </h3>
+          </div>
 
 
           <div
             style="
-              display:grid;
-              grid-template-columns:1fr 1fr;
-              gap:8px;
+              background:rgba(255,255,255,.04);
+              border:1px solid rgba(255,255,255,.08);
+              padding:12px;
+              border-radius:9px;
             "
           >
 
+            <small style="color:#999;">
+              Adelantos
+            </small>
+
             <div
-              style="
-                background:rgba(255,255,255,0.04);
-                padding:10px;
-                border-radius:8px;
-              "
+              id="ing-total-adelantos"
+              style="font-size:1.2rem;font-weight:bold;color:#f59e0b;margin-top:4px;"
             >
-
-              <small style="color:#aaa;">
-                Proyectos
-              </small>
-
-              <div>
-                <strong id="reporte-cant-mes">
-                  0
-                </strong>
-              </div>
-
+              Bs. 0
             </div>
 
+          </div>
+
+
+          <div
+            style="
+              background:rgba(255,255,255,.04);
+              border:1px solid rgba(255,255,255,.08);
+              padding:12px;
+              border-radius:9px;
+            "
+          >
+
+            <small style="color:#999;">
+              Saldos cobrados
+            </small>
 
             <div
-              style="
-                background:rgba(255,255,255,0.04);
-                padding:10px;
-                border-radius:8px;
-              "
+              id="ing-total-saldos"
+              style="font-size:1.2rem;font-weight:bold;color:#38bdf8;margin-top:4px;"
             >
-
-              <small style="color:#aaa;">
-                Total contratado
-              </small>
-
-              <div>
-                <strong id="reporte-presupuesto-mes">
-                  Bs. 0
-                </strong>
-              </div>
-
+              Bs. 0
             </div>
 
+          </div>
+
+
+          <div
+            style="
+              background:rgba(16,185,129,.08);
+              border:1px solid rgba(16,185,129,.25);
+              padding:12px;
+              border-radius:9px;
+            "
+          >
+
+            <small style="color:#999;">
+              Total ingresado
+            </small>
 
             <div
-              style="
-                background:rgba(255,255,255,0.04);
-                padding:10px;
-                border-radius:8px;
-              "
+              id="ing-total-ingresado"
+              style="font-size:1.3rem;font-weight:bold;color:#10b981;margin-top:4px;"
             >
-
-              <small style="color:#aaa;">
-                Adelantos
-              </small>
-
-              <div>
-                <strong id="reporte-adelanto-mes">
-                  Bs. 0
-                </strong>
-              </div>
-
-            </div>
-
-
-            <div
-              style="
-                background:rgba(255,255,255,0.04);
-                padding:10px;
-                border-radius:8px;
-              "
-            >
-
-              <small style="color:#aaa;">
-                Ingreso final
-              </small>
-
-              <div>
-                <strong id="reporte-ingreso-final">
-                  Bs. 0
-                </strong>
-              </div>
-
-            </div>
-
-
-            <div
-              style="
-                background:rgba(16,185,129,0.10);
-                padding:10px;
-                border-radius:8px;
-                grid-column:1 / -1;
-              "
-            >
-
-              <small style="color:#aaa;">
-                Total cobrado
-              </small>
-
-              <div
-                style="
-                  font-size:1.2rem;
-                  color:#4ade80;
-                "
-              >
-
-                <strong id="reporte-total-cobrado">
-                  Bs. 0
-                </strong>
-
-              </div>
-
-            </div>
-
-
-            <div
-              style="
-                background:rgba(239,68,68,0.08);
-                padding:10px;
-                border-radius:8px;
-                grid-column:1 / -1;
-              "
-            >
-
-              <small style="color:#aaa;">
-                Saldo pendiente total
-              </small>
-
-              <div
-                style="
-                  font-size:1.1rem;
-                  color:#f87171;
-                "
-              >
-
-                <strong id="reporte-saldo">
-                  Bs. 0
-                </strong>
-
-              </div>
-
+              Bs. 0
             </div>
 
           </div>
@@ -952,81 +909,161 @@
         </div>
 
 
-        <!-- ===================================================
-             GESTIÓN DE INGRESOS
-        ==================================================== -->
+        <!-- PDF -->
+
+        <button
+          type="button"
+          onclick="exportarIngresosPDF()"
+          style="
+            width:100%;
+            background:#dc2626;
+            color:#fff;
+            border:none;
+            padding:11px;
+            border-radius:8px;
+            cursor:pointer;
+            font-weight:bold;
+            margin-bottom:15px;
+          "
+        >
+
+          <i class="fa-solid fa-file-pdf"></i>
+
+          Exportar reporte mensual PDF
+
+        </button>
+
+
+        <!-- REGISTRO MANUAL -->
 
         <div
           style="
-            background:rgba(245,158,11,0.05);
-            border:1px solid rgba(245,158,11,0.25);
+            background:rgba(255,255,255,.03);
+            border:1px solid rgba(255,255,255,.08);
             border-radius:10px;
-            padding:1rem;
-            margin-bottom:1.5rem;
+            padding:12px;
+            margin-bottom:15px;
           "
         >
 
           <h3
-            style="
-              font-size:1rem;
-              margin:0 0 5px 0;
-            "
+            style="font-size:1rem;margin-top:0;"
           >
 
-            <i class="fa-solid fa-money-bill-wave font-amber"></i>
+            <i class="fa-solid fa-plus font-amber"></i>
 
-            Gestión de Ingresos
+            Registrar Cobro
 
           </h3>
 
-          <p
+
+          <select
+            id="ing-proyecto-select"
             style="
-              color:#999;
-              font-size:0.8rem;
-              margin-top:0;
-              margin-bottom:12px;
+              width:100%;
+              margin-bottom:7px;
+              background:#0a0a0a;
+              border:1px solid #333;
+              color:#fff;
+              padding:9px;
+              border-radius:7px;
             "
           >
-            Registra manualmente el saldo cuando realmente recibas
-            el pago final del proyecto.
-          </p>
+
+            <option value="">
+              Seleccionar proyecto
+            </option>
+
+          </select>
 
 
-          <div
-            id="lista-ingresos"
+          <input
+            type="number"
+            id="ing-monto"
+            placeholder="Monto recibido (Bs)"
+            min="0"
+            step="0.01"
+            style="width:100%;box-sizing:border-box;margin-bottom:7px;"
+          />
+
+
+          <input
+            type="date"
+            id="ing-fecha"
+            style="width:100%;box-sizing:border-box;margin-bottom:7px;"
+          />
+
+
+          <select
+            id="ing-tipo"
             style="
-              max-height:300px;
-              overflow-y:auto;
+              width:100%;
+              margin-bottom:7px;
+              background:#0a0a0a;
+              border:1px solid #333;
+              color:#fff;
+              padding:9px;
+              border-radius:7px;
             "
-          ></div>
+          >
+
+            <option value="Adelanto">
+              Adelanto
+            </option>
+
+            <option value="Saldo">
+              Saldo
+            </option>
+
+            <option value="Otro">
+              Otro ingreso
+            </option>
+
+          </select>
+
+
+          <input
+            type="text"
+            id="ing-observacion"
+            placeholder="Observación (opcional)"
+            style="width:100%;box-sizing:border-box;margin-bottom:8px;"
+          />
+
+
+          <button
+            type="button"
+            onclick="registrarIngresoManual()"
+            style="
+              width:100%;
+              background:#10b981;
+              color:#fff;
+              border:none;
+              padding:10px;
+              border-radius:7px;
+              cursor:pointer;
+              font-weight:bold;
+            "
+          >
+
+            <i class="fa-solid fa-floppy-disk"></i>
+
+            Registrar Ingreso
+
+          </button>
 
         </div>
 
 
-        <!-- ===================================================
-             PROYECTOS
-        ==================================================== -->
+        <!-- LISTA -->
 
-        <h3
-          style="
-            font-size:1rem;
-            margin-bottom:0.5rem;
-          "
-        >
-
-          Proyectos registrados
-          (<span id="total-proyectos">0</span>)
-
+        <h3 style="font-size:1rem;">
+          Movimientos del mes
         </h3>
 
 
         <div
-          id="lista-proyectos-admin"
-          class="projects-list"
-          style="
-            max-height:500px;
-            overflow-y:auto;
-          "
+          id="lista-ingresos"
+          style="max-height:300px;overflow-y:auto;"
         ></div>
 
       </div>
@@ -1035,70 +1072,101 @@
 
   </div>
 
+</div>
 
-  <!-- =========================================================
-       UI
-  ========================================================== -->
 
-  <script>
+<!-- =========================================================
+     UI
+========================================================= -->
 
-    function irASeccion(id) {
+<script>
 
-      const elemento =
-        document.getElementById(id);
+function irASeccion(id) {
 
-      if (elemento) {
+  const elemento =
+    document.getElementById(id);
 
-        elemento.scrollIntoView({
-          behavior: 'smooth'
-        });
+  if (elemento) {
 
-      }
+    elemento.scrollIntoView({
+      behavior:"smooth"
+    });
 
+  }
+
+}
+
+
+function abrirModalAdmin() {
+
+  document
+    .getElementById("modal-admin")
+    .classList
+    .remove("hidden");
+
+}
+
+
+function cerrarModalAdmin() {
+
+  document
+    .getElementById("modal-admin")
+    .classList
+    .add("hidden");
+
+}
+
+
+function mostrarVistaAdmin(vista) {
+
+  const proyectos =
+    document.getElementById("vista-proyectos");
+
+  const ingresos =
+    document.getElementById("vista-ingresos");
+
+  if (!proyectos || !ingresos) return;
+
+  if (vista === "ingresos") {
+
+    proyectos.classList.add("hidden");
+    ingresos.classList.remove("hidden");
+
+    if (typeof cargarGestionIngresos === "function") {
+      cargarGestionIngresos();
     }
 
+  } else {
 
-    function abrirModalAdmin() {
+    ingresos.classList.add("hidden");
+    proyectos.classList.remove("hidden");
 
-      const modal =
-        document.getElementById('modal-admin');
+  }
 
-      if (modal) {
+}
 
-        modal.classList.remove('hidden');
-
-      }
-
-    }
+</script>
 
 
-    function cerrarModalAdmin() {
+<!-- =========================================================
+     FIREBASE
+========================================================= -->
 
-      const modal =
-        document.getElementById('modal-admin');
+<script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
 
-      if (modal) {
+<script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
 
-        modal.classList.add('hidden');
-
-      }
-
-    }
-
-  </script>
+<script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
 
 
-  <!-- =========================================================
-       FIREBASE
-  ========================================================== -->
+<!-- =========================================================
+     jsPDF
+========================================================= -->
 
-  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 
-  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
 
-  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
-
-  <script src="script.js"></script>
+<script src="script.js"></script>
 
 </body>
 </html>
