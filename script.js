@@ -1939,30 +1939,22 @@ async function exportarIngresosPDF() {
     [22, 163, 74];
 
 
-  const ROJO =
-    [220, 38, 38];
-
-
   const AZUL =
     [37, 99, 235];
 
 
-  let totalProyecto = 0;
-
-  let totalAdelanto = 0;
-
-  let totalCobrado = 0;
-
-  let totalPendiente = 0;
+  let sumaMontosTotales = 0;
+  let sumaAdelantos = 0;
+  let sumaSaldosGanancia = 0;
 
 
   const filas =
     lista.map(
       ingreso => {
 
-        const total =
+        const monto =
           Number(
-            ingreso.presupuesto
+            ingreso.presupuesto || ingreso.monto
           ) || 0;
 
 
@@ -1972,33 +1964,22 @@ async function exportarIngresosPDF() {
           ) || 0;
 
 
-        const cobrado =
+        const saldo =
           Number(
-            ingreso.cobrado
+            ingreso.saldo !== undefined ? ingreso.saldo : Math.max(monto - adelanto, 0)
           ) || 0;
 
 
-        const pendiente =
-          Math.max(
-            total - cobrado,
-            0
-          );
+        sumaMontosTotales +=
+          monto;
 
 
-        totalProyecto +=
-          total;
-
-
-        totalAdelanto +=
+        sumaAdelantos +=
           adelanto;
 
 
-        totalCobrado +=
-          cobrado;
-
-
-        totalPendiente +=
-          pendiente;
+        sumaSaldosGanancia +=
+          saldo;
 
 
         return [
@@ -2007,15 +1988,13 @@ async function exportarIngresosPDF() {
 
           ingreso.cliente || "",
 
-          ingreso.mueble || "",
+          ingreso.mueble || ingreso.concepto || "",
 
-          `Bs. ${formatearMonto(total)}`,
+          `Bs. ${formatearMonto(monto)}`,
 
           `Bs. ${formatearMonto(adelanto)}`,
 
-          `Bs. ${formatearMonto(cobrado)}`,
-
-          `Bs. ${formatearMonto(pendiente)}`
+          `Bs. ${formatearMonto(saldo)}`
 
         ];
 
@@ -2111,7 +2090,7 @@ async function exportarIngresosPDF() {
 
 
   doc.text(
-    "REPORTE DE INGRESOS",
+    "REPORTE DE INGRESOS Y GANANCIAS",
     14,
     38
   );
@@ -2201,7 +2180,7 @@ async function exportarIngresosPDF() {
 
 
   const anchoCaja =
-    63;
+    85;
 
 
   const altoCaja =
@@ -2209,36 +2188,27 @@ async function exportarIngresosPDF() {
 
 
   const separacion =
-    5;
+    10;
 
 
   const resumen = [
 
     {
-      titulo: "PROYECTOS",
-      valor: `${lista.length}`,
+      titulo: "TOTAL MONTO PROYECTOS",
+      valor: `Bs. ${formatearMonto(sumaMontosTotales)}`,
       color: AZUL
     },
 
     {
-      titulo: "CONTRATADO",
-      valor:
-        `Bs. ${formatearMonto(totalProyecto)}`,
+      titulo: "TOTAL ADELANTOS",
+      valor: `Bs. ${formatearMonto(sumaAdelantos)}`,
       color: DORADO
     },
 
     {
-      titulo: "COBRADO",
-      valor:
-        `Bs. ${formatearMonto(totalCobrado)}`,
+      titulo: "SALDO NETO (GANANCIA)",
+      valor: `Bs. ${formatearMonto(sumaSaldosGanancia)}`,
       color: VERDE
-    },
-
-    {
-      titulo: "PENDIENTE",
-      valor:
-        `Bs. ${formatearMonto(totalPendiente)}`,
-      color: ROJO
     }
 
   ];
@@ -2357,10 +2327,9 @@ async function exportarIngresosPDF() {
         "CÓDIGO",
         "CLIENTE",
         "PROYECTO",
-        "TOTAL",
+        "MONTO",
         "ADELANTO",
-        "COBRADO",
-        "PENDIENTE"
+        "SALDO (GANANCIA)"
       ]],
 
       body: filas,
@@ -2391,35 +2360,30 @@ async function exportarIngresosPDF() {
       columnStyles: {
 
         0: {
-          cellWidth: 25,
+          cellWidth: 30,
           halign: "center"
         },
 
         1: {
-          cellWidth: 45
+          cellWidth: 60
         },
 
         2: {
-          cellWidth: 65
+          cellWidth: 83
         },
 
         3: {
-          cellWidth: 36,
+          cellWidth: 35,
           halign: "right"
         },
 
         4: {
-          cellWidth: 36,
+          cellWidth: 35,
           halign: "right"
         },
 
         5: {
-          cellWidth: 36,
-          halign: "right"
-        },
-
-        6: {
-          cellWidth: 36,
+          cellWidth: 42,
           halign: "right"
         }
 
@@ -2445,24 +2409,14 @@ async function exportarIngresosPDF() {
 
 
           if (
-            data.column.index === 6
-          ) {
-
-            data.cell.styles.textColor =
-              ROJO;
-
-            data.cell.styles.fontStyle =
-              "bold";
-
-          }
-
-
-          if (
             data.column.index === 5
           ) {
 
             data.cell.styles.textColor =
               VERDE;
+
+            data.cell.styles.fontStyle =
+              "bold";
 
           }
 
@@ -2515,7 +2469,7 @@ async function exportarIngresosPDF() {
 
 
         doc.text(
-          "HN MUEBLES · Reporte interno de ingresos",
+          "HN MUEBLES · Reporte de Ingresos y Ganancias Netas",
           14,
           pageHeight - 8
         );
@@ -2538,7 +2492,7 @@ async function exportarIngresosPDF() {
 
 
   doc.save(
-    `HN-MUEBLES-Reporte-Ingresos-${anio}-${mes}.pdf`
+    `HN-MUEBLES-Balance-Ganancias-${anio}-${mes}.pdf`
   );
 
 }
