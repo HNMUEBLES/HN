@@ -401,7 +401,6 @@ async function cambiarEstadoPorId(id, etapaIdx, progreso) {
   const estado = etapas[etapaIdx];
   const detalles = descripciones[etapaIdx];
 
-  // Actualización visual instantánea local (Cero Delay)
   const projIndex = proyectos.findIndex(p => p.id === id);
   if (projIndex !== -1) {
     proyectos[projIndex].estado = estado;
@@ -410,7 +409,6 @@ async function cambiarEstadoPorId(id, etapaIdx, progreso) {
     renderProyectosAdmin();
   }
 
-  // Envío a Firestore en segundo plano (sin bloquear pantalla)
   try {
     const batch = db.batch();
     const proyectoRef = db.collection("proyectos").doc(id);
@@ -438,7 +436,6 @@ async function eliminarProyecto(id) {
 
   const proyectoEliminado = proyectos.find(p => p.id === id);
 
-  // Eliminación visual instantánea local (Cero Delay)
   proyectos = proyectos.filter(p => p.id !== id);
   ingresos = ingresos.filter(i => i.proyectoId !== id);
   renderProyectosAdmin();
@@ -506,8 +503,8 @@ async function guardarEdicionInline(id, index) {
   const adelanto = Number(document.getElementById(`edit-adelanto-${index}`).value) || 0;
   const fechaEntrega = document.getElementById(`edit-fecha-${index}`).value;
 
-  // Actualización visual local instantánea
-  if (projIndex = proyectos.findIndex(p => p.id === id) !== -1) {
+  const projIndex = proyectos.findIndex(p => p.id === id);
+  if (projIndex !== -1) {
     proyectos[projIndex] = { ...proyectos[projIndex], codigo, cliente, mueble, telefono, presupuesto, adelanto, fechaEntrega };
     renderProyectosAdmin();
   }
@@ -664,7 +661,6 @@ async function registrarPago(ingresoId) {
   const nuevoCobrado = cobradoActual + pago;
   const nuevoPendiente = Math.max(presupuesto - nuevoCobrado, 0);
 
-  // Actualización local inmediata (Cero Delay)
   const idx = ingresos.findIndex(i => i.id === ingresoId);
   if (idx !== -1) {
     ingresos[idx].pagosFinales = nuevosPagosFinales;
@@ -758,8 +754,7 @@ async function exportarIngresosPDF() {
       ingreso.codigo || "",
       ingreso.cliente || "",
       ingreso.mueble || ingreso.concepto || "",
-      `Bs. ${formatearMonto(monto)}`,
-      `Bs. ${formatearMonto(adelantoMateriales)}`,
+      `Total: Bs. ${formatearMonto(monto)}\nAdel.: Bs. ${formatearMonto(adelantoMateriales)}`,
       `Bs. ${formatearMonto(saldoGanancia)}`
     ];
   });
@@ -829,7 +824,7 @@ async function exportarIngresosPDF() {
     doc.autoTable({
       startY: tablaY,
       margin: { left: 14, right: 14 },
-      head: [["CÓDIGO", "CLIENTE", "PROYECTO", "MONTO TOTAL", "ADELANTO (MATERIALES)", "SALDO (GANANCIA NETA)"]],
+      head: [["CÓDIGO", "CLIENTE", "PROYECTO", "MONTO / ADELANTO", "SALDO (GANANCIA NETA)"]],
       body: filas,
       theme: "grid",
       headStyles: { fillColor: NEGRO, textColor: BLANCO, fontStyle: "bold", fontSize: 8, halign: "center", valign: "middle", cellPadding: 4 },
@@ -837,11 +832,10 @@ async function exportarIngresosPDF() {
       alternateRowStyles: { fillColor: [248,248,248] },
       columnStyles: {
         0: { cellWidth: 30, halign: "center" },
-        1: { cellWidth: 60 },
-        2: { cellWidth: 83 },
-        3: { cellWidth: 35, halign: "right" },
-        4: { cellWidth: 35, halign: "right" },
-        5: { cellWidth: 42, halign: "right" }
+        1: { cellWidth: 65 },
+        2: { cellWidth: 98 },
+        3: { cellWidth: 45, halign: "right" },
+        4: { cellWidth: 45, halign: "right", fontStyle: "bold" }
       }
     });
   }
@@ -1190,7 +1184,6 @@ function renderPortafolioAdmin() {
 async function eliminarTrabajoPortafolio(id) {
   if (!esAdmin || !auth.currentUser) return;
 
-  // Eliminación visual local instantánea
   portafolio = portafolio.filter(p => p.id !== id);
   renderPortafolioAdmin();
   renderPortafolioPublico();
@@ -1293,13 +1286,11 @@ document.addEventListener("DOMContentLoaded", function () {
         fechaCreacion: firebase.firestore.FieldValue.serverTimestamp()
       };
 
-      // Inserción visual local instantánea (Cero Delay)
       proyectos.unshift(proyecto);
       ingresos.unshift(ingreso);
       renderProyectosAdmin();
       renderGestionIngresos();
 
-      // Limpieza inmediata del formulario
       document.getElementById("nuevo-codigo").value = generarCodigoAleatorio();
       document.getElementById("nuevo-cliente").value = "";
       document.getElementById("nuevo-mueble").value = "";
@@ -1309,7 +1300,6 @@ document.addEventListener("DOMContentLoaded", function () {
       document.getElementById("nuevo-fecha").value = "";
       calcularSaldoNuevo();
 
-      // Envío a Firestore en segundo plano
       try {
         const batch = db.batch();
         batch.set(proyectoRef, proyecto);
