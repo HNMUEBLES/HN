@@ -1,174 +1,139 @@
 // ============================================================
 // HN MUEBLES - SCRIPT PRINCIPAL
-// Firebase Authentication + Firestore + Storage
+// Firebase Authentication + Firestore
+// Cloudinary para imágenes y videos del Portafolio
 // Proyectos + Ingresos + Portafolio
 // ============================================================
 
 
 // ============================================================
-// 1. FIREBASE
+// 1. CONFIGURACIÓN FIREBASE Y VARIABLES GLOBALES
 // ============================================================
 
 const firebaseConfig = {
-
   apiKey: "AIzaSyCLrVUpGCTxFxuMR0ATlwj2t3osSP0dD7Y",
-
-  authDomain:
-    "hn-muebles.firebaseapp.com",
-
-  projectId:
-    "hn-muebles",
-
-  storageBucket:
-    "hn-muebles.firebasestorage.app",
-
-  messagingSenderId:
-    "175601256381",
-
-  appId:
-    "1:175601256381:web:db2031a56faa87a02bf4d4",
-
-  measurementId:
-    "G-8PJGERB67Q"
-
+  authDomain: "hn-muebles.firebaseapp.com",
+  projectId: "hn-muebles",
+  storageBucket: "hn-muebles.firebasestorage.app",
+  messagingSenderId: "175601256381",
+  appId: "1:175601256381:web:db2031a56faa87a02bf4d4",
+  measurementId: "G-8PJGERB67Q"
 };
-
 
 firebase.initializeApp(firebaseConfig);
 
 const db = firebase.firestore();
-
 const auth = firebase.auth();
 
-const storage = firebase.storage();
 
-const EMAIL_ADMIN =
-  "hn24muebles@gmail.com";
+// ============================================================
+// 2. CONFIGURACIÓN CLOUDINARY
+// ============================================================
 
+// Cloud Name de tu cuenta Cloudinary
+const CLOUDINARY_CLOUD_NAME = "clvoagwx";
+
+// Upload Preset que creaste en Cloudinary
+const CLOUDINARY_UPLOAD_PRESET = "hn_muebles_portafolio";
+
+// Endpoint único para imágenes y videos
+const CLOUDINARY_UPLOAD_URL =
+  `https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD_NAME}/auto/upload`;
+
+const EMAIL_ADMIN = "hn24muebles@gmail.com";
 
 let proyectos = [];
-
 let ingresos = [];
-
 let esAdmin = false;
-
 let portafolio = [];
 
 
 // ============================================================
-// 2. UTILIDADES
+// 3. UTILIDADES GENERALES
 // ============================================================
 
 function formatearMonto(valor) {
-
   const num = Number(valor) || 0;
-
-  return Number.isInteger(num)
-    ? num.toString()
-    : num.toFixed(2);
-
+  return Number.isInteger(num) ? num.toString() : num.toFixed(2);
 }
 
 
 function generarCodigoAleatorio() {
-
-  const caracteres =
-    "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
-
+  const caracteres = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
   let aleatorio = "";
 
   for (let i = 0; i < 5; i++) {
-
     aleatorio += caracteres.charAt(
-      Math.floor(
-        Math.random() * caracteres.length
-      )
+      Math.floor(Math.random() * caracteres.length)
     );
-
   }
 
   return `HN${aleatorio}`;
-
 }
 
 
 function llenarCodigoAutomatico() {
-
-  const input =
-    document.getElementById("nuevo-codigo");
+  const input = document.getElementById("nuevo-codigo");
 
   if (input) {
-
-    input.value =
-      generarCodigoAleatorio();
-
+    input.value = generarCodigoAleatorio();
   }
-
 }
 
 
 function copiarCodigoAlPortapapeles(codigo) {
+  navigator.clipboard.writeText(codigo).then(() => {
 
-  navigator.clipboard
-    .writeText(codigo)
-    .then(() => {
+    const boton = document.querySelector(
+      `[data-copy-code="${codigo}"]`
+    );
 
-      const boton =
-        document.querySelector(
-          `[data-copy-code="${codigo}"]`
-        );
+    if (boton) {
+      const textoOriginal = boton.innerText;
 
-      if (boton) {
+      boton.innerText = "Copiado ✓";
 
-        const textoOriginal =
-          boton.innerText;
+      setTimeout(() => {
+        boton.innerText = textoOriginal;
+      }, 1200);
+    }
 
-        boton.innerText =
-          "Copiado ✓";
-
-        setTimeout(() => {
-
-          boton.innerText =
-            textoOriginal;
-
-        }, 1200);
-
-      }
-
-    })
-    .catch(error => {
-
-      console.error(
-        "Error copiando:",
-        error
-      );
-
-    });
-
+  }).catch(error => {
+    console.error("Error copiando:", error);
+  });
 }
 
 
 function irInicio() {
-
   window.scrollTo({
     top: 0,
     behavior: "smooth"
   });
+}
 
+
+function mostrarMensajeInterno(mensaje, error = false) {
+  console.log(
+    error ? "ERROR:" : "OK:",
+    mensaje
+  );
+}
+
+
+function escaparHTML(texto) {
+  const div = document.createElement("div");
+  div.textContent = texto || "";
+  return div.innerHTML;
 }
 
 
 // ============================================================
-// 3. AUTENTICACIÓN
+// 4. AUTENTICACIÓN Y ESTADO DE SESIÓN
 // ============================================================
 
 auth.onAuthStateChanged(async (user) => {
 
-  console.log(
-    "CAMBIO DE AUTENTICACIÓN:",
-    user
-  );
-
+  console.log("CAMBIO DE AUTENTICACIÓN:", user);
 
   if (!user) {
 
@@ -177,20 +142,14 @@ auth.onAuthStateChanged(async (user) => {
     ocultarPanelAdministrador();
 
     return;
-
   }
 
 
   const emailUsuario =
-    (user.email || "")
-      .trim()
-      .toLowerCase();
-
+    (user.email || "").trim().toLowerCase();
 
   const emailAdmin =
-    EMAIL_ADMIN
-      .trim()
-      .toLowerCase();
+    EMAIL_ADMIN.trim().toLowerCase();
 
 
   if (emailUsuario !== emailAdmin) {
@@ -205,7 +164,6 @@ auth.onAuthStateChanged(async (user) => {
     ocultarPanelAdministrador();
 
     return;
-
   }
 
 
@@ -226,770 +184,16 @@ auth.onAuthStateChanged(async (user) => {
 
     renderGestionIngresos();
 
-  }
-
-  catch (error) {
+  } catch (error) {
 
     console.error(
       "Error cargando panel:",
       error
     );
-
   }
 
 });
 
-
-// ============================================================
-// 4. ADMIN
-// ============================================================
-
-function mostrarPanelAdministrador() {
-
-  const login =
-    document.getElementById("admin-login");
-
-  const panel =
-    document.getElementById("admin-panel");
-
-
-  if (login)
-    login.classList.add("hidden");
-
-
-  if (panel)
-    panel.classList.remove("hidden");
-
-}
-
-
-function ocultarPanelAdministrador() {
-
-  const login =
-    document.getElementById("admin-login");
-
-  const panel =
-    document.getElementById("admin-panel");
-
-
-  if (panel)
-    panel.classList.add("hidden");
-
-
-  if (login)
-    login.classList.remove("hidden");
-
-}
-
-
-// ============================================================
-// 5. DOM READY
-// ============================================================
-
-document.addEventListener(
-  "DOMContentLoaded",
-  function () {
-
-
-    // ========================================================
-    // LOGIN
-    // ========================================================
-
-    const formLogin =
-      document.getElementById("form-login");
-
-
-    if (formLogin) {
-
-      formLogin.addEventListener(
-        "submit",
-        async function (e) {
-
-          e.preventDefault();
-
-
-          const emailInput =
-            document.getElementById("input-email");
-
-          const passwordInput =
-            document.getElementById("input-pass");
-
-          const errorMsg =
-            document.getElementById("login-error-msg");
-
-          const boton =
-            formLogin.querySelector(
-              'button[type="submit"]'
-            );
-
-
-          const email =
-            emailInput?.value
-              .trim()
-              .toLowerCase();
-
-          const password =
-            passwordInput?.value || "";
-
-
-          if (errorMsg) {
-
-            errorMsg.textContent = "";
-
-            errorMsg.classList.add("hidden");
-
-          }
-
-
-          if (!email || !password) {
-
-            if (errorMsg) {
-
-              errorMsg.textContent =
-                "Ingresa tu correo y contraseña.";
-
-              errorMsg.classList.remove("hidden");
-
-            }
-
-            return;
-
-          }
-
-
-          try {
-
-            if (boton) {
-
-              boton.disabled = true;
-
-              boton.dataset.textoOriginal =
-                boton.innerText;
-
-              boton.innerText =
-                "Ingresando...";
-
-            }
-
-
-            await auth.signInWithEmailAndPassword(
-              email,
-              password
-            );
-
-
-            if (passwordInput) {
-
-              passwordInput.value = "";
-
-            }
-
-          }
-
-          catch (error) {
-
-            console.error(
-              "ERROR LOGIN:",
-              error
-            );
-
-
-            let mensaje =
-              "No se pudo iniciar sesión.";
-
-
-            switch (error.code) {
-
-              case "auth/invalid-credential":
-                mensaje =
-                  "Correo o contraseña incorrectos.";
-                break;
-
-              case "auth/wrong-password":
-                mensaje =
-                  "La contraseña es incorrecta.";
-                break;
-
-              case "auth/user-not-found":
-                mensaje =
-                  "No existe una cuenta con ese correo.";
-                break;
-
-              case "auth/invalid-email":
-                mensaje =
-                  "El correo electrónico no es válido.";
-                break;
-
-              case "auth/user-disabled":
-                mensaje =
-                  "Esta cuenta está deshabilitada.";
-                break;
-
-              case "auth/too-many-requests":
-                mensaje =
-                  "Demasiados intentos. Espera unos minutos.";
-                break;
-
-              case "auth/network-request-failed":
-                mensaje =
-                  "No hay conexión con Firebase.";
-                break;
-
-              case "auth/operation-not-allowed":
-                mensaje =
-                  "El acceso con correo y contraseña no está habilitado.";
-                break;
-
-              default:
-                mensaje =
-                  `Error de acceso: ${
-                    error.message ||
-                    error.code ||
-                    "desconocido"
-                  }`;
-
-            }
-
-
-            if (errorMsg) {
-
-              errorMsg.textContent =
-                mensaje;
-
-              errorMsg.classList.remove("hidden");
-
-            }
-
-          }
-
-          finally {
-
-            if (boton) {
-
-              boton.disabled = false;
-
-              boton.innerText =
-                boton.dataset.textoOriginal ||
-                "Ingresar";
-
-            }
-
-          }
-
-        }
-      );
-
-    }
-
-
-    // ========================================================
-    // BÚSQUEDA PÚBLICA
-    // ========================================================
-
-    const formBuscar =
-      document.getElementById("form-buscar");
-
-
-    if (formBuscar) {
-
-      formBuscar.addEventListener(
-        "submit",
-        async function (e) {
-
-          e.preventDefault();
-
-
-          const codigo =
-            document.getElementById(
-              "input-codigo"
-            )?.value
-              .trim()
-              .toUpperCase();
-
-
-          if (codigo) {
-
-            await buscarProyectoPublico(
-              codigo
-            );
-
-          }
-
-        }
-      );
-
-    }
-
-
-    // ========================================================
-    // CÁLCULO SALDO
-    // ========================================================
-
-    const presupuestoInput =
-      document.getElementById(
-        "nuevo-presupuesto"
-      );
-
-    const adelantoInput =
-      document.getElementById(
-        "nuevo-adelanto"
-      );
-
-
-    function calcularSaldoNuevo() {
-
-      const total =
-        Number(
-          presupuestoInput?.value
-        ) || 0;
-
-
-      const adelanto =
-        Number(
-          adelantoInput?.value
-        ) || 0;
-
-
-      const saldo =
-        Math.max(
-          total - adelanto,
-          0
-        );
-
-
-      const totalPreview =
-        document.getElementById(
-          "nuevo-total-preview"
-        );
-
-      const adelantoPreview =
-        document.getElementById(
-          "nuevo-adelanto-preview"
-        );
-
-      const saldoPreview =
-        document.getElementById(
-          "nuevo-saldo-preview"
-        );
-
-
-      if (totalPreview)
-        totalPreview.innerText =
-          `Bs. ${formatearMonto(total)}`;
-
-
-      if (adelantoPreview)
-        adelantoPreview.innerText =
-          `Bs. ${formatearMonto(adelanto)}`;
-
-
-      if (saldoPreview)
-        saldoPreview.innerText =
-          `Bs. ${formatearMonto(saldo)}`;
-
-    }
-
-
-    presupuestoInput?.addEventListener(
-      "input",
-      calcularSaldoNuevo
-    );
-
-    adelantoInput?.addEventListener(
-      "input",
-      calcularSaldoNuevo
-    );
-
-    calcularSaldoNuevo();
-
-
-    // ========================================================
-    // NUEVO PROYECTO
-    // ========================================================
-
-    const formNuevo =
-      document.getElementById(
-        "form-nuevo-proyecto"
-      );
-
-
-    if (formNuevo) {
-
-      formNuevo.addEventListener(
-        "submit",
-        async function (e) {
-
-          e.preventDefault();
-
-
-          if (
-            !esAdmin ||
-            !auth.currentUser
-          ) {
-
-            mostrarMensajeInterno(
-              "Debes iniciar sesión como administrador.",
-              true
-            );
-
-            return;
-
-          }
-
-
-          const codigo =
-            document.getElementById(
-              "nuevo-codigo"
-            )?.value
-              .trim()
-              .toUpperCase()
-            ||
-            generarCodigoAleatorio();
-
-
-          const cliente =
-            document.getElementById(
-              "nuevo-cliente"
-            )?.value.trim()
-            || "";
-
-
-          const mueble =
-            document.getElementById(
-              "nuevo-mueble"
-            )?.value.trim()
-            || "";
-
-
-          const telefono =
-            document.getElementById(
-              "nuevo-telefono"
-            )?.value.trim()
-            || "";
-
-
-          const presupuesto =
-            Number(
-              document.getElementById(
-                "nuevo-presupuesto"
-              )?.value
-            ) || 0;
-
-
-          const adelanto =
-            Number(
-              document.getElementById(
-                "nuevo-adelanto"
-              )?.value
-            ) || 0;
-
-
-          const fechaEntrega =
-            document.getElementById(
-              "nuevo-fecha"
-            )?.value || "";
-
-
-          const pendiente =
-            Math.max(
-              presupuesto - adelanto,
-              0
-            );
-
-
-          const proyectoRef =
-            db.collection("proyectos").doc();
-
-
-          const ingresoRef =
-            db.collection("ingresos").doc();
-
-
-          const publicoRef =
-            db
-              .collection("proyectos_publicos")
-              .doc(proyectoRef.id);
-
-
-          const proyecto = {
-
-            codigo,
-            cliente,
-            mueble,
-            telefono,
-
-            estado:
-              "Diseño Aprobado",
-
-            progreso:
-              20,
-
-            detalles:
-              "Diseño confirmado por WhatsApp. Listo para corte.",
-
-            presupuesto,
-            adelanto,
-            fechaEntrega,
-
-            creadoEn:
-              firebase.firestore.FieldValue.serverTimestamp()
-
-          };
-
-
-          const ingreso = {
-
-            proyectoId:
-              proyectoRef.id,
-
-            codigo,
-            cliente,
-            mueble,
-            presupuesto,
-            adelanto,
-
-            pagosFinales:
-              0,
-
-            cobrado:
-              adelanto,
-
-            pendiente,
-
-            fechaCreacion:
-              firebase.firestore.FieldValue.serverTimestamp(),
-
-            fechaUltimoPago:
-              adelanto > 0
-                ? firebase.firestore.FieldValue.serverTimestamp()
-                : null
-
-          };
-
-
-          const proyectoPublico = {
-
-            codigo,
-            cliente,
-            mueble,
-
-            estado:
-              "Diseño Aprobado",
-
-            progreso:
-              20,
-
-            detalles:
-              "Diseño confirmado por WhatsApp. Listo para corte.",
-
-            fechaEntrega
-
-          };
-
-
-          try {
-
-            const batch =
-              db.batch();
-
-
-            batch.set(
-              proyectoRef,
-              proyecto
-            );
-
-            batch.set(
-              ingresoRef,
-              ingreso
-            );
-
-            batch.set(
-              publicoRef,
-              proyectoPublico
-            );
-
-
-            await batch.commit();
-
-
-            document.getElementById(
-              "nuevo-codigo"
-            ).value =
-              generarCodigoAleatorio();
-
-
-            document.getElementById(
-              "nuevo-cliente"
-            ).value = "";
-
-
-            document.getElementById(
-              "nuevo-mueble"
-            ).value = "";
-
-
-            document.getElementById(
-              "nuevo-telefono"
-            ).value = "";
-
-
-            document.getElementById(
-              "nuevo-presupuesto"
-            ).value = "";
-
-
-            document.getElementById(
-              "nuevo-adelanto"
-            ).value = "";
-
-
-            document.getElementById(
-              "nuevo-fecha"
-            ).value = "";
-
-
-            calcularSaldoNuevo();
-
-
-            await cargarProyectosDesdeNube();
-
-            await cargarIngresosDesdeNube();
-
-
-            renderProyectosAdmin();
-
-            renderGestionIngresos();
-
-
-            alert(
-              "Proyecto guardado correctamente."
-            );
-
-          }
-
-          catch (error) {
-
-            console.error(
-              "Error creando proyecto:",
-              error
-            );
-
-
-            alert(
-              "No se pudo guardar el proyecto. Revisa las Rules de Firestore."
-            );
-
-          }
-
-        }
-      );
-
-    }
-
-
-    // ========================================================
-    // FILTRO INGRESOS
-    // ========================================================
-
-    const filtroIngresos =
-      document.getElementById(
-        "ingresos-mes"
-      );
-
-
-    if (filtroIngresos) {
-
-      const ahora =
-        new Date();
-
-
-      filtroIngresos.value =
-        `${ahora.getFullYear()}-${String(
-          ahora.getMonth() + 1
-        ).padStart(2,"0")}`;
-
-
-      filtroIngresos.addEventListener(
-        "change",
-        function () {
-
-          renderGestionIngresos();
-
-        }
-      );
-
-    }
-
-
-    // ========================================================
-    // PORTAFOLIO
-    // ========================================================
-
-    cargarPortafolioPublico();
-
-
-    const fotosInput =
-      document.getElementById(
-        "portfolio-fotos"
-      );
-
-    const videosInput =
-      document.getElementById(
-        "portfolio-videos"
-      );
-
-
-    fotosInput?.addEventListener(
-      "change",
-      mostrarPreviewArchivos
-    );
-
-
-    videosInput?.addEventListener(
-      "change",
-      mostrarPreviewArchivos
-    );
-
-
-    const formPortfolio =
-      document.getElementById(
-        "form-portafolio"
-      );
-
-
-    if (formPortfolio) {
-
-      formPortfolio.addEventListener(
-        "submit",
-        publicarTrabajoPortafolio
-      );
-
-    }
-
-  }
-);
-
-
-// ============================================================
-// 6. MENSAJE
-// ============================================================
-
-function mostrarMensajeInterno(
-  mensaje,
-  error = false
-) {
-
-  console.log(
-    error ? "ERROR:" : "OK:",
-    mensaje
-  );
-
-}
-
-
-// ============================================================
-// 7. CERRAR SESIÓN
-// ============================================================
 
 async function cerrarSesionAdmin() {
 
@@ -1003,65 +207,89 @@ async function cerrarSesionAdmin() {
 
 
     const modalIngresos =
-      document.getElementById(
-        "modal-ingresos"
-      );
-
+      document.getElementById("modal-ingresos");
 
     const modalPortfolio =
-      document.getElementById(
-        "modal-portafolio"
-      );
+      document.getElementById("modal-portafolio");
 
 
-    modalIngresos?.classList.add(
-      "hidden"
-    );
+    modalIngresos?.classList.add("hidden");
 
-
-    modalPortfolio?.classList.add(
-      "hidden"
-    );
+    modalPortfolio?.classList.add("hidden");
 
 
     irInicio();
 
-  }
-
-  catch (error) {
+  } catch (error) {
 
     console.error(
       "Error cerrando sesión:",
       error
     );
-
   }
 
 }
 
 
 // ============================================================
-// 8. PROYECTOS
+// 5. CONTROL DE VISTAS ADMIN
+// ============================================================
+
+function mostrarPanelAdministrador() {
+
+  const login =
+    document.getElementById("admin-login");
+
+  const panel =
+    document.getElementById("admin-panel");
+
+
+  if (login) {
+    login.classList.add("hidden");
+  }
+
+
+  if (panel) {
+    panel.classList.remove("hidden");
+  }
+
+}
+
+
+function ocultarPanelAdministrador() {
+
+  const login =
+    document.getElementById("admin-login");
+
+  const panel =
+    document.getElementById("admin-panel");
+
+
+  if (panel) {
+    panel.classList.add("hidden");
+  }
+
+
+  if (login) {
+    login.classList.remove("hidden");
+  }
+
+}
+
+
+// ============================================================
+// 6. CARGA DE DATOS DESDE FIRESTORE
 // ============================================================
 
 async function cargarProyectosDesdeNube() {
 
-  if (
-    !auth.currentUser ||
-    !esAdmin
-  ) {
-
-    return;
-
-  }
+  if (!auth.currentUser || !esAdmin) return;
 
 
   try {
 
     const snapshot =
-      await db
-        .collection("proyectos")
-        .get();
+      await db.collection("proyectos").get();
 
 
     proyectos = [];
@@ -1070,19 +298,13 @@ async function cargarProyectosDesdeNube() {
     snapshot.forEach(doc => {
 
       proyectos.push({
-
-        id:
-          doc.id,
-
+        id: doc.id,
         ...doc.data()
-
       });
 
     });
 
-  }
-
-  catch (error) {
+  } catch (error) {
 
     console.error(
       "Error cargando proyectos:",
@@ -1094,28 +316,15 @@ async function cargarProyectosDesdeNube() {
 }
 
 
-// ============================================================
-// 9. INGRESOS
-// ============================================================
-
 async function cargarIngresosDesdeNube() {
 
-  if (
-    !auth.currentUser ||
-    !esAdmin
-  ) {
-
-    return;
-
-  }
+  if (!auth.currentUser || !esAdmin) return;
 
 
   try {
 
     const snapshot =
-      await db
-        .collection("ingresos")
-        .get();
+      await db.collection("ingresos").get();
 
 
     ingresos = [];
@@ -1124,19 +333,13 @@ async function cargarIngresosDesdeNube() {
     snapshot.forEach(doc => {
 
       ingresos.push({
-
-        id:
-          doc.id,
-
+        id: doc.id,
         ...doc.data()
-
       });
 
     });
 
-  }
-
-  catch (error) {
+  } catch (error) {
 
     console.error(
       "Error cargando ingresos:",
@@ -1149,50 +352,34 @@ async function cargarIngresosDesdeNube() {
 
 
 // ============================================================
-// 10. BÚSQUEDA PÚBLICA
+// 7. BÚSQUEDA PÚBLICA DE PROYECTOS
 // ============================================================
 
-async function buscarProyectoPublico(
-  codigo
-) {
+async function buscarProyectoPublico(codigo) {
 
   const errorMsg =
-    document.getElementById(
-      "mensaje-error"
-    );
+    document.getElementById("mensaje-error");
 
   const resultBox =
-    document.getElementById(
-      "resultado-proyecto"
-    );
+    document.getElementById("resultado-proyecto");
 
 
   try {
 
     const snapshot =
-      await db
-        .collection("proyectos_publicos")
-        .where(
-          "codigo",
-          "==",
-          codigo
-        )
+      await db.collection("proyectos_publicos")
+        .where("codigo", "==", codigo)
         .limit(1)
         .get();
 
 
     if (snapshot.empty) {
 
-      resultBox?.classList.add(
-        "hidden"
-      );
+      resultBox?.classList.add("hidden");
 
-      errorMsg?.classList.remove(
-        "hidden"
-      );
+      errorMsg?.classList.remove("hidden");
 
       return;
-
     }
 
 
@@ -1200,47 +387,32 @@ async function buscarProyectoPublico(
       snapshot.docs[0].data();
 
 
-    errorMsg?.classList.add(
-      "hidden"
-    );
+    errorMsg?.classList.add("hidden");
 
-    resultBox?.classList.remove(
-      "hidden"
-    );
+    resultBox?.classList.remove("hidden");
 
 
-    document.getElementById(
-      "res-codigo"
-    ).innerText =
+    document.getElementById("res-codigo").innerText =
       data.codigo || "";
 
 
-    document.getElementById(
-      "res-mueble"
-    ).innerText =
+    document.getElementById("res-mueble").innerText =
       data.mueble || "";
 
 
-    document.getElementById(
-      "res-cliente"
-    ).innerText =
+    document.getElementById("res-cliente").innerText =
       `Cliente: ${data.cliente || ""}`;
 
 
-    document.getElementById(
-      "res-estado"
-    ).innerText =
+    document.getElementById("res-estado").innerText =
       data.estado || "";
 
 
-    document.getElementById(
-      "res-porcentaje"
-    ).innerText =
+    document.getElementById("res-porcentaje").innerText =
       `${data.progreso || 0}%`;
 
-  }
 
-  catch (error) {
+  } catch (error) {
 
     console.error(
       "Error búsqueda pública:",
@@ -1248,9 +420,7 @@ async function buscarProyectoPublico(
     );
 
 
-    resultBox?.classList.add(
-      "hidden"
-    );
+    resultBox?.classList.add("hidden");
 
 
     if (errorMsg) {
@@ -1258,9 +428,7 @@ async function buscarProyectoPublico(
       errorMsg.innerText =
         "No se pudo consultar el proyecto.";
 
-      errorMsg.classList.remove(
-        "hidden"
-      );
+      errorMsg.classList.remove("hidden");
 
     }
 
@@ -1270,7 +438,7 @@ async function buscarProyectoPublico(
 
 
 // ============================================================
-// 11. RENDER PROYECTOS ADMIN
+// 8. GESTIÓN DE PROYECTOS
 // ============================================================
 
 function renderProyectosAdmin() {
@@ -1290,9 +458,9 @@ function renderProyectosAdmin() {
     );
 
 
-  if (total)
-    total.innerText =
-      proyectos.length;
+  if (total) {
+    total.innerText = proyectos.length;
+  }
 
 
   if (!container) return;
@@ -1302,315 +470,300 @@ function renderProyectosAdmin() {
 
 
   const etapas = [
-
     "Diseño Aprobado",
     "Corte",
     "Armado",
     "Instalación",
     "Finalizado"
-
   ];
 
 
-  proyectos.forEach(
-    (p,index) => {
+  proyectos.forEach((p, index) => {
+
+    const presupuesto =
+      Number(p.presupuesto) || 0;
 
 
-      const presupuesto =
-        Number(p.presupuesto) || 0;
+    const adelanto =
+      Number(p.adelanto) || 0;
 
 
-      const adelanto =
-        Number(p.adelanto) || 0;
+    const saldo =
+      Math.max(
+        presupuesto - adelanto,
+        0
+      );
 
 
-      const saldo =
-        Math.max(
-          presupuesto - adelanto,
-          0
-        );
+    const fecha =
+      p.fechaEntrega
+        ? p.fechaEntrega
+            .split("-")
+            .reverse()
+            .join("/")
+        : "Sin definir";
 
 
-      const fecha =
-        p.fechaEntrega
-          ? p.fechaEntrega
-              .split("-")
-              .reverse()
-              .join("/")
-          : "Sin definir";
+    const card =
+      document.createElement("div");
 
 
-      const card =
-        document.createElement("div");
+    card.className =
+      "admin-card";
 
 
-      card.className =
-        "admin-card";
+    card.style.cssText = `
+      background:rgba(255,255,255,.05);
+      border:1px solid rgba(255,255,255,.1);
+      border-radius:12px;
+      padding:1.2rem;
+      margin-bottom:1rem;
+    `;
 
 
-      card.style.cssText = `
-        background:rgba(255,255,255,.05);
-        border:1px solid rgba(255,255,255,.1);
-        border-radius:12px;
-        padding:1.2rem;
-        margin-bottom:1rem;
-      `;
+    const botones =
+      etapas.map((estado, idx) => {
+
+        const activo =
+          p.estado === estado;
 
 
-      const botones =
-        etapas.map(
-          (estado,idx) => {
+        return `
+          <button
+            type="button"
+            onclick="cambiarEstadoPorId('${p.id}', ${idx}, ${(idx + 1) * 20})"
+            style="
+              border:none;
+              padding:.4rem .7rem;
+              border-radius:6px;
+              cursor:pointer;
+              font-size:.8rem;
+              margin:.2rem;
+              ${activo
+                ? "background:#f59e0b;color:#000;font-weight:bold;"
+                : "background:rgba(255,255,255,.1);color:#fff;"
+              }
+            "
+          >
+            ${estado}
+          </button>
+        `;
 
-            const activo =
-              p.estado === estado;
-
-
-            return `
-              <button
-                type="button"
-                onclick="cambiarEstadoPorId(
-                  '${p.id}',
-                  ${idx},
-                  ${(idx + 1) * 20}
-                )"
-                style="
-                  border:none;
-                  padding:.4rem .7rem;
-                  border-radius:6px;
-                  cursor:pointer;
-                  font-size:.8rem;
-                  margin:.2rem;
-                  ${
-                    activo
-                      ? "background:#f59e0b;color:#000;font-weight:bold;"
-                      : "background:rgba(255,255,255,.1);color:#fff;"
-                  }
-                "
-              >
-                ${estado}
-              </button>
-            `;
-
-          }
-        ).join("");
+      }).join("");
 
 
-      card.innerHTML = `
+    card.innerHTML = `
 
-        <div id="info-view-${index}">
+      <div id="info-view-${index}">
+
+        <div style="
+          display:flex;
+          justify-content:space-between;
+          gap:10px;
+          flex-wrap:wrap;
+        ">
 
           <div style="
-            display:flex;
-            justify-content:space-between;
-            gap:10px;
-            flex-wrap:wrap;
+            flex:1;
+            min-width:260px;
           ">
 
-            <div style="flex:1;min-width:260px;">
-
-              <span style="
-                background:#f59e0b;
-                color:#000;
-                padding:.2rem .6rem;
-                border-radius:4px;
-                font-weight:bold;
-                font-size:.85rem;
-              ">
-                ${p.codigo || ""}
-              </span>
-
-              <strong style="margin-left:.4rem;">
-                ${p.mueble || ""}
-              </strong>
-
-              <p style="
-                margin:.4rem 0;
-                color:#a3a3a3;
-                font-size:.85rem;
-              ">
-                Cliente:
-                ${p.cliente || ""}
-                |
-                Tel:
-                ${p.telefono || "Sin registrar"}
-              </p>
-
-              <p style="
-                color:#38bdf8;
-                font-size:.85rem;
-              ">
-                Entrega:
-                <strong>${fecha}</strong>
-              </p>
+            <span style="
+              background:#f59e0b;
+              color:#000;
+              padding:.2rem .6rem;
+              border-radius:4px;
+              font-weight:bold;
+              font-size:.85rem;
+            ">
+              ${p.codigo || ""}
+            </span>
 
 
-              <div style="
-                display:grid;
-                grid-template-columns:repeat(3,minmax(0,1fr));
-                gap:10px;
-                margin-top:12px;
-              ">
-
-                <div
-                  class="financial-box"
-                  style="
-                    background:rgba(56,189,248,.07);
-                    border:1px solid rgba(56,189,248,.25);
-                    color:#38bdf8;
-                  "
-                >
-
-                  <span style="
-                    font-size:.75rem;
-                    opacity:.85;
-                    margin-bottom:5px;
-                  ">
-                    Monto total
-                  </span>
-
-                  <strong style="
-                    font-size:1.05rem;
-                    white-space:nowrap;
-                  ">
-                    Bs. ${formatearMonto(presupuesto)}
-                  </strong>
-
-                </div>
+            <strong style="margin-left:.4rem;">
+              ${p.mueble || ""}
+            </strong>
 
 
-                <div
-                  class="financial-box"
-                  style="
-                    background:rgba(245,158,11,.07);
-                    border:1px solid rgba(245,158,11,.25);
-                    color:#f59e0b;
-                  "
-                >
-
-                  <span style="
-                    font-size:.75rem;
-                    opacity:.85;
-                    margin-bottom:5px;
-                  ">
-                    Adelanto
-                  </span>
-
-                  <strong style="
-                    font-size:1.05rem;
-                    white-space:nowrap;
-                  ">
-                    Bs. ${formatearMonto(adelanto)}
-                  </strong>
-
-                </div>
+            <p style="
+              margin:.4rem 0;
+              color:#a3a3a3;
+              font-size:.85rem;
+            ">
+              Cliente:
+              ${p.cliente || ""}
+              |
+              Tel:
+              ${p.telefono || "Sin registrar"}
+            </p>
 
 
-                <div
-                  class="financial-box"
-                  style="
-                    background:rgba(239,68,68,.07);
-                    border:1px solid rgba(239,68,68,.25);
-                    color:#ef4444;
-                  "
-                >
-
-                  <span style="
-                    font-size:.75rem;
-                    opacity:.85;
-                    margin-bottom:5px;
-                  ">
-                    Pendiente
-                  </span>
-
-                  <strong style="
-                    font-size:1.05rem;
-                    white-space:nowrap;
-                  ">
-                    Bs. ${formatearMonto(saldo)}
-                  </strong>
-
-                </div>
-
-              </div>
-
-
-              <div style="margin-top:.7rem;">
-                ${botones}
-              </div>
-
-
-              <button
-                type="button"
-                onclick="notificarWhatsApp(${index})"
-                style="
-                  margin-top:.6rem;
-                  background:#16a34a;
-                  color:white;
-                  border:none;
-                  padding:.4rem .8rem;
-                  border-radius:6px;
-                  cursor:pointer;
-                  font-size:.85rem;
-                  font-weight:bold;
-                "
-              >
-                WhatsApp
-              </button>
-
-            </div>
+            <p style="
+              color:#38bdf8;
+              font-size:.85rem;
+            ">
+              Entrega:
+              <strong>${fecha}</strong>
+            </p>
 
 
             <div style="
-              display:flex;
-              gap:5px;
-              align-items:flex-start;
+              display:grid;
+              grid-template-columns:repeat(3,minmax(0,1fr));
+              gap:10px;
+              margin-top:12px;
             ">
 
-              <button
-                type="button"
-                onclick="activarEdicionInline(${index})"
-                class="admin-action-btn"
+              <div
+                class="financial-box"
                 style="
-                  background:#3b82f6;
-                  color:#fff;
+                  background:rgba(56,189,248,.07);
+                  border:1px solid rgba(56,189,248,.25);
+                  color:#38bdf8;
                 "
-                title="Editar proyecto"
               >
-                ✏️
-              </button>
+                <span style="
+                  font-size:.75rem;
+                  opacity:.85;
+                  margin-bottom:5px;
+                ">
+                  Monto total
+                </span>
 
-              <button
-                type="button"
-                onclick="eliminarProyecto('${p.id}')"
-                class="admin-action-btn"
+                <strong style="
+                  font-size:1.05rem;
+                  white-space:nowrap;
+                ">
+                  Bs. ${formatearMonto(presupuesto)}
+                </strong>
+              </div>
+
+
+              <div
+                class="financial-box"
                 style="
-                  background:#ef4444;
-                  color:#fff;
+                  background:rgba(245,158,11,.07);
+                  border:1px solid rgba(245,158,11,.25);
+                  color:#f59e0b;
                 "
-                title="Eliminar proyecto"
               >
-                🗑️
-              </button>
+                <span style="
+                  font-size:.75rem;
+                  opacity:.85;
+                  margin-bottom:5px;
+                ">
+                  Adelanto
+                </span>
+
+                <strong style="
+                  font-size:1.05rem;
+                  white-space:nowrap;
+                ">
+                  Bs. ${formatearMonto(adelanto)}
+                </strong>
+              </div>
+
+
+              <div
+                class="financial-box"
+                style="
+                  background:rgba(239,68,68,.07);
+                  border:1px solid rgba(239,68,68,.25);
+                  color:#ef4444;
+                "
+              >
+                <span style="
+                  font-size:.75rem;
+                  opacity:.85;
+                  margin-bottom:5px;
+                ">
+                  Pendiente
+                </span>
+
+                <strong style="
+                  font-size:1.05rem;
+                  white-space:nowrap;
+                ">
+                  Bs. ${formatearMonto(saldo)}
+                </strong>
+              </div>
 
             </div>
+
+
+            <div style="margin-top:.7rem;">
+              ${botones}
+            </div>
+
+
+            <button
+              type="button"
+              onclick="notificarWhatsApp(${index})"
+              style="
+                margin-top:.6rem;
+                background:#16a34a;
+                color:white;
+                border:none;
+                padding:.4rem .8rem;
+                border-radius:6px;
+                cursor:pointer;
+                font-size:.85rem;
+                font-weight:bold;
+              "
+            >
+              WhatsApp
+            </button>
+
+          </div>
+
+
+          <div style="
+            display:flex;
+            gap:5px;
+            align-items:flex-start;
+          ">
+
+            <button
+              type="button"
+              onclick="activarEdicionInline(${index})"
+              class="admin-action-btn"
+              style="
+                background:#3b82f6;
+                color:#fff;
+              "
+              title="Editar proyecto"
+            >
+              ✏️
+            </button>
+
+
+            <button
+              type="button"
+              onclick="eliminarProyecto('${p.id}')"
+              class="admin-action-btn"
+              style="
+                background:#ef4444;
+                color:#fff;
+              "
+              title="Eliminar proyecto"
+            >
+              🗑️
+            </button>
 
           </div>
 
         </div>
-      `;
+
+      </div>
+    `;
 
 
-      container.appendChild(card);
+    container.appendChild(card);
 
-    }
-  );
+  });
 
 }
 
-
-// ============================================================
-// 12. CAMBIAR ESTADO
-// ============================================================
 
 async function cambiarEstadoPorId(
   id,
@@ -1618,35 +771,24 @@ async function cambiarEstadoPorId(
   progreso
 ) {
 
-  if (
-    !esAdmin ||
-    !auth.currentUser
-  ) return;
+  if (!esAdmin || !auth.currentUser) return;
 
 
   const etapas = [
-
     "Diseño Aprobado",
     "Corte",
     "Armado",
     "Instalación",
     "Finalizado"
-
   ];
 
 
   const descripciones = [
-
     "El diseño ha sido aprobado por WhatsApp. El proyecto ingresa a producción.",
-
     "Las placas se encuentran en proceso de corte y pegado de tapacantos.",
-
     "Las piezas se están ensamblando en taller.",
-
     "El mueble está en proceso de traslado e instalación en sitio.",
-
     "¡El proyecto ha sido completado e instalado con éxito!"
-
   ];
 
 
@@ -1665,9 +807,7 @@ async function cambiarEstadoPorId(
 
 
     const proyectoRef =
-      db
-        .collection("proyectos")
-        .doc(id);
+      db.collection("proyectos").doc(id);
 
 
     batch.update(
@@ -1687,8 +827,7 @@ async function cambiarEstadoPorId(
 
 
     const publicoQuery =
-      await db
-        .collection("proyectos_publicos")
+      await db.collection("proyectos_publicos")
         .where(
           "codigo",
           "==",
@@ -1719,9 +858,8 @@ async function cambiarEstadoPorId(
 
     renderProyectosAdmin();
 
-  }
 
-  catch (error) {
+  } catch (error) {
 
     console.error(
       "Error estado:",
@@ -1733,23 +871,18 @@ async function cambiarEstadoPorId(
 }
 
 
-// ============================================================
-// 13. ELIMINAR PROYECTO
-// ============================================================
-
 async function eliminarProyecto(id) {
 
-  if (
-    !esAdmin ||
-    !auth.currentUser
-  ) return;
+  if (!esAdmin || !auth.currentUser) return;
 
 
   if (
     !confirm(
       "¿Seguro que quieres eliminar este proyecto?"
     )
-  ) return;
+  ) {
+    return;
+  }
 
 
   try {
@@ -1765,17 +898,14 @@ async function eliminarProyecto(id) {
 
 
     batch.delete(
-      db
-        .collection("proyectos")
-        .doc(id)
+      db.collection("proyectos").doc(id)
     );
 
 
     if (proyecto) {
 
       const publicSnap =
-        await db
-          .collection("proyectos_publicos")
+        await db.collection("proyectos_publicos")
           .where(
             "codigo",
             "==",
@@ -1793,8 +923,7 @@ async function eliminarProyecto(id) {
 
 
       const ingresoSnap =
-        await db
-          .collection("ingresos")
+        await db.collection("ingresos")
           .where(
             "proyectoId",
             "==",
@@ -1820,14 +949,12 @@ async function eliminarProyecto(id) {
 
     await cargarIngresosDesdeNube();
 
-
     renderProyectosAdmin();
 
     renderGestionIngresos();
 
-  }
 
-  catch (error) {
+  } catch (error) {
 
     console.error(
       "Error eliminando:",
@@ -1838,10 +965,6 @@ async function eliminarProyecto(id) {
 
 }
 
-
-// ============================================================
-// 14. EDITAR PROYECTO
-// ============================================================
 
 function activarEdicionInline(index) {
 
@@ -1914,6 +1037,7 @@ function activarEdicionInline(index) {
         value="${p.fechaEntrega || ""}"
       >
 
+
       <div>
 
         <button
@@ -1930,6 +1054,7 @@ function activarEdicionInline(index) {
         >
           Guardar
         </button>
+
 
         <button
           type="button"
@@ -1949,25 +1074,17 @@ function activarEdicionInline(index) {
       </div>
 
     </div>
-
   `;
 
 }
 
-
-// ============================================================
-// 15. GUARDAR EDICIÓN
-// ============================================================
 
 async function guardarEdicionInline(
   id,
   index
 ) {
 
-  if (
-    !esAdmin ||
-    !auth.currentUser
-  ) return;
+  if (!esAdmin || !auth.currentUser) return;
 
 
   const proyectoAnterior =
@@ -2030,11 +1147,9 @@ async function guardarEdicionInline(
 
   try {
 
-    await db
-      .collection("proyectos")
+    await db.collection("proyectos")
       .doc(id)
       .update({
-
         codigo,
         cliente,
         mueble,
@@ -2042,13 +1157,11 @@ async function guardarEdicionInline(
         presupuesto,
         adelanto,
         fechaEntrega: fecha
-
       });
 
 
     const ingresoSnap =
-      await db
-        .collection("ingresos")
+      await db.collection("ingresos")
         .where(
           "proyectoId",
           "==",
@@ -2063,6 +1176,7 @@ async function guardarEdicionInline(
       const ingresoDoc =
         ingresoSnap.docs[0];
 
+
       const ingreso =
         ingresoDoc.data();
 
@@ -2074,8 +1188,7 @@ async function guardarEdicionInline(
 
 
       const cobrado =
-        adelanto +
-        pagosFinales;
+        adelanto + pagosFinales;
 
 
       const pendiente =
@@ -2101,8 +1214,7 @@ async function guardarEdicionInline(
 
 
     const publicoSnap =
-      await db
-        .collection("proyectos_publicos")
+      await db.collection("proyectos_publicos")
         .where(
           "codigo",
           "==",
@@ -2132,7 +1244,6 @@ async function guardarEdicionInline(
 
     await cargarIngresosDesdeNube();
 
-
     renderProyectosAdmin();
 
     renderGestionIngresos();
@@ -2142,14 +1253,14 @@ async function guardarEdicionInline(
       "Proyecto actualizado correctamente."
     );
 
-  }
 
-  catch (error) {
+  } catch (error) {
 
     console.error(
       "Error editando:",
       error
     );
+
 
     alert(
       "No se pudo actualizar el proyecto."
@@ -2161,7 +1272,7 @@ async function guardarEdicionInline(
 
 
 // ============================================================
-// 16. GESTIÓN INGRESOS
+// 9. GESTIÓN Y CONTROL DE INGRESOS
 // ============================================================
 
 function renderGestionIngresos() {
@@ -2191,37 +1302,34 @@ function renderGestionIngresos() {
   if (filtro) {
 
     lista =
-      lista.filter(
-        ingreso => {
+      lista.filter(ingreso => {
 
-          let fecha = null;
-
-
-          if (
-            ingreso.fechaCreacion &&
-            ingreso.fechaCreacion.toDate
-          ) {
-
-            fecha =
-              ingreso.fechaCreacion.toDate();
-
-          }
+        let fecha = null;
 
 
-          if (!fecha)
-            return true;
+        if (
+          ingreso.fechaCreacion &&
+          ingreso.fechaCreacion.toDate
+        ) {
 
-
-          const mes =
-            `${fecha.getFullYear()}-${String(
-              fecha.getMonth() + 1
-            ).padStart(2,"0")}`;
-
-
-          return mes === filtro;
+          fecha =
+            ingreso.fechaCreacion.toDate();
 
         }
-      );
+
+
+        if (!fecha) return true;
+
+
+        const mes =
+          `${fecha.getFullYear()}-${String(
+            fecha.getMonth() + 1
+          ).padStart(2, "0")}`;
+
+
+        return mes === filtro;
+
+      });
 
   }
 
@@ -2231,22 +1339,16 @@ function renderGestionIngresos() {
   let totalPendiente = 0;
 
 
-  lista.forEach(
-    ingreso => {
+  lista.forEach(ingreso => {
 
-      totalCobrado +=
-        Number(
-          ingreso.cobrado
-        ) || 0;
+    totalCobrado +=
+      Number(ingreso.cobrado) || 0;
 
 
-      totalPendiente +=
-        Number(
-          ingreso.pendiente
-        ) || 0;
+    totalPendiente +=
+      Number(ingreso.pendiente) || 0;
 
-    }
-  );
+  });
 
 
   document.getElementById(
@@ -2287,187 +1389,172 @@ function renderGestionIngresos() {
   }
 
 
-  lista.forEach(
-    ingreso => {
+  lista.forEach(ingreso => {
 
-      const card =
-        document.createElement("div");
-
-
-      card.style.cssText = `
-        background:rgba(255,255,255,.035);
-        border:1px solid rgba(255,255,255,.09);
-        border-radius:9px;
-        padding:10px;
-        margin-bottom:7px;
-      `;
+    const card =
+      document.createElement("div");
 
 
-      const presupuesto =
-        Number(ingreso.presupuesto) || 0;
+    card.style.cssText = `
+      background:rgba(255,255,255,.035);
+      border:1px solid rgba(255,255,255,.09);
+      border-radius:9px;
+      padding:10px;
+      margin-bottom:7px;
+    `;
 
 
-      const adelanto =
-        Number(ingreso.adelanto) || 0;
+    const presupuesto =
+      Number(ingreso.presupuesto) || 0;
 
 
-      const cobrado =
-        Number(ingreso.cobrado) || 0;
+    const adelanto =
+      Number(ingreso.adelanto) || 0;
 
 
-      const pendiente =
-        Math.max(
-          presupuesto - cobrado,
-          0
-        );
+    const cobrado =
+      Number(ingreso.cobrado) || 0;
 
 
-      card.innerHTML = `
+    const pendiente =
+      Math.max(
+        presupuesto - cobrado,
+        0
+      );
+
+
+    card.innerHTML = `
+
+      <div style="
+        display:flex;
+        justify-content:space-between;
+        gap:8px;
+      ">
+
+        <div>
+
+          <strong>
+            ${ingreso.cliente || ""}
+          </strong>
+
+          <div style="
+            color:#a3a3a3;
+            font-size:.75rem;
+          ">
+            ${ingreso.codigo || ""}
+            ·
+            ${ingreso.mueble || ""}
+          </div>
+
+        </div>
+
 
         <div style="
-          display:flex;
-          justify-content:space-between;
-          gap:8px;
+          color:#38bdf8;
+          font-weight:bold;
+          font-size:.85rem;
         ">
+          Total:
+          Bs. ${formatearMonto(presupuesto)}
+        </div>
 
-          <div>
+      </div>
 
-            <strong>
-              ${ingreso.cliente || ""}
-            </strong>
 
+      <div style="
+        display:grid;
+        grid-template-columns:repeat(3,1fr);
+        gap:5px;
+        margin-top:8px;
+      ">
+
+        <div class="summary-box amber">
+          Adelanto
+          <strong>
+            Bs. ${formatearMonto(adelanto)}
+          </strong>
+        </div>
+
+
+        <div class="summary-box green">
+          Cobrado
+          <strong>
+            Bs. ${formatearMonto(cobrado)}
+          </strong>
+        </div>
+
+
+        <div class="summary-box red">
+          Pendiente
+          <strong>
+            Bs. ${formatearMonto(pendiente)}
+          </strong>
+        </div>
+
+      </div>
+
+
+      ${
+        pendiente > 0
+          ? `
             <div style="
-              color:#a3a3a3;
-              font-size:.75rem;
+              display:flex;
+              gap:5px;
+              margin-top:8px;
             ">
-              ${ingreso.codigo || ""}
-              ·
-              ${ingreso.mueble || ""}
+
+              <input
+                type="number"
+                min="0"
+                step="0.01"
+                id="pago-${ingreso.id}"
+                placeholder="Monto pagado"
+              >
+
+              <button
+                type="button"
+                onclick="registrarPago('${ingreso.id}')"
+                style="
+                  background:#16a34a;
+                  color:#fff;
+                  border:none;
+                  border-radius:6px;
+                  padding:7px 10px;
+                  cursor:pointer;
+                  font-weight:bold;
+                "
+              >
+                Registrar pago
+              </button>
+
             </div>
-
-          </div>
-
-          <div style="
-            color:#38bdf8;
-            font-weight:bold;
-            font-size:.85rem;
-          ">
-            Total:
-            Bs. ${formatearMonto(presupuesto)}
-          </div>
-
-        </div>
-
-
-        <div style="
-          display:grid;
-          grid-template-columns:repeat(3,1fr);
-          gap:5px;
-          margin-top:8px;
-        ">
-
-          <div class="summary-box amber">
-            Adelanto
-            <strong>
-              Bs. ${formatearMonto(adelanto)}
-            </strong>
-          </div>
-
-          <div class="summary-box green">
-            Cobrado
-            <strong>
-              Bs. ${formatearMonto(cobrado)}
-            </strong>
-          </div>
-
-          <div class="summary-box red">
-            Pendiente
-            <strong>
-              Bs. ${formatearMonto(pendiente)}
-            </strong>
-          </div>
-
-        </div>
-
-
-        ${
-          pendiente > 0
-
-          ?
-
           `
-          <div style="
-            display:flex;
-            gap:5px;
-            margin-top:8px;
-          ">
-
-            <input
-              type="number"
-              min="0"
-              step="0.01"
-              id="pago-${ingreso.id}"
-              placeholder="Monto pagado"
-            >
-
-            <button
-              type="button"
-              onclick="registrarPago('${ingreso.id}')"
-              style="
-                background:#16a34a;
-                color:#fff;
-                border:none;
-                border-radius:6px;
-                padding:7px 10px;
-                cursor:pointer;
-                font-weight:bold;
-              "
-            >
-              Registrar pago
-            </button>
-
-          </div>
+          : `
+            <div style="
+              margin-top:8px;
+              color:#4ade80;
+              font-size:.78rem;
+              text-align:center;
+            ">
+              <i class="fa-solid fa-circle-check"></i>
+              Proyecto pagado completamente
+            </div>
           `
+      }
 
-          :
-
-          `
-          <div style="
-            margin-top:8px;
-            color:#4ade80;
-            font-size:.78rem;
-            text-align:center;
-          ">
-            <i class="fa-solid fa-circle-check"></i>
-            Proyecto pagado completamente
-          </div>
-          `
-
-        }
-
-      `;
+    `;
 
 
-      container.appendChild(card);
+    container.appendChild(card);
 
-    }
-  );
+  });
 
 }
 
 
-// ============================================================
-// 17. REGISTRAR PAGO
-// ============================================================
+async function registrarPago(ingresoId) {
 
-async function registrarPago(
-  ingresoId
-) {
-
-  if (
-    !esAdmin ||
-    !auth.currentUser
-  ) return;
+  if (!esAdmin || !auth.currentUser) return;
 
 
   const input =
@@ -2480,8 +1567,7 @@ async function registrarPago(
     Number(input?.value) || 0;
 
 
-  if (monto <= 0)
-    return;
+  if (monto <= 0) return;
 
 
   const ingreso =
@@ -2490,8 +1576,7 @@ async function registrarPago(
     );
 
 
-  if (!ingreso)
-    return;
+  if (!ingreso) return;
 
 
   const presupuesto =
@@ -2516,8 +1601,7 @@ async function registrarPago(
     );
 
 
-  if (pago <= 0)
-    return;
+  if (pago <= 0) return;
 
 
   const pagosFinalesActuales =
@@ -2543,8 +1627,7 @@ async function registrarPago(
 
   try {
 
-    await db
-      .collection("ingresos")
+    await db.collection("ingresos")
       .doc(ingresoId)
       .update({
 
@@ -2567,9 +1650,8 @@ async function registrarPago(
 
     renderGestionIngresos();
 
-  }
 
-  catch (error) {
+  } catch (error) {
 
     console.error(
       "Error registrando pago:",
@@ -2582,10 +1664,63 @@ async function registrarPago(
 
 
 // ============================================================
-// 18. EXPORTAR PDF
+// 10. EXPORTACIÓN PDF DE INGRESOS
 // ============================================================
 
-function exportarIngresosPDF() {
+async function obtenerLogoPDF() {
+
+  try {
+
+    const response =
+      await fetch("logo.png");
+
+
+    if (!response.ok) return null;
+
+
+    const blob =
+      await response.blob();
+
+
+    return await new Promise(
+      (resolve) => {
+
+        const reader =
+          new FileReader();
+
+
+        reader.onloadend =
+          () => resolve(
+            reader.result
+          );
+
+
+        reader.onerror =
+          () => resolve(null);
+
+
+        reader.readAsDataURL(blob);
+
+      }
+    );
+
+
+  } catch (error) {
+
+    console.warn(
+      "No se pudo cargar logo.png para el PDF:",
+      error
+    );
+
+
+    return null;
+
+  }
+
+}
+
+
+async function exportarIngresosPDF() {
 
   if (!esAdmin) return;
 
@@ -2604,8 +1739,8 @@ function exportarIngresosPDF() {
     !window.jspdf.jsPDF
   ) {
 
-    console.error(
-      "jsPDF no disponible."
+    alert(
+      "No se pudo generar el PDF porque jsPDF no está disponible."
     );
 
     return;
@@ -2614,30 +1749,29 @@ function exportarIngresosPDF() {
 
 
   const lista =
-    ingresos.filter(
-      ingreso => {
+    ingresos.filter(ingreso => {
 
-        if (
-          !ingreso.fechaCreacion ||
-          !ingreso.fechaCreacion.toDate
-        )
-          return true;
-
-
-        const fecha =
-          ingreso.fechaCreacion.toDate();
-
-
-        const mes =
-          `${fecha.getFullYear()}-${String(
-            fecha.getMonth() + 1
-          ).padStart(2,"0")}`;
-
-
-        return mes === filtro;
-
+      if (
+        !ingreso.fechaCreacion ||
+        !ingreso.fechaCreacion.toDate
+      ) {
+        return true;
       }
-    );
+
+
+      const fecha =
+        ingreso.fechaCreacion.toDate();
+
+
+      const mes =
+        `${fecha.getFullYear()}-${String(
+          fecha.getMonth() + 1
+        ).padStart(2, "0")}`;
+
+
+      return mes === filtro;
+
+    });
 
 
   const jsPDF =
@@ -2645,15 +1779,18 @@ function exportarIngresosPDF() {
 
 
   const doc =
-    new jsPDF();
+    new jsPDF({
+      orientation: "landscape",
+      unit: "mm",
+      format: "a4"
+    });
 
 
-  const [anio,mes] =
+  const [anio, mes] =
     filtro.split("-");
 
 
   const nombresMes = [
-
     "Enero",
     "Febrero",
     "Marzo",
@@ -2666,95 +1803,345 @@ function exportarIngresosPDF() {
     "Octubre",
     "Noviembre",
     "Diciembre"
-
   ];
 
 
-  doc.setFontSize(18);
-
-  doc.text(
-    "HN MUEBLES",
-    14,
-    18
-  );
+  const nombreMes =
+    nombresMes[
+      Number(mes) - 1
+    ] || mes;
 
 
-  doc.setFontSize(12);
+  const logo =
+    await obtenerLogoPDF();
 
-  doc.text(
-    `Registro de Ingresos - ${nombresMes[Number(mes)-1]} ${anio}`,
-    14,
-    27
-  );
+
+  const NEGRO = [18, 18, 18];
+  const GRIS = [105, 105, 105];
+  const DORADO = [156, 113, 81];
+  const BLANCO = [255, 255, 255];
+  const VERDE = [22, 163, 74];
+  const ROJO = [220, 38, 38];
+  const AZUL = [37, 99, 235];
 
 
   let totalProyecto = 0;
-
   let totalAdelanto = 0;
-
   let totalCobrado = 0;
-
   let totalPendiente = 0;
 
 
   const filas =
-    lista.map(
-      ingreso => {
+    lista.map(ingreso => {
 
-        const total =
-          Number(
-            ingreso.presupuesto
-          ) || 0;
+      const total =
+        Number(ingreso.presupuesto) || 0;
 
 
-        const adelanto =
-          Number(
-            ingreso.adelanto
-          ) || 0;
+      const adelanto =
+        Number(ingreso.adelanto) || 0;
 
 
-        const cobrado =
-          Number(
-            ingreso.cobrado
-          ) || 0;
+      const cobrado =
+        Number(ingreso.cobrado) || 0;
 
 
-        const pendiente =
-          Math.max(
-            total - cobrado,
-            0
-          );
+      const pendiente =
+        Math.max(
+          total - cobrado,
+          0
+        );
 
 
-        totalProyecto += total;
+      totalProyecto += total;
 
-        totalAdelanto += adelanto;
+      totalAdelanto += adelanto;
 
-        totalCobrado += cobrado;
+      totalCobrado += cobrado;
 
-        totalPendiente += pendiente;
+      totalPendiente += pendiente;
 
 
-        return [
+      return [
+        ingreso.codigo || "",
+        ingreso.cliente || "",
+        ingreso.mueble || "",
+        `Bs. ${formatearMonto(total)}`,
+        `Bs. ${formatearMonto(adelanto)}`,
+        `Bs. ${formatearMonto(cobrado)}`,
+        `Bs. ${formatearMonto(pendiente)}`
+      ];
 
-          ingreso.codigo || "",
+    });
 
-          ingreso.cliente || "",
 
-          ingreso.mueble || "",
+  if (logo) {
 
-          `Bs. ${formatearMonto(total)}`,
+    try {
 
-          `Bs. ${formatearMonto(adelanto)}`,
+      doc.addImage(
+        logo,
+        "PNG",
+        14,
+        10,
+        25,
+        18
+      );
 
-          `Bs. ${formatearMonto(cobrado)}`,
+    } catch (error) {
 
-          `Bs. ${formatearMonto(pendiente)}`
+      console.warn(
+        "No se pudo insertar el logo:",
+        error
+      );
 
-        ];
+    }
 
+  }
+
+
+  const posicionTexto =
+    logo ? 45 : 14;
+
+
+  doc.setTextColor(...NEGRO);
+
+  doc.setFont(
+    "helvetica",
+    "bold"
+  );
+
+  doc.setFontSize(20);
+
+  doc.text(
+    "HN MUEBLES",
+    posicionTexto,
+    17
+  );
+
+
+  doc.setFont(
+    "helvetica",
+    "normal"
+  );
+
+  doc.setFontSize(9);
+
+  doc.setTextColor(...GRIS);
+
+  doc.text(
+    "DISEÑO Y FABRICACIÓN DE MUEBLES A MEDIDA",
+    posicionTexto,
+    23
+  );
+
+
+  doc.setFont(
+    "helvetica",
+    "bold"
+  );
+
+  doc.setFontSize(14);
+
+  doc.setTextColor(...DORADO);
+
+  doc.text(
+    "REPORTE DE INGRESOS",
+    14,
+    38
+  );
+
+
+  doc.setFont(
+    "helvetica",
+    "normal"
+  );
+
+  doc.setFontSize(11);
+
+  doc.setTextColor(...NEGRO);
+
+  doc.text(
+    `${nombreMes} ${anio}`,
+    14,
+    45
+  );
+
+
+  const fechaGeneracion =
+    new Date();
+
+
+  const fechaTexto =
+    fechaGeneracion.toLocaleDateString(
+      "es-BO",
+      {
+        day: "2-digit",
+        month: "2-digit",
+        year: "numeric"
       }
     );
+
+
+  const horaTexto =
+    fechaGeneracion.toLocaleTimeString(
+      "es-BO",
+      {
+        hour: "2-digit",
+        minute: "2-digit"
+      }
+    );
+
+
+  doc.setFontSize(8);
+
+  doc.setTextColor(...GRIS);
+
+  doc.text(
+    `Generado el ${fechaTexto} a las ${horaTexto}`,
+    283,
+    45,
+    {
+      align: "right"
+    }
+  );
+
+
+  doc.setDrawColor(...DORADO);
+
+  doc.setLineWidth(0.8);
+
+  doc.line(
+    14,
+    49,
+    283,
+    49
+  );
+
+
+  const resumenY = 55;
+
+  const anchoCaja = 63;
+
+  const altoCaja = 20;
+
+  const separacion = 5;
+
+
+  const resumen = [
+
+    {
+      titulo: "PROYECTOS",
+      valor: `${lista.length}`,
+      color: AZUL
+    },
+
+    {
+      titulo: "CONTRATADO",
+      valor: `Bs. ${formatearMonto(totalProyecto)}`,
+      color: DORADO
+    },
+
+    {
+      titulo: "COBRADO",
+      valor: `Bs. ${formatearMonto(totalCobrado)}`,
+      color: VERDE
+    },
+
+    {
+      titulo: "PENDIENTE",
+      valor: `Bs. ${formatearMonto(totalPendiente)}`,
+      color: ROJO
+    }
+
+  ];
+
+
+  resumen.forEach(
+    (item, index) => {
+
+      const x =
+        14 +
+        index *
+          (anchoCaja + separacion);
+
+
+      doc.setFillColor(
+        248,
+        248,
+        248
+      );
+
+
+      doc.setDrawColor(
+        225,
+        225,
+        225
+      );
+
+
+      doc.roundedRect(
+        x,
+        resumenY,
+        anchoCaja,
+        altoCaja,
+        3,
+        3,
+        "FD"
+      );
+
+
+      doc.setFillColor(
+        ...item.color
+      );
+
+
+      doc.roundedRect(
+        x,
+        resumenY,
+        2.5,
+        altoCaja,
+        1,
+        1,
+        "F"
+      );
+
+
+      doc.setFont(
+        "helvetica",
+        "bold"
+      );
+
+
+      doc.setFontSize(7);
+
+      doc.setTextColor(...GRIS);
+
+      doc.text(
+        item.titulo,
+        x + 7,
+        resumenY + 7
+      );
+
+
+      doc.setFontSize(11);
+
+      doc.setTextColor(...NEGRO);
+
+      doc.text(
+        item.valor,
+        x + 7,
+        resumenY + 15
+      );
+
+    }
+  );
+
+
+  const tablaY =
+    resumenY +
+    altoCaja +
+    8;
 
 
   if (
@@ -2764,22 +2151,193 @@ function exportarIngresosPDF() {
 
     doc.autoTable({
 
-      startY: 35,
+      startY: tablaY,
+
+      margin: {
+        left: 14,
+        right: 14
+      },
 
       head: [[
-        "Código",
-        "Cliente",
-        "Proyecto",
-        "Total",
-        "Adelanto",
-        "Cobrado",
-        "Pendiente"
+        "CÓDIGO",
+        "CLIENTE",
+        "PROYECTO",
+        "TOTAL",
+        "ADELANTO",
+        "COBRADO",
+        "PENDIENTE"
       ]],
 
       body: filas,
 
-      styles: {
-        fontSize: 8
+      theme: "grid",
+
+      headStyles: {
+        fillColor: NEGRO,
+        textColor: BLANCO,
+        fontStyle: "bold",
+        fontSize: 8,
+        halign: "center",
+        valign: "middle",
+        cellPadding: 4
+      },
+
+      bodyStyles: {
+        fontSize: 8,
+        textColor: [
+          45,
+          45,
+          45
+        ],
+        cellPadding: 3.5,
+        valign: "middle"
+      },
+
+      alternateRowStyles: {
+        fillColor: [
+          248,
+          248,
+          248
+        ]
+      },
+
+      columnStyles: {
+
+        0: {
+          cellWidth: 25,
+          halign: "center"
+        },
+
+        1: {
+          cellWidth: 45
+        },
+
+        2: {
+          cellWidth: 65
+        },
+
+        3: {
+          cellWidth: 36,
+          halign: "right"
+        },
+
+        4: {
+          cellWidth: 36,
+          halign: "right"
+        },
+
+        5: {
+          cellWidth: 36,
+          halign: "right"
+        },
+
+        6: {
+          cellWidth: 36,
+          halign: "right"
+        }
+
+      },
+
+      didParseCell: function(data) {
+
+        if (
+          data.section === "body"
+        ) {
+
+          if (
+            data.column.index === 0
+          ) {
+
+            data.cell.styles.fontStyle =
+              "bold";
+
+            data.cell.styles.textColor =
+              DORADO;
+
+          }
+
+
+          if (
+            data.column.index === 6
+          ) {
+
+            data.cell.styles.textColor =
+              ROJO;
+
+            data.cell.styles.fontStyle =
+              "bold";
+
+          }
+
+
+          if (
+            data.column.index === 5
+          ) {
+
+            data.cell.styles.textColor =
+              VERDE;
+
+          }
+
+        }
+
+      },
+
+      didDrawPage: function(data) {
+
+        const pageWidth =
+          doc.internal.pageSize.getWidth();
+
+
+        const pageHeight =
+          doc.internal.pageSize.getHeight();
+
+
+        doc.setDrawColor(
+          220,
+          220,
+          220
+        );
+
+
+        doc.setLineWidth(0.4);
+
+
+        doc.line(
+          14,
+          pageHeight - 14,
+          pageWidth - 14,
+          pageHeight - 14
+        );
+
+
+        doc.setFont(
+          "helvetica",
+          "normal"
+        );
+
+
+        doc.setFontSize(7);
+
+        doc.setTextColor(...GRIS);
+
+
+        doc.text(
+          "HN MUEBLES · Reporte interno de ingresos",
+          14,
+          pageHeight - 8
+        );
+
+
+        doc.text(
+          `Página ${data.pageNumber}`,
+          pageWidth - 14,
+          pageHeight - 8,
+          {
+            align: "right"
+          }
+        );
+
       }
 
     });
@@ -2787,59 +2345,15 @@ function exportarIngresosPDF() {
   }
 
 
-  const finalY =
-    doc.lastAutoTable
-      ? doc.lastAutoTable.finalY + 10
-      : 45;
-
-
-  doc.setFontSize(10);
-
-
-  doc.text(
-    `Total proyectos: ${lista.length}`,
-    14,
-    finalY
-  );
-
-
-  doc.text(
-    `Total contratado: Bs. ${formatearMonto(totalProyecto)}`,
-    14,
-    finalY + 7
-  );
-
-
-  doc.text(
-    `Total adelantos: Bs. ${formatearMonto(totalAdelanto)}`,
-    14,
-    finalY + 14
-  );
-
-
-  doc.text(
-    `Total cobrado: Bs. ${formatearMonto(totalCobrado)}`,
-    14,
-    finalY + 21
-  );
-
-
-  doc.text(
-    `Total pendiente: Bs. ${formatearMonto(totalPendiente)}`,
-    14,
-    finalY + 28
-  );
-
-
   doc.save(
-    `HN-Muebles-Ingresos-${filtro}.pdf`
+    `HN-MUEBLES-Reporte-Ingresos-${anio}-${mes}.pdf`
   );
 
 }
 
 
 // ============================================================
-// 19. WHATSAPP
+// 11. NOTIFICACIONES WHATSAPP
 // ============================================================
 
 function notificarWhatsApp(index) {
@@ -2851,16 +2365,13 @@ function notificarWhatsApp(index) {
     proyectos[index];
 
 
-  if (
-    !p ||
-    !p.telefono
-  ) return;
+  if (!p || !p.telefono) return;
 
 
   let numero =
     p.telefono
       .toString()
-      .replace(/\D/g,"");
+      .replace(/\D/g, "");
 
 
   if (
@@ -2891,17 +2402,7 @@ function notificarWhatsApp(index) {
       : "Por coordinar";
 
 
-  const mensaje =
-`Hola *${p.cliente}* 👋, desde *HN Muebles* te informamos el estado de tu proyecto *"${p.mueble}"*:
-
-🛠️ *Estado:* ${p.estado}
-
-📊 *Progreso:* ${p.progreso}%
-
-📅 *Fecha estimada de entrega:* ${fecha}
-
-🔍 *Consulta el estado de tu proyecto:*
-${link}`;
+  const mensaje = `Hola *${p.cliente}* 👋, desde *HN Muebles* te informamos el estado de tu proyecto *"${p.mueble}"*:\n\n🛠️ *Estado:* ${p.estado}\n\n📊 *Progreso:* ${p.progreso}%\n\n📅 *Fecha estimada de entrega:* ${fecha}\n\n🔍 *Consulta el estado de tu proyecto:*\n${link}`;
 
 
   window.open(
@@ -2915,14 +2416,7 @@ ${link}`;
 
 
 // ============================================================
-// ============================================================
-// PORTAFOLIO
-// ============================================================
-// ============================================================
-
-
-// ============================================================
-// 20. CARGAR PORTAFOLIO PÚBLICO
+// 12. PORTAFOLIO - CLOUDINARY + FIRESTORE
 // ============================================================
 
 async function cargarPortafolioPublico() {
@@ -2933,15 +2427,13 @@ async function cargarPortafolioPublico() {
     );
 
 
-  if (!container)
-    return;
+  if (!container) return;
 
 
   try {
 
     const snapshot =
-      await db
-        .collection("portafolio")
+      await db.collection("portafolio")
         .orderBy(
           "creadoEn",
           "desc"
@@ -2955,12 +2447,8 @@ async function cargarPortafolioPublico() {
     snapshot.forEach(doc => {
 
       portafolio.push({
-
-        id:
-          doc.id,
-
+        id: doc.id,
         ...doc.data()
-
       });
 
     });
@@ -2968,9 +2456,8 @@ async function cargarPortafolioPublico() {
 
     renderPortafolioPublico();
 
-  }
 
-  catch (error) {
+  } catch (error) {
 
     console.error(
       "Error cargando portafolio:",
@@ -2997,10 +2484,6 @@ async function cargarPortafolioPublico() {
 }
 
 
-// ============================================================
-// 21. RENDER PORTAFOLIO PÚBLICO
-// ============================================================
-
 function renderPortafolioPublico() {
 
   const container =
@@ -3009,8 +2492,7 @@ function renderPortafolioPublico() {
     );
 
 
-  if (!container)
-    return;
+  if (!container) return;
 
 
   container.innerHTML = "";
@@ -3048,7 +2530,9 @@ function renderPortafolioPublico() {
     trabajo => {
 
       const card =
-        document.createElement("article");
+        document.createElement(
+          "article"
+        );
 
 
       card.className =
@@ -3069,7 +2553,8 @@ function renderPortafolioPublico() {
       if (primerMedia) {
 
         if (
-          primerMedia.tipo === "video"
+          primerMedia.tipo ===
+          "video"
         ) {
 
           mediaHTML = `
@@ -3085,17 +2570,18 @@ function renderPortafolioPublico() {
               ></video>
 
               <div class="portfolio-video-badge">
+
                 <i class="fa-solid fa-video"></i>
+
                 Video
+
               </div>
 
             </div>
 
           `;
 
-        }
-
-        else {
+        } else {
 
           mediaHTML = `
 
@@ -3103,7 +2589,10 @@ function renderPortafolioPublico() {
 
               <img
                 src="${primerMedia.url}"
-                alt="${trabajo.titulo || "Trabajo HN Muebles"}"
+                alt="${
+                  trabajo.titulo ||
+                  "Trabajo HN Muebles"
+                }"
                 loading="lazy"
               />
 
@@ -3111,8 +2600,12 @@ function renderPortafolioPublico() {
                 media.length > 1
                   ? `
                     <div class="portfolio-video-badge">
+
                       <i class="fa-solid fa-images"></i>
-                      ${media.length} archivos
+
+                      ${media.length}
+                      archivos
+
                     </div>
                   `
                   : ""
@@ -3135,13 +2628,15 @@ function renderPortafolioPublico() {
 
           <div class="portfolio-card-title">
             ${escaparHTML(
-              trabajo.titulo || "Proyecto HN Muebles"
+              trabajo.titulo ||
+              "Proyecto HN Muebles"
             )}
           </div>
 
           <div class="portfolio-card-description">
             ${escaparHTML(
-              trabajo.descripcion || ""
+              trabajo.descripcion ||
+              ""
             )}
           </div>
 
@@ -3159,7 +2654,7 @@ function renderPortafolioPublico() {
 
 
 // ============================================================
-// 22. CARGAR PORTAFOLIO ADMIN
+// CARGAR PORTAFOLIO ADMIN
 // ============================================================
 
 async function cargarPortafolioAdmin() {
@@ -3167,14 +2662,15 @@ async function cargarPortafolioAdmin() {
   if (
     !esAdmin ||
     !auth.currentUser
-  ) return;
+  ) {
+    return;
+  }
 
 
   try {
 
     const snapshot =
-      await db
-        .collection("portafolio")
+      await db.collection("portafolio")
         .orderBy(
           "creadoEn",
           "desc"
@@ -3188,12 +2684,8 @@ async function cargarPortafolioAdmin() {
     snapshot.forEach(doc => {
 
       portafolio.push({
-
-        id:
-          doc.id,
-
+        id: doc.id,
         ...doc.data()
-
       });
 
     });
@@ -3201,9 +2693,8 @@ async function cargarPortafolioAdmin() {
 
     renderPortafolioAdmin();
 
-  }
 
-  catch (error) {
+  } catch (error) {
 
     console.error(
       "Error cargando portafolio admin:",
@@ -3216,7 +2707,7 @@ async function cargarPortafolioAdmin() {
 
 
 // ============================================================
-// 23. PREVIEW ARCHIVOS
+// PREVISUALIZACIÓN DE ARCHIVOS
 // ============================================================
 
 function mostrarPreviewArchivos() {
@@ -3243,68 +2734,274 @@ function mostrarPreviewArchivos() {
     );
 
 
-  if (!container)
-    return;
+  if (!container) return;
 
 
   container.innerHTML = "";
 
 
-  [...fotos,...videos].forEach(
-    archivo => {
+  [
+    ...fotos,
+    ...videos
+  ].forEach(archivo => {
 
-      const div =
-        document.createElement("div");
-
-
-      div.className =
-        "file-preview";
-
-
-      const url =
-        URL.createObjectURL(archivo);
+    const div =
+      document.createElement(
+        "div"
+      );
 
 
-      if (
-        archivo.type.startsWith("video/")
-      ) {
+    div.className =
+      "file-preview";
 
-        div.innerHTML = `
 
-          <video
-            src="${url}"
-            muted
-          ></video>
+    const url =
+      URL.createObjectURL(
+        archivo
+      );
 
-          <span class="file-preview-type">
-            <i class="fa-solid fa-video"></i>
-            Video
-          </span>
 
-        `;
+    if (
+      archivo.type.startsWith(
+        "video/"
+      )
+    ) {
+
+      div.innerHTML = `
+
+        <video
+          src="${url}"
+          muted
+        ></video>
+
+        <span class="file-preview-type">
+
+          <i class="fa-solid fa-video"></i>
+
+          Video
+
+        </span>
+
+      `;
+
+    } else {
+
+      div.innerHTML = `
+
+        <img
+          src="${url}"
+          alt=""
+        >
+
+        <span class="file-preview-type">
+
+          <i class="fa-solid fa-image"></i>
+
+          Foto
+
+        </span>
+
+      `;
+
+    }
+
+
+    container.appendChild(div);
+
+  });
+
+}
+
+
+// ============================================================
+// SUBIR ARCHIVO A CLOUDINARY
+// ============================================================
+
+function subirArchivoCloudinary(
+  archivo,
+  indice,
+  totalArchivos,
+  progressBar,
+  progressText,
+  progressPercent
+) {
+
+  return new Promise(
+    (resolve, reject) => {
+
+      const formData =
+        new FormData();
+
+
+      formData.append(
+        "file",
+        archivo
+      );
+
+
+      formData.append(
+        "upload_preset",
+        CLOUDINARY_UPLOAD_PRESET
+      );
+
+
+      const xhr =
+        new XMLHttpRequest();
+
+
+      xhr.open(
+        "POST",
+        CLOUDINARY_UPLOAD_URL,
+        true
+      );
+
+
+      xhr.upload.addEventListener(
+        "progress",
+        function(evento) {
+
+          if (!evento.lengthComputable) {
+            return;
+          }
+
+
+          const porcentajeArchivo =
+            (
+              evento.loaded /
+              evento.total
+            ) * 100;
+
+
+          const porcentajeTotal =
+            (
+              (
+                indice +
+                porcentajeArchivo / 100
+              ) /
+              totalArchivos
+            ) * 100;
+
+
+          if (progressBar) {
+
+            progressBar.style.width =
+              `${porcentajeTotal}%`;
+
+          }
+
+
+          if (progressPercent) {
+
+            progressPercent.innerText =
+              `${Math.round(
+                porcentajeTotal
+              )}%`;
+
+          }
+
+        }
+      );
+
+
+      xhr.onload =
+        function() {
+
+          if (
+            xhr.status >= 200 &&
+            xhr.status < 300
+          ) {
+
+            try {
+
+              const respuesta =
+                JSON.parse(
+                  xhr.responseText
+                );
+
+
+              resolve(respuesta);
+
+            } catch (error) {
+
+              reject(
+                new Error(
+                  "Cloudinary devolvió una respuesta inválida."
+                )
+              );
+
+            }
+
+          } else {
+
+            let mensaje =
+              "Error al subir el archivo a Cloudinary.";
+
+
+            try {
+
+              const errorCloudinary =
+                JSON.parse(
+                  xhr.responseText
+                );
+
+
+              if (
+                errorCloudinary.error?.message
+              ) {
+
+                mensaje =
+                  errorCloudinary.error.message;
+
+              }
+
+            } catch (e) {
+
+              // No hacer nada.
+            }
+
+
+            reject(
+              new Error(mensaje)
+            );
+
+          }
+
+        };
+
+
+      xhr.onerror =
+        function() {
+
+          reject(
+            new Error(
+              "Error de conexión con Cloudinary."
+            )
+          );
+
+        };
+
+
+      xhr.onabort =
+        function() {
+
+          reject(
+            new Error(
+              "La subida fue cancelada."
+            )
+          );
+
+        };
+
+
+      if (progressText) {
+
+        progressText.innerText =
+          `Subiendo ${indice + 1} de ${totalArchivos}: ${archivo.name}`;
 
       }
 
-      else {
 
-        div.innerHTML = `
-
-          <img
-            src="${url}"
-            alt=""
-          >
-
-          <span class="file-preview-type">
-            <i class="fa-solid fa-image"></i>
-            Foto
-          </span>
-
-        `;
-
-      }
-
-
-      container.appendChild(div);
+      xhr.send(formData);
 
     }
   );
@@ -3313,7 +3010,7 @@ function mostrarPreviewArchivos() {
 
 
 // ============================================================
-// 24. PUBLICAR TRABAJO
+// PUBLICAR TRABAJO EN PORTAFOLIO
 // ============================================================
 
 async function publicarTrabajoPortafolio(e) {
@@ -3338,15 +3035,13 @@ async function publicarTrabajoPortafolio(e) {
   const titulo =
     document.getElementById(
       "portfolio-titulo"
-    )?.value.trim()
-    || "";
+    )?.value.trim() || "";
 
 
   const descripcion =
     document.getElementById(
       "portfolio-descripcion"
-    )?.value.trim()
-    || "";
+    )?.value.trim() || "";
 
 
   const fotos =
@@ -3366,7 +3061,10 @@ async function publicarTrabajoPortafolio(e) {
 
 
   const archivos =
-    [...fotos,...videos];
+    [
+      ...fotos,
+      ...videos
+    ];
 
 
   if (!titulo) {
@@ -3391,9 +3089,13 @@ async function publicarTrabajoPortafolio(e) {
   }
 
 
-  // Máximo aproximado por archivo
+  // ========================================================
+  // LÍMITES DE ARCHIVOS
+  // ========================================================
+
   const MAX_IMAGEN =
     15 * 1024 * 1024;
+
 
   const MAX_VIDEO =
     100 * 1024 * 1024;
@@ -3404,7 +3106,9 @@ async function publicarTrabajoPortafolio(e) {
   ) {
 
     if (
-      archivo.type.startsWith("image/") &&
+      archivo.type.startsWith(
+        "image/"
+      ) &&
       archivo.size > MAX_IMAGEN
     ) {
 
@@ -3418,7 +3122,9 @@ async function publicarTrabajoPortafolio(e) {
 
 
     if (
-      archivo.type.startsWith("video/") &&
+      archivo.type.startsWith(
+        "video/"
+      ) &&
       archivo.size > MAX_VIDEO
     ) {
 
@@ -3432,6 +3138,10 @@ async function publicarTrabajoPortafolio(e) {
 
   }
 
+
+  // ========================================================
+  // ELEMENTOS DE PROGRESO
+  // ========================================================
 
   const boton =
     document.getElementById(
@@ -3480,8 +3190,27 @@ async function publicarTrabajoPortafolio(e) {
     );
 
 
-    const media =
-      [];
+    if (progressBar) {
+
+      progressBar.style.width =
+        "0%";
+
+    }
+
+
+    if (progressPercent) {
+
+      progressPercent.innerText =
+        "0%";
+
+    }
+
+
+    // ======================================================
+    // SUBIDA A CLOUDINARY
+    // ======================================================
+
+    const media = [];
 
 
     for (
@@ -3494,6 +3223,14 @@ async function publicarTrabajoPortafolio(e) {
         archivos[i];
 
 
+      const tipo =
+        archivo.type.startsWith(
+          "video/"
+        )
+          ? "video"
+          : "imagen";
+
+
       if (progressText) {
 
         progressText.innerText =
@@ -3502,133 +3239,56 @@ async function publicarTrabajoPortafolio(e) {
       }
 
 
-      const tipo =
-        archivo.type.startsWith("video/")
-          ? "video"
-          : "imagen";
-
-
-      const extension =
-        archivo.name
-          .split(".")
-          .pop()
-          .toLowerCase();
-
-
-      const nombreSeguro =
-        `${Date.now()}_${Math.random()
-          .toString(36)
-          .substring(2,9)}.${extension}`;
-
-
-      const ruta =
-        `portafolio/${auth.currentUser.uid}/${nombreSeguro}`;
-
-
-      const ref =
-        storage.ref(ruta);
-
-
-      const uploadTask =
-        ref.put(
+      const respuesta =
+        await subirArchivoCloudinary(
           archivo,
-          {
-            contentType:
-              archivo.type
-          }
+          i,
+          archivos.length,
+          progressBar,
+          progressText,
+          progressPercent
         );
 
 
-      await new Promise(
-        (resolve,reject) => {
+      if (
+        !respuesta ||
+        !respuesta.secure_url
+      ) {
 
-          uploadTask.on(
+        throw new Error(
+          `Cloudinary no devolvió una URL válida para "${archivo.name}".`
+        );
 
-            "state_changed",
-
-            snapshot => {
-
-              const porcentajeArchivo =
-                snapshot.totalBytes
-                  ? (
-                      snapshot.bytesTransferred /
-                      snapshot.totalBytes
-                    ) * 100
-                  : 0;
+      }
 
 
-              const porcentajeTotal =
-                (
-                  (i + porcentajeArchivo / 100) /
-                  archivos.length
-                ) * 100;
+      media.push({
 
+        tipo,
 
-              if (progressBar) {
+        url:
+          respuesta.secure_url,
 
-                progressBar.style.width =
-                  `${porcentajeTotal}%`;
+        public_id:
+          respuesta.public_id || "",
 
-              }
+        resource_type:
+          respuesta.resource_type || tipo,
 
+        formato:
+          respuesta.format || "",
 
-              if (progressPercent) {
+        nombre:
+          archivo.name
 
-                progressPercent.innerText =
-                  `${Math.round(
-                    porcentajeTotal
-                  )}%`;
-
-              }
-
-            },
-
-            error => {
-
-              reject(error);
-
-            },
-
-            async () => {
-
-              try {
-
-                const url =
-                  await uploadTask.snapshot
-                    .ref
-                    .getDownloadURL();
-
-
-                media.push({
-
-                  tipo,
-                  url,
-                  ruta,
-                  nombre:
-                    archivo.name
-
-                });
-
-
-                resolve();
-
-              }
-
-              catch (error) {
-
-                reject(error);
-
-              }
-
-            }
-
-          );
-
-        }
-      );
+      });
 
     }
 
+
+    // ======================================================
+    // GUARDAR INFORMACIÓN EN FIRESTORE
+    // ======================================================
 
     if (progressText) {
 
@@ -3638,39 +3298,53 @@ async function publicarTrabajoPortafolio(e) {
     }
 
 
-    await db
-      .collection("portafolio")
-      .add({
+    await db.collection(
+      "portafolio"
+    ).add({
 
-        titulo,
+      titulo,
 
-        descripcion,
+      descripcion,
 
-        media,
+      media,
 
-        creadoPor:
-          auth.currentUser.email,
+      creadoPor:
+        auth.currentUser.email,
 
-        creadoEn:
-          firebase.firestore.FieldValue.serverTimestamp()
+      creadoEn:
+        firebase.firestore.FieldValue.serverTimestamp()
 
-      });
+    });
 
+
+    // ======================================================
+    // LIMPIAR FORMULARIO
+    // ======================================================
 
     alert(
       "Trabajo publicado correctamente."
     );
 
 
-    document.getElementById(
-      "form-portafolio"
-    ).reset();
+    document
+      .getElementById(
+        "form-portafolio"
+      )
+      ?.reset();
 
 
-    document.getElementById(
-      "portfolio-files-preview"
-    ).innerHTML =
-      "";
+    const preview =
+      document.getElementById(
+        "portfolio-files-preview"
+      );
+
+
+    if (preview) {
+
+      preview.innerHTML =
+        "";
+
+    }
 
 
     progressContainer?.classList.add(
@@ -3678,18 +3352,28 @@ async function publicarTrabajoPortafolio(e) {
     );
 
 
-    if (progressBar)
+    if (progressBar) {
+
       progressBar.style.width =
         "0%";
+
+    }
+
+
+    if (progressPercent) {
+
+      progressPercent.innerText =
+        "0%";
+
+    }
 
 
     await cargarPortafolioAdmin();
 
     await cargarPortafolioPublico();
 
-  }
 
-  catch (error) {
+  } catch (error) {
 
     console.error(
       "ERROR SUBIENDO PORTAFOLIO:",
@@ -3698,12 +3382,11 @@ async function publicarTrabajoPortafolio(e) {
 
 
     alert(
-      "No se pudo publicar el trabajo. Revisa las Storage Rules y Firestore Rules."
+      `No se pudo publicar el trabajo.\n\n${error.message || "Error desconocido."}`
     );
 
-  }
 
-  finally {
+  } finally {
 
     if (boton) {
 
@@ -3720,7 +3403,7 @@ async function publicarTrabajoPortafolio(e) {
 
 
 // ============================================================
-// 25. RENDER ADMIN PORTAFOLIO
+// RENDER PORTAFOLIO ADMIN
 // ============================================================
 
 function renderPortafolioAdmin() {
@@ -3737,16 +3420,19 @@ function renderPortafolioAdmin() {
     );
 
 
-  if (total)
+  if (total) {
+
     total.innerText =
       portafolio.length;
 
-
-  if (!container)
-    return;
+  }
 
 
-  container.innerHTML = "";
+  if (!container) return;
+
+
+  container.innerHTML =
+    "";
 
 
   if (!portafolio.length) {
@@ -3774,7 +3460,9 @@ function renderPortafolioAdmin() {
     trabajo => {
 
       const card =
-        document.createElement("div");
+        document.createElement(
+          "div"
+        );
 
 
       card.className =
@@ -3792,28 +3480,29 @@ function renderPortafolioAdmin() {
       card.innerHTML = `
 
         ${
-          primerMedia?.tipo === "video"
+          primerMedia?.tipo ===
+          "video"
 
-          ?
+            ? `
 
-          `
-          <video
-            src="${thumb}"
-            class="portfolio-admin-thumb"
-            muted
-            preload="metadata"
-          ></video>
-          `
+              <video
+                src="${thumb}"
+                class="portfolio-admin-thumb"
+                muted
+                preload="metadata"
+              ></video>
 
-          :
+            `
 
-          `
-          <img
-            src="${thumb}"
-            class="portfolio-admin-thumb"
-            alt=""
-          >
-          `
+            : `
+
+              <img
+                src="${thumb}"
+                class="portfolio-admin-thumb"
+                alt=""
+              >
+
+            `
         }
 
 
@@ -3825,16 +3514,16 @@ function renderPortafolioAdmin() {
             )}
           </strong>
 
+
           <p>
             ${escaparHTML(
               trabajo.descripcion || ""
             )}
           </p>
 
+
           <p>
-            ${
-              trabajo.media?.length || 0
-            }
+            ${trabajo.media?.length || 0}
             archivo(s)
           </p>
 
@@ -3848,8 +3537,11 @@ function renderPortafolioAdmin() {
             class="delete-portfolio-btn"
             onclick="eliminarTrabajoPortafolio('${trabajo.id}')"
           >
+
             <i class="fa-solid fa-trash"></i>
+
             Eliminar
+
           </button>
 
         </div>
@@ -3866,7 +3558,7 @@ function renderPortafolioAdmin() {
 
 
 // ============================================================
-// 26. ELIMINAR TRABAJO PORTAFOLIO
+// ELIMINAR TRABAJO DEL PORTAFOLIO
 // ============================================================
 
 async function eliminarTrabajoPortafolio(
@@ -3876,7 +3568,9 @@ async function eliminarTrabajoPortafolio(
   if (
     !esAdmin ||
     !auth.currentUser
-  ) return;
+  ) {
+    return;
+  }
 
 
   const trabajo =
@@ -3885,60 +3579,41 @@ async function eliminarTrabajoPortafolio(
     );
 
 
-  if (!trabajo)
-    return;
+  if (!trabajo) return;
 
 
   if (
     !confirm(
       "¿Seguro que quieres eliminar este trabajo del portafolio?"
     )
-  ) return;
+  ) {
+    return;
+  }
 
 
   try {
 
-    // Primero eliminamos archivos de Storage
-    if (
-      trabajo.media &&
-      Array.isArray(trabajo.media)
-    ) {
+    /*
+      IMPORTANTE:
 
-      for (
-        const archivo
-        of trabajo.media
-      ) {
+      Como estamos usando Cloudinary desde el navegador
+      mediante Upload Preset unsigned, NO eliminamos archivos
+      directamente desde aquí.
 
-        if (archivo.ruta) {
+      Cloudinary requiere una operación autenticada para
+      eliminar definitivamente un recurso.
 
-          try {
+      Lo que hacemos aquí es eliminar el registro de Firestore,
+      por lo que el trabajo deja de aparecer inmediatamente
+      en el portafolio.
 
-            await storage
-              .ref(archivo.ruta)
-              .delete();
-
-          }
-
-          catch (error) {
-
-            console.warn(
-              "No se pudo eliminar archivo:",
-              archivo.ruta,
-              error
-            );
-
-          }
-
-        }
-
-      }
-
-    }
+      Los archivos de Cloudinary permanecen almacenados.
+    */
 
 
-    // Luego eliminamos documento
-    await db
-      .collection("portafolio")
+    await db.collection(
+      "portafolio"
+    )
       .doc(id)
       .delete();
 
@@ -3949,12 +3624,11 @@ async function eliminarTrabajoPortafolio(
 
 
     alert(
-      "Trabajo eliminado correctamente."
+      "Trabajo eliminado correctamente del portafolio."
     );
 
-  }
 
-  catch (error) {
+  } catch (error) {
 
     console.error(
       "Error eliminando portafolio:",
@@ -3972,19 +3646,780 @@ async function eliminarTrabajoPortafolio(
 
 
 // ============================================================
-// 27. ESCAPAR HTML
+// 13. INICIALIZADOR PRINCIPAL
 // ============================================================
 
-function escaparHTML(texto) {
-
-  const div =
-    document.createElement("div");
-
-
-  div.textContent =
-    texto || "";
+document.addEventListener(
+  "DOMContentLoaded",
+  function () {
 
 
-  return div.innerHTML;
+    // ========================================================
+    // LOGIN
+    // ========================================================
 
-}
+    const formLogin =
+      document.getElementById(
+        "form-login"
+      );
+
+
+    if (formLogin) {
+
+      formLogin.addEventListener(
+        "submit",
+        async function (e) {
+
+          e.preventDefault();
+
+
+          const emailInput =
+            document.getElementById(
+              "input-email"
+            );
+
+
+          const passwordInput =
+            document.getElementById(
+              "input-pass"
+            );
+
+
+          const errorMsg =
+            document.getElementById(
+              "login-error-msg"
+            );
+
+
+          const boton =
+            formLogin.querySelector(
+              'button[type="submit"]'
+            );
+
+
+          const email =
+            emailInput?.value
+              .trim()
+              .toLowerCase();
+
+
+          const password =
+            passwordInput?.value ||
+            "";
+
+
+          if (errorMsg) {
+
+            errorMsg.textContent =
+              "";
+
+            errorMsg.classList.add(
+              "hidden"
+            );
+
+          }
+
+
+          if (
+            !email ||
+            !password
+          ) {
+
+            if (errorMsg) {
+
+              errorMsg.textContent =
+                "Ingresa tu correo y contraseña.";
+
+              errorMsg.classList.remove(
+                "hidden"
+              );
+
+            }
+
+            return;
+
+          }
+
+
+          try {
+
+            if (boton) {
+
+              boton.disabled =
+                true;
+
+              boton.dataset.textoOriginal =
+                boton.innerText;
+
+              boton.innerText =
+                "Ingresando...";
+
+            }
+
+
+            await auth.signInWithEmailAndPassword(
+              email,
+              password
+            );
+
+
+            if (passwordInput) {
+
+              passwordInput.value =
+                "";
+
+            }
+
+
+          } catch (error) {
+
+            console.error(
+              "ERROR LOGIN:",
+              error
+            );
+
+
+            let mensaje =
+              "No se pudo iniciar sesión.";
+
+
+            switch (
+              error.code
+            ) {
+
+              case "auth/invalid-credential":
+
+                mensaje =
+                  "Correo o contraseña incorrectos.";
+
+                break;
+
+
+              case "auth/wrong-password":
+
+                mensaje =
+                  "La contraseña es incorrecta.";
+
+                break;
+
+
+              case "auth/user-not-found":
+
+                mensaje =
+                  "No existe una cuenta con ese correo.";
+
+                break;
+
+
+              case "auth/invalid-email":
+
+                mensaje =
+                  "El correo electrónico no es válido.";
+
+                break;
+
+
+              case "auth/user-disabled":
+
+                mensaje =
+                  "Esta cuenta está deshabilitada.";
+
+                break;
+
+
+              case "auth/too-many-requests":
+
+                mensaje =
+                  "Demasiados intentos. Espera unos minutos.";
+
+                break;
+
+
+              case "auth/network-request-failed":
+
+                mensaje =
+                  "No hay conexión con Firebase.";
+
+                break;
+
+
+              case "auth/operation-not-allowed":
+
+                mensaje =
+                  "El acceso con correo y contraseña no está habilitado.";
+
+                break;
+
+
+              default:
+
+                mensaje =
+                  `Error de acceso: ${
+                    error.message ||
+                    error.code ||
+                    "desconocido"
+                  }`;
+
+            }
+
+
+            if (errorMsg) {
+
+              errorMsg.textContent =
+                mensaje;
+
+              errorMsg.classList.remove(
+                "hidden"
+              );
+
+            }
+
+
+          } finally {
+
+            if (boton) {
+
+              boton.disabled =
+                false;
+
+              boton.innerText =
+                boton.dataset.textoOriginal ||
+                "Ingresar";
+
+            }
+
+          }
+
+        }
+      );
+
+    }
+
+
+    // ========================================================
+    // BÚSQUEDA PÚBLICA
+    // ========================================================
+
+    const formBuscar =
+      document.getElementById(
+        "form-buscar"
+      );
+
+
+    if (formBuscar) {
+
+      formBuscar.addEventListener(
+        "submit",
+        async function (e) {
+
+          e.preventDefault();
+
+
+          const codigo =
+            document.getElementById(
+              "input-codigo"
+            )?.value
+              .trim()
+              .toUpperCase();
+
+
+          if (codigo) {
+
+            await buscarProyectoPublico(
+              codigo
+            );
+
+          }
+
+        }
+      );
+
+    }
+
+
+    // ========================================================
+    // CÁLCULO DE SALDO
+    // ========================================================
+
+    const presupuestoInput =
+      document.getElementById(
+        "nuevo-presupuesto"
+      );
+
+
+    const adelantoInput =
+      document.getElementById(
+        "nuevo-adelanto"
+      );
+
+
+    function calcularSaldoNuevo() {
+
+      const total =
+        Number(
+          presupuestoInput?.value
+        ) || 0;
+
+
+      const adelanto =
+        Number(
+          adelantoInput?.value
+        ) || 0;
+
+
+      const saldo =
+        Math.max(
+          total - adelanto,
+          0
+        );
+
+
+      const totalPreview =
+        document.getElementById(
+          "nuevo-total-preview"
+        );
+
+
+      const adelantoPreview =
+        document.getElementById(
+          "nuevo-adelanto-preview"
+        );
+
+
+      const saldoPreview =
+        document.getElementById(
+          "nuevo-saldo-preview"
+        );
+
+
+      if (totalPreview) {
+
+        totalPreview.innerText =
+          `Bs. ${formatearMonto(total)}`;
+
+      }
+
+
+      if (adelantoPreview) {
+
+        adelantoPreview.innerText =
+          `Bs. ${formatearMonto(adelanto)}`;
+
+      }
+
+
+      if (saldoPreview) {
+
+        saldoPreview.innerText =
+          `Bs. ${formatearMonto(saldo)}`;
+
+      }
+
+    }
+
+
+    presupuestoInput?.addEventListener(
+      "input",
+      calcularSaldoNuevo
+    );
+
+
+    adelantoInput?.addEventListener(
+      "input",
+      calcularSaldoNuevo
+    );
+
+
+    calcularSaldoNuevo();
+
+
+    // ========================================================
+    // FORMULARIO NUEVO PROYECTO
+    // ========================================================
+
+    const formNuevo =
+      document.getElementById(
+        "form-nuevo-proyecto"
+      );
+
+
+    if (formNuevo) {
+
+      formNuevo.addEventListener(
+        "submit",
+        async function (e) {
+
+          e.preventDefault();
+
+
+          if (
+            !esAdmin ||
+            !auth.currentUser
+          ) {
+
+            mostrarMensajeInterno(
+              "Debes iniciar sesión como administrador.",
+              true
+            );
+
+            return;
+
+          }
+
+
+          const codigo =
+            document.getElementById(
+              "nuevo-codigo"
+            )?.value
+              .trim()
+              .toUpperCase() ||
+            generarCodigoAleatorio();
+
+
+          const cliente =
+            document.getElementById(
+              "nuevo-cliente"
+            )?.value.trim() ||
+            "";
+
+
+          const mueble =
+            document.getElementById(
+              "nuevo-mueble"
+            )?.value.trim() ||
+            "";
+
+
+          const telefono =
+            document.getElementById(
+              "nuevo-telefono"
+            )?.value.trim() ||
+            "";
+
+
+          const presupuesto =
+            Number(
+              document.getElementById(
+                "nuevo-presupuesto"
+              )?.value
+            ) || 0;
+
+
+          const adelanto =
+            Number(
+              document.getElementById(
+                "nuevo-adelanto"
+              )?.value
+            ) || 0;
+
+
+          const fechaEntrega =
+            document.getElementById(
+              "nuevo-fecha"
+            )?.value ||
+            "";
+
+
+          const pendiente =
+            Math.max(
+              presupuesto - adelanto,
+              0
+            );
+
+
+          const proyectoRef =
+            db.collection(
+              "proyectos"
+            ).doc();
+
+
+          const ingresoRef =
+            db.collection(
+              "ingresos"
+            ).doc();
+
+
+          const publicoRef =
+            db.collection(
+              "proyectos_publicos"
+            ).doc(
+              proyectoRef.id
+            );
+
+
+          const proyecto = {
+
+            codigo,
+
+            cliente,
+
+            mueble,
+
+            telefono,
+
+            estado:
+              "Diseño Aprobado",
+
+            progreso:
+              20,
+
+            detalles:
+              "Diseño confirmado por WhatsApp. Listo para corte.",
+
+            presupuesto,
+
+            adelanto,
+
+            fechaEntrega,
+
+            creadoEn:
+              firebase.firestore.FieldValue.serverTimestamp()
+
+          };
+
+
+          const ingreso = {
+
+            proyectoId:
+              proyectoRef.id,
+
+            codigo,
+
+            cliente,
+
+            mueble,
+
+            presupuesto,
+
+            adelanto,
+
+            pagosFinales:
+              0,
+
+            cobrado:
+              adelanto,
+
+            pendiente,
+
+            fechaCreacion:
+              firebase.firestore.FieldValue.serverTimestamp(),
+
+            fechaUltimoPago:
+              adelanto > 0
+                ? firebase.firestore.FieldValue.serverTimestamp()
+                : null
+
+          };
+
+
+          const proyectoPublico = {
+
+            codigo,
+
+            cliente,
+
+            mueble,
+
+            estado:
+              "Diseño Aprobado",
+
+            progreso:
+              20,
+
+            detalles:
+              "Diseño confirmado por WhatsApp. Listo para corte.",
+
+            fechaEntrega
+
+          };
+
+
+          try {
+
+            const batch =
+              db.batch();
+
+
+            batch.set(
+              proyectoRef,
+              proyecto
+            );
+
+
+            batch.set(
+              ingresoRef,
+              ingreso
+            );
+
+
+            batch.set(
+              publicoRef,
+              proyectoPublico
+            );
+
+
+            await batch.commit();
+
+
+            document.getElementById(
+              "nuevo-codigo"
+            ).value =
+              generarCodigoAleatorio();
+
+
+            document.getElementById(
+              "nuevo-cliente"
+            ).value =
+              "";
+
+
+            document.getElementById(
+              "nuevo-mueble"
+            ).value =
+              "";
+
+
+            document.getElementById(
+              "nuevo-telefono"
+            ).value =
+              "";
+
+
+            document.getElementById(
+              "nuevo-presupuesto"
+            ).value =
+              "";
+
+
+            document.getElementById(
+              "nuevo-adelanto"
+            ).value =
+              "";
+
+
+            document.getElementById(
+              "nuevo-fecha"
+            ).value =
+              "";
+
+
+            calcularSaldoNuevo();
+
+
+            await cargarProyectosDesdeNube();
+
+            await cargarIngresosDesdeNube();
+
+
+            renderProyectosAdmin();
+
+            renderGestionIngresos();
+
+
+            alert(
+              "Proyecto guardado correctamente."
+            );
+
+
+          } catch (error) {
+
+            console.error(
+              "Error creando proyecto:",
+              error
+            );
+
+
+            alert(
+              "No se pudo guardar el proyecto. Revisa las Rules de Firestore."
+            );
+
+          }
+
+        }
+      );
+
+    }
+
+
+    // ========================================================
+    // FILTRO INGRESOS POR MES
+    // ========================================================
+
+    const filtroIngresos =
+      document.getElementById(
+        "ingresos-mes"
+      );
+
+
+    if (filtroIngresos) {
+
+      const ahora =
+        new Date();
+
+
+      filtroIngresos.value =
+        `${ahora.getFullYear()}-${String(
+          ahora.getMonth() + 1
+        ).padStart(2, "0")}`;
+
+
+      filtroIngresos.addEventListener(
+        "change",
+        function () {
+
+          renderGestionIngresos();
+
+        }
+      );
+
+    }
+
+
+    // ========================================================
+    // PORTAFOLIO
+    // ========================================================
+
+    cargarPortafolioPublico();
+
+
+    const fotosInput =
+      document.getElementById(
+        "portfolio-fotos"
+      );
+
+
+    const videosInput =
+      document.getElementById(
+        "portfolio-videos"
+      );
+
+
+    fotosInput?.addEventListener(
+      "change",
+      mostrarPreviewArchivos
+    );
+
+
+    videosInput?.addEventListener(
+      "change",
+      mostrarPreviewArchivos
+    );
+
+
+    const formPortfolio =
+      document.getElementById(
+        "form-portafolio"
+      );
+
+
+    if (formPortfolio) {
+
+      formPortfolio.addEventListener(
+        "submit",
+        publicarTrabajoPortafolio
+      );
+
+    }
+
+  }
+);
