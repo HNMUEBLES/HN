@@ -74,7 +74,7 @@ body {
   height: 100vh;
   width: 100%;
   /* Aquí ajustamos únicamente para que lea tu fondo correctamente */
-  background-image: url('assets/fondo.jpeg');
+  background-image: url('assets/fondo.png');
   background-size: cover;
   background-position: center;
   background-attachment: fixed;
