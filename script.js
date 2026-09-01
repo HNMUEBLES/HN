@@ -145,15 +145,29 @@ async function cerrarSesionAdmin() {
 
 
 // ============================================================
-// 4. CONTROL DE VISTAS ADMIN (BLINDADO)
+// 4. CONTROL DE VISTAS ADMIN (PANTALLA COMPLETA)
 // ============================================================
 
 function mostrarPanelAdministrador() {
   const login = document.getElementById("admin-login");
   const panel = document.getElementById("admin-panel");
+  const modalOverlay = panel?.closest('.modal-overlay');
 
   if (login) login.classList.add("hidden");
-  if (panel) panel.classList.remove("hidden");
+
+  // Forzamos al contenedor modal a comportarse como pantalla completa limpia
+  if (modalOverlay) {
+    modalOverlay.style.position = "relative";
+    modalOverlay.style.background = "transparent";
+    modalOverlay.style.backdropFilter = "none";
+    modalOverlay.style.padding = "0";
+    modalOverlay.style.display = "block";
+  }
+
+  if (panel) {
+    panel.classList.remove("hidden");
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
 
   try {
     cambiarVistaAdmin('inicio');
@@ -166,8 +180,18 @@ function mostrarPanelAdministrador() {
 function ocultarPanelAdministrador() {
   const login = document.getElementById("admin-login");
   const panel = document.getElementById("admin-panel");
+  const modalOverlay = panel?.closest('.modal-overlay');
 
   if (panel) panel.classList.add("hidden");
+  
+  if (modalOverlay) {
+    modalOverlay.style.position = "";
+    modalOverlay.style.background = "";
+    modalOverlay.style.backdropFilter = "";
+    modalOverlay.style.padding = "";
+    modalOverlay.style.display = "";
+  }
+
   if (login) login.classList.remove("hidden");
 }
 
@@ -865,7 +889,6 @@ function notificarWhatsApp(index) {
     numero = "591" + numero;
   }
 
-  // Cálculos financieros
   const presupuesto = Number(p.presupuesto) || 0;
   const adelanto = Number(p.adelanto) || 0;
   const saldo = Math.max(presupuesto - adelanto, 0);
