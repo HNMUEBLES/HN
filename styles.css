@@ -528,7 +528,7 @@ body {
 
 
 /* ============================================================
-   MODALES (CORREGIDO PARA QUE LA GESTIÓN SUBA Y NO SE SOBREPONGA)
+   MODALES Y CONTENEDORES GENERALES
 ============================================================ */
 
 .modal-overlay {
@@ -537,11 +537,11 @@ body {
   background: rgba(0,0,0,.85);
   backdrop-filter: blur(5px);
   display: flex;
-  align-items: flex-start; /* Permite que el contenido del panel/modal fluya de arriba hacia abajo */
+  align-items: flex-start;
   justify-content: center;
   z-index: 1000;
   padding: 2rem 1.5rem;
-  overflow-y: auto; /* El scroll acompaña a todo el panel de gestión por completo */
+  overflow-y: auto;
 }
 
 .modal-box {
@@ -625,7 +625,7 @@ textarea::placeholder {
   justify-content: space-between;
   align-items: center;
   margin-bottom: 1rem;
-  position: relative; /* Evita que la cabecera de gestión se quede pegada flotando */
+  position: relative;
 }
 
 .admin-header h2 {
@@ -754,7 +754,7 @@ textarea::placeholder {
 }
 
 .projects-list {
-  max-height: none; /* Se elimina el límite para que suba y baje de forma natural con el panel */
+  max-height: none;
   overflow-y: visible;
 }
 
@@ -997,6 +997,42 @@ textarea::placeholder {
   border-radius: 7px;
   cursor: pointer;
   font-size: .78rem;
+}
+
+
+/* ============================================================
+   VISTAS DEL PANEL DE ADMINISTRACIÓN - PANTALLAS INDEPENDIENTES
+============================================================ */
+
+#admin-panel {
+  width: 100%;
+  max-width: 1300px;
+  margin: 0 auto;
+  padding: 2rem 1rem;
+  box-sizing: border-box;
+}
+
+#admin-vista-inicio,
+#admin-vista-nuevo-proyecto,
+#admin-vista-ingresos,
+#admin-vista-portafolio {
+  display: none;
+  width: 100% !important;
+  background: #14110f !important;
+  border: 1px solid #29231f !important;
+  border-radius: 16px !important;
+  padding: 2.5rem 2rem !important;
+  margin-top: 2rem !important;
+  box-sizing: border-box !important;
+  position: relative !important;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4) !important;
+}
+
+#admin-vista-inicio.active-view,
+#admin-vista-nuevo-proyecto.active-view,
+#admin-vista-ingresos.active-view,
+#admin-vista-portafolio.active-view {
+  display: block !important;
 }
 
 
