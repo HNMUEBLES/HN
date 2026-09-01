@@ -1,8 +1,7 @@
 // ============================================================
-// HN MUEBLES - SCRIPT PRINCIPAL (OPTIMIZADO: CERO DELAY + SIN MODALES)
+// HN MUEBLES - SCRIPT PRINCIPAL (ULTRA OPTIMIZADO: SIN DELAY)
 // Firebase Authentication + Firestore
 // Cloudinary para Portafolio
-// Proyectos + Ingresos + Portafolio
 // ============================================================
 
 
@@ -72,36 +71,9 @@ function generarCodigoAleatorio() {
 
 function llenarCodigoAutomatico() {
   const input = document.getElementById("nuevo-codigo");
-
   if (input) {
     input.value = generarCodigoAleatorio();
   }
-}
-
-
-function copiarCodigoAlPortapapeles(codigo) {
-  navigator.clipboard.writeText(codigo)
-    .then(() => {
-
-      const boton = document.querySelector(
-        `[data-copy-code="${codigo}"]`
-      );
-
-      if (boton) {
-
-        const textoOriginal = boton.innerText;
-
-        boton.innerText = "Copiado ✓";
-
-        setTimeout(() => {
-          boton.innerText = textoOriginal;
-        }, 1200);
-      }
-
-    })
-    .catch(error => {
-      console.error("Error copiando:", error);
-    });
 }
 
 
@@ -113,19 +85,9 @@ function irInicio() {
 }
 
 
-function mostrarMensajeInterno(mensaje, error = false) {
-  console.log(
-    error ? "ERROR:" : "OK:",
-    mensaje
-  );
-}
-
-
 function escaparHTML(texto) {
   const div = document.createElement("div");
-
   div.textContent = texto || "";
-
   return div.innerHTML;
 }
 
@@ -136,140 +98,73 @@ function escaparHTML(texto) {
 
 auth.onAuthStateChanged(async (user) => {
 
-  console.log(
-    "CAMBIO DE AUTENTICACIÓN:",
-    user
-  );
-
   if (!user) {
-
     esAdmin = false;
-
     ocultarPanelAdministrador();
-
     return;
   }
 
-
-  const emailUsuario =
-    (user.email || "").trim().toLowerCase();
-
-  const emailAdmin =
-    EMAIL_ADMIN.trim().toLowerCase();
-
+  const emailUsuario = (user.email || "").trim().toLowerCase();
+  const emailAdmin = EMAIL_ADMIN.trim().toLowerCase();
 
   if (emailUsuario !== emailAdmin) {
-
-    console.warn(
-      "Cuenta no autorizada:",
-      user.email
-    );
-
     esAdmin = false;
-
     ocultarPanelAdministrador();
-
     return;
   }
 
-
   esAdmin = true;
-
   mostrarPanelAdministrador();
 
-
   try {
-
-    await cargarProyectosDesdeNube();
-
-    await cargarIngresosDesdeNube();
-
-    await cargarPortafolioAdmin();
-
+    await Promise.all([
+      cargarProyectosDesdeNube(),
+      cargarIngresosDesdeNube(),
+      cargarPortafolioAdmin()
+    ]);
     renderProyectosAdmin();
-
     renderGestionIngresos();
-
   } catch (error) {
-
-    console.error(
-      "Error cargando panel:",
-      error
-    );
+    console.error("Error cargando panel:", error);
   }
 
 });
 
 
 async function cerrarSesionAdmin() {
-
   try {
-
     await auth.signOut();
-
     esAdmin = false;
-
     ocultarPanelAdministrador();
-
     cerrarVisorPortafolio();
-
     irInicio();
-
   } catch (error) {
-
-    console.error(
-      "Error cerrando sesión:",
-      error
-    );
+    console.error("Error cerrando sesión:", error);
   }
-
 }
 
 
 // ============================================================
-// 4. CONTROL DE VISTAS ADMIN (PANTALLAS INDEPENDIENTES)
+// 4. CONTROL DE VISTAS ADMIN
 // ============================================================
 
 function mostrarPanelAdministrador() {
+  const login = document.getElementById("admin-login");
+  const panel = document.getElementById("admin-panel");
 
-  const login =
-    document.getElementById("admin-login");
-
-  const panel =
-    document.getElementById("admin-panel");
-
-
-  if (login) {
-    login.classList.add("hidden");
-  }
-
-
-  if (panel) {
-    panel.classList.remove("hidden");
-  }
+  if (login) login.classList.add("hidden");
+  if (panel) panel.classList.remove("hidden");
 
   cambiarVistaAdmin('inicio');
 }
 
 
 function ocultarPanelAdministrador() {
+  const login = document.getElementById("admin-login");
+  const panel = document.getElementById("admin-panel");
 
-  const login =
-    document.getElementById("admin-login");
-
-  const panel =
-    document.getElementById("admin-panel");
-
-
-  if (panel) {
-    panel.classList.add("hidden");
-  }
-
-
-  if (login) {
-    login.classList.remove("hidden");
-  }
-
+  if (panel) panel.classList.add("hidden");
+  if (login) login.classList.remove("hidden");
 }
 
 
@@ -308,68 +203,26 @@ function cambiarVistaAdmin(vistaId) {
 
 
 // ============================================================
-// 5. FIRESTORE
+// 5. FIRESTORE (SIN BLOQUEOS)
 // ============================================================
 
 async function cargarProyectosDesdeNube() {
-
   if (!auth.currentUser || !esAdmin) return;
-
-  try {
-
-    const snapshot =
-      await db.collection("proyectos").get();
-
-    proyectos = [];
-
-    snapshot.forEach(doc => {
-
-      proyectos.push({
-        id: doc.id,
-        ...doc.data()
-      });
-
-    });
-
-  } catch (error) {
-
-    console.error(
-      "Error cargando proyectos:",
-      error
-    );
-  }
-
+  const snapshot = await db.collection("proyectos").get();
+  proyectos = [];
+  snapshot.forEach(doc => {
+    proyectos.push({ id: doc.id, ...doc.data() });
+  });
 }
 
 
 async function cargarIngresosDesdeNube() {
-
   if (!auth.currentUser || !esAdmin) return;
-
-  try {
-
-    const snapshot =
-      await db.collection("ingresos").get();
-
-    ingresos = [];
-
-    snapshot.forEach(doc => {
-
-      ingresos.push({
-        id: doc.id,
-        ...doc.data()
-      });
-
-    });
-
-  } catch (error) {
-
-    console.error(
-      "Error cargando ingresos:",
-      error
-    );
-  }
-
+  const snapshot = await db.collection("ingresos").get();
+  ingresos = [];
+  snapshot.forEach(doc => {
+    ingresos.push({ id: doc.id, ...doc.data() });
+  });
 }
 
 
@@ -378,69 +231,40 @@ async function cargarIngresosDesdeNube() {
 // ============================================================
 
 async function buscarProyectoPublico(codigo) {
-
-  const errorMsg =
-    document.getElementById("mensaje-error");
-
-  const resultBox =
-    document.getElementById("resultado-proyecto");
+  const errorMsg = document.getElementById("mensaje-error");
+  const resultBox = document.getElementById("resultado-proyecto");
 
   try {
-
-    const snapshot =
-      await db.collection("proyectos_publicos")
-        .where("codigo", "==", codigo)
-        .limit(1)
-        .get();
+    const snapshot = await db.collection("proyectos_publicos")
+      .where("codigo", "==", codigo)
+      .limit(1)
+      .get();
 
     if (snapshot.empty) {
-
       resultBox?.classList.add("hidden");
-
       errorMsg?.classList.remove("hidden");
-
       return;
     }
 
-    const data =
-      snapshot.docs[0].data();
+    const data = snapshot.docs[0].data();
 
     errorMsg?.classList.add("hidden");
-
     resultBox?.classList.remove("hidden");
 
-    document.getElementById("res-codigo").innerText =
-      data.codigo || "";
-
-    document.getElementById("res-mueble").innerText =
-      data.mueble || "";
-
-    document.getElementById("res-cliente").innerText =
-      `Cliente: ${data.cliente || ""}`;
-
-    document.getElementById("res-estado").innerText =
-      data.estado || "";
-
-    document.getElementById("res-porcentaje").innerText =
-      `${data.progreso || 0}%`;
+    document.getElementById("res-codigo").innerText = data.codigo || "";
+    document.getElementById("res-mueble").innerText = data.mueble || "";
+    document.getElementById("res-cliente").innerText = `Cliente: ${data.cliente || ""}`;
+    document.getElementById("res-estado").innerText = data.estado || "";
+    document.getElementById("res-porcentaje").innerText = `${data.progreso || 0}%`;
 
   } catch (error) {
-
-    console.error(
-      "Error búsqueda pública:",
-      error
-    );
-
+    console.error("Error búsqueda pública:", error);
     resultBox?.classList.add("hidden");
-
     if (errorMsg) {
-      errorMsg.innerText =
-        "No se pudo consultar el proyecto.";
+      errorMsg.innerText = "No se pudo consultar el proyecto.";
       errorMsg.classList.remove("hidden");
     }
-
   }
-
 }
 
 
@@ -449,19 +273,12 @@ async function buscarProyectoPublico(codigo) {
 // ============================================================
 
 function renderProyectosAdmin() {
-
   if (!esAdmin) return;
 
-  const container =
-    document.getElementById("lista-proyectos-admin");
+  const container = document.getElementById("lista-proyectos-admin");
+  const total = document.getElementById("total-proyectos");
 
-  const total =
-    document.getElementById("total-proyectos");
-
-  if (total) {
-    total.innerText = proyectos.length;
-  }
-
+  if (total) total.innerText = proyectos.length;
   if (!container) return;
 
   container.innerHTML = "";
@@ -475,33 +292,16 @@ function renderProyectosAdmin() {
   ];
 
   proyectos.forEach((p, index) => {
+    const presupuesto = Number(p.presupuesto) || 0;
+    const adelanto = Number(p.adelanto) || 0;
+    const saldo = Math.max(presupuesto - adelanto, 0);
 
-    const presupuesto =
-      Number(p.presupuesto) || 0;
+    const fecha = p.fechaEntrega
+      ? p.fechaEntrega.split("-").reverse().join("/")
+      : "Sin definir";
 
-    const adelanto =
-      Number(p.adelanto) || 0;
-
-    const saldo =
-      Math.max(
-        presupuesto - adelanto,
-        0
-      );
-
-    const fecha =
-      p.fechaEntrega
-        ? p.fechaEntrega
-            .split("-")
-            .reverse()
-            .join("/")
-        : "Sin definir";
-
-    const card =
-      document.createElement("div");
-
-    card.className =
-      "admin-card";
-
+    const card = document.createElement("div");
+    card.className = "admin-card";
     card.style.cssText = `
       background:rgba(255,255,255,.05);
       border:1px solid rgba(255,255,255,.1);
@@ -510,246 +310,86 @@ function renderProyectosAdmin() {
       margin-bottom:1rem;
     `;
 
-    const botones =
-      etapas.map((estado, idx) => {
-
-        const activo =
-          p.estado === estado;
-
-        return `
-          <button
-            type="button"
-            onclick="cambiarEstadoPorId('${p.id}', ${idx}, ${(idx + 1) * 20})"
-            style="
-              border:none;
-              padding:.4rem .7rem;
-              border-radius:6px;
-              cursor:pointer;
-              font-size:.8rem;
-              margin:.2rem;
-              ${
-                activo
-                  ? "background:#f59e0b;color:#000;font-weight:bold;"
-                  : "background:rgba(255,255,255,.1);color:#fff;"
-              }
-            "
-          >
-            ${estado}
-          </button>
-        `;
-
-      }).join("");
+    const botones = etapas.map((estado, idx) => {
+      const activo = p.estado === estado;
+      return `
+        <button
+          type="button"
+          onclick="cambiarEstadoPorId('${p.id}', ${idx}, ${(idx + 1) * 20})"
+          style="
+            border:none;
+            padding:.4rem .7rem;
+            border-radius:6px;
+            cursor:pointer;
+            font-size:.8rem;
+            margin:.2rem;
+            ${activo ? "background:#f59e0b;color:#000;font-weight:bold;" : "background:rgba(255,255,255,.1);color:#fff;"}
+          "
+        >
+          ${estado}
+        </button>
+      `;
+    }).join("");
 
     card.innerHTML = `
       <div id="info-view-${index}">
-        <div style="
-          display:flex;
-          justify-content:space-between;
-          gap:10px;
-          flex-wrap:wrap;
-        ">
-          <div style="
-            flex:1;
-            min-width:260px;
-          ">
-            <span style="
-              background:#f59e0b;
-              color:#000;
-              padding:.2rem .6rem;
-              border-radius:4px;
-              font-weight:bold;
-              font-size:.85rem;
-            ">
+        <div style="display:flex; justify-content:space-between; gap:10px; flex-wrap:wrap;">
+          <div style="flex:1; min-width:260px;">
+            <span style="background:#f59e0b; color:#000; padding:.2rem .6rem; border-radius:4px; font-weight:bold; font-size:.85rem;">
               ${escaparHTML(p.codigo || "")}
             </span>
-
-            <strong style="
-              margin-left:.4rem;
-            ">
+            <strong style="margin-left:.4rem;">
               ${escaparHTML(p.mueble || "")}
             </strong>
-
-            <p style="
-              margin:.4rem 0;
-              color:#a3a3a3;
-              font-size:.85rem;
-            ">
-              Cliente:
-              ${escaparHTML(p.cliente || "")}
-              |
-              Tel:
-              ${escaparHTML(p.telefono || "Sin registrar")}
+            <p style="margin:.4rem 0; color:#a3a3a3; font-size:.85rem;">
+              Cliente: ${escaparHTML(p.cliente || "")} | Tel: ${escaparHTML(p.telefono || "Sin registrar")}
+            </p>
+            <p style="color:#38bdf8; font-size:.85rem;">
+              Entrega: <strong>${fecha}</strong>
             </p>
 
-            <p style="
-              color:#38bdf8;
-              font-size:.85rem;
-            ">
-              Entrega:
-              <strong>${fecha}</strong>
-            </p>
-
-            <div style="
-              display:grid;
-              grid-template-columns:
-              repeat(3,minmax(0,1fr));
-              gap:10px;
-              margin-top:12px;
-            ">
-              <div
-                class="financial-box"
-                style="
-                  background:rgba(56,189,248,.07);
-                  border:1px solid rgba(56,189,248,.25);
-                  color:#38bdf8;
-                "
-              >
-                <span style="
-                  font-size:.75rem;
-                  opacity:.85;
-                  margin-bottom:5px;
-                ">
-                  Monto total
-                </span>
-                <strong style="
-                  font-size:1.05rem;
-                  white-space:nowrap;
-                ">
-                  Bs.
-                  ${formatearMonto(presupuesto)}
-                </strong>
+            <div style="display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:10px; margin-top:12px;">
+              <div class="financial-box" style="background:rgba(56,189,248,.07); border:1px solid rgba(56,189,248,.25); color:#38bdf8;">
+                <span style="font-size:.75rem; opacity:.85; margin-bottom:5px;">Monto total</span>
+                <strong style="font-size:1.05rem; white-space:nowrap;">Bs. ${formatearMonto(presupuesto)}</strong>
               </div>
-
-              <div
-                class="financial-box"
-                style="
-                  background:rgba(245,158,11,.07);
-                  border:1px solid rgba(245,158,11,.25);
-                  color:#f59e0b;
-                "
-              >
-                <span style="
-                  font-size:.75rem;
-                  opacity:.85;
-                  margin-bottom:5px;
-                ">
-                  Adelanto
-                </span>
-                <strong style="
-                  font-size:1.05rem;
-                  white-space:nowrap;
-                ">
-                  Bs.
-                  ${formatearMonto(adelanto)}
-                </strong>
+              <div class="financial-box" style="background:rgba(245,158,11,.07); border:1px solid rgba(245,158,11,.25); color:#f59e0b;">
+                <span style="font-size:.75rem; opacity:.85; margin-bottom:5px;">Adelanto</span>
+                <strong style="font-size:1.05rem; white-space:nowrap;">Bs. ${formatearMonto(adelanto)}</strong>
               </div>
-
-              <div
-                class="financial-box"
-                style="
-                  background:rgba(239,68,68,.07);
-                  border:1px solid rgba(239,68,68,.25);
-                  color:#ef4444;
-                "
-              >
-                <span style="
-                  font-size:.75rem;
-                  opacity:.85;
-                  margin-bottom:5px;
-                ">
-                  Pendiente
-                </span>
-                <strong style="
-                  font-size:1.05rem;
-                  white-space:nowrap;
-                ">
-                  Bs.
-                  ${formatearMonto(saldo)}
-                </strong>
+              <div class="financial-box" style="background:rgba(239,68,68,.07); border:1px solid rgba(239,68,68,.25); color:#ef4444;">
+                <span style="font-size:.75rem; opacity:.85; margin-bottom:5px;">Pendiente</span>
+                <strong style="font-size:1.05rem; white-space:nowrap;">Bs. ${formatearMonto(saldo)}</strong>
               </div>
             </div>
 
-            <div style="margin-top:.7rem;">
-              ${botones}
-            </div>
+            <div style="margin-top:.7rem;">${botones}</div>
 
             <button
               type="button"
               onclick="notificarWhatsApp(${index})"
-              style="
-                margin-top:.6rem;
-                background:#16a34a;
-                color:white;
-                border:none;
-                padding:.4rem .8rem;
-                border-radius:6px;
-                cursor:pointer;
-                font-size:.85rem;
-                font-weight:bold;
-              "
+              style="margin-top:.6rem; background:#16a34a; color:white; border:none; padding:.4rem .8rem; border-radius:6px; cursor:pointer; font-size:.85rem; font-weight:bold;"
             >
               WhatsApp
             </button>
           </div>
 
-          <div style="
-            display:flex;
-            gap:5px;
-            align-items:flex-start;
-          ">
-            <button
-              type="button"
-              onclick="activarEdicionInline(${index})"
-              class="admin-action-btn"
-              style="
-                background:#3b82f6;
-                color:#fff;
-              "
-              title="Editar proyecto"
-            >
-              ✏️
-            </button>
-
-            <button
-              type="button"
-              onclick="eliminarProyecto('${p.id}')"
-              class="admin-action-btn"
-              style="
-                background:#ef4444;
-                color:#fff;
-              "
-              title="Eliminar proyecto"
-            >
-              🗑️
-            </button>
+          <div style="display:flex; gap:5px; align-items:flex-start;">
+            <button type="button" onclick="activarEdicionInline(${index})" class="admin-action-btn" style="background:#3b82f6; color:#fff;" title="Editar proyecto">✏️</button>
+            <button type="button" onclick="eliminarProyecto('${p.id}')" class="admin-action-btn" style="background:#ef4444; color:#fff;" title="Eliminar proyecto">🗑️</button>
           </div>
         </div>
       </div>
     `;
-
     container.appendChild(card);
-
   });
-
 }
 
 
-async function cambiarEstadoPorId(
-  id,
-  etapaIdx,
-  progreso
-) {
-
+async function cambiarEstadoPorId(id, etapaIdx, progreso) {
   if (!esAdmin || !auth.currentUser) return;
 
-  const etapas = [
-    "Diseño Aprobado",
-    "Corte",
-    "Armado",
-    "Instalación",
-    "Finalizado"
-  ];
-
+  const etapas = ["Diseño Aprobado", "Corte", "Armado", "Instalación", "Finalizado"];
   const descripciones = [
     "El diseño ha sido aprobado por WhatsApp. El proyecto ingresa a producción.",
     "Las placas se encuentran en proceso de corte y pegado de tapacantos.",
@@ -761,7 +401,7 @@ async function cambiarEstadoPorId(
   const estado = etapas[etapaIdx];
   const detalles = descripciones[etapaIdx];
 
-  // UI Optimista Instantánea (Cero Delay)
+  // Actualización visual instantánea local (Cero Delay)
   const projIndex = proyectos.findIndex(p => p.id === id);
   if (projIndex !== -1) {
     proyectos[projIndex].estado = estado;
@@ -770,10 +410,10 @@ async function cambiarEstadoPorId(
     renderProyectosAdmin();
   }
 
+  // Envío a Firestore en segundo plano (sin bloquear pantalla)
   try {
     const batch = db.batch();
     const proyectoRef = db.collection("proyectos").doc(id);
-
     batch.update(proyectoRef, { estado, progreso, detalles });
 
     const proyecto = proyectos.find(p => p.id === id);
@@ -787,27 +427,20 @@ async function cambiarEstadoPorId(
     });
 
     await batch.commit();
-    await cargarProyectosDesdeNube();
-    renderProyectosAdmin();
-
   } catch (error) {
     console.error("Error estado:", error);
-    await cargarProyectosDesdeNube();
-    renderProyectosAdmin();
   }
-
 }
 
 
 async function eliminarProyecto(id) {
-
   if (!esAdmin || !auth.currentUser) return;
 
-  // Eliminación Optimista Instantánea (Cero Delay)
   const proyectoEliminado = proyectos.find(p => p.id === id);
+
+  // Eliminación visual instantánea local (Cero Delay)
   proyectos = proyectos.filter(p => p.id !== id);
   ingresos = ingresos.filter(i => i.proyectoId !== id);
-  
   renderProyectosAdmin();
   renderGestionIngresos();
 
@@ -820,39 +453,25 @@ async function eliminarProyecto(id) {
         .where("codigo", "==", proyectoEliminado.codigo)
         .limit(1)
         .get();
-
       publicSnap.forEach(doc => batch.delete(doc.ref));
 
       const ingresoSnap = await db.collection("ingresos")
         .where("proyectoId", "==", id)
         .limit(1)
         .get();
-
       ingresoSnap.forEach(doc => batch.delete(doc.ref));
     }
 
     await batch.commit();
-    await cargarProyectosDesdeNube();
-    await cargarIngresosDesdeNube();
-    renderProyectosAdmin();
-    renderGestionIngresos();
-
   } catch (error) {
     console.error("Error eliminando:", error);
-    await cargarProyectosDesdeNube();
-    await cargarIngresosDesdeNube();
-    renderProyectosAdmin();
-    renderGestionIngresos();
   }
-
 }
 
 
 function activarEdicionInline(index) {
-
   const p = proyectos[index];
   const info = document.getElementById(`info-view-${index}`);
-
   if (!info || !p) return;
 
   info.innerHTML = `
@@ -870,12 +489,10 @@ function activarEdicionInline(index) {
       </div>
     </div>
   `;
-
 }
 
 
 async function guardarEdicionInline(id, index) {
-
   if (!esAdmin || !auth.currentUser) return;
 
   const proyectoAnterior = proyectos.find(p => p.id === id);
@@ -887,16 +504,20 @@ async function guardarEdicionInline(id, index) {
   const telefono = document.getElementById(`edit-telefono-${index}`).value.trim();
   const presupuesto = Number(document.getElementById(`edit-presupuesto-${index}`).value) || 0;
   const adelanto = Number(document.getElementById(`edit-adelanto-${index}`).value) || 0;
-  const fecha = document.getElementById(`edit-fecha-${index}`).value;
+  const fechaEntrega = document.getElementById(`edit-fecha-${index}`).value;
+
+  // Actualización visual local instantánea
+  if (projIndex = proyectos.findIndex(p => p.id === id) !== -1) {
+    proyectos[projIndex] = { ...proyectos[projIndex], codigo, cliente, mueble, telefono, presupuesto, adelanto, fechaEntrega };
+    renderProyectosAdmin();
+  }
 
   try {
-
     await db.collection("proyectos").doc(id).update({
-      codigo, cliente, mueble, telefono, presupuesto, adelanto, fechaEntrega: fecha
+      codigo, cliente, mueble, telefono, presupuesto, adelanto, fechaEntrega
     });
 
     const ingresoSnap = await db.collection("ingresos").where("proyectoId", "==", id).limit(1).get();
-
     if (!ingresoSnap.empty) {
       const ingresoDoc = ingresoSnap.docs[0];
       const ingreso = ingresoDoc.data();
@@ -905,22 +526,17 @@ async function guardarEdicionInline(id, index) {
       const pendiente = Math.max(presupuesto - cobrado, 0);
 
       await ingresoDoc.ref.update({ codigo, cliente, mueble, presupuesto, adelanto, cobrado, pendiente });
+      await cargarIngresosDesdeNube();
+      renderGestionIngresos();
     }
 
     const publicoSnap = await db.collection("proyectos_publicos").where("codigo", "==", codigoAnterior).limit(1).get();
     for (const doc of publicoSnap.docs) {
-      await doc.ref.update({ codigo, cliente, mueble, fechaEntrega: fecha });
+      await doc.ref.update({ codigo, cliente, mueble, fechaEntrega });
     }
-
-    await cargarProyectosDesdeNube();
-    await cargarIngresosDesdeNube();
-    renderProyectosAdmin();
-    renderGestionIngresos();
-
   } catch (error) {
     console.error("Error editando:", error);
   }
-
 }
 
 
@@ -929,7 +545,6 @@ async function guardarEdicionInline(id, index) {
 // ============================================================
 
 function renderGestionIngresos() {
-
   if (!esAdmin) return;
 
   const container = document.getElementById("lista-ingresos");
@@ -974,7 +589,6 @@ function renderGestionIngresos() {
   }
 
   lista.forEach(ingreso => {
-
     const card = document.createElement("div");
     card.style.cssText = `
       background:rgba(255,255,255,.035);
@@ -1023,21 +637,16 @@ function renderGestionIngresos() {
           `
       }
     `;
-
     container.appendChild(card);
-
   });
-
 }
 
 
 async function registrarPago(ingresoId) {
-
   if (!esAdmin || !auth.currentUser) return;
 
   const input = document.getElementById(`pago-${ingresoId}`);
   const monto = Number(input?.value) || 0;
-
   if (monto <= 0) return;
 
   const ingreso = ingresos.find(i => i.id === ingresoId);
@@ -1055,7 +664,7 @@ async function registrarPago(ingresoId) {
   const nuevoCobrado = cobradoActual + pago;
   const nuevoPendiente = Math.max(presupuesto - nuevoCobrado, 0);
 
-  // Actualización Optimista Instantánea (Cero Delay)
+  // Actualización local inmediata (Cero Delay)
   const idx = ingresos.findIndex(i => i.id === ingresoId);
   if (idx !== -1) {
     ingresos[idx].pagosFinales = nuevosPagosFinales;
@@ -1071,16 +680,9 @@ async function registrarPago(ingresoId) {
       pendiente: nuevoPendiente,
       fechaUltimoPago: firebase.firestore.FieldValue.serverTimestamp()
     });
-
-    await cargarIngresosDesdeNube();
-    renderGestionIngresos();
-
   } catch (error) {
     console.error("Error registrando pago:", error);
-    await cargarIngresosDesdeNube();
-    renderGestionIngresos();
   }
-
 }
 
 
@@ -1106,7 +708,6 @@ async function obtenerLogoPDF() {
 
 
 async function exportarIngresosPDF() {
-
   if (!esAdmin) return;
 
   const filtro = document.getElementById("ingresos-mes")?.value || "";
@@ -1246,7 +847,6 @@ async function exportarIngresosPDF() {
   }
 
   doc.save(`HN-MUEBLES-Gestion-Ingresos-${anio}-${mes}.pdf`);
-
 }
 
 
@@ -1255,7 +855,6 @@ async function exportarIngresosPDF() {
 // ============================================================
 
 function notificarWhatsApp(index) {
-
   if (!esAdmin) return;
 
   const p = proyectos[index];
@@ -1279,7 +878,6 @@ function notificarWhatsApp(index) {
 ${link}`;
 
   window.open(`https://wa.me/${numero}?text=${encodeURIComponent(mensaje)}`, "_blank");
-
 }
 
 
@@ -1456,14 +1054,10 @@ function renderPortafolioPublico() {
 
 async function cargarPortafolioAdmin() {
   if (!esAdmin || !auth.currentUser) return;
-  try {
-    const snapshot = await db.collection("portafolio").orderBy("creadoEn", "desc").get();
-    portafolio = [];
-    snapshot.forEach(doc => portafolio.push({ id: doc.id, ...doc.data() }));
-    renderPortafolioAdmin();
-  } catch (error) {
-    console.error(error);
-  }
+  const snapshot = await db.collection("portafolio").orderBy("creadoEn", "desc").get();
+  portafolio = [];
+  snapshot.forEach(doc => portafolio.push({ id: doc.id, ...doc.data() }));
+  renderPortafolioAdmin();
 }
 
 
@@ -1484,7 +1078,7 @@ function mostrarPreviewArchivos() {
 }
 
 
-async function subirArchivoCloudinary(archivo, progresoCallback) {
+async function subirArchivoCloudinary(archivo) {
   return new Promise((resolve, reject) => {
     const formData = new FormData();
     formData.append("file", archivo);
@@ -1492,12 +1086,6 @@ async function subirArchivoCloudinary(archivo, progresoCallback) {
 
     const xhr = new XMLHttpRequest();
     xhr.open("POST", `https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD_NAME}/auto/upload`);
-
-    xhr.upload.addEventListener("progress", event => {
-      if (event.lengthComputable && progresoCallback) {
-        progresoCallback((event.loaded / event.total) * 100);
-      }
-    });
 
     xhr.onload = () => {
       if (xhr.status >= 200 && xhr.status < 300) {
@@ -1554,7 +1142,6 @@ async function publicarTrabajoPortafolio(e) {
     await cargarPortafolioAdmin();
     await cargarPortafolioPublico();
     alert("Trabajo publicado correctamente.");
-
   } catch (error) {
     console.error("Error publicando portafolio:", error);
     alert("No se pudo publicar el trabajo.");
@@ -1603,7 +1190,7 @@ function renderPortafolioAdmin() {
 async function eliminarTrabajoPortafolio(id) {
   if (!esAdmin || !auth.currentUser) return;
 
-  // Eliminación Optimista Instantánea (Cero Delay)
+  // Eliminación visual local instantánea
   portafolio = portafolio.filter(p => p.id !== id);
   renderPortafolioAdmin();
   renderPortafolioPublico();
@@ -1611,12 +1198,8 @@ async function eliminarTrabajoPortafolio(id) {
 
   try {
     await db.collection("portafolio").doc(id).delete();
-    await cargarPortafolioAdmin();
-    await cargarPortafolioPublico();
   } catch (error) {
     console.error("Error eliminando portafolio:", error);
-    await cargarPortafolioAdmin();
-    await cargarPortafolioPublico();
   }
 }
 
@@ -1710,13 +1293,13 @@ document.addEventListener("DOMContentLoaded", function () {
         fechaCreacion: firebase.firestore.FieldValue.serverTimestamp()
       };
 
-      // Inserción Optimista Instantánea (Cero Delay)
+      // Inserción visual local instantánea (Cero Delay)
       proyectos.unshift(proyecto);
       ingresos.unshift(ingreso);
       renderProyectosAdmin();
       renderGestionIngresos();
 
-      // Limpiar formulario al instante
+      // Limpieza inmediata del formulario
       document.getElementById("nuevo-codigo").value = generarCodigoAleatorio();
       document.getElementById("nuevo-cliente").value = "";
       document.getElementById("nuevo-mueble").value = "";
@@ -1726,18 +1309,13 @@ document.addEventListener("DOMContentLoaded", function () {
       document.getElementById("nuevo-fecha").value = "";
       calcularSaldoNuevo();
 
+      // Envío a Firestore en segundo plano
       try {
         const batch = db.batch();
         batch.set(proyectoRef, proyecto);
         batch.set(ingresoRef, ingreso);
         batch.set(publicoRef, { codigo, cliente, mueble, estado: "Diseño Aprobado", progreso: 20, detalles: "Diseño confirmado por WhatsApp.", fechaEntrega });
         await batch.commit();
-
-        await cargarProyectosDesdeNube();
-        await cargarIngresosDesdeNube();
-        renderProyectosAdmin();
-        renderGestionIngresos();
-
       } catch (error) {
         console.error("Error creando proyecto:", error);
       }
