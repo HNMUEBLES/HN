@@ -25,9 +25,7 @@ body {
   padding: 1rem 2rem;
   background: rgba(18, 15, 13, 0.92);
   backdrop-filter: blur(8px);
-  position: absolute !important;
-  top: 0;
-  left: 0;
+  position: relative;
   width: 100%;
   z-index: 10;
   border-bottom: 1px solid rgba(139, 107, 85, 0.2);
@@ -73,7 +71,6 @@ body {
 .hero-fixed-banner {
   height: 100vh;
   width: 100%;
-  /* Aquí ajustamos únicamente para que lea tu fondo correctamente */
   background-image: url('assets/fondo.png');
   background-size: cover;
   background-position: center;
@@ -302,7 +299,7 @@ body {
 
 
 /* ============================================================
-   PORTAFOLIO PÚBLICO (OPTIMIZADO PARA ADAPTABILIDAD)
+   PORTAFOLIO PÚBLICO
 ============================================================ */
 
 .portfolio-section {
@@ -428,7 +425,7 @@ body {
 
 
 /* ============================================================
-   VISOR FLOTANTE (LIGHTBOX) - SECCIÓN NUEVA PARA IMÁGENES
+   VISOR FLOTANTE (LIGHTBOX)
 ============================================================ */
 
 #hn-portfolio-viewer {
@@ -531,7 +528,7 @@ body {
 
 
 /* ============================================================
-   MODALES
+   MODALES (CORREGIDO PARA QUE LA GESTIÓN SUBA Y NO SE SOBREPONGA)
 ============================================================ */
 
 .modal-overlay {
@@ -540,10 +537,11 @@ body {
   background: rgba(0,0,0,.85);
   backdrop-filter: blur(5px);
   display: flex;
-  align-items: center;
+  align-items: flex-start; /* Permite que el contenido del panel/modal fluya de arriba hacia abajo */
   justify-content: center;
   z-index: 1000;
-  padding: 1.5rem;
+  padding: 2rem 1.5rem;
+  overflow-y: auto; /* El scroll acompaña a todo el panel de gestión por completo */
 }
 
 .modal-box {
@@ -553,8 +551,7 @@ body {
   padding: 2.5rem;
   width: 100%;
   max-width: 850px;
-  max-height: 90vh;
-  overflow-y: auto;
+  margin: auto;
   position: relative;
   box-shadow: 0 25px 50px rgba(0,0,0,.9);
 }
@@ -620,7 +617,7 @@ textarea::placeholder {
 
 
 /* ============================================================
-   ADMIN
+   ADMINISTRACIÓN
 ============================================================ */
 
 .admin-header {
@@ -628,6 +625,7 @@ textarea::placeholder {
   justify-content: space-between;
   align-items: center;
   margin-bottom: 1rem;
+  position: relative; /* Evita que la cabecera de gestión se quede pegada flotando */
 }
 
 .admin-header h2 {
@@ -756,8 +754,8 @@ textarea::placeholder {
 }
 
 .projects-list {
-  max-height: 300px;
-  overflow-y: auto;
+  max-height: none; /* Se elimina el límite para que suba y baje de forma natural con el panel */
+  overflow-y: visible;
 }
 
 
