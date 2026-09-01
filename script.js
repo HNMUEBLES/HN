@@ -240,7 +240,7 @@ async function cerrarSesionAdmin() {
 
 
 // ============================================================
-// 4. CONTROL DE VISTAS ADMIN
+// 4. CONTROL DE VISTAS ADMIN (PANTALLAS INDEPENDIENTES)
 // ============================================================
 
 function mostrarPanelAdministrador() {
@@ -261,6 +261,8 @@ function mostrarPanelAdministrador() {
     panel.classList.remove("hidden");
   }
 
+  // Vista predeterminada al ingresar
+  cambiarVistaAdmin('inicio');
 }
 
 
@@ -282,6 +284,43 @@ function ocultarPanelAdministrador() {
     login.classList.remove("hidden");
   }
 
+}
+
+
+// Función clave para navegar entre pantallas completas de forma independiente
+function cambiarVistaAdmin(vistaId) {
+  if (!esAdmin) return;
+
+  // Lista de todas las pantallas independientes del admin
+  const vistas = [
+    'admin-vista-inicio',
+    'admin-vista-nuevo-proyecto',
+    'admin-vista-ingresos',
+    'admin-vista-portafolio'
+  ];
+
+  vistas.forEach(id => {
+    const el = document.getElementById(id);
+    if (el) {
+      if (id === `admin-vista-${vistaId}` || id === vistaId) {
+        el.style.display = 'block';
+        el.classList.remove('hidden');
+      } else {
+        el.style.display = 'none';
+        el.classList.add('hidden');
+      }
+    }
+  });
+
+  // Opcional: Actualizar clases activas en la barra lateral si existen
+  const botonesMenu = document.querySelectorAll('.admin-nav-btn');
+  botonesMenu.forEach(btn => {
+    if (btn.dataset.vista === vistaId) {
+      btn.classList.add('active');
+    } else {
+      btn.classList.remove('active');
+    }
+  });
 }
 
 
@@ -4491,13 +4530,13 @@ async function eliminarTrabajoPortafolio(
   }
 
 
-  const trabajo =
+  const trabalho =
     portafolio.find(
       p => p.id === id
     );
 
 
-  if (!trabajo) return;
+  if (!trabalho) return;
 
 
   if (
@@ -4510,20 +4549,6 @@ async function eliminarTrabajoPortafolio(
 
 
   try {
-
-    /*
-     * IMPORTANTE:
-     *
-     * Cloudinary no permite borrar archivos
-     * directamente desde el navegador con una
-     * operación segura de eliminación.
-     *
-     * Por eso eliminamos el registro de Firestore.
-     *
-     * Las imágenes permanecen temporalmente
-     * en Cloudinary.
-     */
-
 
     await db
       .collection("portafolio")
