@@ -1240,3 +1240,36 @@ textarea::placeholder {
     font-size: 1.8rem;
   }
 }
+
+
+/* ============================================================
+   CORRECCIÓN DEFINITIVA: PANEL ADMIN A PANTALLA COMPLETA
+============================================================ */
+
+body:has(#admin-panel:not(.hidden)) {
+  overflow-y: auto !important;
+}
+
+body:has(#admin-panel:not(.hidden)) .modal-overlay {
+  position: relative !important;
+  inset: auto !important;
+  width: 100% !important;
+  max-width: 100% !important;
+  min-height: 100vh !important;
+  height: auto !important;
+  background: #0d0b0a !important;
+  backdrop-filter: none !important;
+  display: block !important;
+  padding: 1rem !important;
+  margin: 0 !important;
+}
+
+body:has(#admin-panel:not(.hidden)) .modal-box {
+  background: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+  max-width: 1300px !important;
+  width: 100% !important;
+  padding: 0 !important;
+  margin: 0 auto !important;
+}
