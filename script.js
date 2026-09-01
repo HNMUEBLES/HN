@@ -1801,7 +1801,7 @@ async function registrarPago(
 
 
 // ============================================================
-// 9. PDF
+// 9. PDF (ESTILO EXCEL PROFESIONAL: MONTO, ADELANTO/MATERIALES, SALDO/GANANCIA)
 // ============================================================
 
 async function obtenerLogoPDF() {
@@ -1983,7 +1983,7 @@ async function exportarIngresosPDF() {
 
 
   let sumaMontosTotales = 0;
-  let sumaAdelantos = 0;
+  let sumaAdelantosMateriales = 0;
   let sumaSaldosGanancia = 0;
 
 
@@ -1997,15 +1997,15 @@ async function exportarIngresosPDF() {
           ) || 0;
 
 
-        const adelanto =
+        const adelantoMateriales =
           Number(
             ingreso.adelanto
           ) || 0;
 
 
-        const saldo =
+        const saldoGanancia =
           Number(
-            ingreso.saldo !== undefined ? ingreso.saldo : Math.max(monto - adelanto, 0)
+            ingreso.saldo !== undefined ? ingreso.saldo : Math.max(monto - adelantoMateriales, 0)
           ) || 0;
 
 
@@ -2013,12 +2013,12 @@ async function exportarIngresosPDF() {
           monto;
 
 
-        sumaAdelantos +=
-          adelanto;
+        sumaAdelantosMateriales +=
+          adelantoMateriales;
 
 
         sumaSaldosGanancia +=
-          saldo;
+          saldoGanancia;
 
 
         return [
@@ -2031,9 +2031,9 @@ async function exportarIngresosPDF() {
 
           `Bs. ${formatearMonto(monto)}`,
 
-          `Bs. ${formatearMonto(adelanto)}`,
+          `Bs. ${formatearMonto(adelantoMateriales)}`,
 
-          `Bs. ${formatearMonto(saldo)}`
+          `Bs. ${formatearMonto(saldoGanancia)}`
 
         ];
 
@@ -2129,7 +2129,7 @@ async function exportarIngresosPDF() {
 
 
   doc.text(
-    "REPORTE DE INGRESOS Y GANANCIAS",
+    "REPORTE FINANCIERO - GESTIÓN DE INGRESOS",
     14,
     38
   );
@@ -2239,13 +2239,13 @@ async function exportarIngresosPDF() {
     },
 
     {
-      titulo: "TOTAL ADELANTOS",
-      valor: `Bs. ${formatearMonto(sumaAdelantos)}`,
+      titulo: "TOTAL MATERIALES (ADELANTOS)",
+      valor: `Bs. ${formatearMonto(sumaAdelantosMateriales)}`,
       color: DORADO
     },
 
     {
-      titulo: "SALDO NETO (GANANCIA)",
+      titulo: "TOTAL GANANCIA NETA (SALDOS)",
       valor: `Bs. ${formatearMonto(sumaSaldosGanancia)}`,
       color: VERDE
     }
@@ -2366,9 +2366,9 @@ async function exportarIngresosPDF() {
         "CÓDIGO",
         "CLIENTE",
         "PROYECTO",
-        "MONTO",
-        "ADELANTO",
-        "SALDO (GANANCIA)"
+        "MONTO TOTAL",
+        "ADELANTO (MATERIALES)",
+        "SALDO (GANANCIA NETA)"
       ]],
 
       body: filas,
@@ -2508,7 +2508,7 @@ async function exportarIngresosPDF() {
 
 
         doc.text(
-          "HN MUEBLES · Reporte de Ingresos y Ganancias Netas",
+          "HN MUEBLES · Reporte de Ingresos, Materiales y Ganancias",
           14,
           pageHeight - 8
         );
@@ -2531,7 +2531,7 @@ async function exportarIngresosPDF() {
 
 
   doc.save(
-    `HN-MUEBLES-Balance-Ganancias-${anio}-${mes}.pdf`
+    `HN-MUEBLES-Gestion-Ingresos-${anio}-${mes}.pdf`
   );
 
 }
