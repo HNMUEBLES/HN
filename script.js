@@ -1,129 +1,40 @@
-// ==========================================
-// HN MUEBLES - SCRIPT PRINCIPAL
-// ==========================================
+// ============================================================
+// HN MUEBLES - SCRIPT PRINCIPAL (ULTRA OPTIMIZADO: SIN DELAY)
+// Firebase Authentication + Firestore
+// Cloudinary para Portafolio
+// ============================================================
 
-let portafolio = [];
-let visorTrabajoActual = null;
-let visorIndiceActual = 0;
 
-// Función de escape para seguridad en HTML
-function escaparHTML(str) {
-  if (!str) return "";
-  return str.replace(/[&<>'"]/g, 
-    tag => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' }[tag] || tag)
-  );
-}
+// ============================================================
+// 1. CONFIGURACIÓN FIREBASE Y CLOUDINARY
+// ============================================================
 
-// ==========================================
-// 1. GESTIÓN Y CREACIÓN DEL VISOR DEL PORTAFOLIO
-// ==========================================
+const firebaseConfig = {
+  apiKey: "AIzaSyCLrVUpGCTxFxuMR0ATlwj2t3osSP0dD7Y",
+  authDomain: "hn-muebles.firebaseapp.com",
+  projectId: "hn-muebles",
+  storageBucket: "hn-muebles.firebasestorage.app",
+  messagingSenderId: "175601256381",
+  appId: "1:175601256381:web:db2031a56faa87a02bf4d4",
+  measurementId: "G-8PJGERB67Q"
+};
 
-function crearVisorPortafolio() {
-  if (document.getElementById("hn-portfolio-viewer")) return;
+firebase.initializeApp(firebaseConfig);
 
-  const visorDiv = document.createElement("div");
-  visorDiv.id = "hn-portfolio-viewer";
-  visorDiv.style.cssText = `
-    position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
-    background: rgba(0, 0, 0, 0.85); z-index: 9999; display: none;
-    justify-content: center; align-items: center; flex-direction: column;
-    padding: 20px; box-sizing: border-box; backdrop-filter: blur(5px);
-  `;
+const db = firebase.firestore();
+const auth = firebase.auth();
 
-  visorDiv.innerHTML = `
-    <button onclick="cerrarVisorPortafolio()" style="position: absolute; top: 20px; right: 20px; background: none; border: none; color: #fff; font-size: 2rem; cursor: pointer; z-index: 10000;">&times;</button>
-    <button onclick="visorPortafolioAnterior(event)" style="position: absolute; left: 20px; top: 50%; transform: translateY(-50%); background: rgba(255,255,255,0.2); border: none; color: #fff; font-size: 1.5rem; padding: 10px 15px; cursor: pointer; border-radius: 50%;">&#10094;</button>
-    <button onclick="visorPortafolioSiguiente(event)" style="position: absolute; right: 20px; top: 50%; transform: translateY(-50%); background: rgba(255,255,255,0.2); border: none; color: #fff; font-size: 1.5rem; padding: 10px 15px; cursor: pointer; border-radius: 50%;">&#10095;</button>
-    
-    <div id="hn-portfolio-content" style="display: flex; flex-direction: column; align-items: center; justify-content: center; max-width: 90%; max-height: 85vh;"></div>
-    <div id="hn-portfolio-counter" style="position: absolute; bottom: 20px; color: #fff; font-size: 1rem; background: rgba(0,0,0,0.5); padding: 5px 15px; border-radius: 20px; display: none;"></div>
-  `;
 
-  document.body.appendChild(visorDiv);
-}
+// ============================================================
+// CLOUDINARY
+// ============================================================
 
-function abrirVisorPortafolio(trabajoId, indice = 0) {  
-  const trabajo = portafolio.find(p => p.id === trabajoId);  
-  if (!trabajo || !trabajo.imagenes || !trabajo.imagenes.length) return;  
-  
-  visorTrabajoActual = trabajo;  
-  visorIndiceActual = indice;  
-  
-  crearVisorPortafolio();  
-  const visor = document.getElementById("hn-portfolio-viewer");  
-  if (visor) {  
-    visor.style.display = "flex";  
-  }  
-  renderContenidoVisorPortafolio();  
-}  
-  
-function cerrarVisorPortafolio() {  
-  const visor = document.getElementById("hn-portfolio-viewer");  
-  if (visor) {  
-    visor.style.display = "none";  
-  }  
-  visorTrabajoActual = null;  
-  visorIndiceActual = 0;  
-}  
-  
-function visorPortafolioAnterior(event) {  
-  event.stopPropagation();  
-  if (!visorTrabajoActual || !visorTrabajoActual.imagenes) return;  
-  visorIndiceActual = (visorIndiceActual - 1 + visorTrabajoActual.imagenes.length) % visorTrabajoActual.imagenes.length;  
-  renderContenidoVisorPortafolio();  
-}  
-  
-function visorPortafolioSiguiente(event) {  
-  event.stopPropagation();  
-  if (!visorTrabajoActual || !visorTrabajoActual.imagenes) return;  
-  visorIndiceActual = (visorIndiceActual + 1) % visorTrabajoActual.imagenes.length;  
-  renderContenidoVisorPortafolio();  
-}  
-  
-function renderContenidoVisorPortafolio() {  
-  const container = document.getElementById("hn-portfolio-content");  
-  const counter = document.getElementById("hn-portfolio-counter");  
-  if (!container || !visorTrabajoActual) return;  
-  
-  const imagenUrl = visorTrabajoActual.imagenes[visorIndiceActual];  
-  container.innerHTML = `  
-    <img src="${escaparHTML(imagenUrl)}" alt="Trabajo Portafolio" style="max-width:100%; max-height:80vh; object-fit:contain; border-radius:8px; box-shadow:0 10px 30px rgba(0,0,0,0.5);" />  
-    <h3 style="color:#fff; margin-top:15px; font-size:1.2rem;">${escaparHTML(visorTrabajoActual.titulo || "")}</h3>  
-    <p style="color:#a3a3a3; font-size:0.9rem; text-align:center; max-width:600px;">${escaparHTML(visorTrabajoActual.descripcion || "")}</p>  
-  `;  
-  
-  if (counter && visorTrabajoActual.imagenes.length > 1) {  
-    counter.innerText = `${visorIndiceActual + 1} / ${visorTrabajoActual.imagenes.length}`;  
-    counter.style.display = "block";  
-  } else if (counter) {  
-    counter.style.display = "none";  
-  }  
-}
+const CLOUDINARY_CLOUD_NAME = "clvoagwx";
+const CLOUDINARY_UPLOAD_PRESET = "hn_muebles_portafolio";
 
-// ==========================================
-// 2. GUARDADO Y GESTIÓN DE PROYECTOS (FIREBASE / LOCAL)
-// ==========================================
 
-async function guardarProyecto(datosProyecto) {
-  try {
-    // Actualización instantánea en interfaz (Cero Delay)
-    console.log("Guardando proyecto localmente y preparando sincronización...", datosProyecto);
-    
-    // Aquí puedes enlazar tu lógica con Firestore o tu base de datos activa:
-    // const docRef = await db.collection("proyectos").add(datosProyecto);
-    // datosProyecto.id = docRef.id;
-    
-    portafolio.push(datosProyecto);
-    
-    // Notificación de éxito o actualización de UI
-    alert("¡Proyecto guardado correctamente!");
-    return true;
-  } catch (error) {
-    console.error("Error al guardar el proyecto:", error);
-    alert("Hubo un error al guardar el proyecto.");
-    return false;
-  }
-}// VARIABLES GLOBALES
+// ============================================================
+// VARIABLES GLOBALES
 // ============================================================
 
 const EMAIL_ADMIN = "hn24muebles@gmail.com";
@@ -132,6 +43,9 @@ let proyectos = [];
 let ingresos = [];
 let esAdmin = false;
 let portafolio = [];
+
+let visorTrabajoActual = null;
+let visorIndiceActual = 0;
 
 
 // ============================================================
@@ -358,8 +272,98 @@ async function buscarProyectoPublico(codigo) {
 
 
 // ============================================================
-// 7. GESTIÓN DE PROYECTOS
+// 7. GESTIÓN DE PROYECTOS (CREAR, RENDERIZAR, EDITAR)
 // ============================================================
+
+async function guardarNuevoProyecto(event) {
+  if (event) event.preventDefault();
+  if (!esAdmin || !auth.currentUser) return;
+
+  const codigo = document.getElementById("nuevo-codigo")?.value.trim().toUpperCase() || generarCodigoAleatorio();
+  const cliente = document.getElementById("nuevo-cliente")?.value.trim() || "";
+  const mueble = document.getElementById("nuevo-mueble")?.value.trim() || "";
+  const telefono = document.getElementById("nuevo-telefono")?.value.trim() || "";
+  const presupuesto = Number(document.getElementById("nuevo-presupuesto")?.value) || 0;
+  const adelanto = Number(document.getElementById("nuevo-adelanto")?.value) || 0;
+  const fechaEntrega = document.getElementById("nuevo-fecha")?.value || "";
+
+  if (!cliente || !mueble) {
+    alert("Por favor completa al menos el nombre del cliente y el mueble.");
+    return;
+  }
+
+  const estado = "Diseño Aprobado";
+  const progreso = 20;
+  const detalles = "El diseño ha sido aprobado por WhatsApp. El proyecto ingresa a producción.";
+  const saldo = Math.max(presupuesto - adelanto, 0);
+
+  const nuevoProyectoData = {
+    codigo,
+    cliente,
+    mueble,
+    telefono,
+    presupuesto,
+    adelanto,
+    fechaEntrega,
+    estado,
+    progreso,
+    detalles,
+    creadoEn: firebase.firestore.FieldValue.serverTimestamp()
+  };
+
+  // Actualización visual local instantánea (Cero Delay)
+  const tempId = "temp_" + Date.now();
+  proyectos.unshift({ id: tempId, ...nuevoProyectoData });
+  renderProyectosAdmin();
+  cambiarVistaAdmin('inicio');
+
+  // Limpiar formulario
+  document.getElementById("form-nuevo-proyecto")?.reset();
+  llenarCodigoAutomatico();
+
+  try {
+    const docRef = await db.collection("proyectos").add(nuevoProyectoData);
+
+    // Crear en proyectos públicos para el cliente
+    await db.collection("proyectos_publicos").add({
+      codigo,
+      cliente,
+      mueble,
+      estado,
+      progreso,
+      detalles
+    });
+
+    // Registrar ingreso inicial
+    const ingresoData = {
+      proyectoId: docRef.id,
+      codigo,
+      cliente,
+      mueble,
+      presupuesto,
+      adelanto,
+      pagosFinales: 0,
+      cobrado: adelanto,
+      pendiente: saldo,
+      fechaCreacion: firebase.firestore.FieldValue.serverTimestamp()
+    };
+    const ingresoRef = await db.collection("ingresos").add(ingresoData);
+
+    // Reemplazar ID temporal con el real de Firebase
+    const indexTemp = proyectos.findIndex(p => p.id === tempId);
+    if (indexTemp !== -1) {
+      proyectos[indexTemp].id = docRef.id;
+    }
+    ingresos.unshift({ id: ingresoRef.id, ...ingresoData });
+
+    renderProyectosAdmin();
+    renderGestionIngresos();
+  } catch (error) {
+    console.error("Error guardando nuevo proyecto:", error);
+    alert("Hubo un error al guardar el proyecto en la nube.");
+  }
+}
+
 
 function renderProyectosAdmin() {
   if (!esAdmin) return;
@@ -490,7 +494,6 @@ async function cambiarEstadoPorId(id, etapaIdx, progreso) {
   const estado = etapas[etapaIdx];
   const detalles = descripciones[etapaIdx];
 
-  // Actualización visual instantánea local (Cero Delay)
   const projIndex = proyectos.findIndex(p => p.id === id);
   if (projIndex !== -1) {
     proyectos[projIndex].estado = estado;
@@ -499,7 +502,6 @@ async function cambiarEstadoPorId(id, etapaIdx, progreso) {
     renderProyectosAdmin();
   }
 
-  // Envío a Firestore en segundo plano (sin bloquear pantalla)
   try {
     const batch = db.batch();
     const proyectoRef = db.collection("proyectos").doc(id);
@@ -527,7 +529,6 @@ async function eliminarProyecto(id) {
 
   const proyectoEliminado = proyectos.find(p => p.id === id);
 
-  // Eliminación visual instantánea local (Cero Delay)
   proyectos = proyectos.filter(p => p.id !== id);
   ingresos = ingresos.filter(i => i.proyectoId !== id);
   renderProyectosAdmin();
@@ -595,8 +596,8 @@ async function guardarEdicionInline(id, index) {
   const adelanto = Number(document.getElementById(`edit-adelanto-${index}`).value) || 0;
   const fechaEntrega = document.getElementById(`edit-fecha-${index}`).value;
 
-  // Actualización visual local instantánea
-  if (projIndex = proyectos.findIndex(p => p.id === id) !== -1) {
+  const projIndex = proyectos.findIndex(p => p.id === id);
+  if (projIndex !== -1) {
     proyectos[projIndex] = { ...proyectos[projIndex], codigo, cliente, mueble, telefono, presupuesto, adelanto, fechaEntrega };
     renderProyectosAdmin();
   }
@@ -753,7 +754,6 @@ async function registrarPago(ingresoId) {
   const nuevoCobrado = cobradoActual + pago;
   const nuevoPendiente = Math.max(presupuesto - nuevoCobrado, 0);
 
-  // Actualización local inmediata (Cero Delay)
   const idx = ingresos.findIndex(i => i.id === ingresoId);
   if (idx !== -1) {
     ingresos[idx].pagosFinales = nuevosPagosFinales;
@@ -971,7 +971,7 @@ ${link}`;
 
 
 // ============================================================
-// 11. PORTAFOLIO
+// 11. PORTAFOLIO Y VISOR
 // ============================================================
 
 async function cargarPortafolioPublico() {
@@ -985,6 +985,19 @@ async function cargarPortafolioPublico() {
     renderPortafolioPublico();
   } catch (error) {
     console.error("Error cargando portafolio:", error);
+  }
+}
+
+async function cargarPortafolioAdmin() {
+  try {
+    const snapshot = await db.collection("portafolio").orderBy("creadoEn", "desc").get();
+    portafolio = [];
+    snapshot.forEach(doc => portafolio.push({ id: doc.id, ...doc.data() }));
+    if (typeof renderPortafolioAdmin === "function") {
+      renderPortafolioAdmin();
+    }
+  } catch (error) {
+    console.error("Error cargando portafolio admin:", error);
   }
 }
 
@@ -1007,426 +1020,64 @@ function crearVisorPortafolio() {
 }
 
 
-let visorTrabajoActual = null;
-let visorIndiceActual = 0;
-
-
 function abrirVisorPortafolio(trabajoId, indice = 0) {
   const trabajo = portafolio.find(p => p.id === trabajoId);
-  if (!trabajo) return;
-  const media = Array.isArray(trabajo.media) ? trabajo.media : [];
-  if (!media.length) return;
+  if (!trabajo || !trabajo.imagenes || !trabajo.imagenes.length) return;
 
-  crearVisorPortafolio();
   visorTrabajoActual = trabajo;
   visorIndiceActual = indice;
 
+  crearVisorPortafolio();
   const visor = document.getElementById("hn-portfolio-viewer");
-  if (!visor) return;
-
-  visor.style.display = "flex";
-  document.body.style.overflow = "hidden";
-  mostrarMediaVisor();
-  document.addEventListener("keydown", manejarTecladoVisor);
-}
-
-
-function mostrarMediaVisor() {
-  if (!visorTrabajoActual) return;
-  const media = visorTrabajoActual.media || [];
-  if (!media.length) return;
-
-  if (visorIndiceActual < 0) visorIndiceActual = media.length - 1;
-  if (visorIndiceActual >= media.length) visorIndiceActual = 0;
-
-  const actual = media[visorIndiceActual];
-  const content = document.getElementById("hn-portfolio-content");
-  const counter = document.getElementById("hn-portfolio-counter");
-
-  if (!content) return;
-  content.innerHTML = "";
-
-  const titulo = document.createElement("div");
-  titulo.className = "visor-title";
-  titulo.textContent = visorTrabajoActual.titulo || "HN Muebles";
-  content.appendChild(titulo);
-
-  if (actual.tipo === "video") {
-    const video = document.createElement("video");
-    video.src = actual.url;
-    video.controls = true;
-    video.autoplay = true;
-    video.playsInline = true;
-    content.appendChild(video);
-  } else {
-    const img = document.createElement("img");
-    img.src = actual.url;
-    img.alt = visorTrabajoActual.titulo || "Trabajo HN Muebles";
-    content.appendChild(img);
+  if (visor) {
+    visor.style.display = "flex";
   }
-
-  if (counter) counter.innerText = `${visorIndiceActual + 1} / ${media.length}`;
-}
-
-
-function visorPortafolioAnterior(event) {
-  event?.stopPropagation();
-  if (!visorTrabajoActual) return;
-  visorIndiceActual--;
-  mostrarMediaVisor();
-}
-
-
-function visorPortafolioSiguiente(event) {
-  event?.stopPropagation();
-  if (!visorTrabajoActual) return;
-  visorIndiceActual++;
-  mostrarMediaVisor();
-}
-
-
-function manejarTecladoVisor(event) {
-  const visor = document.getElementById("hn-portfolio-viewer");
-  if (!visor || visor.style.display === "none") return;
-  if (event.key === "Escape") cerrarVisorPortafolio();
-  if (event.key === "ArrowLeft") visorPortafolioAnterior();
-  if (event.key === "ArrowRight") visorPortafolioSiguiente();
+  renderContenidoVisorPortafolio();
 }
 
 
 function cerrarVisorPortafolio() {
   const visor = document.getElementById("hn-portfolio-viewer");
-  if (visor) visor.style.display = "none";
-  document.body.style.overflow = "";
+  if (visor) {
+    visor.style.display = "none";
+  }
   visorTrabajoActual = null;
   visorIndiceActual = 0;
-  document.removeEventListener("keydown", manejarTecladoVisor);
 }
 
 
-function renderPortafolioPublico() {
-  const container = document.getElementById("portfolio-grid");
-  if (!container) return;
-  container.innerHTML = "";
-
-  if (!portafolio.length) {
-    container.innerHTML = `<div class="portfolio-empty"><p>Próximamente mostraremos nuestros trabajos aquí.</p></div>`;
-    return;
-  }
-
-  portafolio.forEach(trabajo => {
-    const card = document.createElement("article");
-    card.className = "portfolio-card";
-    const media = Array.isArray(trabajo.media) ? trabajo.media : [];
-    const primerMedia = media[0];
-    let mediaHTML = "";
-
-    if (primerMedia) {
-      mediaHTML = `
-        <div class="portfolio-media" style="position:relative; cursor:pointer;" onclick="abrirVisorPortafolio('${trabajo.id}',0)">
-          <img src="${primerMedia.url}" alt="" loading="lazy" style="width:100%; height:100%; object-fit:cover;"/>
-        </div>
-      `;
-    }
-
-    card.innerHTML = `
-      ${mediaHTML}
-      <div class="portfolio-card-body">
-        <div class="portfolio-card-title">${escaparHTML(trabajo.titulo || "")}</div>
-        <div class="portfolio-card-description">${escaparHTML(trabajo.descripcion || "")}</div>
-      </div>
-    `;
-    container.appendChild(card);
-  });
+function visorPortafolioAnterior(event) {
+  if (event) event.stopPropagation();
+  if (!visorTrabajoActual || !visorTrabajoActual.imagenes) return;
+  visorIndiceActual = (visorIndiceActual - 1 + visorTrabajoActual.imagenes.length) % visorTrabajoActual.imagenes.length;
+  renderContenidoVisorPortafolio();
 }
 
 
-async function cargarPortafolioAdmin() {
-  if (!esAdmin || !auth.currentUser) return;
-  const snapshot = await db.collection("portafolio").orderBy("creadoEn", "desc").get();
-  portafolio = [];
-  snapshot.forEach(doc => portafolio.push({ id: doc.id, ...doc.data() }));
-  renderPortafolioAdmin();
+function visorPortafolioSiguiente(event) {
+  if (event) event.stopPropagation();
+  if (!visorTrabajoActual || !visorTrabajoActual.imagenes) return;
+  visorIndiceActual = (visorIndiceActual + 1) % visorTrabajoActual.imagenes.length;
+  renderContenidoVisorPortafolio();
 }
 
 
-function mostrarPreviewArchivos() {
-  const container = document.getElementById("portfolio-files-preview");
-  const fotos = Array.from(document.getElementById("portfolio-fotos")?.files || []);
-  const videos = Array.from(document.getElementById("portfolio-videos")?.files || []);
-  if (!container) return;
-  container.innerHTML = "";
+function renderContenidoVisorPortafolio() {
+  const container = document.getElementById("hn-portfolio-content");
+  const counter = document.getElementById("hn-portfolio-counter");
+  if (!container || !visorTrabajoActual) return;
 
-  [...fotos, ...videos].forEach(archivo => {
-    const div = document.createElement("div");
-    div.className = "file-preview";
-    const url = URL.createObjectURL(archivo);
-    div.innerHTML = `<img src="${url}" alt="">`;
-    container.appendChild(div);
-  });
-}
+  const imagenUrl = visorTrabajoActual.imagenes[visorIndiceActual];
+  container.innerHTML = `
+    <img src="${escaparHTML(imagenUrl)}" alt="Trabajo Portafolio" style="max-width:100%; max-height:75vh; object-fit:contain; border-radius:8px; box-shadow:0 10px 30px rgba(0,0,0,0.5);" />
+    <h3 style="color:#fff; margin-top:15px; font-size:1.2rem;">${escaparHTML(visorTrabajoActual.titulo || "")}</h3>
+    <p style="color:#a3a3a3; font-size:0.9rem; text-align:center; max-width:600px;">${escaparHTML(visorTrabajoActual.descripcion || "")}</p>
+  `;
 
-
-async function subirArchivoCloudinary(archivo) {
-  return new Promise((resolve, reject) => {
-    const formData = new FormData();
-    formData.append("file", archivo);
-    formData.append("upload_preset", CLOUDINARY_UPLOAD_PRESET);
-
-    const xhr = new XMLHttpRequest();
-    xhr.open("POST", `https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD_NAME}/auto/upload`);
-
-    xhr.onload = () => {
-      if (xhr.status >= 200 && xhr.status < 300) {
-        resolve(JSON.parse(xhr.responseText));
-      } else {
-        reject(new Error("Cloudinary rechazó el archivo."));
-      }
-    };
-
-    xhr.onerror = () => reject(new Error("Error de conexión."));
-    xhr.send(formData);
-  });
-}
-
-
-async function publicarTrabajoPortafolio(e) {
-  e.preventDefault();
-  if (!esAdmin || !auth.currentUser) return;
-
-  const titulo = document.getElementById("portfolio-titulo")?.value.trim() || "";
-  const descripcion = document.getElementById("portfolio-descripcion")?.value.trim() || "";
-  const fotos = Array.from(document.getElementById("portfolio-fotos")?.files || []);
-  const videos = Array.from(document.getElementById("portfolio-videos")?.files || []);
-  const archivos = [...fotos, ...videos];
-
-  if (!titulo || !archivos.length) {
-    alert("Completa el título y selecciona al menos un archivo.");
-    return;
-  }
-
-  try {
-    const media = [];
-    for (const archivo of archivos) {
-      const resultado = await subirArchivoCloudinary(archivo);
-      media.push({
-        tipo: archivo.type.startsWith("video/") ? "video" : "imagen",
-        url: resultado.secure_url || resultado.url,
-        public_id: resultado.public_id || "",
-        nombre: archivo.name
-      });
-    }
-
-    await db.collection("portafolio").add({
-      titulo,
-      descripcion,
-      media,
-      creadoPor: auth.currentUser.email,
-      creadoEn: firebase.firestore.FieldValue.serverTimestamp()
-    });
-
-    document.getElementById("form-portafolio")?.reset();
-    document.getElementById("portfolio-files-preview").innerHTML = "";
-
-    await cargarPortafolioAdmin();
-    await cargarPortafolioPublico();
-    alert("Trabajo publicado correctamente.");
-  } catch (error) {
-    console.error("Error publicando portafolio:", error);
-    alert("No se pudo publicar el trabajo.");
+  if (counter && visorTrabajoActual.imagenes.length > 1) {
+    counter.innerText = `${visorIndiceActual + 1} / ${visorTrabajoActual.imagenes.length}`;
+    counter.style.display = "block";
+  } else if (counter) {
+    counter.style.display = "none";
   }
 }
-
-
-function renderPortafolioAdmin() {
-  const container = document.getElementById("lista-portafolio-admin");
-  const total = document.getElementById("total-portafolio");
-  if (total) total.innerText = portafolio.length;
-  if (!container) return;
-
-  container.innerHTML = "";
-  if (!portafolio.length) {
-    container.innerHTML = `<div style="text-align:center; color:#777; padding:25px;">Todavía no tienes trabajos publicados.</div>`;
-    return;
-  }
-
-  portafolio.forEach(trabajo => {
-    const card = document.createElement("div");
-    card.className = "portfolio-admin-card";
-    const primerMedia = trabajo.media?.[0];
-    const thumb = primerMedia?.url || "";
-
-    card.innerHTML = `
-      <div style="cursor:pointer; position:relative;" onclick="abrirVisorPortafolio('${trabajo.id}',0)">
-        <img src="${thumb}" class="portfolio-admin-thumb" alt="">
-      </div>
-      <div class="portfolio-admin-info">
-        <strong>${escaparHTML(trabajo.titulo || "")}</strong>
-        <p>${escaparHTML(trabajo.descripcion || "")}</p>
-        <p>${trabajo.media?.length || 0} archivo(s)</p>
-      </div>
-      <div class="portfolio-admin-actions">
-        <button type="button" class="delete-portfolio-btn" onclick="eliminarTrabajoPortafolio('${trabajo.id}')">
-          <i class="fa-solid fa-trash"></i> Eliminar
-        </button>
-      </div>
-    `;
-    container.appendChild(card);
-  });
-}
-
-
-async function eliminarTrabajoPortafolio(id) {
-  if (!esAdmin || !auth.currentUser) return;
-
-  // Eliminación visual local instantánea
-  portafolio = portafolio.filter(p => p.id !== id);
-  renderPortafolioAdmin();
-  renderPortafolioPublico();
-  cerrarVisorPortafolio();
-
-  try {
-    await db.collection("portafolio").doc(id).delete();
-  } catch (error) {
-    console.error("Error eliminando portafolio:", error);
-  }
-}
-
-
-// ============================================================
-// 12. DOM READY
-// ============================================================
-
-document.addEventListener("DOMContentLoaded", function () {
-
-  const formLogin = document.getElementById("form-login");
-  if (formLogin) {
-    formLogin.addEventListener("submit", async function (e) {
-      e.preventDefault();
-      const email = document.getElementById("input-email")?.value.trim().toLowerCase();
-      const password = document.getElementById("input-pass")?.value || "";
-      if (!email || !password) return;
-
-      try {
-        await auth.signInWithEmailAndPassword(email, password);
-      } catch (error) {
-        console.error("ERROR LOGIN:", error);
-      }
-    });
-  }
-
-  const formBuscar = document.getElementById("form-buscar");
-  if (formBuscar) {
-    formBuscar.addEventListener("submit", async function (e) {
-      e.preventDefault();
-      const codigo = document.getElementById("input-codigo")?.value.trim().toUpperCase();
-      if (codigo) await buscarProyectoPublico(codigo);
-    });
-  }
-
-  const presupuestoInput = document.getElementById("nuevo-presupuesto");
-  const adelantoInput = document.getElementById("nuevo-adelanto");
-
-  function calcularSaldoNuevo() {
-    const total = Number(presupuestoInput?.value) || 0;
-    const adelanto = Number(adelantoInput?.value) || 0;
-    const saldo = Math.max(total - adelanto, 0);
-
-    const totalPreview = document.getElementById("nuevo-total-preview");
-    const adelantoPreview = document.getElementById("nuevo-adelanto-preview");
-    const saldoPreview = document.getElementById("nuevo-saldo-preview");
-
-    if (totalPreview) totalPreview.innerText = `Bs. ${formatearMonto(total)}`;
-    if (adelantoPreview) adelantoPreview.innerText = `Bs. ${formatearMonto(adelanto)}`;
-    if (saldoPreview) saldoPreview.innerText = `Bs. ${formatearMonto(saldo)}`;
-  }
-
-  presupuestoInput?.addEventListener("input", calcularSaldoNuevo);
-  adelantoInput?.addEventListener("input", calcularSaldoNuevo);
-  calcularSaldoNuevo();
-
-  const formNuevo = document.getElementById("form-nuevo-proyecto");
-  if (formNuevo) {
-    formNuevo.addEventListener("submit", async function (e) {
-      e.preventDefault();
-      if (!esAdmin || !auth.currentUser) return;
-
-      const codigo = document.getElementById("nuevo-codigo")?.value.trim().toUpperCase() || generarCodigoAleatorio();
-      const cliente = document.getElementById("nuevo-cliente")?.value.trim() || "";
-      const mueble = document.getElementById("nuevo-mueble")?.value.trim() || "";
-      const telefono = document.getElementById("nuevo-telefono")?.value.trim() || "";
-      const presupuesto = Number(document.getElementById("nuevo-presupuesto")?.value) || 0;
-      const adelanto = Number(document.getElementById("nuevo-adelanto")?.value) || 0;
-      const fechaEntrega = document.getElementById("nuevo-fecha")?.value || "";
-      const pendiente = Math.max(presupuesto - adelanto, 0);
-
-      const proyectoRef = db.collection("proyectos").doc();
-      const ingresoRef = db.collection("ingresos").doc();
-      const publicoRef = db.collection("proyectos_publicos").doc(proyectoRef.id);
-
-      const proyecto = {
-        id: proyectoRef.id,
-        codigo, cliente, mueble, telefono,
-        estado: "Diseño Aprobado",
-        progreso: 20,
-        detalles: "Diseño confirmado por WhatsApp. Listo para corte.",
-        presupuesto, adelanto, fechaEntrega,
-        creadoEn: firebase.firestore.FieldValue.serverTimestamp()
-      };
-
-      const ingreso = {
-        id: ingresoRef.id,
-        proyectoId: proyectoRef.id,
-        codigo, cliente, mueble, presupuesto, adelanto,
-        pagosFinales: 0, cobrado: adelanto, pendiente,
-        fechaCreacion: firebase.firestore.FieldValue.serverTimestamp()
-      };
-
-      // Inserción visual local instantánea (Cero Delay)
-      proyectos.unshift(proyecto);
-      ingresos.unshift(ingreso);
-      renderProyectosAdmin();
-      renderGestionIngresos();
-
-      // Limpieza inmediata del formulario
-      document.getElementById("nuevo-codigo").value = generarCodigoAleatorio();
-      document.getElementById("nuevo-cliente").value = "";
-      document.getElementById("nuevo-mueble").value = "";
-      document.getElementById("nuevo-telefono").value = "";
-      document.getElementById("nuevo-presupuesto").value = "";
-      document.getElementById("nuevo-adelanto").value = "";
-      document.getElementById("nuevo-fecha").value = "";
-      calcularSaldoNuevo();
-
-      // Envío a Firestore en segundo plano
-      try {
-        const batch = db.batch();
-        batch.set(proyectoRef, proyecto);
-        batch.set(ingresoRef, ingreso);
-        batch.set(publicoRef, { codigo, cliente, mueble, estado: "Diseño Aprobado", progreso: 20, detalles: "Diseño confirmado por WhatsApp.", fechaEntrega });
-        await batch.commit();
-      } catch (error) {
-        console.error("Error creando proyecto:", error);
-      }
-    });
-  }
-
-  const filtroIngresos = document.getElementById("ingresos-mes");
-  if (filtroIngresos) {
-    const ahora = new Date();
-    filtroIngresos.value = `${ahora.getFullYear()}-${String(ahora.getMonth() + 1).padStart(2, "0")}`;
-    filtroIngresos.addEventListener("change", () => renderGestionIngresos());
-  }
-
-  crearVisorPortafolio();
-  cargarPortafolioPublico();
-
-  document.getElementById("portfolio-fotos")?.addEventListener("change", mostrarPreviewArchivos);
-  document.getElementById("portfolio-videos")?.addEventListener("change", mostrarPreviewArchivos);
-
-  const formPortfolio = document.getElementById("form-portafolio");
-  if (formPortfolio) {
-    formPortfolio.addEventListener("submit", publicarTrabajoPortafolio);
-  }
-
-});
