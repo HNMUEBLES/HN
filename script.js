@@ -851,7 +851,7 @@ async function exportarIngresosPDF() {
 
 
 // ============================================================
-// 10. WHATSAPP
+// 10. WHATSAPP (CON RESUMEN FINANCIERO INCLUIDO)
 // ============================================================
 
 function notificarWhatsApp(index) {
@@ -865,6 +865,11 @@ function notificarWhatsApp(index) {
     numero = "591" + numero;
   }
 
+  // Cálculos financieros
+  const presupuesto = Number(p.presupuesto) || 0;
+  const adelanto = Number(p.adelanto) || 0;
+  const saldo = Math.max(presupuesto - adelanto, 0);
+
   const link = window.location.origin + window.location.pathname + `?codigo=${encodeURIComponent(p.codigo)}`;
   const fecha = p.fechaEntrega ? p.fechaEntrega.split("-").reverse().join("/") : "Por coordinar";
 
@@ -874,7 +879,12 @@ function notificarWhatsApp(index) {
 📊 *Progreso:* ${p.progreso}%
 📅 *Fecha estimada de entrega:* ${fecha}
 
-🔍 *Consulta el estado de tu proyecto:*
+💰 *Resumen Financiero:*
+• Monto Total: Bs. ${formatearMonto(presupuesto)}
+• Adelanto: Bs. ${formatearMonto(adelanto)}
+• Saldo Pendiente: Bs. ${formatearMonto(saldo)}
+
+🔍 *Consulta el estado de tu proyecto aquí:*
 ${link}`;
 
   window.open(`https://wa.me/${numero}?text=${encodeURIComponent(mensaje)}`, "_blank");
