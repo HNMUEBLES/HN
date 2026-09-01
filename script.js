@@ -507,7 +507,8 @@ async function guardarEdicionInline(id, index) {
   const fechaEntrega = document.getElementById(`edit-fecha-${index}`).value;
 
   // Actualización visual local instantánea
-  if (projIndex = proyectos.findIndex(p => p.id === id) !== -1) {
+  const projIndex = proyectos.findIndex(p => p.id === id);
+  if (projIndex !== -1) {
     proyectos[projIndex] = { ...proyectos[projIndex], codigo, cliente, mueble, telefono, presupuesto, adelanto, fechaEntrega };
     renderProyectosAdmin();
   }
@@ -1309,15 +1310,17 @@ document.addEventListener("DOMContentLoaded", function () {
       document.getElementById("nuevo-fecha").value = "";
       calcularSaldoNuevo();
 
-      // Envío a Firestore en segundo plano
+      // Envío a Firestore en segundo plano con control de errores
       try {
         const batch = db.batch();
         batch.set(proyectoRef, proyecto);
         batch.set(ingresoRef, ingreso);
         batch.set(publicoRef, { codigo, cliente, mueble, estado: "Diseño Aprobado", progreso: 20, detalles: "Diseño confirmado por WhatsApp.", fechaEntrega });
         await batch.commit();
+        console.log("Proyecto guardado exitosamente en Firebase.");
       } catch (error) {
         console.error("Error creando proyecto:", error);
+        alert("Hubo un error al guardar en la base de datos: " + error.message);
       }
     });
   }
