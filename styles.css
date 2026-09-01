@@ -25,11 +25,11 @@ body {
   padding: 1rem 2rem;
   background: rgba(18, 15, 13, 0.92);
   backdrop-filter: blur(8px);
-  position: relative;
-  top: auto;
-  left: auto;
+  position: absolute !important;
+  top: 0;
+  left: 0;
   width: 100%;
-  z-index: 100;
+  z-index: 10;
   border-bottom: 1px solid rgba(139, 107, 85, 0.2);
 }
 
