@@ -304,7 +304,7 @@ body {
 
 
 /* ============================================================
-   PORTAFOLIO PÚBLICO
+   PORTAFOLIO PÚBLICO (OPTIMIZADO PARA ADAPTABILIDAD)
 ============================================================ */
 
 .portfolio-section {
@@ -314,6 +314,8 @@ body {
 
 .portfolio-inner {
   max-width: 1150px;
+  margin: 0 auto;
+  padding: 0 1rem;
 }
 
 .portfolio-heading {
@@ -337,8 +339,9 @@ body {
 .portfolio-grid {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 1.2rem;
+  gap: 1.5rem;
   text-align: left;
+  width: 100%;
 }
 
 .portfolio-card {
@@ -347,6 +350,8 @@ body {
   border-radius: 13px;
   overflow: hidden;
   transition: transform .25s ease, border-color .25s ease, box-shadow .25s ease;
+  display: flex;
+  flex-direction: column;
 }
 
 .portfolio-card:hover {
@@ -421,6 +426,66 @@ body {
 .portfolio-loading i {
   color: #9c7151;
   font-size: 1.4rem;
+}
+
+
+/* ============================================================
+   VISOR FLOTANTE (LIGHTBOX) - SECCIÓN NUEVA PARA IMÁGENES
+============================================================ */
+
+#hn-portfolio-viewer {
+  box-sizing: border-box;
+}
+
+#hn-portfolio-content {
+  max-width: 90vw;
+  max-height: 85vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+#hn-portfolio-content .visor-title {
+  color: #fff;
+  font-size: 1rem;
+  margin-bottom: 8px;
+  text-align: center;
+  padding: 0 10px;
+}
+
+#hn-portfolio-content img,
+#hn-portfolio-content video {
+  max-width: 100%;
+  max-height: 75vh;
+  width: auto;
+  height: auto;
+  object-fit: contain;
+  border-radius: 8px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+}
+
+#hn-portfolio-prev,
+#hn-portfolio-next {
+  width: 40px !important;
+  height: 40px !important;
+  font-size: 24px !important;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+@media (max-width: 768px) {
+  #hn-portfolio-prev {
+    left: 10px !important;
+  }
+  #hn-portfolio-next {
+    right: 10px !important;
+  }
+  #hn-portfolio-content {
+    width: calc(100% - 80px) !important;
+    height: calc(100% - 100px) !important;
+  }
 }
 
 
@@ -1044,19 +1109,16 @@ textarea::placeholder {
 
 
 /* ============================================================
-   RESPONSIVE
+   RESPONSIVE GENERAL
 ============================================================ */
 
 @media (max-width: 900px) {
-
   .portfolio-grid {
-    grid-template-columns: repeat(2,minmax(0,1fr));
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
-
 }
 
 @media (max-width: 768px) {
-
   .navbar {
     padding: .75rem 1rem;
   }
@@ -1094,12 +1156,13 @@ textarea::placeholder {
 
   .portfolio-grid {
     grid-template-columns: 1fr;
+    gap: 1rem;
   }
 
   .portfolio-card {
-    max-width: 550px;
+    max-width: 100%;
     width: 100%;
-    margin: auto;
+    margin: 0;
   }
 
   .admin-fields-grid {
@@ -1144,5 +1207,4 @@ textarea::placeholder {
     bottom: 16px;
     font-size: 1.8rem;
   }
-
 }
