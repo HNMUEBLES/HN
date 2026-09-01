@@ -1234,6 +1234,19 @@ document.addEventListener("DOMContentLoaded", function () {
     });
   }
 
+  // ============================================================
+  // CARGA AUTOMÁTICA DE SEGUIMIENTO DESDE EL LINK DE WHATSAPP
+  // ============================================================
+  const urlParams = new URLSearchParams(window.location.search);
+  const codigoUrl = urlParams.get("codigo");
+  if (codigoUrl) {
+    const inputCodigo = document.getElementById("input-codigo");
+    if (inputCodigo) {
+      inputCodigo.value = codigoUrl;
+      buscarProyectoPublico(codigoUrl);
+    }
+  }
+
   const presupuestoInput = document.getElementById("nuevo-presupuesto");
   const adelantoInput = document.getElementById("nuevo-adelanto");
 
