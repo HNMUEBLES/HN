@@ -1,40 +1,129 @@
-// ============================================================
-// HN MUEBLES - SCRIPT PRINCIPAL (ULTRA OPTIMIZADO: SIN DELAY)
-// Firebase Authentication + Firestore
-// Cloudinary para Portafolio
-// ============================================================
+// ==========================================
+// HN MUEBLES - SCRIPT PRINCIPAL
+// ==========================================
 
+let portafolio = [];
+let visorTrabajoActual = null;
+let visorIndiceActual = 0;
 
-// ============================================================
-// 1. CONFIGURACIÓN FIREBASE Y CLOUDINARY
-// ============================================================
+// Función de escape para seguridad en HTML
+function escaparHTML(str) {
+  if (!str) return "";
+  return str.replace(/[&<>'"]/g, 
+    tag => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' }[tag] || tag)
+  );
+}
 
-const firebaseConfig = {
-  apiKey: "AIzaSyCLrVUpGCTxFxuMR0ATlwj2t3osSP0dD7Y",
-  authDomain: "hn-muebles.firebaseapp.com",
-  projectId: "hn-muebles",
-  storageBucket: "hn-muebles.firebasestorage.app",
-  messagingSenderId: "175601256381",
-  appId: "1:175601256381:web:db2031a56faa87a02bf4d4",
-  measurementId: "G-8PJGERB67Q"
-};
+// ==========================================
+// 1. GESTIÓN Y CREACIÓN DEL VISOR DEL PORTAFOLIO
+// ==========================================
 
-firebase.initializeApp(firebaseConfig);
+function crearVisorPortafolio() {
+  if (document.getElementById("hn-portfolio-viewer")) return;
 
-const db = firebase.firestore();
-const auth = firebase.auth();
+  const visorDiv = document.createElement("div");
+  visorDiv.id = "hn-portfolio-viewer";
+  visorDiv.style.cssText = `
+    position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+    background: rgba(0, 0, 0, 0.85); z-index: 9999; display: none;
+    justify-content: center; align-items: center; flex-direction: column;
+    padding: 20px; box-sizing: border-box; backdrop-filter: blur(5px);
+  `;
 
+  visorDiv.innerHTML = `
+    <button onclick="cerrarVisorPortafolio()" style="position: absolute; top: 20px; right: 20px; background: none; border: none; color: #fff; font-size: 2rem; cursor: pointer; z-index: 10000;">&times;</button>
+    <button onclick="visorPortafolioAnterior(event)" style="position: absolute; left: 20px; top: 50%; transform: translateY(-50%); background: rgba(255,255,255,0.2); border: none; color: #fff; font-size: 1.5rem; padding: 10px 15px; cursor: pointer; border-radius: 50%;">&#10094;</button>
+    <button onclick="visorPortafolioSiguiente(event)" style="position: absolute; right: 20px; top: 50%; transform: translateY(-50%); background: rgba(255,255,255,0.2); border: none; color: #fff; font-size: 1.5rem; padding: 10px 15px; cursor: pointer; border-radius: 50%;">&#10095;</button>
+    
+    <div id="hn-portfolio-content" style="display: flex; flex-direction: column; align-items: center; justify-content: center; max-width: 90%; max-height: 85vh;"></div>
+    <div id="hn-portfolio-counter" style="position: absolute; bottom: 20px; color: #fff; font-size: 1rem; background: rgba(0,0,0,0.5); padding: 5px 15px; border-radius: 20px; display: none;"></div>
+  `;
 
-// ============================================================
-// CLOUDINARY
-// ============================================================
+  document.body.appendChild(visorDiv);
+}
 
-const CLOUDINARY_CLOUD_NAME = "clvoagwx";
-const CLOUDINARY_UPLOAD_PRESET = "hn_muebles_portafolio";
+function abrirVisorPortafolio(trabajoId, indice = 0) {  
+  const trabajo = portafolio.find(p => p.id === trabajoId);  
+  if (!trabajo || !trabajo.imagenes || !trabajo.imagenes.length) return;  
+  
+  visorTrabajoActual = trabajo;  
+  visorIndiceActual = indice;  
+  
+  crearVisorPortafolio();  
+  const visor = document.getElementById("hn-portfolio-viewer");  
+  if (visor) {  
+    visor.style.display = "flex";  
+  }  
+  renderContenidoVisorPortafolio();  
+}  
+  
+function cerrarVisorPortafolio() {  
+  const visor = document.getElementById("hn-portfolio-viewer");  
+  if (visor) {  
+    visor.style.display = "none";  
+  }  
+  visorTrabajoActual = null;  
+  visorIndiceActual = 0;  
+}  
+  
+function visorPortafolioAnterior(event) {  
+  event.stopPropagation();  
+  if (!visorTrabajoActual || !visorTrabajoActual.imagenes) return;  
+  visorIndiceActual = (visorIndiceActual - 1 + visorTrabajoActual.imagenes.length) % visorTrabajoActual.imagenes.length;  
+  renderContenidoVisorPortafolio();  
+}  
+  
+function visorPortafolioSiguiente(event) {  
+  event.stopPropagation();  
+  if (!visorTrabajoActual || !visorTrabajoActual.imagenes) return;  
+  visorIndiceActual = (visorIndiceActual + 1) % visorTrabajoActual.imagenes.length;  
+  renderContenidoVisorPortafolio();  
+}  
+  
+function renderContenidoVisorPortafolio() {  
+  const container = document.getElementById("hn-portfolio-content");  
+  const counter = document.getElementById("hn-portfolio-counter");  
+  if (!container || !visorTrabajoActual) return;  
+  
+  const imagenUrl = visorTrabajoActual.imagenes[visorIndiceActual];  
+  container.innerHTML = `  
+    <img src="${escaparHTML(imagenUrl)}" alt="Trabajo Portafolio" style="max-width:100%; max-height:80vh; object-fit:contain; border-radius:8px; box-shadow:0 10px 30px rgba(0,0,0,0.5);" />  
+    <h3 style="color:#fff; margin-top:15px; font-size:1.2rem;">${escaparHTML(visorTrabajoActual.titulo || "")}</h3>  
+    <p style="color:#a3a3a3; font-size:0.9rem; text-align:center; max-width:600px;">${escaparHTML(visorTrabajoActual.descripcion || "")}</p>  
+  `;  
+  
+  if (counter && visorTrabajoActual.imagenes.length > 1) {  
+    counter.innerText = `${visorIndiceActual + 1} / ${visorTrabajoActual.imagenes.length}`;  
+    counter.style.display = "block";  
+  } else if (counter) {  
+    counter.style.display = "none";  
+  }  
+}
 
+// ==========================================
+// 2. GUARDADO Y GESTIÓN DE PROYECTOS (FIREBASE / LOCAL)
+// ==========================================
 
-// ============================================================
-// VARIABLES GLOBALES
+async function guardarProyecto(datosProyecto) {
+  try {
+    // Actualización instantánea en interfaz (Cero Delay)
+    console.log("Guardando proyecto localmente y preparando sincronización...", datosProyecto);
+    
+    // Aquí puedes enlazar tu lógica con Firestore o tu base de datos activa:
+    // const docRef = await db.collection("proyectos").add(datosProyecto);
+    // datosProyecto.id = docRef.id;
+    
+    portafolio.push(datosProyecto);
+    
+    // Notificación de éxito o actualización de UI
+    alert("¡Proyecto guardado correctamente!");
+    return true;
+  } catch (error) {
+    console.error("Error al guardar el proyecto:", error);
+    alert("Hubo un error al guardar el proyecto.");
+    return false;
+  }
+}// VARIABLES GLOBALES
 // ============================================================
 
 const EMAIL_ADMIN = "hn24muebles@gmail.com";
