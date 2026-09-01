@@ -145,7 +145,7 @@ async function cerrarSesionAdmin() {
 
 
 // ============================================================
-// 4. CONTROL DE VISTAS ADMIN (CORREGIDO A PRUEBA DE ERRORES)
+// 4. CONTROL DE VISTAS ADMIN (BLINDADO)
 // ============================================================
 
 function mostrarPanelAdministrador() {
@@ -158,7 +158,7 @@ function mostrarPanelAdministrador() {
   try {
     cambiarVistaAdmin('inicio');
   } catch (e) {
-    console.warn("Vista inicial omitida:", e);
+    // Ignorado silenciosamente si la vista no existe
   }
 }
 
@@ -197,7 +197,7 @@ function cambiarVistaAdmin(vistaId) {
 
   const botonesMenu = document.querySelectorAll('.admin-nav-btn');
   botonesMenu.forEach(btn => {
-    if (btn.dataset.vista === vistaId) {
+    if (btn.dataset && btn.dataset.vista === vistaId) {
       btn.classList.add('active');
     } else {
       btn.classList.remove('active');
