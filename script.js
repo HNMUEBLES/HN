@@ -1,13 +1,13 @@
 // ============================================================
 // HN MUEBLES - SCRIPT PRINCIPAL
 // Firebase Authentication + Firestore
-// Cloudinary para imágenes y videos del Portafolio
+// Cloudinary para Portafolio
 // Proyectos + Ingresos + Portafolio
 // ============================================================
 
 
 // ============================================================
-// 1. CONFIGURACIÓN FIREBASE Y VARIABLES GLOBALES
+// 1. CONFIGURACIÓN FIREBASE Y CLOUDINARY
 // ============================================================
 
 const firebaseConfig = {
@@ -27,18 +27,16 @@ const auth = firebase.auth();
 
 
 // ============================================================
-// 2. CONFIGURACIÓN CLOUDINARY
+// CLOUDINARY
 // ============================================================
 
-// Cloud Name de tu cuenta Cloudinary
 const CLOUDINARY_CLOUD_NAME = "clvoagwx";
-
-// Upload Preset que creaste en Cloudinary
 const CLOUDINARY_UPLOAD_PRESET = "hn_muebles_portafolio";
 
-// Endpoint único para imágenes y videos
-const CLOUDINARY_UPLOAD_URL =
-  `https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD_NAME}/auto/upload`;
+
+// ============================================================
+// VARIABLES GLOBALES
+// ============================================================
 
 const EMAIL_ADMIN = "hn24muebles@gmail.com";
 
@@ -49,7 +47,7 @@ let portafolio = [];
 
 
 // ============================================================
-// 3. UTILIDADES GENERALES
+// 2. UTILIDADES GENERALES
 // ============================================================
 
 function formatearMonto(valor) {
@@ -82,25 +80,28 @@ function llenarCodigoAutomatico() {
 
 
 function copiarCodigoAlPortapapeles(codigo) {
-  navigator.clipboard.writeText(codigo).then(() => {
+  navigator.clipboard.writeText(codigo)
+    .then(() => {
 
-    const boton = document.querySelector(
-      `[data-copy-code="${codigo}"]`
-    );
+      const boton = document.querySelector(
+        `[data-copy-code="${codigo}"]`
+      );
 
-    if (boton) {
-      const textoOriginal = boton.innerText;
+      if (boton) {
 
-      boton.innerText = "Copiado ✓";
+        const textoOriginal = boton.innerText;
 
-      setTimeout(() => {
-        boton.innerText = textoOriginal;
-      }, 1200);
-    }
+        boton.innerText = "Copiado ✓";
 
-  }).catch(error => {
-    console.error("Error copiando:", error);
-  });
+        setTimeout(() => {
+          boton.innerText = textoOriginal;
+        }, 1200);
+      }
+
+    })
+    .catch(error => {
+      console.error("Error copiando:", error);
+    });
 }
 
 
@@ -122,18 +123,23 @@ function mostrarMensajeInterno(mensaje, error = false) {
 
 function escaparHTML(texto) {
   const div = document.createElement("div");
+
   div.textContent = texto || "";
+
   return div.innerHTML;
 }
 
 
 // ============================================================
-// 4. AUTENTICACIÓN Y ESTADO DE SESIÓN
+// 3. AUTENTICACIÓN
 // ============================================================
 
 auth.onAuthStateChanged(async (user) => {
 
-  console.log("CAMBIO DE AUTENTICACIÓN:", user);
+  console.log(
+    "CAMBIO DE AUTENTICACIÓN:",
+    user
+  );
 
   if (!user) {
 
@@ -218,6 +224,8 @@ async function cerrarSesionAdmin() {
     modalPortfolio?.classList.add("hidden");
 
 
+    cerrarVisorPortafolio();
+
     irInicio();
 
   } catch (error) {
@@ -232,7 +240,7 @@ async function cerrarSesionAdmin() {
 
 
 // ============================================================
-// 5. CONTROL DE VISTAS ADMIN
+// 4. CONTROL DE VISTAS ADMIN
 // ============================================================
 
 function mostrarPanelAdministrador() {
@@ -278,7 +286,7 @@ function ocultarPanelAdministrador() {
 
 
 // ============================================================
-// 6. CARGA DE DATOS DESDE FIRESTORE
+// 5. FIRESTORE
 // ============================================================
 
 async function cargarProyectosDesdeNube() {
@@ -310,7 +318,6 @@ async function cargarProyectosDesdeNube() {
       "Error cargando proyectos:",
       error
     );
-
   }
 
 }
@@ -345,14 +352,13 @@ async function cargarIngresosDesdeNube() {
       "Error cargando ingresos:",
       error
     );
-
   }
 
 }
 
 
 // ============================================================
-// 7. BÚSQUEDA PÚBLICA DE PROYECTOS
+// 6. BÚSQUEDA PÚBLICA
 // ============================================================
 
 async function buscarProyectoPublico(codigo) {
@@ -438,7 +444,7 @@ async function buscarProyectoPublico(codigo) {
 
 
 // ============================================================
-// 8. GESTIÓN DE PROYECTOS
+// 7. GESTIÓN DE PROYECTOS
 // ============================================================
 
 function renderProyectosAdmin() {
@@ -447,15 +453,10 @@ function renderProyectosAdmin() {
 
 
   const container =
-    document.getElementById(
-      "lista-proyectos-admin"
-    );
-
+    document.getElementById("lista-proyectos-admin");
 
   const total =
-    document.getElementById(
-      "total-proyectos"
-    );
+    document.getElementById("total-proyectos");
 
 
   if (total) {
@@ -483,10 +484,8 @@ function renderProyectosAdmin() {
     const presupuesto =
       Number(p.presupuesto) || 0;
 
-
     const adelanto =
       Number(p.adelanto) || 0;
-
 
     const saldo =
       Math.max(
@@ -539,9 +538,10 @@ function renderProyectosAdmin() {
               cursor:pointer;
               font-size:.8rem;
               margin:.2rem;
-              ${activo
-                ? "background:#f59e0b;color:#000;font-weight:bold;"
-                : "background:rgba(255,255,255,.1);color:#fff;"
+              ${
+                activo
+                  ? "background:#f59e0b;color:#000;font-weight:bold;"
+                  : "background:rgba(255,255,255,.1);color:#fff;"
               }
             "
           >
@@ -576,12 +576,14 @@ function renderProyectosAdmin() {
               font-weight:bold;
               font-size:.85rem;
             ">
-              ${p.codigo || ""}
+              ${escaparHTML(p.codigo || "")}
             </span>
 
 
-            <strong style="margin-left:.4rem;">
-              ${p.mueble || ""}
+            <strong style="
+              margin-left:.4rem;
+            ">
+              ${escaparHTML(p.mueble || "")}
             </strong>
 
 
@@ -591,10 +593,10 @@ function renderProyectosAdmin() {
               font-size:.85rem;
             ">
               Cliente:
-              ${p.cliente || ""}
+              ${escaparHTML(p.cliente || "")}
               |
               Tel:
-              ${p.telefono || "Sin registrar"}
+              ${escaparHTML(p.telefono || "Sin registrar")}
             </p>
 
 
@@ -609,10 +611,12 @@ function renderProyectosAdmin() {
 
             <div style="
               display:grid;
-              grid-template-columns:repeat(3,minmax(0,1fr));
+              grid-template-columns:
+              repeat(3,minmax(0,1fr));
               gap:10px;
               margin-top:12px;
             ">
+
 
               <div
                 class="financial-box"
@@ -622,6 +626,7 @@ function renderProyectosAdmin() {
                   color:#38bdf8;
                 "
               >
+
                 <span style="
                   font-size:.75rem;
                   opacity:.85;
@@ -634,8 +639,10 @@ function renderProyectosAdmin() {
                   font-size:1.05rem;
                   white-space:nowrap;
                 ">
-                  Bs. ${formatearMonto(presupuesto)}
+                  Bs.
+                  ${formatearMonto(presupuesto)}
                 </strong>
+
               </div>
 
 
@@ -647,6 +654,7 @@ function renderProyectosAdmin() {
                   color:#f59e0b;
                 "
               >
+
                 <span style="
                   font-size:.75rem;
                   opacity:.85;
@@ -659,8 +667,10 @@ function renderProyectosAdmin() {
                   font-size:1.05rem;
                   white-space:nowrap;
                 ">
-                  Bs. ${formatearMonto(adelanto)}
+                  Bs.
+                  ${formatearMonto(adelanto)}
                 </strong>
+
               </div>
 
 
@@ -672,6 +682,7 @@ function renderProyectosAdmin() {
                   color:#ef4444;
                 "
               >
+
                 <span style="
                   font-size:.75rem;
                   opacity:.85;
@@ -684,8 +695,10 @@ function renderProyectosAdmin() {
                   font-size:1.05rem;
                   white-space:nowrap;
                 ">
-                  Bs. ${formatearMonto(saldo)}
+                  Bs.
+                  ${formatearMonto(saldo)}
                 </strong>
+
               </div>
 
             </div>
@@ -784,11 +797,17 @@ async function cambiarEstadoPorId(
 
 
   const descripciones = [
+
     "El diseño ha sido aprobado por WhatsApp. El proyecto ingresa a producción.",
+
     "Las placas se encuentran en proceso de corte y pegado de tapacantos.",
+
     "Las piezas se están ensamblando en taller.",
+
     "El mueble está en proceso de traslado e instalación en sitio.",
+
     "¡El proyecto ha sido completado e instalado con éxito!"
+
   ];
 
 
@@ -855,6 +874,7 @@ async function cambiarEstadoPorId(
 
 
     await cargarProyectosDesdeNube();
+
 
     renderProyectosAdmin();
 
@@ -949,6 +969,7 @@ async function eliminarProyecto(id) {
 
     await cargarIngresosDesdeNube();
 
+
     renderProyectosAdmin();
 
     renderGestionIngresos();
@@ -991,25 +1012,25 @@ function activarEdicionInline(index) {
 
       <input
         id="edit-codigo-${index}"
-        value="${p.codigo || ""}"
+        value="${escaparHTML(p.codigo || "")}"
         placeholder="Código"
       >
 
       <input
         id="edit-cliente-${index}"
-        value="${p.cliente || ""}"
+        value="${escaparHTML(p.cliente || "")}"
         placeholder="Cliente"
       >
 
       <input
         id="edit-mueble-${index}"
-        value="${p.mueble || ""}"
+        value="${escaparHTML(p.mueble || "")}"
         placeholder="Mueble"
       >
 
       <input
         id="edit-telefono-${index}"
-        value="${p.telefono || ""}"
+        value="${escaparHTML(p.telefono || "")}"
         placeholder="WhatsApp"
       >
 
@@ -1036,7 +1057,6 @@ function activarEdicionInline(index) {
         id="edit-fecha-${index}"
         value="${p.fechaEntrega || ""}"
       >
-
 
       <div>
 
@@ -1074,6 +1094,7 @@ function activarEdicionInline(index) {
       </div>
 
     </div>
+
   `;
 
 }
@@ -1147,7 +1168,8 @@ async function guardarEdicionInline(
 
   try {
 
-    await db.collection("proyectos")
+    await db
+      .collection("proyectos")
       .doc(id)
       .update({
         codigo,
@@ -1225,7 +1247,8 @@ async function guardarEdicionInline(
 
 
     for (
-      const doc of publicoSnap.docs
+      const doc
+      of publicoSnap.docs
     ) {
 
       await doc.ref.update({
@@ -1243,6 +1266,7 @@ async function guardarEdicionInline(
     await cargarProyectosDesdeNube();
 
     await cargarIngresosDesdeNube();
+
 
     renderProyectosAdmin();
 
@@ -1272,7 +1296,7 @@ async function guardarEdicionInline(
 
 
 // ============================================================
-// 9. GESTIÓN Y CONTROL DE INGRESOS
+// 8. INGRESOS
 // ============================================================
 
 function renderGestionIngresos() {
@@ -1302,34 +1326,36 @@ function renderGestionIngresos() {
   if (filtro) {
 
     lista =
-      lista.filter(ingreso => {
+      lista.filter(
+        ingreso => {
 
-        let fecha = null;
+          let fecha = null;
 
 
-        if (
-          ingreso.fechaCreacion &&
-          ingreso.fechaCreacion.toDate
-        ) {
+          if (
+            ingreso.fechaCreacion &&
+            ingreso.fechaCreacion.toDate
+          ) {
 
-          fecha =
-            ingreso.fechaCreacion.toDate();
+            fecha =
+              ingreso.fechaCreacion.toDate();
+
+          }
+
+
+          if (!fecha) return true;
+
+
+          const mes =
+            `${fecha.getFullYear()}-${String(
+              fecha.getMonth() + 1
+            ).padStart(2, "0")}`;
+
+
+          return mes === filtro;
 
         }
-
-
-        if (!fecha) return true;
-
-
-        const mes =
-          `${fecha.getFullYear()}-${String(
-            fecha.getMonth() + 1
-          ).padStart(2, "0")}`;
-
-
-        return mes === filtro;
-
-      });
+      );
 
   }
 
@@ -1339,34 +1365,54 @@ function renderGestionIngresos() {
   let totalPendiente = 0;
 
 
-  lista.forEach(ingreso => {
+  lista.forEach(
+    ingreso => {
 
-    totalCobrado +=
-      Number(ingreso.cobrado) || 0;
-
-
-    totalPendiente +=
-      Number(ingreso.pendiente) || 0;
-
-  });
+      totalCobrado +=
+        Number(ingreso.cobrado) || 0;
 
 
-  document.getElementById(
-    "ing-resumen-proyectos"
-  ).innerText =
-    lista.length;
+      totalPendiente +=
+        Number(ingreso.pendiente) || 0;
+
+    }
+  );
 
 
-  document.getElementById(
-    "ing-resumen-cobrado"
-  ).innerText =
-    `Bs. ${formatearMonto(totalCobrado)}`;
+  const resumenProyectos =
+    document.getElementById(
+      "ing-resumen-proyectos"
+    );
 
 
-  document.getElementById(
-    "ing-resumen-pendiente"
-  ).innerText =
-    `Bs. ${formatearMonto(totalPendiente)}`;
+  const resumenCobrado =
+    document.getElementById(
+      "ing-resumen-cobrado"
+    );
+
+
+  const resumenPendiente =
+    document.getElementById(
+      "ing-resumen-pendiente"
+    );
+
+
+  if (resumenProyectos) {
+    resumenProyectos.innerText =
+      lista.length;
+  }
+
+
+  if (resumenCobrado) {
+    resumenCobrado.innerText =
+      `Bs. ${formatearMonto(totalCobrado)}`;
+  }
+
+
+  if (resumenPendiente) {
+    resumenPendiente.innerText =
+      `Bs. ${formatearMonto(totalPendiente)}`;
+  }
 
 
   container.innerHTML = "";
@@ -1375,184 +1421,235 @@ function renderGestionIngresos() {
   if (!lista.length) {
 
     container.innerHTML = `
+
       <div style="
         text-align:center;
         color:#777;
         padding:25px;
       ">
+
         No hay registros para este mes.
+
       </div>
+
     `;
 
     return;
-
   }
 
 
-  lista.forEach(ingreso => {
+  lista.forEach(
+    ingreso => {
 
-    const card =
-      document.createElement("div");
-
-
-    card.style.cssText = `
-      background:rgba(255,255,255,.035);
-      border:1px solid rgba(255,255,255,.09);
-      border-radius:9px;
-      padding:10px;
-      margin-bottom:7px;
-    `;
+      const card =
+        document.createElement("div");
 
 
-    const presupuesto =
-      Number(ingreso.presupuesto) || 0;
+      card.style.cssText = `
+        background:rgba(255,255,255,.035);
+        border:1px solid rgba(255,255,255,.09);
+        border-radius:9px;
+        padding:10px;
+        margin-bottom:7px;
+      `;
 
 
-    const adelanto =
-      Number(ingreso.adelanto) || 0;
+      const presupuesto =
+        Number(ingreso.presupuesto) || 0;
 
 
-    const cobrado =
-      Number(ingreso.cobrado) || 0;
+      const adelanto =
+        Number(ingreso.adelanto) || 0;
 
 
-    const pendiente =
-      Math.max(
-        presupuesto - cobrado,
-        0
-      );
+      const cobrado =
+        Number(ingreso.cobrado) || 0;
 
 
-    card.innerHTML = `
+      const pendiente =
+        Math.max(
+          presupuesto - cobrado,
+          0
+        );
 
-      <div style="
-        display:flex;
-        justify-content:space-between;
-        gap:8px;
-      ">
 
-        <div>
+      card.innerHTML = `
 
-          <strong>
-            ${ingreso.cliente || ""}
-          </strong>
+        <div style="
+          display:flex;
+          justify-content:space-between;
+          gap:8px;
+        ">
+
+          <div>
+
+            <strong>
+              ${escaparHTML(
+                ingreso.cliente || ""
+              )}
+            </strong>
+
+            <div style="
+              color:#a3a3a3;
+              font-size:.75rem;
+            ">
+
+              ${escaparHTML(
+                ingreso.codigo || ""
+              )}
+
+              ·
+
+              ${escaparHTML(
+                ingreso.mueble || ""
+              )}
+
+            </div>
+
+          </div>
+
 
           <div style="
-            color:#a3a3a3;
-            font-size:.75rem;
+            color:#38bdf8;
+            font-weight:bold;
+            font-size:.85rem;
           ">
-            ${ingreso.codigo || ""}
-            ·
-            ${ingreso.mueble || ""}
+
+            Total:
+            Bs.
+            ${formatearMonto(
+              presupuesto
+            )}
+
           </div>
 
         </div>
 
 
         <div style="
-          color:#38bdf8;
-          font-weight:bold;
-          font-size:.85rem;
+          display:grid;
+          grid-template-columns:
+          repeat(3,1fr);
+          gap:5px;
+          margin-top:8px;
         ">
-          Total:
-          Bs. ${formatearMonto(presupuesto)}
+
+
+          <div class="summary-box amber">
+
+            Adelanto
+
+            <strong>
+              Bs.
+              ${formatearMonto(
+                adelanto
+              )}
+            </strong>
+
+          </div>
+
+
+          <div class="summary-box green">
+
+            Cobrado
+
+            <strong>
+              Bs.
+              ${formatearMonto(
+                cobrado
+              )}
+            </strong>
+
+          </div>
+
+
+          <div class="summary-box red">
+
+            Pendiente
+
+            <strong>
+              Bs.
+              ${formatearMonto(
+                pendiente
+              )}
+            </strong>
+
+          </div>
+
         </div>
 
-      </div>
+
+        ${
+          pendiente > 0
+
+            ? `
+
+              <div style="
+                display:flex;
+                gap:5px;
+                margin-top:8px;
+              ">
+
+                <input
+                  type="number"
+                  min="0"
+                  step="0.01"
+                  id="pago-${ingreso.id}"
+                  placeholder="Monto pagado"
+                >
+
+                <button
+                  type="button"
+                  onclick="registrarPago('${ingreso.id}')"
+                  style="
+                    background:#16a34a;
+                    color:#fff;
+                    border:none;
+                    border-radius:6px;
+                    padding:7px 10px;
+                    cursor:pointer;
+                    font-weight:bold;
+                  "
+                >
+                  Registrar pago
+                </button>
+
+              </div>
+
+            `
+
+            : `
+
+              <div style="
+                margin-top:8px;
+                color:#4ade80;
+                font-size:.78rem;
+                text-align:center;
+              ">
+
+                <i class="fa-solid fa-circle-check"></i>
+
+                Proyecto pagado completamente
+
+              </div>
+
+            `
+        }
+
+      `;
 
 
-      <div style="
-        display:grid;
-        grid-template-columns:repeat(3,1fr);
-        gap:5px;
-        margin-top:8px;
-      ">
+      container.appendChild(card);
 
-        <div class="summary-box amber">
-          Adelanto
-          <strong>
-            Bs. ${formatearMonto(adelanto)}
-          </strong>
-        </div>
-
-
-        <div class="summary-box green">
-          Cobrado
-          <strong>
-            Bs. ${formatearMonto(cobrado)}
-          </strong>
-        </div>
-
-
-        <div class="summary-box red">
-          Pendiente
-          <strong>
-            Bs. ${formatearMonto(pendiente)}
-          </strong>
-        </div>
-
-      </div>
-
-
-      ${
-        pendiente > 0
-          ? `
-            <div style="
-              display:flex;
-              gap:5px;
-              margin-top:8px;
-            ">
-
-              <input
-                type="number"
-                min="0"
-                step="0.01"
-                id="pago-${ingreso.id}"
-                placeholder="Monto pagado"
-              >
-
-              <button
-                type="button"
-                onclick="registrarPago('${ingreso.id}')"
-                style="
-                  background:#16a34a;
-                  color:#fff;
-                  border:none;
-                  border-radius:6px;
-                  padding:7px 10px;
-                  cursor:pointer;
-                  font-weight:bold;
-                "
-              >
-                Registrar pago
-              </button>
-
-            </div>
-          `
-          : `
-            <div style="
-              margin-top:8px;
-              color:#4ade80;
-              font-size:.78rem;
-              text-align:center;
-            ">
-              <i class="fa-solid fa-circle-check"></i>
-              Proyecto pagado completamente
-            </div>
-          `
-      }
-
-    `;
-
-
-    container.appendChild(card);
-
-  });
+    }
+  );
 
 }
 
 
-async function registrarPago(ingresoId) {
+async function registrarPago(
+  ingresoId
+) {
 
   if (!esAdmin || !auth.currentUser) return;
 
@@ -1627,7 +1724,8 @@ async function registrarPago(ingresoId) {
 
   try {
 
-    await db.collection("ingresos")
+    await db
+      .collection("ingresos")
       .doc(ingresoId)
       .update({
 
@@ -1664,7 +1762,7 @@ async function registrarPago(ingresoId) {
 
 
 // ============================================================
-// 10. EXPORTACIÓN PDF DE INGRESOS
+// 9. PDF
 // ============================================================
 
 async function obtenerLogoPDF() {
@@ -1675,7 +1773,9 @@ async function obtenerLogoPDF() {
       await fetch("logo.png");
 
 
-    if (!response.ok) return null;
+    if (!response.ok) {
+      return null;
+    }
 
 
     const blob =
@@ -1683,7 +1783,7 @@ async function obtenerLogoPDF() {
 
 
     return await new Promise(
-      (resolve) => {
+      resolve => {
 
         const reader =
           new FileReader();
@@ -1744,34 +1844,35 @@ async function exportarIngresosPDF() {
     );
 
     return;
-
   }
 
 
   const lista =
-    ingresos.filter(ingreso => {
+    ingresos.filter(
+      ingreso => {
 
-      if (
-        !ingreso.fechaCreacion ||
-        !ingreso.fechaCreacion.toDate
-      ) {
-        return true;
+        if (
+          !ingreso.fechaCreacion ||
+          !ingreso.fechaCreacion.toDate
+        ) {
+          return true;
+        }
+
+
+        const fecha =
+          ingreso.fechaCreacion.toDate();
+
+
+        const mes =
+          `${fecha.getFullYear()}-${String(
+            fecha.getMonth() + 1
+          ).padStart(2, "0")}`;
+
+
+        return mes === filtro;
+
       }
-
-
-      const fecha =
-        ingreso.fechaCreacion.toDate();
-
-
-      const mes =
-        `${fecha.getFullYear()}-${String(
-          fecha.getMonth() + 1
-        ).padStart(2, "0")}`;
-
-
-      return mes === filtro;
-
-    });
+    );
 
 
   const jsPDF =
@@ -1791,6 +1892,7 @@ async function exportarIngresosPDF() {
 
 
   const nombresMes = [
+
     "Enero",
     "Febrero",
     "Marzo",
@@ -1803,6 +1905,7 @@ async function exportarIngresosPDF() {
     "Octubre",
     "Noviembre",
     "Diciembre"
+
   ];
 
 
@@ -1816,63 +1919,108 @@ async function exportarIngresosPDF() {
     await obtenerLogoPDF();
 
 
-  const NEGRO = [18, 18, 18];
-  const GRIS = [105, 105, 105];
-  const DORADO = [156, 113, 81];
-  const BLANCO = [255, 255, 255];
-  const VERDE = [22, 163, 74];
-  const ROJO = [220, 38, 38];
-  const AZUL = [37, 99, 235];
+  const NEGRO =
+    [18, 18, 18];
+
+
+  const GRIS =
+    [105, 105, 105];
+
+
+  const DORADO =
+    [156, 113, 81];
+
+
+  const BLANCO =
+    [255, 255, 255];
+
+
+  const VERDE =
+    [22, 163, 74];
+
+
+  const ROJO =
+    [220, 38, 38];
+
+
+  const AZUL =
+    [37, 99, 235];
 
 
   let totalProyecto = 0;
+
   let totalAdelanto = 0;
+
   let totalCobrado = 0;
+
   let totalPendiente = 0;
 
 
   const filas =
-    lista.map(ingreso => {
+    lista.map(
+      ingreso => {
 
-      const total =
-        Number(ingreso.presupuesto) || 0;
-
-
-      const adelanto =
-        Number(ingreso.adelanto) || 0;
-
-
-      const cobrado =
-        Number(ingreso.cobrado) || 0;
+        const total =
+          Number(
+            ingreso.presupuesto
+          ) || 0;
 
 
-      const pendiente =
-        Math.max(
-          total - cobrado,
-          0
-        );
+        const adelanto =
+          Number(
+            ingreso.adelanto
+          ) || 0;
 
 
-      totalProyecto += total;
-
-      totalAdelanto += adelanto;
-
-      totalCobrado += cobrado;
-
-      totalPendiente += pendiente;
+        const cobrado =
+          Number(
+            ingreso.cobrado
+          ) || 0;
 
 
-      return [
-        ingreso.codigo || "",
-        ingreso.cliente || "",
-        ingreso.mueble || "",
-        `Bs. ${formatearMonto(total)}`,
-        `Bs. ${formatearMonto(adelanto)}`,
-        `Bs. ${formatearMonto(cobrado)}`,
-        `Bs. ${formatearMonto(pendiente)}`
-      ];
+        const pendiente =
+          Math.max(
+            total - cobrado,
+            0
+          );
 
-    });
+
+        totalProyecto +=
+          total;
+
+
+        totalAdelanto +=
+          adelanto;
+
+
+        totalCobrado +=
+          cobrado;
+
+
+        totalPendiente +=
+          pendiente;
+
+
+        return [
+
+          ingreso.codigo || "",
+
+          ingreso.cliente || "",
+
+          ingreso.mueble || "",
+
+          `Bs. ${formatearMonto(total)}`,
+
+          `Bs. ${formatearMonto(adelanto)}`,
+
+          `Bs. ${formatearMonto(cobrado)}`,
+
+          `Bs. ${formatearMonto(pendiente)}`
+
+        ];
+
+      }
+    );
 
 
   if (logo) {
@@ -1901,17 +2049,24 @@ async function exportarIngresosPDF() {
 
 
   const posicionTexto =
-    logo ? 45 : 14;
+    logo
+      ? 45
+      : 14;
 
 
-  doc.setTextColor(...NEGRO);
+  doc.setTextColor(
+    ...NEGRO
+  );
+
 
   doc.setFont(
     "helvetica",
     "bold"
   );
 
+
   doc.setFontSize(20);
+
 
   doc.text(
     "HN MUEBLES",
@@ -1925,9 +2080,14 @@ async function exportarIngresosPDF() {
     "normal"
   );
 
+
   doc.setFontSize(9);
 
-  doc.setTextColor(...GRIS);
+
+  doc.setTextColor(
+    ...GRIS
+  );
+
 
   doc.text(
     "DISEÑO Y FABRICACIÓN DE MUEBLES A MEDIDA",
@@ -1941,9 +2101,14 @@ async function exportarIngresosPDF() {
     "bold"
   );
 
+
   doc.setFontSize(14);
 
-  doc.setTextColor(...DORADO);
+
+  doc.setTextColor(
+    ...DORADO
+  );
+
 
   doc.text(
     "REPORTE DE INGRESOS",
@@ -1957,9 +2122,14 @@ async function exportarIngresosPDF() {
     "normal"
   );
 
+
   doc.setFontSize(11);
 
-  doc.setTextColor(...NEGRO);
+
+  doc.setTextColor(
+    ...NEGRO
+  );
+
 
   doc.text(
     `${nombreMes} ${anio}`,
@@ -1995,21 +2165,28 @@ async function exportarIngresosPDF() {
 
   doc.setFontSize(8);
 
-  doc.setTextColor(...GRIS);
+  doc.setTextColor(
+    ...GRIS
+  );
+
 
   doc.text(
     `Generado el ${fechaTexto} a las ${horaTexto}`,
     283,
     45,
-    {
-      align: "right"
-    }
+    { align: "right" }
   );
 
 
-  doc.setDrawColor(...DORADO);
+  doc.setDrawColor(
+    ...DORADO
+  );
 
-  doc.setLineWidth(0.8);
+
+  doc.setLineWidth(
+    0.8
+  );
+
 
   doc.line(
     14,
@@ -2019,13 +2196,20 @@ async function exportarIngresosPDF() {
   );
 
 
-  const resumenY = 55;
+  const resumenY =
+    55;
 
-  const anchoCaja = 63;
 
-  const altoCaja = 20;
+  const anchoCaja =
+    63;
 
-  const separacion = 5;
+
+  const altoCaja =
+    20;
+
+
+  const separacion =
+    5;
 
 
   const resumen = [
@@ -2038,19 +2222,22 @@ async function exportarIngresosPDF() {
 
     {
       titulo: "CONTRATADO",
-      valor: `Bs. ${formatearMonto(totalProyecto)}`,
+      valor:
+        `Bs. ${formatearMonto(totalProyecto)}`,
       color: DORADO
     },
 
     {
       titulo: "COBRADO",
-      valor: `Bs. ${formatearMonto(totalCobrado)}`,
+      valor:
+        `Bs. ${formatearMonto(totalCobrado)}`,
       color: VERDE
     },
 
     {
       titulo: "PENDIENTE",
-      valor: `Bs. ${formatearMonto(totalPendiente)}`,
+      valor:
+        `Bs. ${formatearMonto(totalPendiente)}`,
       color: ROJO
     }
 
@@ -2063,7 +2250,7 @@ async function exportarIngresosPDF() {
       const x =
         14 +
         index *
-          (anchoCaja + separacion);
+        (anchoCaja + separacion);
 
 
       doc.setFillColor(
@@ -2115,7 +2302,11 @@ async function exportarIngresosPDF() {
 
       doc.setFontSize(7);
 
-      doc.setTextColor(...GRIS);
+
+      doc.setTextColor(
+        ...GRIS
+      );
+
 
       doc.text(
         item.titulo,
@@ -2126,7 +2317,11 @@ async function exportarIngresosPDF() {
 
       doc.setFontSize(11);
 
-      doc.setTextColor(...NEGRO);
+
+      doc.setTextColor(
+        ...NEGRO
+      );
+
 
       doc.text(
         item.valor,
@@ -2184,21 +2379,13 @@ async function exportarIngresosPDF() {
 
       bodyStyles: {
         fontSize: 8,
-        textColor: [
-          45,
-          45,
-          45
-        ],
+        textColor: [45,45,45],
         cellPadding: 3.5,
         valign: "middle"
       },
 
       alternateRowStyles: {
-        fillColor: [
-          248,
-          248,
-          248
-        ]
+        fillColor: [248,248,248]
       },
 
       columnStyles: {
@@ -2300,7 +2487,9 @@ async function exportarIngresosPDF() {
         );
 
 
-        doc.setLineWidth(0.4);
+        doc.setLineWidth(
+          0.4
+        );
 
 
         doc.line(
@@ -2319,7 +2508,10 @@ async function exportarIngresosPDF() {
 
         doc.setFontSize(7);
 
-        doc.setTextColor(...GRIS);
+
+        doc.setTextColor(
+          ...GRIS
+        );
 
 
         doc.text(
@@ -2353,7 +2545,7 @@ async function exportarIngresosPDF() {
 
 
 // ============================================================
-// 11. NOTIFICACIONES WHATSAPP
+// 10. WHATSAPP
 // ============================================================
 
 function notificarWhatsApp(index) {
@@ -2402,7 +2594,16 @@ function notificarWhatsApp(index) {
       : "Por coordinar";
 
 
-  const mensaje = `Hola *${p.cliente}* 👋, desde *HN Muebles* te informamos el estado de tu proyecto *"${p.mueble}"*:\n\n🛠️ *Estado:* ${p.estado}\n\n📊 *Progreso:* ${p.progreso}%\n\n📅 *Fecha estimada de entrega:* ${fecha}\n\n🔍 *Consulta el estado de tu proyecto:*\n${link}`;
+  const mensaje = `Hola *${p.cliente}* 👋, desde *HN Muebles* te informamos el estado de tu proyecto *"${p.mueble}"*:
+
+🛠️ *Estado:* ${p.estado}
+
+📊 *Progreso:* ${p.progreso}%
+
+📅 *Fecha estimada de entrega:* ${fecha}
+
+🔍 *Consulta el estado de tu proyecto:*
+${link}`;
 
 
   window.open(
@@ -2416,8 +2617,14 @@ function notificarWhatsApp(index) {
 
 
 // ============================================================
-// 12. PORTAFOLIO - CLOUDINARY + FIRESTORE
+// 11. PORTAFOLIO
+// CLOUDINARY + FIRESTORE
 // ============================================================
+
+
+// ------------------------------------------------------------
+// CARGAR PORTAFOLIO PÚBLICO
+// ------------------------------------------------------------
 
 async function cargarPortafolioPublico() {
 
@@ -2433,25 +2640,28 @@ async function cargarPortafolioPublico() {
   try {
 
     const snapshot =
-      await db.collection("portafolio")
-        .orderBy(
-          "creadoEn",
-          "desc"
-        )
+      await db
+        .collection("portafolio")
+        .orderBy("creadoEn", "desc")
         .get();
 
 
     portafolio = [];
 
 
-    snapshot.forEach(doc => {
+    snapshot.forEach(
+      doc => {
 
-      portafolio.push({
-        id: doc.id,
-        ...doc.data()
-      });
+        portafolio.push({
 
-    });
+          id: doc.id,
+
+          ...doc.data()
+
+        });
+
+      }
+    );
 
 
     renderPortafolioPublico();
@@ -2484,6 +2694,699 @@ async function cargarPortafolioPublico() {
 }
 
 
+// ------------------------------------------------------------
+// CREAR VISOR DEL PORTAFOLIO
+// ------------------------------------------------------------
+
+function crearVisorPortafolio() {
+
+  if (
+    document.getElementById(
+      "hn-portfolio-viewer"
+    )
+  ) {
+    return;
+  }
+
+
+  const visor =
+    document.createElement("div");
+
+
+  visor.id =
+    "hn-portfolio-viewer";
+
+
+  visor.innerHTML = `
+
+    <div
+      id="hn-portfolio-backdrop"
+      onclick="cerrarVisorPortafolio()"
+      style="
+        position:absolute;
+        inset:0;
+        background:rgba(0,0,0,.88);
+        backdrop-filter:blur(8px);
+      "
+    ></div>
+
+
+    <button
+      type="button"
+      onclick="cerrarVisorPortafolio()"
+      style="
+        position:absolute;
+        top:20px;
+        right:25px;
+        z-index:20;
+        width:45px;
+        height:45px;
+        border:none;
+        border-radius:50%;
+        background:rgba(255,255,255,.12);
+        color:#fff;
+        font-size:24px;
+        cursor:pointer;
+      "
+      aria-label="Cerrar"
+    >
+      ×
+    </button>
+
+
+    <button
+      type="button"
+      id="hn-portfolio-prev"
+      onclick="visorPortafolioAnterior(event)"
+      style="
+        position:absolute;
+        left:20px;
+        top:50%;
+        transform:translateY(-50%);
+        z-index:20;
+        width:50px;
+        height:50px;
+        border:none;
+        border-radius:50%;
+        background:rgba(255,255,255,.12);
+        color:#fff;
+        font-size:30px;
+        cursor:pointer;
+      "
+    >
+      ‹
+    </button>
+
+
+    <div
+      id="hn-portfolio-content"
+      style="
+        position:relative;
+        z-index:10;
+        width:calc(100% - 150px);
+        height:calc(100% - 120px);
+        display:flex;
+        flex-direction:column;
+        justify-content:center;
+        align-items:center;
+      "
+    ></div>
+
+
+    <button
+      type="button"
+      id="hn-portfolio-next"
+      onclick="visorPortafolioSiguiente(event)"
+      style="
+        position:absolute;
+        right:20px;
+        top:50%;
+        transform:translateY(-50%);
+        z-index:20;
+        width:50px;
+        height:50px;
+        border:none;
+        border-radius:50%;
+        background:rgba(255,255,255,.12);
+        color:#fff;
+        font-size:30px;
+        cursor:pointer;
+      "
+    >
+      ›
+    </button>
+
+
+    <div
+      id="hn-portfolio-counter"
+      style="
+        position:absolute;
+        bottom:25px;
+        left:50%;
+        transform:translateX(-50%);
+        z-index:20;
+        color:#fff;
+        background:rgba(0,0,0,.5);
+        padding:7px 15px;
+        border-radius:20px;
+        font-size:13px;
+      "
+    ></div>
+
+  `;
+
+
+  visor.style.cssText = `
+
+    position:fixed;
+
+    inset:0;
+
+    z-index:99999;
+
+    display:none;
+
+    align-items:center;
+
+    justify-content:center;
+
+    padding:30px;
+
+  `;
+
+
+  document.body.appendChild(
+    visor
+  );
+
+
+  const style =
+    document.createElement("style");
+
+
+  style.id =
+    "hn-portfolio-viewer-style";
+
+
+  style.innerHTML = `
+
+    #hn-portfolio-viewer img,
+    #hn-portfolio-viewer video {
+
+      max-width:100%;
+
+      max-height:calc(100vh - 180px);
+
+      width:auto;
+
+      height:auto;
+
+      object-fit:contain;
+
+      border-radius:10px;
+
+      box-shadow:
+        0 25px 80px rgba(0,0,0,.6);
+
+    }
+
+
+    #hn-portfolio-viewer .visor-title {
+
+      color:#fff;
+
+      font-size:18px;
+
+      font-weight:700;
+
+      margin-bottom:15px;
+
+      text-align:center;
+
+    }
+
+
+    @media(max-width:700px) {
+
+      #hn-portfolio-viewer {
+
+        padding:10px !important;
+
+      }
+
+
+      #hn-portfolio-content {
+
+        width:calc(100% - 80px) !important;
+
+      }
+
+
+      #hn-portfolio-prev,
+      #hn-portfolio-next {
+
+        width:40px !important;
+
+        height:40px !important;
+
+        font-size:25px !important;
+
+      }
+
+
+      #hn-portfolio-prev {
+
+        left:8px !important;
+
+      }
+
+
+      #hn-portfolio-next {
+
+        right:8px !important;
+
+      }
+
+    }
+
+  `;
+
+
+  document.head.appendChild(
+    style
+  );
+
+}
+
+
+// ------------------------------------------------------------
+// VARIABLES DEL VISOR
+// ------------------------------------------------------------
+
+let visorTrabajoActual = null;
+
+let visorIndiceActual = 0;
+
+
+// ------------------------------------------------------------
+// ABRIR VISOR
+// ------------------------------------------------------------
+
+function abrirVisorPortafolio(
+  trabajoId,
+  indice = 0
+) {
+
+  const trabajo =
+    portafolio.find(
+      p => p.id === trabajoId
+    );
+
+
+  if (!trabajo) return;
+
+
+  const media =
+    Array.isArray(trabajo.media)
+      ? trabajo.media
+      : [];
+
+
+  if (!media.length) return;
+
+
+  crearVisorPortafolio();
+
+
+  visorTrabajoActual =
+    trabajo;
+
+
+  visorIndiceActual =
+    indice;
+
+
+  const visor =
+    document.getElementById(
+      "hn-portfolio-viewer"
+    );
+
+
+  if (!visor) return;
+
+
+  visor.style.display =
+    "flex";
+
+
+  document.body.style.overflow =
+    "hidden";
+
+
+  mostrarMediaVisor();
+
+
+  document.addEventListener(
+    "keydown",
+    manejarTecladoVisor
+  );
+
+}
+
+
+// ------------------------------------------------------------
+// MOSTRAR MEDIA ACTUAL
+// ------------------------------------------------------------
+
+function mostrarMediaVisor() {
+
+  if (!visorTrabajoActual) return;
+
+
+  const media =
+    visorTrabajoActual.media || [];
+
+
+  if (!media.length) return;
+
+
+  if (
+    visorIndiceActual < 0
+  ) {
+
+    visorIndiceActual =
+      media.length - 1;
+
+  }
+
+
+  if (
+    visorIndiceActual >= media.length
+  ) {
+
+    visorIndiceActual = 0;
+
+  }
+
+
+  const actual =
+    media[visorIndiceActual];
+
+
+  const content =
+    document.getElementById(
+      "hn-portfolio-content"
+    );
+
+
+  const counter =
+    document.getElementById(
+      "hn-portfolio-counter"
+    );
+
+
+  const prev =
+    document.getElementById(
+      "hn-portfolio-prev"
+    );
+
+
+  const next =
+    document.getElementById(
+      "hn-portfolio-next"
+    );
+
+
+  if (!content) return;
+
+
+  content.innerHTML = "";
+
+
+  const titulo =
+    document.createElement("div");
+
+
+  titulo.className =
+    "visor-title";
+
+
+  titulo.textContent =
+    visorTrabajoActual.titulo ||
+    "HN Muebles";
+
+
+  content.appendChild(
+    titulo
+  );
+
+
+  if (
+    actual.tipo === "video"
+  ) {
+
+    const video =
+      document.createElement("video");
+
+
+    video.src =
+      actual.url;
+
+
+    video.controls =
+      true;
+
+
+    video.autoplay =
+      true;
+
+
+    video.playsInline =
+      true;
+
+
+    video.style.maxWidth =
+      "100%";
+
+
+    video.style.maxHeight =
+      "calc(100vh - 180px)";
+
+
+    content.appendChild(
+      video
+    );
+
+
+  } else {
+
+    const img =
+      document.createElement("img");
+
+
+    img.src =
+      actual.url;
+
+
+    img.alt =
+      visorTrabajoActual.titulo ||
+      "Trabajo HN Muebles";
+
+
+    img.loading =
+      "eager";
+
+
+    content.appendChild(
+      img
+    );
+
+  }
+
+
+  if (counter) {
+
+    counter.innerText =
+      `${visorIndiceActual + 1} / ${media.length}`;
+
+  }
+
+
+  if (prev) {
+
+    prev.style.display =
+      media.length > 1
+        ? "block"
+        : "none";
+
+  }
+
+
+  if (next) {
+
+    next.style.display =
+      media.length > 1
+        ? "block"
+        : "none";
+
+  }
+
+}
+
+
+// ------------------------------------------------------------
+// ANTERIOR
+// ------------------------------------------------------------
+
+function visorPortafolioAnterior(
+  event
+) {
+
+  event?.stopPropagation();
+
+
+  if (!visorTrabajoActual) return;
+
+
+  const media =
+    visorTrabajoActual.media || [];
+
+
+  if (!media.length) return;
+
+
+  visorIndiceActual--;
+
+
+  if (
+    visorIndiceActual < 0
+  ) {
+
+    visorIndiceActual =
+      media.length - 1;
+
+  }
+
+
+  mostrarMediaVisor();
+
+}
+
+
+// ------------------------------------------------------------
+// SIGUIENTE
+// ------------------------------------------------------------
+
+function visorPortafolioSiguiente(
+  event
+) {
+
+  event?.stopPropagation();
+
+
+  if (!visorTrabajoActual) return;
+
+
+  const media =
+    visorTrabajoActual.media || [];
+
+
+  if (!media.length) return;
+
+
+  visorIndiceActual++;
+
+
+  if (
+    visorIndiceActual >=
+    media.length
+  ) {
+
+    visorIndiceActual = 0;
+
+  }
+
+
+  mostrarMediaVisor();
+
+}
+
+
+// ------------------------------------------------------------
+// TECLADO
+// ------------------------------------------------------------
+
+function manejarTecladoVisor(
+  event
+) {
+
+  const visor =
+    document.getElementById(
+      "hn-portfolio-viewer"
+    );
+
+
+  if (
+    !visor ||
+    visor.style.display === "none"
+  ) {
+    return;
+  }
+
+
+  if (
+    event.key === "Escape"
+  ) {
+
+    cerrarVisorPortafolio();
+
+  }
+
+
+  if (
+    event.key === "ArrowLeft"
+  ) {
+
+    visorPortafolioAnterior();
+
+  }
+
+
+  if (
+    event.key === "ArrowRight"
+  ) {
+
+    visorPortafolioSiguiente();
+
+  }
+
+}
+
+
+// ------------------------------------------------------------
+// CERRAR VISOR
+// ------------------------------------------------------------
+
+function cerrarVisorPortafolio() {
+
+  const visor =
+    document.getElementById(
+      "hn-portfolio-viewer"
+    );
+
+
+  if (visor) {
+
+    visor.style.display =
+      "none";
+
+  }
+
+
+  document.body.style.overflow =
+    "";
+
+
+  visorTrabajoActual =
+    null;
+
+
+  visorIndiceActual =
+    0;
+
+
+  document.removeEventListener(
+    "keydown",
+    manejarTecladoVisor
+  );
+
+}
+
+
+// ============================================================
+// RENDER PÚBLICO
+// ============================================================
+
 function renderPortafolioPublico() {
 
   const container =
@@ -2514,7 +3417,8 @@ function renderPortafolioPublico() {
         ></i>
 
         <p>
-          Próximamente mostraremos nuestros trabajos aquí.
+          Próximamente mostraremos
+          nuestros trabajos aquí.
         </p>
 
       </div>
@@ -2540,7 +3444,9 @@ function renderPortafolioPublico() {
 
 
       const media =
-        trabajo.media || [];
+        Array.isArray(trabajo.media)
+          ? trabajo.media
+          : [];
 
 
       const primerMedia =
@@ -2559,22 +3465,34 @@ function renderPortafolioPublico() {
 
           mediaHTML = `
 
-            <div class="portfolio-media">
+            <div
+              class="portfolio-media"
+              style="
+                position:relative;
+                cursor:pointer;
+              "
+              onclick="abrirVisorPortafolio('${trabajo.id}',0)"
+            >
 
               <video
                 src="${primerMedia.url}"
                 muted
                 playsinline
                 preload="metadata"
-                controls
+                style="
+                  width:100%;
+                  height:100%;
+                  object-fit:cover;
+                  pointer-events:none;
+                "
               ></video>
 
-              <div class="portfolio-video-badge">
 
+              <div
+                class="portfolio-video-badge"
+              >
                 <i class="fa-solid fa-video"></i>
-
                 Video
-
               </div>
 
             </div>
@@ -2585,31 +3503,89 @@ function renderPortafolioPublico() {
 
           mediaHTML = `
 
-            <div class="portfolio-media">
+            <div
+              class="portfolio-media"
+              style="
+                position:relative;
+                cursor:pointer;
+                overflow:hidden;
+              "
+              onclick="abrirVisorPortafolio('${trabajo.id}',0)"
+            >
 
               <img
                 src="${primerMedia.url}"
-                alt="${
+                alt="${escaparHTML(
                   trabajo.titulo ||
                   "Trabajo HN Muebles"
-                }"
+                )}"
                 loading="lazy"
+                style="
+                  width:100%;
+                  height:100%;
+                  object-fit:cover;
+                  transition:transform .35s ease;
+                "
               />
+
 
               ${
                 media.length > 1
                   ? `
-                    <div class="portfolio-video-badge">
 
-                      <i class="fa-solid fa-images"></i>
+                    <div
+                      class="portfolio-video-badge"
+                    >
+
+                      <i
+                        class="fa-solid fa-images"
+                      ></i>
 
                       ${media.length}
                       archivos
 
                     </div>
+
                   `
                   : ""
               }
+
+
+              <div
+                style="
+                  position:absolute;
+                  inset:0;
+                  display:flex;
+                  align-items:center;
+                  justify-content:center;
+                  background:rgba(0,0,0,0);
+                  transition:.25s;
+                "
+                onmouseenter="
+                  this.style.background='rgba(0,0,0,.18)'
+                "
+                onmouseleave="
+                  this.style.background='rgba(0,0,0,0)'
+                "
+              >
+
+                <span
+                  style="
+                    width:48px;
+                    height:48px;
+                    border-radius:50%;
+                    display:flex;
+                    align-items:center;
+                    justify-content:center;
+                    background:rgba(0,0,0,.55);
+                    color:#fff;
+                    opacity:.85;
+                  "
+                >
+                  <i class="fa-solid fa-expand"></i>
+                </span>
+
+              </div>
 
             </div>
 
@@ -2624,28 +3600,64 @@ function renderPortafolioPublico() {
 
         ${mediaHTML}
 
+
         <div class="portfolio-card-body">
 
-          <div class="portfolio-card-title">
+          <div
+            class="portfolio-card-title"
+          >
             ${escaparHTML(
               trabajo.titulo ||
               "Proyecto HN Muebles"
             )}
           </div>
 
-          <div class="portfolio-card-description">
+
+          <div
+            class="portfolio-card-description"
+          >
             ${escaparHTML(
               trabajo.descripcion ||
               ""
             )}
           </div>
 
+
+          ${
+            media.length > 1
+              ? `
+
+                <button
+                  type="button"
+                  onclick="abrirVisorPortafolio('${trabajo.id}',0)"
+                  style="
+                    margin-top:12px;
+                    width:100%;
+                    border:none;
+                    border-radius:8px;
+                    padding:9px 12px;
+                    background:#9c7151;
+                    color:#fff;
+                    cursor:pointer;
+                    font-weight:700;
+                  "
+                >
+                  <i class="fa-solid fa-images"></i>
+                  Ver todas las fotos
+                </button>
+
+              `
+              : ""
+          }
+
         </div>
 
       `;
 
 
-      container.appendChild(card);
+      container.appendChild(
+        card
+      );
 
     }
   );
@@ -2670,25 +3682,28 @@ async function cargarPortafolioAdmin() {
   try {
 
     const snapshot =
-      await db.collection("portafolio")
-        .orderBy(
-          "creadoEn",
-          "desc"
-        )
+      await db
+        .collection("portafolio")
+        .orderBy("creadoEn", "desc")
         .get();
 
 
     portafolio = [];
 
 
-    snapshot.forEach(doc => {
+    snapshot.forEach(
+      doc => {
 
-      portafolio.push({
-        id: doc.id,
-        ...doc.data()
-      });
+        portafolio.push({
 
-    });
+          id: doc.id,
+
+          ...doc.data()
+
+        });
+
+      }
+    );
 
 
     renderPortafolioAdmin();
@@ -2707,7 +3722,7 @@ async function cargarPortafolioAdmin() {
 
 
 // ============================================================
-// PREVISUALIZACIÓN DE ARCHIVOS
+// PREVIEW ARCHIVOS
 // ============================================================
 
 function mostrarPreviewArchivos() {
@@ -2743,72 +3758,84 @@ function mostrarPreviewArchivos() {
   [
     ...fotos,
     ...videos
-  ].forEach(archivo => {
+  ].forEach(
+    archivo => {
 
-    const div =
-      document.createElement(
-        "div"
+      const div =
+        document.createElement(
+          "div"
+        );
+
+
+      div.className =
+        "file-preview";
+
+
+      const url =
+        URL.createObjectURL(
+          archivo
+        );
+
+
+      if (
+        archivo.type.startsWith(
+          "video/"
+        )
+      ) {
+
+        div.innerHTML = `
+
+          <video
+            src="${url}"
+            muted
+          ></video>
+
+          <span
+            class="file-preview-type"
+          >
+
+            <i
+              class="fa-solid fa-video"
+            ></i>
+
+            Video
+
+          </span>
+
+        `;
+
+      } else {
+
+        div.innerHTML = `
+
+          <img
+            src="${url}"
+            alt=""
+          >
+
+          <span
+            class="file-preview-type"
+          >
+
+            <i
+              class="fa-solid fa-image"
+            ></i>
+
+            Foto
+
+          </span>
+
+        `;
+
+      }
+
+
+      container.appendChild(
+        div
       );
-
-
-    div.className =
-      "file-preview";
-
-
-    const url =
-      URL.createObjectURL(
-        archivo
-      );
-
-
-    if (
-      archivo.type.startsWith(
-        "video/"
-      )
-    ) {
-
-      div.innerHTML = `
-
-        <video
-          src="${url}"
-          muted
-        ></video>
-
-        <span class="file-preview-type">
-
-          <i class="fa-solid fa-video"></i>
-
-          Video
-
-        </span>
-
-      `;
-
-    } else {
-
-      div.innerHTML = `
-
-        <img
-          src="${url}"
-          alt=""
-        >
-
-        <span class="file-preview-type">
-
-          <i class="fa-solid fa-image"></i>
-
-          Foto
-
-        </span>
-
-      `;
 
     }
-
-
-    container.appendChild(div);
-
-  });
+  );
 
 }
 
@@ -2817,13 +3844,9 @@ function mostrarPreviewArchivos() {
 // SUBIR ARCHIVO A CLOUDINARY
 // ============================================================
 
-function subirArchivoCloudinary(
+async function subirArchivoCloudinary(
   archivo,
-  indice,
-  totalArchivos,
-  progressBar,
-  progressText,
-  progressPercent
+  progresoCallback
 ) {
 
   return new Promise(
@@ -2851,51 +3874,29 @@ function subirArchivoCloudinary(
 
       xhr.open(
         "POST",
-        CLOUDINARY_UPLOAD_URL,
-        true
+        `https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD_NAME}/auto/upload`
       );
 
 
       xhr.upload.addEventListener(
         "progress",
-        function(evento) {
+        event => {
 
-          if (!evento.lengthComputable) {
-            return;
-          }
+          if (
+            event.lengthComputable &&
+            progresoCallback
+          ) {
 
-
-          const porcentajeArchivo =
-            (
-              evento.loaded /
-              evento.total
-            ) * 100;
-
-
-          const porcentajeTotal =
-            (
+            const porcentaje =
               (
-                indice +
-                porcentajeArchivo / 100
-              ) /
-              totalArchivos
-            ) * 100;
+                event.loaded /
+                event.total
+              ) * 100;
 
 
-          if (progressBar) {
-
-            progressBar.style.width =
-              `${porcentajeTotal}%`;
-
-          }
-
-
-          if (progressPercent) {
-
-            progressPercent.innerText =
-              `${Math.round(
-                porcentajeTotal
-              )}%`;
+            progresoCallback(
+              porcentaje
+            );
 
           }
 
@@ -2904,7 +3905,7 @@ function subirArchivoCloudinary(
 
 
       xhr.onload =
-        function() {
+        () => {
 
           if (
             xhr.status >= 200 &&
@@ -2919,49 +3920,28 @@ function subirArchivoCloudinary(
                 );
 
 
-              resolve(respuesta);
+              resolve(
+                respuesta
+              );
 
             } catch (error) {
 
-              reject(
-                new Error(
-                  "Cloudinary devolvió una respuesta inválida."
-                )
-              );
+              reject(error);
 
             }
 
           } else {
 
-            let mensaje =
-              "Error al subir el archivo a Cloudinary.";
-
-
-            try {
-
-              const errorCloudinary =
-                JSON.parse(
-                  xhr.responseText
-                );
-
-
-              if (
-                errorCloudinary.error?.message
-              ) {
-
-                mensaje =
-                  errorCloudinary.error.message;
-
-              }
-
-            } catch (e) {
-
-              // No hacer nada.
-            }
+            console.error(
+              "Cloudinary:",
+              xhr.responseText
+            );
 
 
             reject(
-              new Error(mensaje)
+              new Error(
+                "Cloudinary rechazó el archivo."
+              )
             );
 
           }
@@ -2970,7 +3950,7 @@ function subirArchivoCloudinary(
 
 
       xhr.onerror =
-        function() {
+        () => {
 
           reject(
             new Error(
@@ -2981,27 +3961,9 @@ function subirArchivoCloudinary(
         };
 
 
-      xhr.onabort =
-        function() {
-
-          reject(
-            new Error(
-              "La subida fue cancelada."
-            )
-          );
-
-        };
-
-
-      if (progressText) {
-
-        progressText.innerText =
-          `Subiendo ${indice + 1} de ${totalArchivos}: ${archivo.name}`;
-
-      }
-
-
-      xhr.send(formData);
+      xhr.send(
+        formData
+      );
 
     }
   );
@@ -3010,10 +3972,12 @@ function subirArchivoCloudinary(
 
 
 // ============================================================
-// PUBLICAR TRABAJO EN PORTAFOLIO
+// PUBLICAR TRABAJO
 // ============================================================
 
-async function publicarTrabajoPortafolio(e) {
+async function publicarTrabajoPortafolio(
+  e
+) {
 
   e.preventDefault();
 
@@ -3089,10 +4053,6 @@ async function publicarTrabajoPortafolio(e) {
   }
 
 
-  // ========================================================
-  // LÍMITES DE ARCHIVOS
-  // ========================================================
-
   const MAX_IMAGEN =
     15 * 1024 * 1024;
 
@@ -3102,14 +4062,16 @@ async function publicarTrabajoPortafolio(e) {
 
 
   for (
-    const archivo of archivos
+    const archivo
+    of archivos
   ) {
 
     if (
       archivo.type.startsWith(
         "image/"
       ) &&
-      archivo.size > MAX_IMAGEN
+      archivo.size >
+      MAX_IMAGEN
     ) {
 
       alert(
@@ -3125,7 +4087,8 @@ async function publicarTrabajoPortafolio(e) {
       archivo.type.startsWith(
         "video/"
       ) &&
-      archivo.size > MAX_VIDEO
+      archivo.size >
+      MAX_VIDEO
     ) {
 
       alert(
@@ -3138,10 +4101,6 @@ async function publicarTrabajoPortafolio(e) {
 
   }
 
-
-  // ========================================================
-  // ELEMENTOS DE PROGRESO
-  // ========================================================
 
   const boton =
     document.getElementById(
@@ -3177,7 +4136,9 @@ async function publicarTrabajoPortafolio(e) {
 
     if (boton) {
 
-      boton.disabled = true;
+      boton.disabled =
+        true;
+
 
       boton.innerHTML =
         '<i class="fa-solid fa-spinner fa-spin"></i> Subiendo...';
@@ -3189,26 +4150,6 @@ async function publicarTrabajoPortafolio(e) {
       "hidden"
     );
 
-
-    if (progressBar) {
-
-      progressBar.style.width =
-        "0%";
-
-    }
-
-
-    if (progressPercent) {
-
-      progressPercent.innerText =
-        "0%";
-
-    }
-
-
-    // ======================================================
-    // SUBIDA A CLOUDINARY
-    // ======================================================
 
     const media = [];
 
@@ -3223,14 +4164,6 @@ async function publicarTrabajoPortafolio(e) {
         archivos[i];
 
 
-      const tipo =
-        archivo.type.startsWith(
-          "video/"
-        )
-          ? "video"
-          : "imagen";
-
-
       if (progressText) {
 
         progressText.innerText =
@@ -3239,27 +4172,49 @@ async function publicarTrabajoPortafolio(e) {
       }
 
 
-      const respuesta =
+      const resultado =
         await subirArchivoCloudinary(
           archivo,
-          i,
-          archivos.length,
-          progressBar,
-          progressText,
-          progressPercent
+          porcentajeArchivo => {
+
+            const porcentajeTotal =
+              (
+                (
+                  i +
+                  porcentajeArchivo /
+                  100
+                ) /
+                archivos.length
+              ) * 100;
+
+
+            if (progressBar) {
+
+              progressBar.style.width =
+                `${porcentajeTotal}%`;
+
+            }
+
+
+            if (progressPercent) {
+
+              progressPercent.innerText =
+                `${Math.round(
+                  porcentajeTotal
+                )}%`;
+
+            }
+
+          }
         );
 
 
-      if (
-        !respuesta ||
-        !respuesta.secure_url
-      ) {
-
-        throw new Error(
-          `Cloudinary no devolvió una URL válida para "${archivo.name}".`
-        );
-
-      }
+      const tipo =
+        archivo.type.startsWith(
+          "video/"
+        )
+          ? "video"
+          : "imagen";
 
 
       media.push({
@@ -3267,28 +4222,28 @@ async function publicarTrabajoPortafolio(e) {
         tipo,
 
         url:
-          respuesta.secure_url,
+          resultado.secure_url ||
+          resultado.url,
 
         public_id:
-          respuesta.public_id || "",
-
-        resource_type:
-          respuesta.resource_type || tipo,
-
-        formato:
-          respuesta.format || "",
+          resultado.public_id ||
+          "",
 
         nombre:
-          archivo.name
+          archivo.name,
+
+        formato:
+          resultado.format ||
+          "",
+
+        resource_type:
+          resultado.resource_type ||
+          ""
 
       });
 
     }
 
-
-    // ======================================================
-    // GUARDAR INFORMACIÓN EN FIRESTORE
-    // ======================================================
 
     if (progressText) {
 
@@ -3298,28 +4253,24 @@ async function publicarTrabajoPortafolio(e) {
     }
 
 
-    await db.collection(
-      "portafolio"
-    ).add({
+    await db
+      .collection("portafolio")
+      .add({
 
-      titulo,
+        titulo,
 
-      descripcion,
+        descripcion,
 
-      media,
+        media,
 
-      creadoPor:
-        auth.currentUser.email,
+        creadoPor:
+          auth.currentUser.email,
 
-      creadoEn:
-        firebase.firestore.FieldValue.serverTimestamp()
+        creadoEn:
+          firebase.firestore.FieldValue.serverTimestamp()
 
-    });
+      });
 
-
-    // ======================================================
-    // LIMPIAR FORMULARIO
-    // ======================================================
 
     alert(
       "Trabajo publicado correctamente."
@@ -3340,10 +4291,7 @@ async function publicarTrabajoPortafolio(e) {
 
 
     if (preview) {
-
-      preview.innerHTML =
-        "";
-
+      preview.innerHTML = "";
     }
 
 
@@ -3382,7 +4330,7 @@ async function publicarTrabajoPortafolio(e) {
 
 
     alert(
-      `No se pudo publicar el trabajo.\n\n${error.message || "Error desconocido."}`
+      "No se pudo publicar el trabajo. Revisa Cloudinary y vuelve a intentarlo."
     );
 
 
@@ -3390,7 +4338,9 @@ async function publicarTrabajoPortafolio(e) {
 
     if (boton) {
 
-      boton.disabled = false;
+      boton.disabled =
+        false;
+
 
       boton.innerHTML =
         '<i class="fa-solid fa-cloud-arrow-up"></i> Publicar Trabajo';
@@ -3431,8 +4381,7 @@ function renderPortafolioAdmin() {
   if (!container) return;
 
 
-  container.innerHTML =
-    "";
+  container.innerHTML = "";
 
 
   if (!portafolio.length) {
@@ -3445,7 +4394,8 @@ function renderPortafolioAdmin() {
         padding:25px;
       ">
 
-        Todavía no tienes trabajos publicados.
+        Todavía no tienes
+        trabajos publicados.
 
       </div>
 
@@ -3479,31 +4429,41 @@ function renderPortafolioAdmin() {
 
       card.innerHTML = `
 
-        ${
-          primerMedia?.tipo ===
-          "video"
+        <div
+          style="
+            cursor:pointer;
+            position:relative;
+          "
+          onclick="abrirVisorPortafolio('${trabajo.id}',0)"
+        >
 
-            ? `
+          ${
+            primerMedia?.tipo ===
+            "video"
 
-              <video
-                src="${thumb}"
-                class="portfolio-admin-thumb"
-                muted
-                preload="metadata"
-              ></video>
+              ? `
 
-            `
+                <video
+                  src="${thumb}"
+                  class="portfolio-admin-thumb"
+                  muted
+                  preload="metadata"
+                ></video>
 
-            : `
+              `
 
-              <img
-                src="${thumb}"
-                class="portfolio-admin-thumb"
-                alt=""
-              >
+              : `
 
-            `
-        }
+                <img
+                  src="${thumb}"
+                  class="portfolio-admin-thumb"
+                  alt=""
+                >
+
+              `
+          }
+
+        </div>
 
 
         <div class="portfolio-admin-info">
@@ -3538,7 +4498,9 @@ function renderPortafolioAdmin() {
             onclick="eliminarTrabajoPortafolio('${trabajo.id}')"
           >
 
-            <i class="fa-solid fa-trash"></i>
+            <i
+              class="fa-solid fa-trash"
+            ></i>
 
             Eliminar
 
@@ -3549,7 +4511,9 @@ function renderPortafolioAdmin() {
       `;
 
 
-      container.appendChild(card);
+      container.appendChild(
+        card
+      );
 
     }
   );
@@ -3558,7 +4522,7 @@ function renderPortafolioAdmin() {
 
 
 // ============================================================
-// ELIMINAR TRABAJO DEL PORTAFOLIO
+// ELIMINAR TRABAJO
 // ============================================================
 
 async function eliminarTrabajoPortafolio(
@@ -3594,26 +4558,21 @@ async function eliminarTrabajoPortafolio(
   try {
 
     /*
-      IMPORTANTE:
-
-      Como estamos usando Cloudinary desde el navegador
-      mediante Upload Preset unsigned, NO eliminamos archivos
-      directamente desde aquí.
-
-      Cloudinary requiere una operación autenticada para
-      eliminar definitivamente un recurso.
-
-      Lo que hacemos aquí es eliminar el registro de Firestore,
-      por lo que el trabajo deja de aparecer inmediatamente
-      en el portafolio.
-
-      Los archivos de Cloudinary permanecen almacenados.
-    */
+     * IMPORTANTE:
+     *
+     * Cloudinary no permite borrar archivos
+     * directamente desde el navegador con una
+     * operación segura de eliminación.
+     *
+     * Por eso eliminamos el registro de Firestore.
+     *
+     * Las imágenes permanecen temporalmente
+     * en Cloudinary.
+     */
 
 
-    await db.collection(
-      "portafolio"
-    )
+    await db
+      .collection("portafolio")
       .doc(id)
       .delete();
 
@@ -3623,8 +4582,11 @@ async function eliminarTrabajoPortafolio(
     await cargarPortafolioPublico();
 
 
+    cerrarVisorPortafolio();
+
+
     alert(
-      "Trabajo eliminado correctamente del portafolio."
+      "Trabajo eliminado correctamente."
     );
 
 
@@ -3646,7 +4608,7 @@ async function eliminarTrabajoPortafolio(
 
 
 // ============================================================
-// 13. INICIALIZADOR PRINCIPAL
+// 12. DOM READY
 // ============================================================
 
 document.addEventListener(
@@ -3654,9 +4616,9 @@ document.addEventListener(
   function () {
 
 
-    // ========================================================
+    // --------------------------------------------------------
     // LOGIN
-    // ========================================================
+    // --------------------------------------------------------
 
     const formLogin =
       document.getElementById(
@@ -3757,10 +4719,11 @@ document.addEventListener(
             }
 
 
-            await auth.signInWithEmailAndPassword(
-              email,
-              password
-            );
+            await auth
+              .signInWithEmailAndPassword(
+                email,
+                password
+              );
 
 
             if (passwordInput) {
@@ -3874,13 +4837,13 @@ document.addEventListener(
 
             }
 
-
           } finally {
 
             if (boton) {
 
               boton.disabled =
                 false;
+
 
               boton.innerText =
                 boton.dataset.textoOriginal ||
@@ -3896,9 +4859,9 @@ document.addEventListener(
     }
 
 
-    // ========================================================
+    // --------------------------------------------------------
     // BÚSQUEDA PÚBLICA
-    // ========================================================
+    // --------------------------------------------------------
 
     const formBuscar =
       document.getElementById(
@@ -3937,9 +4900,9 @@ document.addEventListener(
     }
 
 
-    // ========================================================
-    // CÁLCULO DE SALDO
-    // ========================================================
+    // --------------------------------------------------------
+    // SALDO NUEVO PROYECTO
+    // --------------------------------------------------------
 
     const presupuestoInput =
       document.getElementById(
@@ -4033,9 +4996,9 @@ document.addEventListener(
     calcularSaldoNuevo();
 
 
-    // ========================================================
-    // FORMULARIO NUEVO PROYECTO
-    // ========================================================
+    // --------------------------------------------------------
+    // NUEVO PROYECTO
+    // --------------------------------------------------------
 
     const formNuevo =
       document.getElementById(
@@ -4079,22 +5042,19 @@ document.addEventListener(
           const cliente =
             document.getElementById(
               "nuevo-cliente"
-            )?.value.trim() ||
-            "";
+            )?.value.trim() || "";
 
 
           const mueble =
             document.getElementById(
               "nuevo-mueble"
-            )?.value.trim() ||
-            "";
+            )?.value.trim() || "";
 
 
           const telefono =
             document.getElementById(
               "nuevo-telefono"
-            )?.value.trim() ||
-            "";
+            )?.value.trim() || "";
 
 
           const presupuesto =
@@ -4116,13 +5076,13 @@ document.addEventListener(
           const fechaEntrega =
             document.getElementById(
               "nuevo-fecha"
-            )?.value ||
-            "";
+            )?.value || "";
 
 
           const pendiente =
             Math.max(
-              presupuesto - adelanto,
+              presupuesto -
+              adelanto,
               0
             );
 
@@ -4173,7 +5133,9 @@ document.addEventListener(
             fechaEntrega,
 
             creadoEn:
-              firebase.firestore.FieldValue.serverTimestamp()
+              firebase.firestore
+                .FieldValue
+                .serverTimestamp()
 
           };
 
@@ -4202,11 +5164,15 @@ document.addEventListener(
             pendiente,
 
             fechaCreacion:
-              firebase.firestore.FieldValue.serverTimestamp(),
+              firebase.firestore
+                .FieldValue
+                .serverTimestamp(),
 
             fechaUltimoPago:
               adelanto > 0
-                ? firebase.firestore.FieldValue.serverTimestamp()
+                ? firebase.firestore
+                    .FieldValue
+                    .serverTimestamp()
                 : null
 
           };
@@ -4341,9 +5307,9 @@ document.addEventListener(
     }
 
 
-    // ========================================================
-    // FILTRO INGRESOS POR MES
-    // ========================================================
+    // --------------------------------------------------------
+    // FILTRO INGRESOS
+    // --------------------------------------------------------
 
     const filtroIngresos =
       document.getElementById(
@@ -4375,9 +5341,11 @@ document.addEventListener(
     }
 
 
-    // ========================================================
+    // --------------------------------------------------------
     // PORTAFOLIO
-    // ========================================================
+    // --------------------------------------------------------
+
+    crearVisorPortafolio();
 
     cargarPortafolioPublico();
 
@@ -4420,6 +5388,7 @@ document.addEventListener(
       );
 
     }
+
 
   }
 );
