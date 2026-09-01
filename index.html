@@ -1,3 +1,4 @@
+```html
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -19,9 +20,358 @@
   />
 
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+
+  <!-- =====================================================
+       ESTILOS PARA PANELES A PANTALLA COMPLETA
+       ===================================================== -->
+
+  <style>
+
+    /*
+      =====================================================
+      PANELES ADMINISTRATIVOS
+      Ahora funcionan como páginas completas,
+      no como ventanas flotantes.
+      =====================================================
+    */
+
+    .modal-overlay {
+      position: fixed !important;
+      inset: 0 !important;
+      width: 100vw !important;
+      height: 100vh !important;
+
+      min-height: 100vh !important;
+
+      padding: 0 !important;
+      margin: 0 !important;
+
+      display: flex;
+      align-items: stretch !important;
+      justify-content: stretch !important;
+
+      z-index: 99999 !important;
+
+      overflow: hidden !important;
+
+      background:
+        radial-gradient(
+          circle at top right,
+          rgba(245, 158, 11, 0.08),
+          transparent 35%
+        ),
+        #050505 !important;
+    }
+
+    .modal-overlay.hidden {
+      display: none !important;
+    }
+
+
+    /*
+      =====================================================
+      CAJA PRINCIPAL
+      =====================================================
+    */
+
+    .modal-box {
+      position: relative !important;
+
+      width: 100vw !important;
+      max-width: none !important;
+
+      height: 100vh !important;
+      max-height: none !important;
+
+      min-height: 100vh !important;
+
+      margin: 0 !important;
+      padding: 35px 5vw !important;
+
+      border-radius: 0 !important;
+
+      overflow-y: auto !important;
+      overflow-x: hidden !important;
+
+      background:
+        linear-gradient(
+          180deg,
+          #0b0b0b 0%,
+          #080808 100%
+        ) !important;
+
+      box-shadow: none !important;
+    }
+
+
+    /*
+      =====================================================
+      PORTAFOLIO
+      =====================================================
+    */
+
+    .portfolio-admin-modal {
+      width: 100vw !important;
+      max-width: none !important;
+
+      height: 100vh !important;
+      max-height: none !important;
+
+      border-radius: 0 !important;
+
+      padding: 35px 5vw !important;
+
+      overflow-y: auto !important;
+    }
+
+
+    /*
+      =====================================================
+      BOTÓN CERRAR
+      =====================================================
+    */
+
+    .modal-close {
+      position: fixed !important;
+
+      top: 22px !important;
+      right: 28px !important;
+
+      width: 46px !important;
+      height: 46px !important;
+
+      z-index: 100001 !important;
+
+      border-radius: 50% !important;
+
+      display: flex !important;
+      align-items: center !important;
+      justify-content: center !important;
+
+      font-size: 30px !important;
+
+      cursor: pointer !important;
+
+      background: rgba(255,255,255,0.06) !important;
+      color: #ffffff !important;
+
+      border: 1px solid rgba(255,255,255,0.12) !important;
+
+      transition:
+        background .2s ease,
+        transform .2s ease,
+        color .2s ease !important;
+    }
+
+    .modal-close:hover {
+      background: rgba(245,158,11,0.15) !important;
+      color: #f59e0b !important;
+      transform: scale(1.05) !important;
+    }
+
+
+    /*
+      =====================================================
+      ADMIN LOGIN
+      =====================================================
+    */
+
+    #admin-login {
+      width: min(500px, 100%);
+      margin: auto;
+
+      padding: 35px;
+
+      border-radius: 18px;
+
+      background: rgba(255,255,255,0.025);
+
+      border: 1px solid rgba(255,255,255,0.08);
+
+      box-shadow:
+        0 20px 60px rgba(0,0,0,.35);
+    }
+
+
+    /*
+      =====================================================
+      PANEL ADMIN
+      =====================================================
+    */
+
+    #admin-panel {
+      width: 100%;
+      max-width: 1450px;
+
+      margin: 0 auto;
+
+      padding-bottom: 60px;
+    }
+
+
+    /*
+      =====================================================
+      ENCABEZADO ADMIN
+      =====================================================
+    */
+
+    .admin-header {
+      position: sticky;
+
+      top: 0;
+
+      z-index: 100;
+
+      padding: 18px 0;
+
+      margin-bottom: 25px;
+
+      background:
+        linear-gradient(
+          180deg,
+          #0b0b0b 70%,
+          rgba(11,11,11,0)
+        );
+    }
+
+
+    /*
+      =====================================================
+      BOTONES DE GESTIÓN
+      =====================================================
+    */
+
+    .admin-management-buttons {
+      display: grid;
+
+      grid-template-columns:
+        repeat(2, minmax(0, 1fr));
+
+      gap: 18px;
+
+      margin-bottom: 30px;
+    }
+
+    .admin-management-buttons button {
+      min-height: 75px;
+
+      font-size: 1rem;
+    }
+
+
+    /*
+      =====================================================
+      FORMULARIO NUEVO PROYECTO
+      =====================================================
+    */
+
+    .admin-form {
+      width: 100%;
+
+      margin-bottom: 35px;
+    }
+
+
+    /*
+      =====================================================
+      PORTAFOLIO ADMIN
+      =====================================================
+    */
+
+    .portfolio-admin-title {
+      max-width: 1450px;
+
+      margin: 0 auto 30px;
+    }
+
+    .portfolio-form {
+      max-width: 1450px;
+
+      margin: 0 auto;
+    }
+
+    .portfolio-admin-list-title {
+      max-width: 1450px;
+
+      margin: 45px auto 20px;
+    }
+
+    .portfolio-admin-list {
+      max-width: 1450px;
+
+      margin: 0 auto;
+
+      padding-bottom: 50px;
+    }
+
+
+    /*
+      =====================================================
+      INGRESOS
+      =====================================================
+    */
+
+    #modal-ingresos .modal-box {
+      padding-left: 5vw !important;
+      padding-right: 5vw !important;
+    }
+
+    .income-title,
+    .income-filter,
+    .income-summary,
+    #lista-ingresos {
+      width: 100%;
+      max-width: 1450px;
+
+      margin-left: auto;
+      margin-right: auto;
+    }
+
+    .income-title {
+      margin-bottom: 30px;
+    }
+
+
+    /*
+      =====================================================
+      RESPONSIVE
+      =====================================================
+    */
+
+    @media (max-width: 800px) {
+
+      .modal-box,
+      .portfolio-admin-modal {
+        padding:
+          25px 18px 45px !important;
+      }
+
+      .modal-close {
+        top: 12px !important;
+        right: 14px !important;
+
+        width: 40px !important;
+        height: 40px !important;
+
+        font-size: 25px !important;
+      }
+
+      .admin-management-buttons {
+        grid-template-columns: 1fr;
+      }
+
+      #admin-login {
+        padding: 25px 18px;
+      }
+
+    }
+
+  </style>
+
 </head>
 
 <body>
+
 
 <!-- =========================================================
      NAVBAR
@@ -33,13 +383,16 @@
     class="logo-container"
     onclick="irInicio()"
   >
+
     <img
       src="assets/logo.png"
       alt="HN Muebles Logo"
       class="logo-img"
       onerror="this.style.display='none'"
     />
+
   </div>
+
 
   <nav class="nav-links">
 
@@ -50,6 +403,7 @@
       Inicio
     </button>
 
+
     <button
       onclick="irASeccion('sec-portafolio')"
     >
@@ -57,20 +411,26 @@
       Portafolio
     </button>
 
+
     <button
       onclick="irASeccion('sec-ruta-explicativa')"
     >
       Ruta de Seguimiento
     </button>
 
+
     <button onclick="abrirModalAdmin()">
+
       <i class="fa-solid fa-lock"></i>
+
       Admin
+
     </button>
 
   </nav>
 
 </header>
+
 
 
 <!-- =========================================================
@@ -81,28 +441,40 @@
 
   <div class="hero-split-container">
 
+
     <div class="hero-about-col">
 
       <h1 class="hero-title-big">
         HN MUEBLES
       </h1>
 
+
       <p class="about-text">
+
         Diseñamos y fabricamos muebles a medida para transformar tus espacios.
         Creamos cada proyecto de forma personalizada, combinando diseño,
         funcionalidad y calidad en cada detalle.
+
       </p>
+
 
       <div class="hero-highlights">
 
         <span>
+
           <i class="fa-solid fa-circle-check font-amber"></i>
+
           Melamina premium
+
         </span>
 
+
         <span>
+
           <i class="fa-solid fa-circle-check font-amber"></i>
+
           Diseños personalizados
+
         </span>
 
       </div>
@@ -110,21 +482,31 @@
     </div>
 
 
+
     <div class="hero-tracking-col">
 
       <div class="modern-tracking-card">
 
+
         <div class="card-icon-header">
+
           <i class="fa-solid fa-box-open"></i>
+
         </div>
+
 
         <h2>
           Seguimiento de Pedido
         </h2>
 
+
         <p class="subtitle">
-          Ingresa tu código único para revisar el estado actual de tu mueble en el taller.
+
+          Ingresa tu código único para revisar el estado actual
+          de tu mueble en el taller.
+
         </p>
+
 
         <form
           id="form-buscar"
@@ -144,11 +526,14 @@
 
           </div>
 
+
           <button
             type="submit"
             class="btn-primary-modern"
           >
+
             Consultar Estado
+
           </button>
 
         </form>
@@ -158,8 +543,11 @@
           id="mensaje-error"
           class="error-msg hidden"
         >
+
           <i class="fa-solid fa-circle-exclamation"></i>
+
           No se encontró ningún proyecto con ese código.
+
         </div>
 
 
@@ -175,10 +563,12 @@
               class="badge"
             ></span>
 
+
             <h3
               id="res-mueble"
               class="result-mueble"
             ></h3>
+
 
             <p
               id="res-cliente"
@@ -191,17 +581,23 @@
           <div class="result-status-row">
 
             <span>
+
               Estado:
+
               <strong
                 id="res-estado"
                 class="font-amber"
               ></strong>
+
             </span>
 
+
             <span class="progress-pill">
+
               <strong id="res-porcentaje">
                 0%
               </strong>
+
             </span>
 
           </div>
@@ -217,11 +613,13 @@
 </section>
 
 
+
 <!-- =========================================================
      CONTENIDO PRINCIPAL
 ========================================================= -->
 
 <main class="black-content-container">
+
 
 
 <!-- =========================================================
@@ -235,18 +633,26 @@
 
   <div class="section-inner portfolio-inner">
 
+
     <div class="portfolio-heading">
 
       <div class="portfolio-icon">
+
         <i class="fa-solid fa-images"></i>
+
       </div>
+
 
       <h2>
         Nuestro Portafolio
       </h2>
 
+
       <p class="subtitle">
-        Conoce algunos de los muebles que hemos diseñado y fabricado.
+
+        Conoce algunos de los muebles que hemos diseñado
+        y fabricado.
+
       </p>
 
     </div>
@@ -274,6 +680,7 @@
 </section>
 
 
+
 <!-- =========================================================
      RUTA
 ========================================================= -->
@@ -288,84 +695,121 @@
     style="max-width:1050px;"
   >
 
+
     <h2>
+
       <i class="fa-solid fa-route font-amber"></i>
+
       ¿Cómo es la Ruta de tu Mueble?
+
     </h2>
 
+
     <p class="subtitle">
-      Conoce los 5 pasos detallados por los que pasa tu proyecto desde el taller hasta tu hogar
+
+      Conoce los 5 pasos detallados por los que pasa
+      tu proyecto desde el taller hasta tu hogar
+
     </p>
 
 
     <div class="steps-grid-5">
 
+
       <div class="step-box">
 
         <div class="step-icon">
+
           <i class="fa-solid fa-file-signature"></i>
+
         </div>
+
 
         <div class="step-title">
           1. Diseño Aprobado
         </div>
 
+
         <div class="step-desc">
+
           Validación de medidas, planos y visto bueno del cliente.
+
         </div>
 
       </div>
 
 
+
       <div class="step-box">
 
         <div class="step-icon">
+
           <i class="fa-solid fa-scissors"></i>
+
         </div>
+
 
         <div class="step-title">
           2. Corte
         </div>
 
+
         <div class="step-desc">
+
           Optimización y corte exacto de los tableros de melamina.
+
         </div>
 
       </div>
 
 
+
       <div class="step-box">
 
         <div class="step-icon">
+
           <i class="fa-solid fa-hammer"></i>
+
         </div>
+
 
         <div class="step-title">
           3. Armado
         </div>
 
+
         <div class="step-desc">
+
           Ensamblaje estructural del mueble y colocación de cantos.
+
         </div>
 
       </div>
+
 
 
       <div class="step-box">
 
         <div class="step-icon">
+
           <i class="fa-solid fa-truck-fast"></i>
+
         </div>
+
 
         <div class="step-title">
           4. Instalación
         </div>
 
+
         <div class="step-desc">
+
           Traslado y montaje profesional en el domicilio del cliente.
+
         </div>
 
       </div>
+
 
 
       <div
@@ -377,24 +821,33 @@
           class="step-icon"
           style="color:#10b981;"
         >
+
           <i class="fa-solid fa-circle-check"></i>
+
         </div>
+
 
         <div class="step-title">
           5. Finalizado
         </div>
 
+
         <div class="step-desc">
-          Proyecto entregado con total satisfacción y listo para usarse.
+
+          Proyecto entregado con total satisfacción
+          y listo para usarse.
+
         </div>
 
       </div>
+
 
     </div>
 
   </div>
 
 </section>
+
 
 
 <!-- =========================================================
@@ -407,6 +860,7 @@
     ¿Tienes dudas sobre tu proyecto? Contáctanos directamente:
   </p>
 
+
   <div class="social-buttons">
 
     <a
@@ -415,19 +869,27 @@
       rel="noopener noreferrer"
       class="btn-social btn-ig"
     >
+
       <i class="fa-brands fa-instagram"></i>
+
       Instagram (@hnmuebles)
+
     </a>
 
   </div>
 
+
   <p class="copyright">
+
     © 2026 HN Muebles. Todos los derechos reservados.
+
   </p>
 
 </footer>
 
+
 </main>
+
 
 
 <!-- =========================================================
@@ -442,12 +904,15 @@
   aria-label="Contactar por WhatsApp"
   title="Contactar por WhatsApp"
 >
+
   <i class="fa-brands fa-whatsapp"></i>
+
 </a>
 
 
+
 <!-- =========================================================
-     MODAL ADMIN
+     ADMIN
 ========================================================= -->
 
 <div
@@ -455,22 +920,25 @@
   class="modal-overlay hidden"
 >
 
-  <div
-    class="modal-box"
-    style="max-width:1000px;"
-  >
+  <div class="modal-box">
+
 
     <button
       class="modal-close"
       onclick="cerrarModalAdmin()"
+      aria-label="Cerrar administrador"
     >
       &times;
     </button>
 
 
-    <!-- LOGIN -->
+
+    <!-- =====================================================
+         LOGIN
+    ====================================================== -->
 
     <div id="admin-login">
+
 
       <i
         class="fa-solid fa-lock font-amber"
@@ -482,9 +950,16 @@
         "
       ></i>
 
-      <h2 style="text-align:center;margin-bottom:.5rem;">
+
+      <h2
+        style="
+          text-align:center;
+          margin-bottom:.5rem;
+        "
+      >
         Panel Administrador
       </h2>
+
 
       <p
         class="subtitle"
@@ -511,12 +986,14 @@
           required
         />
 
+
         <input
           type="password"
           id="input-pass"
           placeholder="Contraseña..."
           required
         />
+
 
         <button
           type="submit"
@@ -542,43 +1019,62 @@
     </div>
 
 
-    <!-- PANEL ADMIN -->
+
+    <!-- =====================================================
+         PANEL ADMIN
+    ====================================================== -->
 
     <div
       id="admin-panel"
       class="hidden"
     >
 
+
       <div class="admin-header">
 
         <h2>
+
           <i class="fa-solid fa-sliders font-amber"></i>
+
           Gestión
+
         </h2>
+
 
         <button
           onclick="cerrarSesionAdmin()"
           class="logout-btn"
         >
+
           <i class="fa-solid fa-right-from-bracket"></i>
+
           Salir
+
         </button>
 
       </div>
 
 
-      <!-- BOTONES DE GESTIÓN -->
+
+      <!-- =================================================
+           BOTONES
+      ================================================== -->
 
       <div class="admin-management-buttons">
+
 
         <button
           type="button"
           onclick="abrirGestionIngresos()"
           class="btn-primary-modern"
         >
+
           <i class="fa-solid fa-money-bill-trend-up"></i>
+
           Gestión de Ingresos
+
         </button>
+
 
 
         <button
@@ -586,33 +1082,45 @@
           onclick="abrirGestionPortafolio()"
           class="btn-primary-modern"
         >
+
           <i class="fa-solid fa-images"></i>
+
           Gestión de Portafolio
+
         </button>
 
       </div>
 
 
-      <!-- NUEVO PROYECTO -->
+
+      <!-- =================================================
+           NUEVO PROYECTO
+      ================================================== -->
 
       <form
         id="form-nuevo-proyecto"
         class="admin-form"
       >
 
+
         <h3>
+
           <i class="fa-solid fa-plus font-amber"></i>
+
           Nuevo Proyecto
+
         </h3>
 
 
         <div class="codigo-row">
+
 
           <input
             type="text"
             id="nuevo-codigo"
             placeholder="Código (Ej: HN-001)"
           />
+
 
           <button
             type="button"
@@ -622,10 +1130,13 @@
             Generar
           </button>
 
+
         </div>
 
 
+
         <div class="admin-fields-grid">
+
 
           <input
             type="text"
@@ -634,12 +1145,14 @@
             required
           />
 
+
           <input
             type="text"
             id="nuevo-mueble"
             placeholder="Mueble"
             required
           />
+
 
           <input
             type="text"
@@ -648,12 +1161,17 @@
           />
 
 
+
           <div class="field-group">
 
             <label for="nuevo-presupuesto">
+
               <i class="fa-solid fa-money-bill"></i>
+
               Monto total
+
             </label>
+
 
             <input
               type="number"
@@ -666,12 +1184,17 @@
           </div>
 
 
+
           <div class="field-group">
 
             <label for="nuevo-adelanto">
+
               <i class="fa-solid fa-hand-holding-dollar"></i>
+
               Adelanto
+
             </label>
+
 
             <input
               type="number"
@@ -684,12 +1207,17 @@
           </div>
 
 
+
           <div class="field-group">
 
             <label for="nuevo-fecha">
+
               <i class="fa-regular fa-calendar"></i>
+
               Fecha de entrega
+
             </label>
+
 
             <input
               type="date"
@@ -701,46 +1229,87 @@
         </div>
 
 
+
+        <!-- =================================================
+             RESUMEN
+        ================================================== -->
+
         <div
           id="nuevo-resumen-montos"
           class="financial-summary"
         >
 
+
           <div class="summary-box blue">
-            <span>Monto total</span>
-            <strong id="nuevo-total-preview">Bs. 0</strong>
+
+            <span>
+              Monto total
+            </span>
+
+            <strong id="nuevo-total-preview">
+              Bs. 0
+            </strong>
+
           </div>
+
+
 
           <div class="summary-box amber">
-            <span>Adelanto</span>
-            <strong id="nuevo-adelanto-preview">Bs. 0</strong>
+
+            <span>
+              Adelanto
+            </span>
+
+            <strong id="nuevo-adelanto-preview">
+              Bs. 0
+            </strong>
+
           </div>
+
+
 
           <div class="summary-box red">
-            <span>Pendiente</span>
-            <strong id="nuevo-saldo-preview">Bs. 0</strong>
+
+            <span>
+              Pendiente
+            </span>
+
+            <strong id="nuevo-saldo-preview">
+              Bs. 0
+            </strong>
+
           </div>
 
+
         </div>
+
 
 
         <button
           type="submit"
           class="btn-primary-modern full-btn"
         >
+
           Guardar Proyecto
+
         </button>
+
 
       </form>
 
 
-      <!-- PROYECTOS REGISTRADOS -->
+
+      <!-- =================================================
+           PROYECTOS
+      ================================================== -->
 
       <div class="registered-title">
 
         <h3>
+
           Registrados
           (<span id="total-proyectos">0</span>)
+
         </h3>
 
       </div>
@@ -751,6 +1320,7 @@
         class="projects-list"
       ></div>
 
+
     </div>
 
   </div>
@@ -758,8 +1328,9 @@
 </div>
 
 
+
 <!-- =========================================================
-     MODAL GESTIÓN PORTAFOLIO
+     GESTIÓN PORTAFOLIO
 ========================================================= -->
 
 <div
@@ -767,38 +1338,51 @@
   class="modal-overlay hidden"
 >
 
-  <div
-    class="modal-box portfolio-admin-modal"
-  >
+  <div class="modal-box portfolio-admin-modal">
+
 
     <button
       class="modal-close"
       onclick="cerrarGestionPortafolio()"
+      aria-label="Cerrar portafolio"
     >
       &times;
     </button>
 
 
+
     <div class="portfolio-admin-title">
 
+
       <h2>
+
         <i class="fa-solid fa-images font-amber"></i>
+
         Gestión de Portafolio
+
       </h2>
 
+
       <p class="subtitle">
-        Agrega fotos y videos de tus trabajos para mostrarlos públicamente.
+
+        Agrega fotos y videos de tus trabajos
+        para mostrarlos públicamente.
+
       </p>
 
     </div>
 
 
-    <!-- FORMULARIO -->
+
+    <!-- =====================================================
+         FORMULARIO PORTAFOLIO
+    ====================================================== -->
 
     <form
       id="form-portafolio"
       class="portfolio-form"
     >
+
 
       <input
         type="text"
@@ -815,19 +1399,24 @@
       ></textarea>
 
 
+
       <div class="upload-box">
 
         <label class="upload-label">
 
+
           <i class="fa-solid fa-images"></i>
+
 
           <span>
             Seleccionar fotos
           </span>
 
+
           <small>
             Puedes seleccionar varias imágenes.
           </small>
+
 
           <input
             type="file"
@@ -841,19 +1430,25 @@
       </div>
 
 
+
       <div class="upload-box video-upload">
 
         <label class="upload-label">
 
+
           <i class="fa-solid fa-video"></i>
+
 
           <span>
             Seleccionar videos
           </span>
 
+
           <small>
-            MP4, WebM o MOV. Se recomienda mantenerlos livianos.
+            MP4, WebM o MOV.
+            Se recomienda mantenerlos livianos.
           </small>
+
 
           <input
             type="file"
@@ -867,10 +1462,12 @@
       </div>
 
 
+
       <div
         id="portfolio-files-preview"
         class="portfolio-files-preview"
       ></div>
+
 
 
       <div
@@ -878,24 +1475,35 @@
         class="portfolio-upload-progress hidden"
       >
 
+
         <div class="upload-progress-text">
+
+
           <span id="portfolio-progress-text">
             Preparando...
           </span>
 
+
           <strong id="portfolio-progress-percent">
             0%
           </strong>
+
+
         </div>
 
+
         <div class="progress-track">
+
           <div
             id="portfolio-progress-bar"
             class="progress-bar"
           ></div>
+
         </div>
 
+
       </div>
+
 
 
       <button
@@ -903,20 +1511,31 @@
         id="btn-publicar-portafolio"
         class="btn-primary-modern full-btn"
       >
+
         <i class="fa-solid fa-cloud-arrow-up"></i>
+
         Publicar Trabajo
+
       </button>
+
 
     </form>
 
 
-    <!-- LISTA -->
+
+    <!-- =====================================================
+         LISTA PORTAFOLIO
+    ====================================================== -->
 
     <div class="portfolio-admin-list-title">
+
       <h3>
+
         Trabajos publicados
         (<span id="total-portafolio">0</span>)
+
       </h3>
+
     </div>
 
 
@@ -925,13 +1544,15 @@
       class="portfolio-admin-list"
     ></div>
 
+
   </div>
 
 </div>
 
 
+
 <!-- =========================================================
-     MODAL INGRESOS
+     GESTIÓN INGRESOS
 ========================================================= -->
 
 <div
@@ -939,44 +1560,55 @@
   class="modal-overlay hidden"
 >
 
-  <div
-    class="modal-box"
-    style="
-      max-width:760px;
-      max-height:90vh;
-      overflow-y:auto;
-    "
-  >
+  <div class="modal-box">
+
 
     <button
       class="modal-close"
       onclick="cerrarGestionIngresos()"
+      aria-label="Cerrar ingresos"
     >
       &times;
     </button>
 
 
+
     <div class="income-title">
 
+
       <h2>
+
         <i class="fa-solid fa-money-bill-trend-up font-amber"></i>
+
         Gestión de Ingresos
+
       </h2>
 
+
       <p class="subtitle">
-        Cada proyecto aparece automáticamente. Solo registra el total que efectivamente recibiste.
+
+        Cada proyecto aparece automáticamente.
+        Solo registra el total que efectivamente recibiste.
+
       </p>
 
     </div>
 
 
+
+    <!-- =====================================================
+         FILTRO
+    ====================================================== -->
+
     <div class="income-filter">
+
 
       <div>
 
         <label>
           Mes del reporte
         </label>
+
 
         <input
           type="month"
@@ -986,6 +1618,7 @@
       </div>
 
 
+
       <div class="income-pdf-button">
 
         <button
@@ -993,43 +1626,82 @@
           onclick="exportarIngresosPDF()"
           class="btn-primary-modern"
         >
+
           <i class="fa-solid fa-file-pdf"></i>
+
           Exportar PDF
+
         </button>
 
       </div>
 
+
     </div>
 
+
+
+    <!-- =====================================================
+         RESUMEN
+    ====================================================== -->
 
     <div
       id="resumen-ingresos"
       class="income-summary"
     >
 
+
       <div class="summary-box blue">
-        <span>Proyectos</span>
-        <strong id="ing-resumen-proyectos">0</strong>
+
+        <span>
+          Proyectos
+        </span>
+
+        <strong id="ing-resumen-proyectos">
+          0
+        </strong>
+
       </div>
+
+
 
       <div class="summary-box green">
-        <span>Cobrado</span>
-        <strong id="ing-resumen-cobrado">Bs. 0</strong>
+
+        <span>
+          Cobrado
+        </span>
+
+        <strong id="ing-resumen-cobrado">
+          Bs. 0
+        </strong>
+
       </div>
 
+
+
       <div class="summary-box red">
-        <span>Pendiente</span>
-        <strong id="ing-resumen-pendiente">Bs. 0</strong>
+
+        <span>
+          Pendiente
+        </span>
+
+        <strong id="ing-resumen-pendiente">
+          Bs. 0
+        </strong>
+
       </div>
+
 
     </div>
 
 
+
     <div id="lista-ingresos"></div>
+
 
   </div>
 
 </div>
+
 
 
 <!-- =========================================================
@@ -1044,7 +1716,9 @@
 
 <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-storage-compat.js"></script>
 
+
 <script src="script.js"></script>
+
 
 
 <!-- =========================================================
@@ -1053,34 +1727,64 @@
 
 <script>
 
+
+/*
+=============================================================
+NAVEGACIÓN
+=============================================================
+*/
+
 function irASeccion(id) {
 
   const el = document.getElementById(id);
 
-  if (el) {
+  if (!el) return;
 
-    el.scrollIntoView({
-      behavior: "smooth",
-      block: "start"
-    });
-
-  }
+  el.scrollIntoView({
+    behavior: "smooth",
+    block: "start"
+  });
 
 }
 
+
+
+/*
+=============================================================
+INICIO
+=============================================================
+*/
+
+function irInicio() {
+
+  window.scrollTo({
+    top: 0,
+    behavior: "smooth"
+  });
+
+}
+
+
+
+/*
+=============================================================
+ADMIN
+=============================================================
+*/
 
 function abrirModalAdmin() {
 
   const modal =
     document.getElementById("modal-admin");
 
-  if (modal) {
+  if (!modal) return;
 
-    modal.classList.remove("hidden");
+  modal.classList.remove("hidden");
 
-  }
+  document.body.style.overflow = "hidden";
 
 }
+
 
 
 function cerrarModalAdmin() {
@@ -1088,32 +1792,31 @@ function cerrarModalAdmin() {
   const modal =
     document.getElementById("modal-admin");
 
-  if (modal) {
+  if (!modal) return;
 
-    modal.classList.add("hidden");
+  modal.classList.add("hidden");
 
-  }
-
-}
-
-
-function cerrarGestionIngresos() {
-
-  const modal =
-    document.getElementById("modal-ingresos");
-
-  if (modal) {
-
-    modal.classList.add("hidden");
-
-  }
+  document.body.style.overflow = "";
 
 }
 
+
+
+/*
+=============================================================
+INGRESOS
+=============================================================
+*/
 
 function abrirGestionIngresos() {
 
-  if (!esAdmin) return;
+  if (
+    typeof esAdmin !== "undefined" &&
+    !esAdmin
+  ) {
+    return;
+  }
+
 
   if (
     typeof renderGestionIngresos === "function"
@@ -1123,21 +1826,54 @@ function abrirGestionIngresos() {
 
   }
 
+
   const modal =
     document.getElementById("modal-ingresos");
 
-  if (modal) {
 
-    modal.classList.remove("hidden");
+  if (!modal) return;
 
-  }
+
+  modal.classList.remove("hidden");
+
+  document.body.style.overflow = "hidden";
 
 }
 
 
+
+function cerrarGestionIngresos() {
+
+  const modal =
+    document.getElementById("modal-ingresos");
+
+
+  if (!modal) return;
+
+
+  modal.classList.add("hidden");
+
+  document.body.style.overflow = "";
+
+}
+
+
+
+/*
+=============================================================
+PORTAFOLIO
+=============================================================
+*/
+
 function abrirGestionPortafolio() {
 
-  if (!esAdmin) return;
+  if (
+    typeof esAdmin !== "undefined" &&
+    !esAdmin
+  ) {
+    return;
+  }
+
 
   if (
     typeof cargarPortafolioAdmin === "function"
@@ -1147,16 +1883,20 @@ function abrirGestionPortafolio() {
 
   }
 
+
   const modal =
     document.getElementById("modal-portafolio");
 
-  if (modal) {
 
-    modal.classList.remove("hidden");
+  if (!modal) return;
 
-  }
+
+  modal.classList.remove("hidden");
+
+  document.body.style.overflow = "hidden";
 
 }
+
 
 
 function cerrarGestionPortafolio() {
@@ -1164,15 +1904,82 @@ function cerrarGestionPortafolio() {
   const modal =
     document.getElementById("modal-portafolio");
 
-  if (modal) {
 
-    modal.classList.add("hidden");
+  if (!modal) return;
 
-  }
+
+  modal.classList.add("hidden");
+
+  document.body.style.overflow = "";
 
 }
 
+
+
+/*
+=============================================================
+ESC PARA CERRAR PANELES
+=============================================================
+*/
+
+document.addEventListener(
+  "keydown",
+  function(event) {
+
+    if (event.key !== "Escape") {
+      return;
+    }
+
+
+    const portafolio =
+      document.getElementById("modal-portafolio");
+
+    const ingresos =
+      document.getElementById("modal-ingresos");
+
+    const admin =
+      document.getElementById("modal-admin");
+
+
+    if (
+      portafolio &&
+      !portafolio.classList.contains("hidden")
+    ) {
+
+      cerrarGestionPortafolio();
+
+      return;
+
+    }
+
+
+    if (
+      ingresos &&
+      !ingresos.classList.contains("hidden")
+    ) {
+
+      cerrarGestionIngresos();
+
+      return;
+
+    }
+
+
+    if (
+      admin &&
+      !admin.classList.contains("hidden")
+    ) {
+
+      cerrarModalAdmin();
+
+    }
+
+  }
+);
+
 </script>
+
 
 </body>
 </html>
+```
