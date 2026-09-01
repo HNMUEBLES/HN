@@ -325,7 +325,7 @@ async function exportarIngresosPDF() {
     return `${f.getFullYear()}-${String(f.getMonth() + 1).padStart(2, "0")}` === filtro;
   });
 
-  const doc = new window.jspdf.jsPDF({ orientation: "portrait", unit: "mm", format: "a4" });
+  const doc = new window.jspdf.jsPDF({ orientation: "landscape", unit: "mm", format: "a4" });
   const [anio, mes] = filtro.split("-");
   const nombresMes = ["Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"];
   const nombreMes = nombresMes[Number(mes) - 1] || mes;
@@ -335,24 +335,23 @@ async function exportarIngresosPDF() {
   const filas = lista.map(i => {
     const p = Number(i.presupuesto) || 0, a = Number(i.adelanto) || 0, c = Number(i.cobrado) || 0, pe = Math.max(p - c, 0);
     totP += p; totA += a; totC += c; totPe += pe;
-    return [i.codigo || "", i.cliente || "", i.mueble || "", `Bs. ${formatearMonto(p)}`, `Bs. ${formatearMonto(c)}`, `Bs. ${formatearMonto(pe)}`];
+    return [i.codigo || "", i.cliente || "", i.mueble || "", `Bs. ${formatearMonto(p)}`, `Bs. ${formatearMonto(a)}`, `Bs. ${formatearMonto(c)}`, `Bs. ${formatearMonto(pe)}`];
   });
 
-  if (logo) { try { doc.addImage(logo, "PNG", 14, 12, 22, 16); } catch(e){} }
-  const posTxt = logo ? 40 : 14;
+  if (logo) { try { doc.addImage(logo, "PNG", 14, 10, 25, 18); } catch(e){} }
+  const posTxt = logo ? 45 : 14;
 
-  doc.setTextColor(30, 30, 30); doc.setFont("helvetica", "bold"); doc.setFontSize(16); doc.text("HN MUEBLES", posTxt, 17);
-  doc.setFont("helvetica", "normal"); doc.setFontSize(8); doc.setTextColor(110, 110, 110); doc.text("REPORTE FINANCIERO DE INGRESOS", posTxt, 23);
-  
-  doc.setFont("helvetica", "bold"); doc.setFontSize(11); doc.setTextColor(156, 113, 81); doc.text(`Periodo: ${nombreMes} ${anio}`, 14, 35);
+  doc.setTextColor(18, 18, 18); doc.setFont("helvetica", "bold"); doc.setFontSize(20); doc.text("HN MUEBLES", posTxt, 17);
+  doc.setFont("helvetica", "normal"); doc.setFontSize(9); doc.setTextColor(105, 105, 105); doc.text("DISEÑO Y FABRICACIÓN DE MUEBLES A MEDIDA", posTxt, 23);
+  doc.setFont("helvetica", "bold"); doc.setFontSize(14); doc.setTextColor(156, 113, 81); doc.text("REPORTE DE INGRESOS", 14, 38);
+  doc.setFont("helvetica", "normal"); doc.setFontSize(11); doc.setTextColor(18, 18, 18); doc.text(`${nombreMes} ${anio}`, 14, 45);
 
   const now = new Date();
-  doc.setFontSize(7.5); doc.setTextColor(130, 130, 130);
-  doc.text(`Emisión: ${now.toLocaleDateString("es-BO")} ${now.toLocaleTimeString("es-BO", {hour: "2-digit", minute: "2-digit"})}`, 196, 35, {align: "right"});
-  
-  doc.setDrawColor(200, 200, 200); doc.setLineWidth(0.4); doc.line(14, 39, 196, 39);
+  doc.setFontSize(8); doc.setTextColor(105, 105, 105);
+  doc.text(`Generado el ${now.toLocaleDateString("es-BO")} a las ${now.toLocaleTimeString("es-BO", {hour: "2-digit", minute: "2-digit"})}`, 283, 45, {align: "right"});
+  doc.setDrawColor(156, 113, 81); doc.setLineWidth(0.8); doc.line(14, 49, 283, 49);
 
-  const resumenY = 43, ancho = 43, alto = 16;
+  const resumenY = 55, ancho = 63, alto = 20;
   const resumen = [
     {t: "PROYECTOS", v: `${lista.length}`, c: [37, 99, 235]},
     {t: "CONTRATADO", v: `Bs. ${formatearMonto(totP)}`, c: [156, 113, 81]},
@@ -361,48 +360,41 @@ async function exportarIngresosPDF() {
   ];
 
   resumen.forEach((item, idx) => {
-    const x = 14 + idx * (ancho + 4.5);
-    doc.setFillColor(250, 250, 250); doc.setDrawColor(225, 225, 225); doc.roundedRect(x, resumenY, ancho, alto, 2, 2, "FD");
-    doc.setFillColor(...item.c); doc.roundedRect(x, resumenY, 2, alto, 1, 1, "F");
-    doc.setFont("helvetica", "bold"); doc.setFontSize(6.5); doc.setTextColor(110, 110, 110); doc.text(item.t, x + 6, resumenY + 6);
-    doc.setFontSize(9.5); doc.setTextColor(30, 30, 30); doc.text(item.v, x + 6, resumenY + 12.5);
+    const x = 14 + idx * (ancho + 5);
+    doc.setFillColor(248, 248, 248); doc.setDrawColor(225, 225, 225); doc.roundedRect(x, resumenY, ancho, alto, 3, 3, "FD");
+    doc.setFillColor(...item.c); doc.roundedRect(x, resumenY, 2.5, alto, 1, 1, "F");
+    doc.setFont("helvetica", "bold"); doc.setFontSize(7); doc.setTextColor(105, 105, 105); doc.text(item.t, x + 7, resumenY + 7);
+    doc.setFontSize(11); doc.setTextColor(18, 18, 18); doc.text(item.v, x + 7, resumenY + 15);
   });
 
   if (typeof doc.autoTable === "function") {
     doc.autoTable({
-      startY: resumenY + alto + 6,
+      startY: resumenY + alto + 8,
       margin: {left: 14, right: 14},
-      head: [["CÓDIGO", "CLIENTE", "PROYECTO", "TOTAL", "COBRADO", "PENDIENTE"]],
+      head: [["CÓDIGO", "CLIENTE", "PROYECTO", "TOTAL", "ADELANTO", "COBRADO", "PENDIENTE"]],
       body: filas,
       theme: "grid",
-      headStyles: {fillColor: [35, 35, 35], textColor: [255, 255, 255], fontStyle: "bold", fontSize: 7.5, halign: "center", cellPadding: 3},
-      bodyStyles: {fontSize: 7.5, textColor: [50, 50, 50], cellPadding: 3},
-      alternateRowStyles: {fillColor: [247, 247, 247]},
-      columnStyles: {
-        0: {cellWidth: 22, halign: "center", fontStyle: "bold"}, 
-        1: {cellWidth: 42}, 
-        2: {cellWidth: 50}, 
-        3: {cellWidth: 24, halign: "right"}, 
-        4: {cellWidth: 24, halign: "right"}, 
-        5: {cellWidth: 24, halign: "right"}
-      },
+      headStyles: {fillColor: [18,18,18], textColor: [255,255,255], fontStyle: "bold", fontSize: 8, halign: "center", cellPadding: 4},
+      bodyStyles: {fontSize: 8, textColor: [45,45,45], cellPadding: 3.5},
+      alternateRowStyles: {fillColor: [248,248,248]},
+      columnStyles: {0: {cellWidth: 25, halign: "center"}, 1: {cellWidth: 45}, 2: {cellWidth: 65}, 3: {cellWidth: 36, halign: "right"}, 4: {cellWidth: 36, halign: "right"}, 5: {cellWidth: 36, halign: "right"}, 6: {cellWidth: 36, halign: "right"}},
       didParseCell: d => {
         if (d.section === "body") {
-          if (d.column.index === 0) { d.cell.styles.textColor = [156, 113, 81]; }
-          if (d.column.index === 5) { d.cell.styles.textColor = [220, 38, 38]; d.cell.styles.fontStyle = "bold"; }
-          if (d.column.index === 4) { d.cell.styles.textColor = [22, 163, 74]; }
+          if (d.column.index === 0) { d.cell.styles.fontStyle = "bold"; d.cell.styles.textColor = [156, 113, 81]; }
+          if (d.column.index === 6) { d.cell.styles.textColor = [220, 38, 38]; d.cell.styles.fontStyle = "bold"; }
+          if (d.column.index === 5) { d.cell.styles.textColor = [22, 163, 74]; }
         }
       },
       didDrawPage: d => {
-        const ph = doc.internal.pageSize.getHeight();
-        doc.setDrawColor(210, 210, 210); doc.setLineWidth(0.3); doc.line(14, ph - 10, 196, ph - 10);
-        doc.setFont("helvetica", "normal"); doc.setFontSize(6.5); doc.setTextColor(130, 130, 130);
-        doc.text("HN Muebles - Documento Interno de Control Financiero", 14, ph - 6);
-        doc.text(`Página ${d.pageNumber}`, 196, ph - 6, {align: "right"});
+        const pw = doc.internal.pageSize.getWidth(), ph = doc.internal.pageSize.getHeight();
+        doc.setDrawColor(220, 220, 220); doc.setLineWidth(0.4); doc.line(14, ph - 14, pw - 14, ph - 14);
+        doc.setFont("helvetica", "normal"); doc.setFontSize(7); doc.setTextColor(105, 105, 105);
+        doc.text("HN MUEBLES · Reporte interno de ingresos", 14, ph - 8);
+        doc.text(`Página ${d.pageNumber}`, pw - 14, ph - 8, {align: "right"});
       }
     });
   }
-  doc.save(`Reporte-Ingresos-${anio}-${mes}.pdf`);
+  doc.save(`HN-MUEBLES-Reporte-Ingresos-${anio}-${mes}.pdf`);
 }
 
 function notificarWhatsApp(index) {
@@ -413,7 +405,16 @@ function notificarWhatsApp(index) {
   if (!num.startsWith("591") && num.length === 8) num = "591" + num;
   const link = window.location.origin + window.location.pathname + `?codigo=${encodeURIComponent(p.codigo)}`;
   const fecha = p.fechaEntrega ? p.fechaEntrega.split("-").reverse().join("/") : "Por coordinar";
-  const msg = `Hola *${p.cliente}* 👋, desde *HN Muebles* te informamos el estado de tu proyecto *"${p.mueble}"*:\n\n🛠️ *Estado:* ${p.estado}\n\n📊 *Progreso:* ${p.progreso}%\n\n📅 *Fecha estimada de entrega:* ${fecha}\n\n🔍 *Consulta el estado de tu proyecto:*\n${link}`;
+  const msg = `Hola *${p.cliente}* 👋, desde *HN Muebles* te informamos el estado de tu proyecto *"${p.mueble}"*:
+
+🛠️ *Estado:* ${p.estado}
+
+📊 *Progreso:* ${p.progreso}%
+
+📅 *Fecha estimada de entrega:* ${fecha}
+
+🔍 *Consulta el estado de tu proyecto:*
+${link}`;
   window.open(`https://wa.me/${num}?text=${encodeURIComponent(msg)}`, "_blank");
 }
 
