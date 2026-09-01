@@ -1,1210 +1,1343 @@
-@import url('https://fonts.googleapis.com/css2?family=Mont:wght@400;500;600;700;800;900&display=swap');
-@import url('https://fonts.googleapis.com/css2?family=The+Bold+Font&display=swap');
+// ============================================================
+// HN MUEBLES - SCRIPT PRINCIPAL (ULTRA OPTIMIZADO: SIN DELAY)
+// Firebase Authentication + Firestore
+// Cloudinary para Portafolio
+// ============================================================
 
-* {
-  box-sizing: border-box;
-  margin: 0;
-  padding: 0;
-  font-family: 'Mont', sans-serif;
-}
 
-html {
-  scroll-behavior: smooth;
-}
+// ============================================================
+// 1. CONFIGURACIÓN FIREBASE Y CLOUDINARY
+// ============================================================
 
-body {
-  background-color: #0d0b0a;
-  color: #f5f3f0;
-  min-height: 100vh;
-}
+const firebaseConfig = {
+  apiKey: "AIzaSyCLrVUpGCTxFxuMR0ATlwj2t3osSP0dD7Y",
+  authDomain: "hn-muebles.firebaseapp.com",
+  projectId: "hn-muebles",
+  storageBucket: "hn-muebles.firebasestorage.app",
+  messagingSenderId: "175601256381",
+  appId: "1:175601256381:web:db2031a56faa87a02bf4d4",
+  measurementId: "G-8PJGERB67Q"
+};
 
-.navbar {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 1rem 2rem;
-  background: rgba(18, 15, 13, 0.92);
-  backdrop-filter: blur(8px);
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  z-index: 100;
-  border-bottom: 1px solid rgba(139, 107, 85, 0.2);
-}
+firebase.initializeApp(firebaseConfig);
 
-.logo-container {
-  display: flex;
-  align-items: center;
-  gap: .75rem;
-  cursor: pointer;
-}
+const db = firebase.firestore();
+const auth = firebase.auth();
 
-.logo-img {
-  height: 40px;
-  width: auto;
-  object-fit: contain;
-}
 
-.nav-links {
-  display: flex;
-  gap: .5rem;
-  flex-wrap: wrap;
-}
+// ============================================================
+// CLOUDINARY
+// ============================================================
 
-.nav-links button {
-  background: transparent;
-  border: 1px solid transparent;
-  color: #f5f3f0;
-  padding: .5rem 1rem;
-  border-radius: 6px;
-  font-weight: 600;
-  font-size: .9rem;
-  cursor: pointer;
-  transition: all .3s ease;
-}
+const CLOUDINARY_CLOUD_NAME = "clvoagwx";
+const CLOUDINARY_UPLOAD_PRESET = "hn_muebles_portafolio";
 
-.nav-links button:hover,
-.nav-links button.active {
-  background-color: rgba(139, 107, 85, .15);
-  border-color: rgba(139, 107, 85, .3);
-}
 
-.hero-fixed-banner {
-  height: 100vh;
-  width: 100%;
-  background-image:
-    url('assets/fondo.jpg'),
-    url('assets/fondo.png'),
-    url('assets/fondo.jpeg');
-  background-size: cover;
-  background-position: center;
-  background-attachment: fixed;
-  position: relative;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 6rem 2rem 2rem;
-  z-index: 1;
-}
+// ============================================================
+// VARIABLES GLOBALES
+// ============================================================
 
-.hero-fixed-banner::before {
-  content: '';
-  position: absolute;
-  inset: 0;
-  background: rgba(13, 11, 10, .82);
-}
+const EMAIL_ADMIN = "hn24muebles@gmail.com";
 
-.hero-split-container {
-  position: relative;
-  z-index: 2;
-  width: 100%;
-  max-width: 1150px;
-  display: grid;
-  grid-template-columns: 1.1fr .9fr;
-  gap: 3.5rem;
-  align-items: center;
-}
+let proyectos = [];
+let ingresos = [];
+let esAdmin = false;
+let portafolio = [];
 
-.hero-title-big {
-  font-family: 'The Bold Font', sans-serif;
-  font-size: 4rem;
-  line-height: 1.05;
-  margin-bottom: 1rem;
-  color: #fff !important;
-  letter-spacing: 2px;
-  text-transform: uppercase;
-}
 
-.font-amber {
-  color: #9c7151 !important;
-}
+// ============================================================
+// 2. UTILIDADES GENERALES
+// ============================================================
 
-.about-text {
-  color: #d1c7be;
-  font-size: 1.05rem;
-  line-height: 1.6;
-  margin-bottom: 1.5rem;
-}
-
-.hero-highlights {
-  display: flex;
-  gap: 1.5rem;
-  font-size: .95rem;
-  color: #e5ded7;
-}
-
-.modern-tracking-card {
-  background: rgba(22, 19, 17, .9);
-  border: 1px solid rgba(139, 107, 85, .35);
-  padding: 1.8rem 1.5rem;
-  border-radius: 12px;
-  box-shadow: 0 15px 35px rgba(0,0,0,.6);
-  backdrop-filter: blur(10px);
-  position: relative;
-  overflow: hidden;
-  max-width: 400px;
-  margin: 0 auto;
-}
-
-.modern-tracking-card::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 3px;
-  background: #9c7151;
-}
-
-.card-icon-header {
-  font-size: 1.8rem;
-  margin-bottom: .5rem;
-  color: #9c7151;
-}
-
-.modern-tracking-card h2 {
-  font-size: 1.4rem;
-  font-weight: 700;
-  margin-bottom: .4rem;
-}
-
-.subtitle {
-  color: #b3a69c;
-  font-size: .88rem;
-  margin-bottom: 1.5rem;
-  line-height: 1.4;
-}
-
-.search-form-modern {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-}
-
-.input-wrapper {
-  position: relative;
-  display: flex;
-  align-items: center;
-}
-
-.input-wrapper i {
-  position: absolute;
-  left: 14px;
-  top: 50%;
-  transform: translateY(-50%);
-  color: #9e9187;
-  pointer-events: none;
-  z-index: 5;
-}
-
-.input-wrapper input {
-  width: 100%;
-  background-color: rgba(10,8,7,.7);
-  border: 1px solid #38302b;
-  border-radius: 8px;
-  padding: .75rem 1rem .75rem 2.6rem !important;
-  color: #fff;
-  outline: none;
-  font-size: .95rem;
-}
-
-.input-wrapper input:focus {
-  border-color: #9c7151;
-  box-shadow: 0 0 0 2px rgba(156,113,81,.2);
-}
-
-.btn-primary-modern {
-  background: #875f42;
-  color: #fff;
-  border: none;
-  padding: .7rem 1.2rem;
-  font-size: .9rem;
-  font-weight: 600;
-  border-radius: 8px;
-  cursor: pointer;
-  transition: background .2s, transform .2s;
-  box-shadow: 0 4px 10px rgba(0,0,0,.3);
-}
-
-.btn-primary-modern:hover {
-  background: #9c7151;
-  transform: translateY(-1px);
-}
-
-.btn-primary-modern:disabled {
-  opacity: .55;
-  cursor: not-allowed;
-  transform: none;
-}
-
-.result-box-modern {
-  margin-top: 1.2rem;
-  background: rgba(13,11,10,.6);
-  padding: 1rem;
-  border-radius: 8px;
-  border: 1px solid rgba(139,107,85,.2);
-  text-align: left;
-}
-
-.result-mueble {
-  font-size: 1.1rem;
-  margin-top: 6px;
-  color: #fff;
-}
-
-.result-cliente {
-  font-size: .85rem;
-  color: #a3a3a3;
-}
-
-.result-status-row {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-top: 10px;
-  font-size: .85rem;
-  border-top: 1px solid rgba(255,255,255,.05);
-  padding-top: 8px;
-}
-
-.progress-pill {
-  background: rgba(156,113,81,.15);
-  color: #c49a7a;
-  padding: 2px 8px;
-  border-radius: 4px;
-  font-size: .8rem;
-  border: 1px solid rgba(156,113,81,.3);
-}
-
-.black-content-container {
-  position: relative;
-  background-color: #0d0b0a;
-  z-index: 10;
-  min-height: 80vh;
-}
-
-.content-section {
-  padding: 5rem 1.5rem;
-  display: flex;
-  justify-content: center;
-}
-
-.section-inner {
-  width: 100%;
-  max-width: 900px;
-  text-align: center;
-}
-
-.section-inner h2 {
-  font-size: 1.8rem;
-  margin-bottom: .5rem;
-  font-weight: 700;
+function formatearMonto(valor) {
+  const num = Number(valor) || 0;
+  return Number.isInteger(num) ? num.toString() : num.toFixed(2);
 }
 
 
-/* ============================================================
-   PORTAFOLIO PÚBLICO (OPTIMIZADO PARA ADAPTABILIDAD)
-============================================================ */
+function generarCodigoAleatorio() {
+  const caracteres = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+  let aleatorio = "";
 
-.portfolio-section {
-  padding-top: 6rem;
-  padding-bottom: 6rem;
-}
-
-.portfolio-inner {
-  max-width: 1150px;
-  margin: 0 auto;
-  padding: 0 1rem;
-}
-
-.portfolio-heading {
-  margin-bottom: 2.5rem;
-}
-
-.portfolio-icon {
-  width: 52px;
-  height: 52px;
-  margin: 0 auto .8rem;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: rgba(156,113,81,.12);
-  border: 1px solid rgba(156,113,81,.3);
-  color: #9c7151;
-  font-size: 1.3rem;
-}
-
-.portfolio-grid {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 1.5rem;
-  text-align: left;
-  width: 100%;
-}
-
-.portfolio-card {
-  background: #14110f;
-  border: 1px solid #29231f;
-  border-radius: 13px;
-  overflow: hidden;
-  transition: transform .25s ease, border-color .25s ease, box-shadow .25s ease;
-  display: flex;
-  flex-direction: column;
-}
-
-.portfolio-card:hover {
-  transform: translateY(-4px);
-  border-color: rgba(156,113,81,.5);
-  box-shadow: 0 15px 30px rgba(0,0,0,.35);
-}
-
-.portfolio-media {
-  position: relative;
-  width: 100%;
-  aspect-ratio: 4 / 3;
-  background: #090807;
-  overflow: hidden;
-  cursor: pointer;
-}
-
-.portfolio-media img,
-.portfolio-media video {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  display: block;
-}
-
-.portfolio-video-badge {
-  position: absolute;
-  left: 10px;
-  bottom: 10px;
-  background: rgba(0,0,0,.75);
-  color: #fff;
-  padding: 5px 9px;
-  border-radius: 6px;
-  font-size: .72rem;
-  display: flex;
-  gap: 5px;
-  align-items: center;
-}
-
-.portfolio-card-body {
-  padding: 1rem;
-}
-
-.portfolio-card-title {
-  font-size: 1rem;
-  font-weight: 700;
-  color: #fff;
-  margin-bottom: .4rem;
-}
-
-.portfolio-card-description {
-  font-size: .8rem;
-  line-height: 1.5;
-  color: #aaa099;
-}
-
-.portfolio-empty,
-.portfolio-loading {
-  grid-column: 1 / -1;
-  padding: 3rem 1rem;
-  text-align: center;
-  color: #77706a;
-}
-
-.portfolio-loading {
-  display: flex;
-  flex-direction: column;
-  gap: .7rem;
-  align-items: center;
-}
-
-.portfolio-loading i {
-  color: #9c7151;
-  font-size: 1.4rem;
-}
-
-
-/* ============================================================
-   VISOR FLOTANTE (LIGHTBOX) - SECCIÓN NUEVA PARA IMÁGENES
-============================================================ */
-
-#hn-portfolio-viewer {
-  box-sizing: border-box;
-}
-
-#hn-portfolio-content {
-  max-width: 90vw;
-  max-height: 85vh;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-}
-
-#hn-portfolio-content .visor-title {
-  color: #fff;
-  font-size: 1rem;
-  margin-bottom: 8px;
-  text-align: center;
-  padding: 0 10px;
-}
-
-#hn-portfolio-content img,
-#hn-portfolio-content video {
-  max-width: 100%;
-  max-height: 75vh;
-  width: auto;
-  height: auto;
-  object-fit: contain;
-  border-radius: 8px;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
-}
-
-#hn-portfolio-prev,
-#hn-portfolio-next {
-  width: 40px !important;
-  height: 40px !important;
-  font-size: 24px !important;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-@media (max-width: 768px) {
-  #hn-portfolio-prev {
-    left: 10px !important;
+  for (let i = 0; i < 5; i++) {
+    aleatorio += caracteres.charAt(
+      Math.floor(Math.random() * caracteres.length)
+    );
   }
-  #hn-portfolio-next {
-    right: 10px !important;
-  }
-  #hn-portfolio-content {
-    width: calc(100% - 80px) !important;
-    height: calc(100% - 100px) !important;
+
+  return `HN${aleatorio}`;
+}
+
+
+function llenarCodigoAutomatico() {
+  const input = document.getElementById("nuevo-codigo");
+  if (input) {
+    input.value = generarCodigoAleatorio();
   }
 }
 
 
-/* ============================================================
-   PASOS
-============================================================ */
-
-.steps-grid-5 {
-  display: grid;
-  grid-template-columns: repeat(auto-fit,minmax(160px,1fr));
-  gap: 1rem;
-  margin-top: 2rem;
-  text-align: left;
-}
-
-.step-box {
-  background: #14110f;
-  border: 1px solid #26211d;
-  border-radius: 10px;
-  padding: 1.5rem;
-  transition: border-color .3s;
-}
-
-.step-box:hover {
-  border-color: rgba(156,113,81,.5);
-}
-
-.step-icon {
-  font-size: 1.5rem;
-  color: #9c7151;
-  margin-bottom: .75rem;
-}
-
-.step-title {
-  font-weight: 700;
-  font-size: .95rem;
-  margin-bottom: .4rem;
-}
-
-.step-desc {
-  font-size: .8rem;
-  color: #b3a69c;
-  line-height: 1.4;
-}
-
-
-/* ============================================================
-   MODALES
-============================================================ */
-
-.modal-overlay {
-  position: fixed;
-  inset: 0;
-  background: rgba(0,0,0,.85);
-  backdrop-filter: blur(5px);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 1000;
-  padding: 1.5rem;
-}
-
-.modal-box {
-  background: #161311;
-  border: 1px solid rgba(156,113,81,.35);
-  border-radius: 14px;
-  padding: 2.5rem;
-  width: 100%;
-  max-width: 850px;
-  max-height: 90vh;
-  overflow-y: auto;
-  position: relative;
-  box-shadow: 0 25px 50px rgba(0,0,0,.9);
-}
-
-.modal-close {
-  position: absolute;
-  top: 20px;
-  right: 20px;
-  background: transparent;
-  border: none;
-  color: #b3a69c;
-  font-size: 1.6rem;
-  cursor: pointer;
-}
-
-.modal-close:hover {
-  color: #fff;
-}
-
-
-/* ============================================================
-   INPUTS
-============================================================ */
-
-select,
-.admin-select,
-input[type="text"],
-input[type="password"],
-input[type="number"],
-input[type="date"],
-input[type="email"],
-input[type="month"],
-textarea {
-  width: 100%;
-  background-color: #0d0b0a;
-  border: 1px solid #332b25;
-  border-radius: 8px;
-  padding: .7rem .9rem;
-  color: #fff;
-  outline: none;
-  font-size: .9rem;
-  font-family: 'Mont',sans-serif;
-}
-
-select:focus,
-.admin-select:focus,
-input:focus,
-textarea:focus {
-  border-color: #9c7151;
-  background-color: #120f0d;
-  box-shadow: 0 0 0 2px rgba(156,113,81,.12);
-}
-
-input[type="number"],
-input[type="date"] {
-  min-height: 44px;
-}
-
-input::placeholder,
-textarea::placeholder {
-  color: #77706a;
-}
-
-
-/* ============================================================
-   ADMIN
-============================================================ */
-
-.admin-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 1rem;
-}
-
-.admin-header h2 {
-  margin: 0;
-}
-
-.logout-btn {
-  background: transparent;
-  border: 1px solid #ef4444;
-  color: #ef4444;
-  padding: 5px 9px;
-  border-radius: 6px;
-  cursor: pointer;
-}
-
-.admin-management-buttons {
-  display: flex;
-  gap: 8px;
-  flex-wrap: wrap;
-  margin-bottom: 1rem;
-}
-
-.admin-form {
-  background: rgba(255,255,255,.03);
-  padding: 1rem;
-  border-radius: 8px;
-  margin-bottom: 1.5rem;
-}
-
-.admin-form h3 {
-  font-size: 1rem;
-  margin-bottom: .75rem;
-}
-
-.codigo-row {
-  display: flex;
-  gap: 6px;
-  margin-bottom: 8px;
-}
-
-.small-btn {
-  padding: 0 10px;
-  font-size: .8rem;
-}
-
-.admin-fields-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 8px;
-  margin-bottom: 8px;
-}
-
-.field-group {
-  display: flex;
-  flex-direction: column;
-  gap: 3px;
-  min-width: 0;
-}
-
-.field-group label {
-  font-size: .75rem;
-  color: #9c7151;
-}
-
-.financial-summary,
-.income-summary {
-  display: grid;
-  grid-template-columns: repeat(3,1fr);
-  gap: 8px;
-  margin: 10px 0;
-}
-
-.summary-box {
-  border-radius: 8px;
-  padding: 10px;
-  border: 1px solid;
-}
-
-.summary-box span {
-  display: block;
-  font-size: .78rem;
-  margin-bottom: 3px;
-}
-
-.summary-box strong {
-  font-size: 1rem;
-}
-
-.summary-box.blue {
-  background: rgba(56,189,248,.08);
-  border-color: rgba(56,189,248,.25);
-  color: #38bdf8;
-}
-
-.summary-box.amber {
-  background: rgba(245,158,11,.08);
-  border-color: rgba(245,158,11,.25);
-  color: #f59e0b;
-}
-
-.summary-box.red {
-  background: rgba(239,68,68,.08);
-  border-color: rgba(239,68,68,.25);
-  color: #ef4444;
-}
-
-.summary-box.green {
-  background: rgba(74,222,128,.08);
-  border-color: rgba(74,222,128,.25);
-  color: #4ade80;
-}
-
-.full-btn {
-  width: 100%;
-}
-
-.registered-title {
-  display: flex;
-  justify-content: space-between;
-  margin-bottom: .5rem;
-}
-
-.registered-title h3 {
-  font-size: 1rem;
-  margin: 0;
-}
-
-.projects-list {
-  max-height: 300px;
-  overflow-y: auto;
-}
-
-
-/* ============================================================
-   GESTIÓN PORTAFOLIO
-============================================================ */
-
-.portfolio-admin-modal {
-  max-width: 900px;
-}
-
-.portfolio-admin-title {
-  padding-right: 30px;
-}
-
-.portfolio-form {
-  background: rgba(255,255,255,.025);
-  border: 1px solid rgba(255,255,255,.06);
-  border-radius: 10px;
-  padding: 1rem;
-  margin-top: 1rem;
-}
-
-.portfolio-form textarea {
-  resize: vertical;
-  margin-top: 8px;
-}
-
-.upload-box {
-  margin-top: 10px;
-  border: 1px dashed rgba(156,113,81,.45);
-  border-radius: 10px;
-  background: rgba(156,113,81,.04);
-  transition: .2s;
-}
-
-.upload-box:hover {
-  border-color: #9c7151;
-  background: rgba(156,113,81,.08);
-}
-
-.upload-label {
-  min-height: 115px;
-  padding: 1.2rem;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 5px;
-  cursor: pointer;
-  text-align: center;
-}
-
-.upload-label i {
-  color: #9c7151;
-  font-size: 1.5rem;
-}
-
-.upload-label span {
-  color: #fff;
-  font-weight: 700;
-}
-
-.upload-label small {
-  color: #8c837c;
-  font-size: .72rem;
-}
-
-.upload-label input {
-  display: none;
-}
-
-.portfolio-files-preview {
-  display: grid;
-  grid-template-columns: repeat(4,minmax(0,1fr));
-  gap: 8px;
-  margin-top: 10px;
-}
-
-.file-preview {
-  position: relative;
-  aspect-ratio: 1;
-  border-radius: 8px;
-  overflow: hidden;
-  background: #080706;
-  border: 1px solid #332b25;
-}
-
-.file-preview img,
-.file-preview video {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-}
-
-.file-preview-type {
-  position: absolute;
-  left: 5px;
-  bottom: 5px;
-  background: rgba(0,0,0,.75);
-  color: #fff;
-  padding: 3px 6px;
-  border-radius: 4px;
-  font-size: .65rem;
-}
-
-.portfolio-upload-progress {
-  margin: 15px 0;
-}
-
-.upload-progress-text {
-  display: flex;
-  justify-content: space-between;
-  font-size: .75rem;
-  color: #aaa;
-  margin-bottom: 5px;
-}
-
-.progress-track {
-  width: 100%;
-  height: 7px;
-  background: #29231f;
-  border-radius: 10px;
-  overflow: hidden;
-}
-
-.progress-bar {
-  width: 0%;
-  height: 100%;
-  background: #9c7151;
-  transition: width .2s ease;
-}
-
-.portfolio-admin-list-title {
-  margin-top: 1.5rem;
-  margin-bottom: .7rem;
-}
-
-.portfolio-admin-list-title h3 {
-  font-size: 1rem;
-}
-
-.portfolio-admin-card {
-  display: grid;
-  grid-template-columns: 110px 1fr auto;
-  gap: 12px;
-  align-items: center;
-  background: rgba(255,255,255,.035);
-  border: 1px solid rgba(255,255,255,.08);
-  border-radius: 9px;
-  padding: 9px;
-  margin-bottom: 7px;
-}
-
-.portfolio-admin-thumb {
-  width: 110px;
-  height: 80px;
-  object-fit: cover;
-  border-radius: 6px;
-  background: #080706;
-}
-
-.portfolio-admin-info strong {
-  display: block;
-  color: #fff;
-  margin-bottom: 4px;
-}
-
-.portfolio-admin-info p {
-  color: #888;
-  font-size: .75rem;
-  line-height: 1.4;
-}
-
-.portfolio-admin-actions {
-  display: flex;
-  gap: 5px;
-}
-
-.delete-portfolio-btn {
-  background: #ef4444;
-  color: #fff;
-  border: none;
-  padding: 7px 9px;
-  border-radius: 6px;
-  cursor: pointer;
-}
-
-
-/* ============================================================
-   INGRESOS
-============================================================ */
-
-.income-title {
-  padding-right: 35px;
-}
-
-.income-filter {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 8px;
-  margin: 15px 0;
-}
-
-.income-filter label {
-  display: block;
-  font-size: .75rem;
-  color: #a3a3a3;
-  margin-bottom: 4px;
-}
-
-.income-pdf-button {
-  display: flex;
-  align-items: end;
-}
-
-.income-pdf-button button {
-  width: 100%;
-}
-
-
-/* ============================================================
-   FINANZAS
-============================================================ */
-
-.financial-box {
-  width: 100%;
-  min-height: 78px;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  padding: 13px 15px;
-  border-radius: 9px;
-}
-
-.admin-action-btn {
-  border: none;
-  padding: .42rem .58rem;
-  border-radius: 7px;
-  cursor: pointer;
-  font-size: .78rem;
-}
-
-
-/* ============================================================
-   UTILIDADES
-============================================================ */
-
-.hidden {
-  display: none !important;
-}
-
-.badge {
-  background: rgba(156,113,81,.15);
-  padding: 2px 6px;
-  border-radius: 4px;
-  font-size: .75rem;
-  color: #c49a7a;
-  font-family: monospace;
-  border: 1px solid rgba(156,113,81,.3);
-}
-
-.error-msg {
-  background: rgba(239,68,68,.15);
-  color: #f87171;
-  border: 1px solid rgba(239,68,68,.3);
-  padding: 8px 12px;
-  border-radius: 8px;
-  font-size: .85rem;
-  margin-top: 10px;
-}
-
-
-/* ============================================================
-   FOOTER
-============================================================ */
-
-.footer {
-  border-top: 1px solid #221c18;
-  background: #090706;
-  padding: 3rem 1.5rem;
-  text-align: center;
-}
-
-.footer p {
-  color: #b3a69c;
-  font-size: .9rem;
-  margin-bottom: 1rem;
-}
-
-.social-buttons {
-  display: flex;
-  justify-content: center;
-  gap: 1rem;
-  flex-wrap: wrap;
-  margin-bottom: 1.5rem;
-}
-
-.btn-social {
-  text-decoration: none;
-  color: #fff;
-  padding: .6rem 1.2rem;
-  border-radius: 8px;
-  font-weight: 600;
-  font-size: .85rem;
-  display: inline-flex;
-  align-items: center;
-  gap: .5rem;
-}
-
-.btn-ig {
-  background: linear-gradient(45deg,#7c3aed,#db2777);
-}
-
-.copyright {
-  color: #665b53 !important;
-  font-size: .75rem !important;
-}
-
-
-/* ============================================================
-   WHATSAPP
-============================================================ */
-
-.whatsapp-floating {
-  position: fixed;
-  right: 22px;
-  bottom: 22px;
-  width: 58px;
-  height: 58px;
-  background: #25D366;
-  color: #fff;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  text-decoration: none;
-  font-size: 2rem;
-  z-index: 9999;
-  box-shadow: 0 6px 20px rgba(0,0,0,.45);
-  transition: transform .25s ease, box-shadow .25s ease;
-}
-
-.whatsapp-floating:hover {
-  transform: scale(1.08);
-}
-
-
-/* ============================================================
-   RESPONSIVE GENERAL
-============================================================ */
-
-@media (max-width: 900px) {
-  .portfolio-grid {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+function irInicio() {
+  window.scrollTo({
+    top: 0,
+    behavior: "smooth"
+  });
+}
+
+
+function escaparHTML(texto) {
+  const div = document.createElement("div");
+  div.textContent = texto || "";
+  return div.innerHTML;
+}
+
+
+// ============================================================
+// 3. AUTENTICACIÓN
+// ============================================================
+
+auth.onAuthStateChanged(async (user) => {
+
+  if (!user) {
+    esAdmin = false;
+    ocultarPanelAdministrador();
+    return;
+  }
+
+  const emailUsuario = (user.email || "").trim().toLowerCase();
+  const emailAdmin = EMAIL_ADMIN.trim().toLowerCase();
+
+  if (emailUsuario !== emailAdmin) {
+    esAdmin = false;
+    ocultarPanelAdministrador();
+    return;
+  }
+
+  esAdmin = true;
+  mostrarPanelAdministrador();
+
+  try {
+    await Promise.all([
+      cargarProyectosDesdeNube(),
+      cargarIngresosDesdeNube(),
+      cargarPortafolioAdmin()
+    ]);
+    renderProyectosAdmin();
+    renderGestionIngresos();
+  } catch (error) {
+    console.error("Error cargando panel:", error);
+  }
+
+});
+
+
+async function cerrarSesionAdmin() {
+  try {
+    await auth.signOut();
+    esAdmin = false;
+    ocultarPanelAdministrador();
+    cerrarVisorPortafolio();
+    irInicio();
+  } catch (error) {
+    console.error("Error cerrando sesión:", error);
   }
 }
 
-@media (max-width: 768px) {
-  .navbar {
-    padding: .75rem 1rem;
-  }
 
-  .nav-links {
-    gap: .3rem;
-  }
+// ============================================================
+// 4. CONTROL DE VISTAS ADMIN
+// ============================================================
 
-  .nav-links button {
-    padding: .4rem .6rem;
-    font-size: .8rem;
-  }
+function mostrarPanelAdministrador() {
+  const login = document.getElementById("admin-login");
+  const panel = document.getElementById("admin-panel");
 
-  .hero-fixed-banner {
-    height: auto !important;
-    min-height: 100vh;
-    padding-top: 90px !important;
-    padding-bottom: 3rem;
-  }
+  if (login) login.classList.add("hidden");
+  if (panel) panel.classList.remove("hidden");
 
-  .hero-split-container {
-    grid-template-columns: 1fr;
-    gap: 2rem;
-    text-align: center;
-  }
+  cambiarVistaAdmin('inicio');
+}
 
-  .hero-title-big {
-    font-size: 2.7rem !important;
-  }
 
-  .hero-highlights {
-    justify-content: center;
-    flex-wrap: wrap;
-  }
+function ocultarPanelAdministrador() {
+  const login = document.getElementById("admin-login");
+  const panel = document.getElementById("admin-panel");
 
-  .portfolio-grid {
-    grid-template-columns: 1fr;
-    gap: 1rem;
-  }
+  if (panel) panel.classList.add("hidden");
+  if (login) login.classList.remove("hidden");
+}
 
-  .portfolio-card {
-    max-width: 100%;
-    width: 100%;
-    margin: 0;
-  }
 
-  .admin-fields-grid {
-    grid-template-columns: 1fr;
-  }
+function cambiarVistaAdmin(vistaId) {
+  if (!esAdmin) return;
 
-  .financial-summary,
-  .income-summary {
-    grid-template-columns: 1fr;
-  }
+  const vistas = [
+    'admin-vista-inicio',
+    'admin-vista-nuevo-proyecto',
+    'admin-vista-ingresos',
+    'admin-vista-portafolio'
+  ];
 
-  .portfolio-files-preview {
-    grid-template-columns: repeat(2,minmax(0,1fr));
-  }
+  vistas.forEach(id => {
+    const el = document.getElementById(id);
+    if (el) {
+      if (id === `admin-vista-${vistaId}` || id === vistaId) {
+        el.style.display = 'block';
+        el.classList.remove('hidden');
+      } else {
+        el.style.display = 'none';
+        el.classList.add('hidden');
+      }
+    }
+  });
 
-  .portfolio-admin-card {
-    grid-template-columns: 80px 1fr;
-  }
+  const botonesMenu = document.querySelectorAll('.admin-nav-btn');
+  botonesMenu.forEach(btn => {
+    if (btn.dataset.vista === vistaId) {
+      btn.classList.add('active');
+    } else {
+      btn.classList.remove('active');
+    }
+  });
+}
 
-  .portfolio-admin-thumb {
-    width: 80px;
-    height: 65px;
-  }
 
-  .portfolio-admin-actions {
-    grid-column: 1 / -1;
-  }
+// ============================================================
+// 5. FIRESTORE (SIN BLOQUEOS)
+// ============================================================
 
-  .income-filter {
-    grid-template-columns: 1fr;
-  }
+async function cargarProyectosDesdeNube() {
+  if (!auth.currentUser || !esAdmin) return;
+  const snapshot = await db.collection("proyectos").get();
+  proyectos = [];
+  snapshot.forEach(doc => {
+    proyectos.push({ id: doc.id, ...doc.data() });
+  });
+}
 
-  .modal-box {
-    max-width: 100%;
-    padding: 1.5rem;
-  }
 
-  .whatsapp-floating {
-    width: 54px;
-    height: 54px;
-    right: 16px;
-    bottom: 16px;
-    font-size: 1.8rem;
+async function cargarIngresosDesdeNube() {
+  if (!auth.currentUser || !esAdmin) return;
+  const snapshot = await db.collection("ingresos").get();
+  ingresos = [];
+  snapshot.forEach(doc => {
+    ingresos.push({ id: doc.id, ...doc.data() });
+  });
+}
+
+
+// ============================================================
+// 6. BÚSQUEDA PÚBLICA
+// ============================================================
+
+async function buscarProyectoPublico(codigo) {
+  const errorMsg = document.getElementById("mensaje-error");
+  const resultBox = document.getElementById("resultado-proyecto");
+
+  try {
+    const snapshot = await db.collection("proyectos_publicos")
+      .where("codigo", "==", codigo)
+      .limit(1)
+      .get();
+
+    if (snapshot.empty) {
+      resultBox?.classList.add("hidden");
+      errorMsg?.classList.remove("hidden");
+      return;
+    }
+
+    const data = snapshot.docs[0].data();
+
+    errorMsg?.classList.add("hidden");
+    resultBox?.classList.remove("hidden");
+
+    document.getElementById("res-codigo").innerText = data.codigo || "";
+    document.getElementById("res-mueble").innerText = data.mueble || "";
+    document.getElementById("res-cliente").innerText = `Cliente: ${data.cliente || ""}`;
+    document.getElementById("res-estado").innerText = data.estado || "";
+    document.getElementById("res-porcentaje").innerText = `${data.progreso || 0}%`;
+
+  } catch (error) {
+    console.error("Error búsqueda pública:", error);
+    resultBox?.classList.add("hidden");
+    if (errorMsg) {
+      errorMsg.innerText = "No se pudo consultar el proyecto.";
+      errorMsg.classList.remove("hidden");
+    }
   }
 }
+
+
+// ============================================================
+// 7. GESTIÓN DE PROYECTOS
+// ============================================================
+
+function renderProyectosAdmin() {
+  if (!esAdmin) return;
+
+  const container = document.getElementById("lista-proyectos-admin");
+  const total = document.getElementById("total-proyectos");
+
+  if (total) total.innerText = proyectos.length;
+  if (!container) return;
+
+  container.innerHTML = "";
+
+  const etapas = [
+    "Diseño Aprobado",
+    "Corte",
+    "Armado",
+    "Instalación",
+    "Finalizado"
+  ];
+
+  proyectos.forEach((p, index) => {
+    const presupuesto = Number(p.presupuesto) || 0;
+    const adelanto = Number(p.adelanto) || 0;
+    const saldo = Math.max(presupuesto - adelanto, 0);
+
+    const fecha = p.fechaEntrega
+      ? p.fechaEntrega.split("-").reverse().join("/")
+      : "Sin definir";
+
+    const card = document.createElement("div");
+    card.className = "admin-card";
+    card.style.cssText = `
+      background:rgba(255,255,255,.05);
+      border:1px solid rgba(255,255,255,.1);
+      border-radius:12px;
+      padding:1.2rem;
+      margin-bottom:1rem;
+    `;
+
+    const botones = etapas.map((estado, idx) => {
+      const activo = p.estado === estado;
+      return `
+        <button
+          type="button"
+          onclick="cambiarEstadoPorId('${p.id}', ${idx}, ${(idx + 1) * 20})"
+          style="
+            border:none;
+            padding:.4rem .7rem;
+            border-radius:6px;
+            cursor:pointer;
+            font-size:.8rem;
+            margin:.2rem;
+            ${activo ? "background:#f59e0b;color:#000;font-weight:bold;" : "background:rgba(255,255,255,.1);color:#fff;"}
+          "
+        >
+          ${estado}
+        </button>
+      `;
+    }).join("");
+
+    card.innerHTML = `
+      <div id="info-view-${index}">
+        <div style="display:flex; justify-content:space-between; gap:10px; flex-wrap:wrap;">
+          <div style="flex:1; min-width:260px;">
+            <span style="background:#f59e0b; color:#000; padding:.2rem .6rem; border-radius:4px; font-weight:bold; font-size:.85rem;">
+              ${escaparHTML(p.codigo || "")}
+            </span>
+            <strong style="margin-left:.4rem;">
+              ${escaparHTML(p.mueble || "")}
+            </strong>
+            <p style="margin:.4rem 0; color:#a3a3a3; font-size:.85rem;">
+              Cliente: ${escaparHTML(p.cliente || "")} | Tel: ${escaparHTML(p.telefono || "Sin registrar")}
+            </p>
+            <p style="color:#38bdf8; font-size:.85rem;">
+              Entrega: <strong>${fecha}</strong>
+            </p>
+
+            <div style="display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:10px; margin-top:12px;">
+              <div class="financial-box" style="background:rgba(56,189,248,.07); border:1px solid rgba(56,189,248,.25); color:#38bdf8;">
+                <span style="font-size:.75rem; opacity:.85; margin-bottom:5px;">Monto total</span>
+                <strong style="font-size:1.05rem; white-space:nowrap;">Bs. ${formatearMonto(presupuesto)}</strong>
+              </div>
+              <div class="financial-box" style="background:rgba(245,158,11,.07); border:1px solid rgba(245,158,11,.25); color:#f59e0b;">
+                <span style="font-size:.75rem; opacity:.85; margin-bottom:5px;">Adelanto</span>
+                <strong style="font-size:1.05rem; white-space:nowrap;">Bs. ${formatearMonto(adelanto)}</strong>
+              </div>
+              <div class="financial-box" style="background:rgba(239,68,68,.07); border:1px solid rgba(239,68,68,.25); color:#ef4444;">
+                <span style="font-size:.75rem; opacity:.85; margin-bottom:5px;">Pendiente</span>
+                <strong style="font-size:1.05rem; white-space:nowrap;">Bs. ${formatearMonto(saldo)}</strong>
+              </div>
+            </div>
+
+            <div style="margin-top:.7rem;">${botones}</div>
+
+            <button
+              type="button"
+              onclick="notificarWhatsApp(${index})"
+              style="margin-top:.6rem; background:#16a34a; color:white; border:none; padding:.4rem .8rem; border-radius:6px; cursor:pointer; font-size:.85rem; font-weight:bold;"
+            >
+              WhatsApp
+            </button>
+          </div>
+
+          <div style="display:flex; gap:5px; align-items:flex-start;">
+            <button type="button" onclick="activarEdicionInline(${index})" class="admin-action-btn" style="background:#3b82f6; color:#fff;" title="Editar proyecto">✏️</button>
+            <button type="button" onclick="eliminarProyecto('${p.id}')" class="admin-action-btn" style="background:#ef4444; color:#fff;" title="Eliminar proyecto">🗑️</button>
+          </div>
+        </div>
+      </div>
+    `;
+    container.appendChild(card);
+  });
+}
+
+
+async function cambiarEstadoPorId(id, etapaIdx, progreso) {
+  if (!esAdmin || !auth.currentUser) return;
+
+  const etapas = ["Diseño Aprobado", "Corte", "Armado", "Instalación", "Finalizado"];
+  const descripciones = [
+    "El diseño ha sido aprobado por WhatsApp. El proyecto ingresa a producción.",
+    "Las placas se encuentran en proceso de corte y pegado de tapacantos.",
+    "Las piezas se están ensamblando en taller.",
+    "El mueble está en proceso de traslado e instalación en sitio.",
+    "¡El proyecto ha sido completado e instalado con éxito!"
+  ];
+
+  const estado = etapas[etapaIdx];
+  const detalles = descripciones[etapaIdx];
+
+  // Actualización visual instantánea local (Cero Delay)
+  const projIndex = proyectos.findIndex(p => p.id === id);
+  if (projIndex !== -1) {
+    proyectos[projIndex].estado = estado;
+    proyectos[projIndex].progreso = progreso;
+    proyectos[projIndex].detalles = detalles;
+    renderProyectosAdmin();
+  }
+
+  // Envío a Firestore en segundo plano (sin bloquear pantalla)
+  try {
+    const batch = db.batch();
+    const proyectoRef = db.collection("proyectos").doc(id);
+    batch.update(proyectoRef, { estado, progreso, detalles });
+
+    const proyecto = proyectos.find(p => p.id === id);
+    const publicoQuery = await db.collection("proyectos_publicos")
+      .where("codigo", "==", proyecto?.codigo)
+      .limit(1)
+      .get();
+
+    publicoQuery.forEach(doc => {
+      batch.update(doc.ref, { estado, progreso, detalles });
+    });
+
+    await batch.commit();
+  } catch (error) {
+    console.error("Error estado:", error);
+  }
+}
+
+
+async function eliminarProyecto(id) {
+  if (!esAdmin || !auth.currentUser) return;
+
+  const proyectoEliminado = proyectos.find(p => p.id === id);
+
+  // Eliminación visual instantánea local (Cero Delay)
+  proyectos = proyectos.filter(p => p.id !== id);
+  ingresos = ingresos.filter(i => i.proyectoId !== id);
+  renderProyectosAdmin();
+  renderGestionIngresos();
+
+  try {
+    const batch = db.batch();
+    batch.delete(db.collection("proyectos").doc(id));
+
+    if (proyectoEliminado) {
+      const publicSnap = await db.collection("proyectos_publicos")
+        .where("codigo", "==", proyectoEliminado.codigo)
+        .limit(1)
+        .get();
+      publicSnap.forEach(doc => batch.delete(doc.ref));
+
+      const ingresoSnap = await db.collection("ingresos")
+        .where("proyectoId", "==", id)
+        .limit(1)
+        .get();
+      ingresoSnap.forEach(doc => batch.delete(doc.ref));
+    }
+
+    await batch.commit();
+  } catch (error) {
+    console.error("Error eliminando:", error);
+  }
+}
+
+
+function activarEdicionInline(index) {
+  const p = proyectos[index];
+  const info = document.getElementById(`info-view-${index}`);
+  if (!info || !p) return;
+
+  info.innerHTML = `
+    <div style="display:flex; flex-direction:column; gap:7px;">
+      <input id="edit-codigo-${index}" value="${escaparHTML(p.codigo || "")}" placeholder="Código">
+      <input id="edit-cliente-${index}" value="${escaparHTML(p.cliente || "")}" placeholder="Cliente">
+      <input id="edit-mueble-${index}" value="${escaparHTML(p.mueble || "")}" placeholder="Mueble">
+      <input id="edit-telefono-${index}" value="${escaparHTML(p.telefono || "")}" placeholder="WhatsApp">
+      <input type="number" id="edit-presupuesto-${index}" value="${p.presupuesto || 0}" placeholder="Presupuesto" min="0" step="0.01">
+      <input type="number" id="edit-adelanto-${index}" value="${p.adelanto || 0}" placeholder="Adelanto" min="0" step="0.01">
+      <input type="date" id="edit-fecha-${index}" value="${p.fechaEntrega || ""}">
+      <div>
+        <button type="button" onclick="guardarEdicionInline('${p.id}',${index})" style="background:#16a34a; color:#fff; border:none; padding:8px 12px; border-radius:6px; cursor:pointer;">Guardar</button>
+        <button type="button" onclick="renderProyectosAdmin()" style="background:#404040; color:#fff; border:none; padding:8px 12px; border-radius:6px; cursor:pointer;">Cancelar</button>
+      </div>
+    </div>
+  `;
+}
+
+
+async function guardarEdicionInline(id, index) {
+  if (!esAdmin || !auth.currentUser) return;
+
+  const proyectoAnterior = proyectos.find(p => p.id === id);
+  const codigoAnterior = proyectoAnterior?.codigo || "";
+
+  const codigo = document.getElementById(`edit-codigo-${index}`).value.trim().toUpperCase();
+  const cliente = document.getElementById(`edit-cliente-${index}`).value.trim();
+  const mueble = document.getElementById(`edit-mueble-${index}`).value.trim();
+  const telefono = document.getElementById(`edit-telefono-${index}`).value.trim();
+  const presupuesto = Number(document.getElementById(`edit-presupuesto-${index}`).value) || 0;
+  const adelanto = Number(document.getElementById(`edit-adelanto-${index}`).value) || 0;
+  const fechaEntrega = document.getElementById(`edit-fecha-${index}`).value;
+
+  // Actualización visual local instantánea
+  if (projIndex = proyectos.findIndex(p => p.id === id) !== -1) {
+    proyectos[projIndex] = { ...proyectos[projIndex], codigo, cliente, mueble, telefono, presupuesto, adelanto, fechaEntrega };
+    renderProyectosAdmin();
+  }
+
+  try {
+    await db.collection("proyectos").doc(id).update({
+      codigo, cliente, mueble, telefono, presupuesto, adelanto, fechaEntrega
+    });
+
+    const ingresoSnap = await db.collection("ingresos").where("proyectoId", "==", id).limit(1).get();
+    if (!ingresoSnap.empty) {
+      const ingresoDoc = ingresoSnap.docs[0];
+      const ingreso = ingresoDoc.data();
+      const pagosFinales = Number(ingreso.pagosFinales) || 0;
+      const cobrado = adelanto + pagosFinales;
+      const pendiente = Math.max(presupuesto - cobrado, 0);
+
+      await ingresoDoc.ref.update({ codigo, cliente, mueble, presupuesto, adelanto, cobrado, pendiente });
+      await cargarIngresosDesdeNube();
+      renderGestionIngresos();
+    }
+
+    const publicoSnap = await db.collection("proyectos_publicos").where("codigo", "==", codigoAnterior).limit(1).get();
+    for (const doc of publicoSnap.docs) {
+      await doc.ref.update({ codigo, cliente, mueble, fechaEntrega });
+    }
+  } catch (error) {
+    console.error("Error editando:", error);
+  }
+}
+
+
+// ============================================================
+// 8. INGRESOS
+// ============================================================
+
+function renderGestionIngresos() {
+  if (!esAdmin) return;
+
+  const container = document.getElementById("lista-ingresos");
+  if (!container) return;
+
+  const filtro = document.getElementById("ingresos-mes")?.value || "";
+  let lista = [...ingresos];
+
+  if (filtro) {
+    lista = lista.filter(ingreso => {
+      let fecha = null;
+      if (ingreso.fechaCreacion && ingreso.fechaCreacion.toDate) {
+        fecha = ingreso.fechaCreacion.toDate();
+      }
+      if (!fecha) return true;
+      const mes = `${fecha.getFullYear()}-${String(fecha.getMonth() + 1).padStart(2, "0")}`;
+      return mes === filtro;
+    });
+  }
+
+  let totalCobrado = 0;
+  let totalPendiente = 0;
+
+  lista.forEach(ingreso => {
+    totalCobrado += Number(ingreso.cobrado) || 0;
+    totalPendiente += Number(ingreso.pendiente) || 0;
+  });
+
+  const resumenProyectos = document.getElementById("ing-resumen-proyectos");
+  const resumenCobrado = document.getElementById("ing-resumen-cobrado");
+  const resumenPendiente = document.getElementById("ing-resumen-pendiente");
+
+  if (resumenProyectos) resumenProyectos.innerText = lista.length;
+  if (resumenCobrado) resumenCobrado.innerText = `Bs. ${formatearMonto(totalCobrado)}`;
+  if (resumenPendiente) resumenPendiente.innerText = `Bs. ${formatearMonto(totalPendiente)}`;
+
+  container.innerHTML = "";
+
+  if (!lista.length) {
+    container.innerHTML = `<div style="text-align:center; color:#777; padding:25px;">No hay registros para este mes.</div>`;
+    return;
+  }
+
+  lista.forEach(ingreso => {
+    const card = document.createElement("div");
+    card.style.cssText = `
+      background:rgba(255,255,255,.035);
+      border:1px solid rgba(255,255,255,.09);
+      border-radius:9px;
+      padding:10px;
+      margin-bottom:7px;
+    `;
+
+    const presupuesto = Number(ingreso.presupuesto) || 0;
+    const adelanto = Number(ingreso.adelanto) || 0;
+    const cobrado = Number(ingreso.cobrado) || 0;
+    const pendiente = Math.max(presupuesto - cobrado, 0);
+
+    card.innerHTML = `
+      <div style="display:flex; justify-content:space-between; gap:8px;">
+        <div>
+          <strong>${escaparHTML(ingreso.cliente || "")}</strong>
+          <div style="color:#a3a3a3; font-size:.75rem;">
+            ${escaparHTML(ingreso.codigo || "")} · ${escaparHTML(ingreso.mueble || "")}
+          </div>
+        </div>
+        <div style="color:#38bdf8; font-weight:bold; font-size:.85rem;">
+          Total: Bs. ${formatearMonto(presupuesto)}
+        </div>
+      </div>
+
+      <div style="display:grid; grid-template-columns:repeat(3,1fr); gap:5px; margin-top:8px;">
+        <div class="summary-box amber">Adelanto<strong>Bs. ${formatearMonto(adelanto)}</strong></div>
+        <div class="summary-box green">Cobrado<strong>Bs. ${formatearMonto(cobrado)}</strong></div>
+        <div class="summary-box red">Pendiente<strong>Bs. ${formatearMonto(pendiente)}</strong></div>
+      </div>
+
+      ${
+        pendiente > 0
+          ? `
+            <div style="display:flex; gap:5px; margin-top:8px;">
+              <input type="number" min="0" step="0.01" id="pago-${ingreso.id}" placeholder="Monto pagado">
+              <button type="button" onclick="registrarPago('${ingreso.id}')" style="background:#16a34a; color:#fff; border:none; border-radius:6px; padding:7px 10px; cursor:pointer; font-weight:bold;">Registrar pago</button>
+            </div>
+          `
+          : `
+            <div style="margin-top:8px; color:#4ade80; font-size:.78rem; text-align:center;">
+              <i class="fa-solid fa-circle-check"></i> Proyecto pagado completamente
+            </div>
+          `
+      }
+    `;
+    container.appendChild(card);
+  });
+}
+
+
+async function registrarPago(ingresoId) {
+  if (!esAdmin || !auth.currentUser) return;
+
+  const input = document.getElementById(`pago-${ingresoId}`);
+  const monto = Number(input?.value) || 0;
+  if (monto <= 0) return;
+
+  const ingreso = ingresos.find(i => i.id === ingresoId);
+  if (!ingreso) return;
+
+  const presupuesto = Number(ingreso.presupuesto) || 0;
+  const cobradoActual = Number(ingreso.cobrado) || 0;
+  const pendienteActual = Math.max(presupuesto - cobradoActual, 0);
+
+  const pago = Math.min(monto, pendienteActual);
+  if (pago <= 0) return;
+
+  const pagosFinalesActuales = Number(ingreso.pagosFinales) || 0;
+  const nuevosPagosFinales = pagosFinalesActuales + pago;
+  const nuevoCobrado = cobradoActual + pago;
+  const nuevoPendiente = Math.max(presupuesto - nuevoCobrado, 0);
+
+  // Actualización local inmediata (Cero Delay)
+  const idx = ingresos.findIndex(i => i.id === ingresoId);
+  if (idx !== -1) {
+    ingresos[idx].pagosFinales = nuevosPagosFinales;
+    ingresos[idx].cobrado = nuevoCobrado;
+    ingresos[idx].pendiente = nuevoPendiente;
+    renderGestionIngresos();
+  }
+
+  try {
+    await db.collection("ingresos").doc(ingresoId).update({
+      pagosFinales: nuevosPagosFinales,
+      cobrado: nuevoCobrado,
+      pendiente: nuevoPendiente,
+      fechaUltimoPago: firebase.firestore.FieldValue.serverTimestamp()
+    });
+  } catch (error) {
+    console.error("Error registrando pago:", error);
+  }
+}
+
+
+// ============================================================
+// 9. PDF
+// ============================================================
+
+async function obtenerLogoPDF() {
+  try {
+    const response = await fetch("logo.png");
+    if (!response.ok) return null;
+    const blob = await response.blob();
+    return await new Promise(resolve => {
+      const reader = new FileReader();
+      reader.onloadend = () => resolve(reader.result);
+      reader.onerror = () => resolve(null);
+      reader.readAsDataURL(blob);
+    });
+  } catch (error) {
+    return null;
+  }
+}
+
+
+async function exportarIngresosPDF() {
+  if (!esAdmin) return;
+
+  const filtro = document.getElementById("ingresos-mes")?.value || "";
+  if (!filtro) return;
+
+  if (!window.jspdf || !window.jspdf.jsPDF) {
+    alert("jsPDF no disponible.");
+    return;
+  }
+
+  const lista = ingresos.filter(ingreso => {
+    if (!ingreso.fechaCreacion || !ingreso.fechaCreacion.toDate) return true;
+    const fecha = ingreso.fechaCreacion.toDate();
+    const mes = `${fecha.getFullYear()}-${String(fecha.getMonth() + 1).padStart(2, "0")}`;
+    return mes === filtro;
+  });
+
+  const jsPDF = window.jspdf.jsPDF;
+  const doc = new jsPDF({ orientation: "landscape", unit: "mm", format: "a4" });
+
+  const [anio, mes] = filtro.split("-");
+  const nombresMes = ["Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"];
+  const nombreMes = nombresMes[Number(mes) - 1] || mes;
+
+  const logo = await obtenerLogoPDF();
+
+  const NEGRO = [18, 18, 18];
+  const GRIS = [105, 105, 105];
+  const DORADO = [156, 113, 81];
+  const BLANCO = [255, 255, 255];
+  const VERDE = [22, 163, 74];
+  const AZUL = [37, 99, 235];
+
+  let sumaMontosTotales = 0;
+  let sumaAdelantosMateriales = 0;
+  let sumaSaldosGanancia = 0;
+
+  const filas = lista.map(ingreso => {
+    const monto = Number(ingreso.presupuesto || ingreso.monto) || 0;
+    const adelantoMateriales = Number(ingreso.adelanto) || 0;
+    const saldoGanancia = Number(ingreso.saldo !== undefined ? ingreso.saldo : Math.max(monto - adelantoMateriales, 0)) || 0;
+
+    sumaMontosTotales += monto;
+    sumaAdelantosMateriales += adelantoMateriales;
+    sumaSaldosGanancia += saldoGanancia;
+
+    return [
+      ingreso.codigo || "",
+      ingreso.cliente || "",
+      ingreso.mueble || ingreso.concepto || "",
+      `Bs. ${formatearMonto(monto)}`,
+      `Bs. ${formatearMonto(adelantoMateriales)}`,
+      `Bs. ${formatearMonto(saldoGanancia)}`
+    ];
+  });
+
+  if (logo) {
+    try { doc.addImage(logo, "PNG", 14, 10, 25, 18); } catch (e) {}
+  }
+
+  const posicionTexto = logo ? 45 : 14;
+
+  doc.setTextColor(...NEGRO);
+  doc.setFont("helvetica", "bold");
+  doc.setFontSize(20);
+  doc.text("HN MUEBLES", posicionTexto, 17);
+
+  doc.setFont("helvetica", "normal");
+  doc.setFontSize(9);
+  doc.setTextColor(...GRIS);
+  doc.text("DISEÑO Y FABRICACIÓN DE MUEBLES A MEDIDA", posicionTexto, 23);
+
+  doc.setFont("helvetica", "bold");
+  doc.setFontSize(14);
+  doc.setTextColor(...DORADO);
+  doc.text("REPORTE FINANCIERO - GESTIÓN DE INGRESOS", 14, 38);
+
+  doc.setFont("helvetica", "normal");
+  doc.setFontSize(11);
+  doc.setTextColor(...NEGRO);
+  doc.text(`${nombreMes} ${anio}`, 14, 45);
+
+  doc.setDrawColor(...DORADO);
+  doc.setLineWidth(0.8);
+  doc.line(14, 49, 283, 49);
+
+  const resumenY = 55;
+  const anchoCaja = 85;
+  const altoCaja = 20;
+  const separacion = 10;
+
+  const resumen = [
+    { titulo: "TOTAL MONTO PROYECTOS", valor: `Bs. ${formatearMonto(sumaMontosTotales)}`, color: AZUL },
+    { titulo: "TOTAL MATERIALES (ADELANTOS)", valor: `Bs. ${formatearMonto(sumaAdelantosMateriales)}`, color: DORADO },
+    { titulo: "TOTAL GANANCIA NETA (SALDOS)", valor: `Bs. ${formatearMonto(sumaSaldosGanancia)}`, color: VERDE }
+  ];
+
+  resumen.forEach((item, index) => {
+    const x = 14 + index * (anchoCaja + separacion);
+    doc.setFillColor(248, 248, 248);
+    doc.setDrawColor(225, 225, 225);
+    doc.roundedRect(x, resumenY, anchoCaja, altoCaja, 3, 3, "FD");
+    doc.setFillColor(...item.color);
+    doc.roundedRect(x, resumenY, 2.5, altoCaja, 1, 1, "F");
+
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(7);
+    doc.setTextColor(...GRIS);
+    doc.text(item.titulo, x + 7, resumenY + 7);
+
+    doc.setFontSize(11);
+    doc.setTextColor(...NEGRO);
+    doc.text(item.valor, x + 7, resumenY + 15);
+  });
+
+  const tablaY = resumenY + altoCaja + 8;
+
+  if (typeof doc.autoTable === "function") {
+    doc.autoTable({
+      startY: tablaY,
+      margin: { left: 14, right: 14 },
+      head: [["CÓDIGO", "CLIENTE", "PROYECTO", "MONTO TOTAL", "ADELANTO (MATERIALES)", "SALDO (GANANCIA NETA)"]],
+      body: filas,
+      theme: "grid",
+      headStyles: { fillColor: NEGRO, textColor: BLANCO, fontStyle: "bold", fontSize: 8, halign: "center", valign: "middle", cellPadding: 4 },
+      bodyStyles: { fontSize: 8, textColor: [45,45,45], cellPadding: 3.5, valign: "middle" },
+      alternateRowStyles: { fillColor: [248,248,248] },
+      columnStyles: {
+        0: { cellWidth: 30, halign: "center" },
+        1: { cellWidth: 60 },
+        2: { cellWidth: 83 },
+        3: { cellWidth: 35, halign: "right" },
+        4: { cellWidth: 35, halign: "right" },
+        5: { cellWidth: 42, halign: "right" }
+      }
+    });
+  }
+
+  doc.save(`HN-MUEBLES-Gestion-Ingresos-${anio}-${mes}.pdf`);
+}
+
+
+// ============================================================
+// 10. WHATSAPP
+// ============================================================
+
+function notificarWhatsApp(index) {
+  if (!esAdmin) return;
+
+  const p = proyectos[index];
+  if (!p || !p.telefono) return;
+
+  let numero = p.telefono.toString().replace(/\D/g, "");
+  if (!numero.startsWith("591") && numero.length === 8) {
+    numero = "591" + numero;
+  }
+
+  const link = window.location.origin + window.location.pathname + `?codigo=${encodeURIComponent(p.codigo)}`;
+  const fecha = p.fechaEntrega ? p.fechaEntrega.split("-").reverse().join("/") : "Por coordinar";
+
+  const mensaje = `Hola *${p.cliente}* 👋, desde *HN Muebles* te informamos el estado de tu proyecto *"${p.mueble}"*:
+
+🛠️ *Estado:* ${p.estado}
+📊 *Progreso:* ${p.progreso}%
+📅 *Fecha estimada de entrega:* ${fecha}
+
+🔍 *Consulta el estado de tu proyecto:*
+${link}`;
+
+  window.open(`https://wa.me/${numero}?text=${encodeURIComponent(mensaje)}`, "_blank");
+}
+
+
+// ============================================================
+// 11. PORTAFOLIO
+// ============================================================
+
+async function cargarPortafolioPublico() {
+  const container = document.getElementById("portfolio-grid");
+  if (!container) return;
+
+  try {
+    const snapshot = await db.collection("portafolio").orderBy("creadoEn", "desc").get();
+    portafolio = [];
+    snapshot.forEach(doc => portafolio.push({ id: doc.id, ...doc.data() }));
+    renderPortafolioPublico();
+  } catch (error) {
+    console.error("Error cargando portafolio:", error);
+  }
+}
+
+
+function crearVisorPortafolio() {
+  if (document.getElementById("hn-portfolio-viewer")) return;
+
+  const visor = document.createElement("div");
+  visor.id = "hn-portfolio-viewer";
+  visor.innerHTML = `
+    <div id="hn-portfolio-backdrop" onclick="cerrarVisorPortafolio()" style="position:absolute; inset:0; background:rgba(0,0,0,.88); backdrop-filter:blur(8px);"></div>
+    <button type="button" onclick="cerrarVisorPortafolio()" style="position:absolute; top:20px; right:25px; z-index:20; width:45px; height:45px; border:none; border-radius:50%; background:rgba(255,255,255,.12); color:#fff; font-size:24px; cursor:pointer;">×</button>
+    <button type="button" id="hn-portfolio-prev" onclick="visorPortafolioAnterior(event)" style="position:absolute; left:20px; top:50%; transform:translateY(-50%); z-index:20; width:50px; height:50px; border:none; border-radius:50%; background:rgba(255,255,255,.12); color:#fff; font-size:30px; cursor:pointer;">‹</button>
+    <div id="hn-portfolio-content" style="position:relative; z-index:10; width:calc(100% - 150px); height:calc(100% - 120px); display:flex; flex-direction:column; justify-content:center; align-items:center;"></div>
+    <button type="button" id="hn-portfolio-next" onclick="visorPortafolioSiguiente(event)" style="position:absolute; right:20px; top:50%; transform:translateY(-50%); z-index:20; width:50px; height:50px; border:none; border-radius:50%; background:rgba(255,255,255,.12); color:#fff; font-size:30px; cursor:pointer;">›</button>
+    <div id="hn-portfolio-counter" style="position:absolute; bottom:25px; left:50%; transform:translateX(-50%); z-index:20; color:#fff; background:rgba(0,0,0,.5); padding:7px 15px; border-radius:20px; font-size:13px;"></div>
+  `;
+  visor.style.cssText = "position:fixed; inset:0; z-index:99999; display:none; align-items:center; justify-content:center; padding:30px;";
+  document.body.appendChild(visor);
+}
+
+
+let visorTrabajoActual = null;
+let visorIndiceActual = 0;
+
+
+function abrirVisorPortafolio(trabajoId, indice = 0) {
+  const trabajo = portafolio.find(p => p.id === trabajoId);
+  if (!trabajo) return;
+  const media = Array.isArray(trabajo.media) ? trabajo.media : [];
+  if (!media.length) return;
+
+  crearVisorPortafolio();
+  visorTrabajoActual = trabajo;
+  visorIndiceActual = indice;
+
+  const visor = document.getElementById("hn-portfolio-viewer");
+  if (!visor) return;
+
+  visor.style.display = "flex";
+  document.body.style.overflow = "hidden";
+  mostrarMediaVisor();
+  document.addEventListener("keydown", manejarTecladoVisor);
+}
+
+
+function mostrarMediaVisor() {
+  if (!visorTrabajoActual) return;
+  const media = visorTrabajoActual.media || [];
+  if (!media.length) return;
+
+  if (visorIndiceActual < 0) visorIndiceActual = media.length - 1;
+  if (visorIndiceActual >= media.length) visorIndiceActual = 0;
+
+  const actual = media[visorIndiceActual];
+  const content = document.getElementById("hn-portfolio-content");
+  const counter = document.getElementById("hn-portfolio-counter");
+
+  if (!content) return;
+  content.innerHTML = "";
+
+  const titulo = document.createElement("div");
+  titulo.className = "visor-title";
+  titulo.textContent = visorTrabajoActual.titulo || "HN Muebles";
+  content.appendChild(titulo);
+
+  if (actual.tipo === "video") {
+    const video = document.createElement("video");
+    video.src = actual.url;
+    video.controls = true;
+    video.autoplay = true;
+    video.playsInline = true;
+    content.appendChild(video);
+  } else {
+    const img = document.createElement("img");
+    img.src = actual.url;
+    img.alt = visorTrabajoActual.titulo || "Trabajo HN Muebles";
+    content.appendChild(img);
+  }
+
+  if (counter) counter.innerText = `${visorIndiceActual + 1} / ${media.length}`;
+}
+
+
+function visorPortafolioAnterior(event) {
+  event?.stopPropagation();
+  if (!visorTrabajoActual) return;
+  visorIndiceActual--;
+  mostrarMediaVisor();
+}
+
+
+function visorPortafolioSiguiente(event) {
+  event?.stopPropagation();
+  if (!visorTrabajoActual) return;
+  visorIndiceActual++;
+  mostrarMediaVisor();
+}
+
+
+function manejarTecladoVisor(event) {
+  const visor = document.getElementById("hn-portfolio-viewer");
+  if (!visor || visor.style.display === "none") return;
+  if (event.key === "Escape") cerrarVisorPortafolio();
+  if (event.key === "ArrowLeft") visorPortafolioAnterior();
+  if (event.key === "ArrowRight") visorPortafolioSiguiente();
+}
+
+
+function cerrarVisorPortafolio() {
+  const visor = document.getElementById("hn-portfolio-viewer");
+  if (visor) visor.style.display = "none";
+  document.body.style.overflow = "";
+  visorTrabajoActual = null;
+  visorIndiceActual = 0;
+  document.removeEventListener("keydown", manejarTecladoVisor);
+}
+
+
+function renderPortafolioPublico() {
+  const container = document.getElementById("portfolio-grid");
+  if (!container) return;
+  container.innerHTML = "";
+
+  if (!portafolio.length) {
+    container.innerHTML = `<div class="portfolio-empty"><p>Próximamente mostraremos nuestros trabajos aquí.</p></div>`;
+    return;
+  }
+
+  portafolio.forEach(trabajo => {
+    const card = document.createElement("article");
+    card.className = "portfolio-card";
+    const media = Array.isArray(trabajo.media) ? trabajo.media : [];
+    const primerMedia = media[0];
+    let mediaHTML = "";
+
+    if (primerMedia) {
+      mediaHTML = `
+        <div class="portfolio-media" style="position:relative; cursor:pointer;" onclick="abrirVisorPortafolio('${trabajo.id}',0)">
+          <img src="${primerMedia.url}" alt="" loading="lazy" style="width:100%; height:100%; object-fit:cover;"/>
+        </div>
+      `;
+    }
+
+    card.innerHTML = `
+      ${mediaHTML}
+      <div class="portfolio-card-body">
+        <div class="portfolio-card-title">${escaparHTML(trabajo.titulo || "")}</div>
+        <div class="portfolio-card-description">${escaparHTML(trabajo.descripcion || "")}</div>
+      </div>
+    `;
+    container.appendChild(card);
+  });
+}
+
+
+async function cargarPortafolioAdmin() {
+  if (!esAdmin || !auth.currentUser) return;
+  const snapshot = await db.collection("portafolio").orderBy("creadoEn", "desc").get();
+  portafolio = [];
+  snapshot.forEach(doc => portafolio.push({ id: doc.id, ...doc.data() }));
+  renderPortafolioAdmin();
+}
+
+
+function mostrarPreviewArchivos() {
+  const container = document.getElementById("portfolio-files-preview");
+  const fotos = Array.from(document.getElementById("portfolio-fotos")?.files || []);
+  const videos = Array.from(document.getElementById("portfolio-videos")?.files || []);
+  if (!container) return;
+  container.innerHTML = "";
+
+  [...fotos, ...videos].forEach(archivo => {
+    const div = document.createElement("div");
+    div.className = "file-preview";
+    const url = URL.createObjectURL(archivo);
+    div.innerHTML = `<img src="${url}" alt="">`;
+    container.appendChild(div);
+  });
+}
+
+
+async function subirArchivoCloudinary(archivo) {
+  return new Promise((resolve, reject) => {
+    const formData = new FormData();
+    formData.append("file", archivo);
+    formData.append("upload_preset", CLOUDINARY_UPLOAD_PRESET);
+
+    const xhr = new XMLHttpRequest();
+    xhr.open("POST", `https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD_NAME}/auto/upload`);
+
+    xhr.onload = () => {
+      if (xhr.status >= 200 && xhr.status < 300) {
+        resolve(JSON.parse(xhr.responseText));
+      } else {
+        reject(new Error("Cloudinary rechazó el archivo."));
+      }
+    };
+
+    xhr.onerror = () => reject(new Error("Error de conexión."));
+    xhr.send(formData);
+  });
+}
+
+
+async function publicarTrabajoPortafolio(e) {
+  e.preventDefault();
+  if (!esAdmin || !auth.currentUser) return;
+
+  const titulo = document.getElementById("portfolio-titulo")?.value.trim() || "";
+  const descripcion = document.getElementById("portfolio-descripcion")?.value.trim() || "";
+  const fotos = Array.from(document.getElementById("portfolio-fotos")?.files || []);
+  const videos = Array.from(document.getElementById("portfolio-videos")?.files || []);
+  const archivos = [...fotos, ...videos];
+
+  if (!titulo || !archivos.length) {
+    alert("Completa el título y selecciona al menos un archivo.");
+    return;
+  }
+
+  try {
+    const media = [];
+    for (const archivo of archivos) {
+      const resultado = await subirArchivoCloudinary(archivo);
+      media.push({
+        tipo: archivo.type.startsWith("video/") ? "video" : "imagen",
+        url: resultado.secure_url || resultado.url,
+        public_id: resultado.public_id || "",
+        nombre: archivo.name
+      });
+    }
+
+    await db.collection("portafolio").add({
+      titulo,
+      descripcion,
+      media,
+      creadoPor: auth.currentUser.email,
+      creadoEn: firebase.firestore.FieldValue.serverTimestamp()
+    });
+
+    document.getElementById("form-portafolio")?.reset();
+    document.getElementById("portfolio-files-preview").innerHTML = "";
+
+    await cargarPortafolioAdmin();
+    await cargarPortafolioPublico();
+    alert("Trabajo publicado correctamente.");
+  } catch (error) {
+    console.error("Error publicando portafolio:", error);
+    alert("No se pudo publicar el trabajo.");
+  }
+}
+
+
+function renderPortafolioAdmin() {
+  const container = document.getElementById("lista-portafolio-admin");
+  const total = document.getElementById("total-portafolio");
+  if (total) total.innerText = portafolio.length;
+  if (!container) return;
+
+  container.innerHTML = "";
+  if (!portafolio.length) {
+    container.innerHTML = `<div style="text-align:center; color:#777; padding:25px;">Todavía no tienes trabajos publicados.</div>`;
+    return;
+  }
+
+  portafolio.forEach(trabajo => {
+    const card = document.createElement("div");
+    card.className = "portfolio-admin-card";
+    const primerMedia = trabajo.media?.[0];
+    const thumb = primerMedia?.url || "";
+
+    card.innerHTML = `
+      <div style="cursor:pointer; position:relative;" onclick="abrirVisorPortafolio('${trabajo.id}',0)">
+        <img src="${thumb}" class="portfolio-admin-thumb" alt="">
+      </div>
+      <div class="portfolio-admin-info">
+        <strong>${escaparHTML(trabajo.titulo || "")}</strong>
+        <p>${escaparHTML(trabajo.descripcion || "")}</p>
+        <p>${trabajo.media?.length || 0} archivo(s)</p>
+      </div>
+      <div class="portfolio-admin-actions">
+        <button type="button" class="delete-portfolio-btn" onclick="eliminarTrabajoPortafolio('${trabajo.id}')">
+          <i class="fa-solid fa-trash"></i> Eliminar
+        </button>
+      </div>
+    `;
+    container.appendChild(card);
+  });
+}
+
+
+async function eliminarTrabajoPortafolio(id) {
+  if (!esAdmin || !auth.currentUser) return;
+
+  // Eliminación visual local instantánea
+  portafolio = portafolio.filter(p => p.id !== id);
+  renderPortafolioAdmin();
+  renderPortafolioPublico();
+  cerrarVisorPortafolio();
+
+  try {
+    await db.collection("portafolio").doc(id).delete();
+  } catch (error) {
+    console.error("Error eliminando portafolio:", error);
+  }
+}
+
+
+// ============================================================
+// 12. DOM READY
+// ============================================================
+
+document.addEventListener("DOMContentLoaded", function () {
+
+  const formLogin = document.getElementById("form-login");
+  if (formLogin) {
+    formLogin.addEventListener("submit", async function (e) {
+      e.preventDefault();
+      const email = document.getElementById("input-email")?.value.trim().toLowerCase();
+      const password = document.getElementById("input-pass")?.value || "";
+      if (!email || !password) return;
+
+      try {
+        await auth.signInWithEmailAndPassword(email, password);
+      } catch (error) {
+        console.error("ERROR LOGIN:", error);
+      }
+    });
+  }
+
+  const formBuscar = document.getElementById("form-buscar");
+  if (formBuscar) {
+    formBuscar.addEventListener("submit", async function (e) {
+      e.preventDefault();
+      const codigo = document.getElementById("input-codigo")?.value.trim().toUpperCase();
+      if (codigo) await buscarProyectoPublico(codigo);
+    });
+  }
+
+  const presupuestoInput = document.getElementById("nuevo-presupuesto");
+  const adelantoInput = document.getElementById("nuevo-adelanto");
+
+  function calcularSaldoNuevo() {
+    const total = Number(presupuestoInput?.value) || 0;
+    const adelanto = Number(adelantoInput?.value) || 0;
+    const saldo = Math.max(total - adelanto, 0);
+
+    const totalPreview = document.getElementById("nuevo-total-preview");
+    const adelantoPreview = document.getElementById("nuevo-adelanto-preview");
+    const saldoPreview = document.getElementById("nuevo-saldo-preview");
+
+    if (totalPreview) totalPreview.innerText = `Bs. ${formatearMonto(total)}`;
+    if (adelantoPreview) adelantoPreview.innerText = `Bs. ${formatearMonto(adelanto)}`;
+    if (saldoPreview) saldoPreview.innerText = `Bs. ${formatearMonto(saldo)}`;
+  }
+
+  presupuestoInput?.addEventListener("input", calcularSaldoNuevo);
+  adelantoInput?.addEventListener("input", calcularSaldoNuevo);
+  calcularSaldoNuevo();
+
+  const formNuevo = document.getElementById("form-nuevo-proyecto");
+  if (formNuevo) {
+    formNuevo.addEventListener("submit", async function (e) {
+      e.preventDefault();
+      if (!esAdmin || !auth.currentUser) return;
+
+      const codigo = document.getElementById("nuevo-codigo")?.value.trim().toUpperCase() || generarCodigoAleatorio();
+      const cliente = document.getElementById("nuevo-cliente")?.value.trim() || "";
+      const mueble = document.getElementById("nuevo-mueble")?.value.trim() || "";
+      const telefono = document.getElementById("nuevo-telefono")?.value.trim() || "";
+      const presupuesto = Number(document.getElementById("nuevo-presupuesto")?.value) || 0;
+      const adelanto = Number(document.getElementById("nuevo-adelanto")?.value) || 0;
+      const fechaEntrega = document.getElementById("nuevo-fecha")?.value || "";
+      const pendiente = Math.max(presupuesto - adelanto, 0);
+
+      const proyectoRef = db.collection("proyectos").doc();
+      const ingresoRef = db.collection("ingresos").doc();
+      const publicoRef = db.collection("proyectos_publicos").doc(proyectoRef.id);
+
+      const proyecto = {
+        id: proyectoRef.id,
+        codigo, cliente, mueble, telefono,
+        estado: "Diseño Aprobado",
+        progreso: 20,
+        detalles: "Diseño confirmado por WhatsApp. Listo para corte.",
+        presupuesto, adelanto, fechaEntrega,
+        creadoEn: firebase.firestore.FieldValue.serverTimestamp()
+      };
+
+      const ingreso = {
+        id: ingresoRef.id,
+        proyectoId: proyectoRef.id,
+        codigo, cliente, mueble, presupuesto, adelanto,
+        pagosFinales: 0, cobrado: adelanto, pendiente,
+        fechaCreacion: firebase.firestore.FieldValue.serverTimestamp()
+      };
+
+      // Inserción visual local instantánea (Cero Delay)
+      proyectos.unshift(proyecto);
+      ingresos.unshift(ingreso);
+      renderProyectosAdmin();
+      renderGestionIngresos();
+
+      // Limpieza inmediata del formulario
+      document.getElementById("nuevo-codigo").value = generarCodigoAleatorio();
+      document.getElementById("nuevo-cliente").value = "";
+      document.getElementById("nuevo-mueble").value = "";
+      document.getElementById("nuevo-telefono").value = "";
+      document.getElementById("nuevo-presupuesto").value = "";
+      document.getElementById("nuevo-adelanto").value = "";
+      document.getElementById("nuevo-fecha").value = "";
+      calcularSaldoNuevo();
+
+      // Envío a Firestore en segundo plano
+      try {
+        const batch = db.batch();
+        batch.set(proyectoRef, proyecto);
+        batch.set(ingresoRef, ingreso);
+        batch.set(publicoRef, { codigo, cliente, mueble, estado: "Diseño Aprobado", progreso: 20, detalles: "Diseño confirmado por WhatsApp.", fechaEntrega });
+        await batch.commit();
+      } catch (error) {
+        console.error("Error creando proyecto:", error);
+      }
+    });
+  }
+
+  const filtroIngresos = document.getElementById("ingresos-mes");
+  if (filtroIngresos) {
+    const ahora = new Date();
+    filtroIngresos.value = `${ahora.getFullYear()}-${String(ahora.getMonth() + 1).padStart(2, "0")}`;
+    filtroIngresos.addEventListener("change", () => renderGestionIngresos());
+  }
+
+  crearVisorPortafolio();
+  cargarPortafolioPublico();
+
+  document.getElementById("portfolio-fotos")?.addEventListener("change", mostrarPreviewArchivos);
+  document.getElementById("portfolio-videos")?.addEventListener("change", mostrarPreviewArchivos);
+
+  const formPortfolio = document.getElementById("form-portafolio");
+  if (formPortfolio) {
+    formPortfolio.addEventListener("submit", publicarTrabajoPortafolio);
+  }
+
+});
