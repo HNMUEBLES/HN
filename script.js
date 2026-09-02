@@ -1,5 +1,5 @@
 // ============================================================
-// HN MUEBLES - SCRIPT PRINCIPAL (ULTRA OPTIMIZADO: SIN DELAY)
+// HN MUEBLES - SCRIPT PRINCIPAL (CON EDICIÓN DE PORTAFOLIO)
 // Firebase Authentication + Firestore
 // Cloudinary para Portafolio
 // ============================================================
@@ -864,7 +864,7 @@ ${link}`;
 
 
 // ============================================================
-// 11. PORTAFOLIO
+// 11. PORTAFOLIO (PÚBLICO, ADMIN Y EDICIÓN)
 // ============================================================
 
 async function cargarPortafolioPublico() {
@@ -1083,9 +1083,6 @@ async function subirArchivoCloudinary(archivo) {
 }
 
 
-// ============================================================
-// CORRECCIÓN PRINCIPAL PARA MÓVIL Y ESCRITORIO
-// ============================================================
 async function publicarTrabajoPortafolio(e) {
   e.preventDefault();
   
@@ -1110,7 +1107,6 @@ async function publicarTrabajoPortafolio(e) {
     return;
   }
 
-  // Notificación visual en celular para indicar que el proceso comenzó
   alert(`Subiendo ${archivos.length} archivo(s)... Por favor espera un momento.`);
 
   try {
@@ -1160,9 +1156,11 @@ function renderPortafolioAdmin() {
     return;
   }
 
-  portafolio.forEach(trabajo => {
+  portafolio.forEach((trabajo, index) => {
     const card = document.createElement("div");
     card.className = "portfolio-admin-card";
+    card.id = `portfolio-admin-item-${trabajo.id}`;
+    
     const primerMedia = trabajo.media?.[0];
     const thumb = primerMedia?.url || "";
 
@@ -1170,19 +1168,69 @@ function renderPortafolioAdmin() {
       <div style="cursor:pointer; position:relative;" onclick="abrirVisorPortafolio('${trabajo.id}',0)">
         <img src="${thumb}" class="portfolio-admin-thumb" alt="">
       </div>
-      <div class="portfolio-admin-info">
+      <div class="portfolio-admin-info" id="portfolio-info-${trabajo.id}">
         <strong>${escaparHTML(trabajo.titulo || "")}</strong>
         <p>${escaparHTML(trabajo.descripcion || "")}</p>
         <p>${trabajo.media?.length || 0} archivo(s)</p>
       </div>
-      <div class="portfolio-admin-actions">
-        <button type="button" class="delete-portfolio-btn" onclick="eliminarTrabajoPortafolio('${trabajo.id}')">
-          <i class="fa-solid fa-trash"></i> Eliminar
-        </button>
+      <div class="portfolio-admin-actions" style="display:flex; gap:6px;">
+        <button type="button" onclick="activarEdicionPortafolio('${trabajo.id}')" style="background:#3b82f6; color:#fff; border:none; padding:8px 10px; border-radius:6px; cursor:pointer;" title="Editar trabajo">✏️</button>
+        <button type="button" class="delete-portfolio-btn" onclick="eliminarTrabajoPortafolio('${trabajo.id}')" style="background:#ef4444; color:#fff; border:none; padding:8px 10px; border-radius:6px; cursor:pointer;" title="Eliminar trabajo">🗑️</button>
       </div>
     `;
     container.appendChild(card);
   });
+}
+
+
+function activarEdicionPortafolio(id) {
+  const trabajo = portafolio.find(p => p.id === id);
+  const infoContainer = document.getElementById(`portfolio-info-${id}`);
+  if (!trabajo || !infoContainer) return;
+
+  infoContainer.innerHTML = `
+    <div style="display:flex; flex-direction:column; gap:6px; width:100%;">
+      <input type="text" id="edit-port-titulo-${id}" value="${escaparHTML(trabajo.titulo || "")}" placeholder="Título" style="padding:5px; border-radius:4px; border:1px solid #555; background:#222; color:#fff; font-size:0.9rem;">
+      <textarea id="edit-port-desc-${id}" placeholder="Descripción" style="padding:5px; border-radius:4px; border:1px solid #555; background:#222; color:#fff; font-size:0.85rem; resize:vertical;">${escaparHTML(trabajo.descripcion || "")}</textarea>
+      <div style="display:flex; gap:5px; margin-top:4px;">
+        <button type="button" onclick="guardarEdicionPortafolio('${id}')" style="background:#16a34a; color:#fff; border:none; padding:5px 10px; border-radius:4px; cursor:pointer; font-size:0.8rem;">Guardar</button>
+        <button type="button" onclick="renderPortafolioAdmin()" style="background:#555; color:#fff; border:none; padding:5px 10px; border-radius:4px; cursor:pointer; font-size:0.8rem;">Cancelar</button>
+      </div>
+    </div>
+  `;
+}
+
+
+async function guardarEdicionPortafolio(id) {
+  if (!esAdmin || !auth.currentUser) return;
+
+  const nuevoTitulo = document.getElementById(`edit-port-titulo-${id}`)?.value.trim() || "";
+  const nuevaDesc = document.getElementById(`edit-port-desc-${id}`)?.value.trim() || "";
+
+  if (!nuevoTitulo) {
+    alert("El título no puede estar vacío.");
+    return;
+  }
+
+  const idx = portafolio.findIndex(p => p.id === id);
+  if (idx !== -1) {
+    portafolio[idx].titulo = nuevoTitulo;
+    portafolio[idx].descripcion = nuevaDesc;
+  }
+
+  renderPortafolioAdmin();
+  renderPortafolioPublico();
+
+  try {
+    await db.collection("portafolio").doc(id).update({
+      titulo: nuevoTitulo,
+      descripcion: nuevaDesc
+    });
+    alert("¡Trabajo actualizado correctamente!");
+  } catch (error) {
+    console.error("Error al actualizar portafolio:", error);
+    alert("Hubo un error al actualizar los datos.");
+  }
 }
 
 
