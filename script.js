@@ -1,7 +1,7 @@
 // ============================================================
 // HN MUEBLES - SCRIPT PRINCIPAL COMPLETO
 // Firebase Authentication + Firestore
-// Cloudinary para Portafolio (Con Edición y Borrado Individual)
+// Cloudinary para Portafolio (Con Modales de Confirmación y Edición)
 // ============================================================
 
 
@@ -46,7 +46,7 @@ let portafolio = [];
 
 
 // ============================================================
-// 2. UTILIDADES GENERALES
+// 2. UTILIDADES GENERALES Y MODAL DE CONFIRMACIÓN
 // ============================================================
 
 function formatearMonto(valor) {
@@ -89,6 +89,95 @@ function escaparHTML(texto) {
   const div = document.createElement("div");
   div.textContent = texto || "";
   return div.innerHTML;
+}
+
+
+// Modal flotante de confirmación unificado con el estilo de la web
+function mostrarModalConfirmacion(titulo, mensaje, callbackConfirmar) {
+  const modalId = "hn-confirm-modal-overlay";
+  let overlay = document.getElementById(modalId);
+
+  if (overlay) overlay.remove();
+
+  overlay = document.createElement("div");
+  overlay.id = modalId;
+  overlay.style.cssText = `
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.82);
+    backdrop-filter: blur(6px);
+    z-index: 999999;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    animation: fadeIn 0.2s ease;
+  `;
+
+  overlay.innerHTML = `
+    <div style="
+      background: #18181b;
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      border-radius: 16px;
+      padding: 24px;
+      width: 100%;
+      max-width: 420px;
+      box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.5);
+      color: #fff;
+      text-align: center;
+      font-family: inherit;
+    ">
+      <div style="font-size: 2.5rem; margin-bottom: 12px;">⚠️</div>
+      <h3 style="font-size: 1.25rem; font-weight: bold; margin-bottom: 8px; color: #fff;">${escaparHTML(titulo)}</h3>
+      <p style="color: #a3a3a3; font-size: 0.92rem; line-height: 1.5; margin-bottom: 24px;">${escaparHTML(mensaje)}</p>
+      <div style="display: flex; gap: 10px; justify-content: center;">
+        <button type="button" id="hn-confirm-cancel" style="
+          flex: 1;
+          background: rgba(255, 255, 255, 0.08);
+          color: #fff;
+          border: 1px solid rgba(255, 255, 255, 0.15);
+          padding: 10px 16px;
+          border-radius: 8px;
+          font-weight: 600;
+          cursor: pointer;
+          font-size: 0.9rem;
+          transition: background 0.2s;
+        ">Cancelar</button>
+        <button type="button" id="hn-confirm-ok" style="
+          flex: 1;
+          background: #ef4444;
+          color: #fff;
+          border: none;
+          padding: 10px 16px;
+          border-radius: 8px;
+          font-weight: 600;
+          cursor: pointer;
+          font-size: 0.9rem;
+          transition: background 0.2s;
+        ">Sí, eliminar</button>
+      </div>
+    </div>
+  `;
+
+  document.body.appendChild(overlay);
+  document.body.style.overflow = "hidden";
+
+  const cerrarModal = () => {
+    overlay.remove();
+    document.body.style.overflow = "";
+  };
+
+  document.getElementById("hn-confirm-cancel").onclick = cerrarModal;
+  overlay.onclick = (e) => {
+    if (e.target === overlay) cerrarModal();
+  };
+
+  document.getElementById("hn-confirm-ok").onclick = () => {
+    cerrarModal();
+    if (typeof callbackConfirmar === "function") {
+      callbackConfirmar();
+    }
+  };
 }
 
 
@@ -401,7 +490,7 @@ function renderProyectosAdmin() {
 
           <div style="display:flex; gap:5px; align-items:flex-start;">
             <button type="button" onclick="activarEdicionInline(${index})" class="admin-action-btn" style="background:#3b82f6; color:#fff;" title="Editar proyecto">✏️</button>
-            <button type="button" onclick="eliminarProyecto('${p.id}')" class="admin-action-btn" style="background:#ef4444; color:#fff;" title="Eliminar proyecto">🗑️</button>
+            <button type="button" onclick="confirmarEliminarProyecto('${p.id}', '${escaparHTML(p.mueble || "")}')" class="admin-action-btn" style="background:#ef4444; color:#fff;" title="Eliminar proyecto">🗑️</button>
           </div>
         </div>
       </div>
@@ -456,7 +545,16 @@ async function cambiarEstadoPorId(id, etapaIdx, progreso) {
 }
 
 
-async function eliminarProyecto(id) {
+function confirmarEliminarProyecto(id, nombreMueble) {
+  mostrarModalConfirmacion(
+    "¿Eliminar proyecto?",
+    `¿Estás seguro de que deseas eliminar el proyecto "${nombreMueble}"? Esta acción borrará también sus registros de ingresos y no se puede deshacer.`,
+    () => ejecutarEliminarProyecto(id)
+  );
+}
+
+
+async function ejecutarEliminarProyecto(id) {
   if (!esAdmin || !auth.currentUser) return;
 
   const proyectoEliminado = proyectos.find(p => p.id === id);
@@ -1175,7 +1273,7 @@ function renderPortafolioAdmin() {
       </div>
       <div class="portfolio-admin-actions" style="display:flex; gap:6px;">
         <button type="button" onclick="activarEdicionPortafolio('${trabajo.id}')" style="background:#3b82f6; color:#fff; border:none; padding:8px 10px; border-radius:6px; cursor:pointer;" title="Editar trabajo">✏️</button>
-        <button type="button" class="delete-portfolio-btn" onclick="eliminarTrabajoPortafolio('${trabajo.id}')" style="background:#ef4444; color:#fff; border:none; padding:8px 10px; border-radius:6px; cursor:pointer;" title="Eliminar trabajo">🗑️</button>
+        <button type="button" class="delete-portfolio-btn" onclick="confirmarEliminarTrabajoPortafolio('${trabajo.id}', '${escaparHTML(trabajo.titulo || "")}')" style="background:#ef4444; color:#fff; border:none; padding:8px 10px; border-radius:6px; cursor:pointer;" title="Eliminar trabajo">🗑️</button>
       </div>
     `;
     container.appendChild(card);
@@ -1194,7 +1292,7 @@ function activarEdicionPortafolio(id) {
     <div style="display:flex; align-items:center; gap:8px; background:rgba(255,255,255,0.05); padding:5px; border-radius:4px; margin-bottom:4px;">
       <img src="${m.url}" style="width:35px; height:35px; object-fit:cover; border-radius:3px;" alt="">
       <span style="font-size:0.75rem; color:#ccc; flex:1; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${m.nombre || `Archivo ${idx + 1}`}</span>
-      <button type="button" onclick="eliminarArchivoIndividualPortafolio('${id}', ${idx})" style="background:#ef4444; color:#fff; border:none; padding:3px 7px; border-radius:3px; cursor:pointer; font-size:0.7rem;" title="Eliminar esta foto">✕</button>
+      <button type="button" onclick="confirmarEliminarArchivoIndividual('${id}', ${idx})" style="background:#ef4444; color:#fff; border:none; padding:3px 7px; border-radius:3px; cursor:pointer; font-size:0.7rem;" title="Eliminar esta foto">✕</button>
     </div>
   `).join("");
 
@@ -1222,9 +1320,7 @@ function activarEdicionPortafolio(id) {
 }
 
 
-async function eliminarArchivoIndividualPortafolio(trabajoId, indexMedia) {
-  if (!esAdmin || !auth.currentUser) return;
-
+function confirmarEliminarArchivoIndividual(trabajoId, indexMedia) {
   const trabajo = portafolio.find(p => p.id === trabajoId);
   if (!trabajo || !trabajo.media) return;
 
@@ -1233,7 +1329,19 @@ async function eliminarArchivoIndividualPortafolio(trabajoId, indexMedia) {
     return;
   }
 
-  if (!confirm("¿Estás seguro de eliminar esta foto del álbum?")) return;
+  mostrarModalConfirmacion(
+    "¿Eliminar archivo?",
+    "¿Estás seguro de que deseas eliminar esta foto del álbum?",
+    () => ejecutarEliminarArchivoIndividual(trabajoId, indexMedia)
+  );
+}
+
+
+async function ejecutarEliminarArchivoIndividual(trabajoId, indexMedia) {
+  if (!esAdmin || !auth.currentUser) return;
+
+  const trabajo = portafolio.find(p => p.id === trabajoId);
+  if (!trabajo || !trabajo.media) return;
 
   trabajo.media.splice(indexMedia, 1);
   activarEdicionPortafolio(trabajoId);
@@ -1303,7 +1411,16 @@ async function guardarEdicionPortafolio(id) {
 }
 
 
-async function eliminarTrabajoPortafolio(id) {
+function confirmarEliminarTrabajoPortafolio(id, tituloTrabajo) {
+  mostrarModalConfirmacion(
+    "¿Eliminar trabajo del portafolio?",
+    `¿Estás seguro de que deseas eliminar "${tituloTrabajo || 'este trabajo'}" del portafolio? Esta acción es irreversible.`,
+    () => ejecutarEliminarTrabajoPortafolio(id)
+  );
+}
+
+
+async function ejecutarEliminarTrabajoPortafolio(id) {
   if (!esAdmin || !auth.currentUser) return;
 
   portafolio = portafolio.filter(p => p.id !== id);
@@ -1447,7 +1564,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
   const filtroIngresos = document.getElementById("ingresos-mes");
   if (filtroIngresos) {
-    const ahora = new Date();
+    constahora = new Date();
     filtroIngresos.value = `${ahora.getFullYear()}-${String(ahora.getMonth() + 1).padStart(2, "0")}`;
     filtroIngresos.addEventListener("change", () => renderGestionIngresos());
   }
