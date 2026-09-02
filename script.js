@@ -1330,7 +1330,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
   const filtroIngresos = document.getElementById("ingresos-mes");
   if (filtroIngresos) {
-    const ahora = new Date();
+    constahora = new Date();
     filtroIngresos.value = `${ahora.getFullYear()}-${String(ahora.getMonth() + 1).padStart(2, "0")}`;
     filtroIngresos.addEventListener("change", () => renderGestionIngresos());
   }
