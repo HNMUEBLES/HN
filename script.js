@@ -1,7 +1,7 @@
 // ============================================================
-// HN MUEBLES - SCRIPT PRINCIPAL (CON EDICIÓN DE PORTAFOLIO)
+// HN MUEBLES - SCRIPT PRINCIPAL COMPLETO
 // Firebase Authentication + Firestore
-// Cloudinary para Portafolio
+// Cloudinary para Portafolio (Con Edición y Borrado Individual)
 // ============================================================
 
 
@@ -864,7 +864,7 @@ ${link}`;
 
 
 // ============================================================
-// 11. PORTAFOLIO (PÚBLICO, ADMIN Y EDICIÓN)
+// 11. PORTAFOLIO (PÚBLICO, ADMIN Y EDICIÓN AVANZADA)
 // ============================================================
 
 async function cargarPortafolioPublico() {
@@ -1156,7 +1156,7 @@ function renderPortafolioAdmin() {
     return;
   }
 
-  portafolio.forEach((trabajo, index) => {
+  portafolio.forEach((trabajo) => {
     const card = document.createElement("div");
     card.className = "portfolio-admin-card";
     card.id = `portfolio-admin-item-${trabajo.id}`;
@@ -1188,16 +1188,65 @@ function activarEdicionPortafolio(id) {
   const infoContainer = document.getElementById(`portfolio-info-${id}`);
   if (!trabajo || !infoContainer) return;
 
+  const media = Array.isArray(trabajo.media) ? trabajo.media : [];
+
+  let mediaItemsHTML = media.map((m, idx) => `
+    <div style="display:flex; align-items:center; gap:8px; background:rgba(255,255,255,0.05); padding:5px; border-radius:4px; margin-bottom:4px;">
+      <img src="${m.url}" style="width:35px; height:35px; object-fit:cover; border-radius:3px;" alt="">
+      <span style="font-size:0.75rem; color:#ccc; flex:1; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${m.nombre || `Archivo ${idx + 1}`}</span>
+      <button type="button" onclick="eliminarArchivoIndividualPortafolio('${id}', ${idx})" style="background:#ef4444; color:#fff; border:none; padding:3px 7px; border-radius:3px; cursor:pointer; font-size:0.7rem;" title="Eliminar esta foto">✕</button>
+    </div>
+  `).join("");
+
   infoContainer.innerHTML = `
-    <div style="display:flex; flex-direction:column; gap:6px; width:100%;">
-      <input type="text" id="edit-port-titulo-${id}" value="${escaparHTML(trabajo.titulo || "")}" placeholder="Título" style="padding:5px; border-radius:4px; border:1px solid #555; background:#222; color:#fff; font-size:0.9rem;">
-      <textarea id="edit-port-desc-${id}" placeholder="Descripción" style="padding:5px; border-radius:4px; border:1px solid #555; background:#222; color:#fff; font-size:0.85rem; resize:vertical;">${escaparHTML(trabajo.descripcion || "")}</textarea>
-      <div style="display:flex; gap:5px; margin-top:4px;">
-        <button type="button" onclick="guardarEdicionPortafolio('${id}')" style="background:#16a34a; color:#fff; border:none; padding:5px 10px; border-radius:4px; cursor:pointer; font-size:0.8rem;">Guardar</button>
-        <button type="button" onclick="renderPortafolioAdmin()" style="background:#555; color:#fff; border:none; padding:5px 10px; border-radius:4px; cursor:pointer; font-size:0.8rem;">Cancelar</button>
+    <div style="display:flex; flex-direction:column; gap:8px; width:100%;">
+      <input type="text" id="edit-port-titulo-${id}" value="${escaparHTML(trabajo.titulo || "")}" placeholder="Título" style="padding:6px; border-radius:4px; border:1px solid #555; background:#222; color:#fff; font-size:0.9rem;">
+      <textarea id="edit-port-desc-${id}" placeholder="Descripción" style="padding:6px; border-radius:4px; border:1px solid #555; background:#222; color:#fff; font-size:0.85rem; resize:vertical;">${escaparHTML(trabajo.descripcion || "")}</textarea>
+      
+      <div style="font-size:0.8rem; color:#38bdf8; margin-top:2px;">Archivos actuales (puedes eliminar los que no quieras):</div>
+      <div style="max-height:140px; overflow-y:auto; padding-right:4px;">
+        ${mediaItemsHTML || '<div style="font-size:0.75rem; color:#777;">No hay archivos.</div>'}
+      </div>
+
+      <div style="margin-top:4px;">
+        <label style="font-size:0.78rem; color:#a3a3a3; display:block; margin-bottom:3px;">Agregar más fotos/videos:</label>
+        <input type="file" id="edit-port-nuevos-archivos-${id}" multiple accept="image/*,video/*" style="font-size:0.75rem; color:#ccc;">
+      </div>
+
+      <div style="display:flex; gap:6px; margin-top:6px;">
+        <button type="button" onclick="guardarEdicionPortafolio('${id}')" style="background:#16a34a; color:#fff; border:none; padding:6px 12px; border-radius:4px; cursor:pointer; font-size:0.8rem; font-weight:bold;">Guardar cambios</button>
+        <button type="button" onclick="renderPortafolioAdmin()" style="background:#555; color:#fff; border:none; padding:6px 12px; border-radius:4px; cursor:pointer; font-size:0.8rem;">Cancelar</button>
       </div>
     </div>
   `;
+}
+
+
+async function eliminarArchivoIndividualPortafolio(trabajoId, indexMedia) {
+  if (!esAdmin || !auth.currentUser) return;
+
+  const trabajo = portafolio.find(p => p.id === trabajoId);
+  if (!trabajo || !trabajo.media) return;
+
+  if (trabajo.media.length <= 1) {
+    alert("El trabajo debe tener al menos una foto o video. No puedes eliminar la última.");
+    return;
+  }
+
+  if (!confirm("¿Estás seguro de eliminar esta foto del álbum?")) return;
+
+  trabajo.media.splice(indexMedia, 1);
+  activarEdicionPortafolio(trabajoId);
+
+  try {
+    await db.collection("portafolio").doc(trabajoId).update({
+      media: trabajo.media
+    });
+    renderPortafolioPublico();
+  } catch (error) {
+    console.error("Error al eliminar archivo individual:", error);
+    alert("Hubo un error al actualizar la base de datos.");
+  }
 }
 
 
@@ -1206,6 +1255,8 @@ async function guardarEdicionPortafolio(id) {
 
   const nuevoTitulo = document.getElementById(`edit-port-titulo-${id}`)?.value.trim() || "";
   const nuevaDesc = document.getElementById(`edit-port-desc-${id}`)?.value.trim() || "";
+  const nuevosArchivosInput = document.getElementById(`edit-port-nuevos-archivos-${id}`);
+  const nuevosArchivos = nuevosArchivosInput ? Array.from(nuevosArchivosInput.files) : [];
 
   if (!nuevoTitulo) {
     alert("El título no puede estar vacío.");
@@ -1213,23 +1264,41 @@ async function guardarEdicionPortafolio(id) {
   }
 
   const idx = portafolio.findIndex(p => p.id === id);
-  if (idx !== -1) {
-    portafolio[idx].titulo = nuevoTitulo;
-    portafolio[idx].descripcion = nuevaDesc;
-  }
+  if (idx === -1) return;
 
-  renderPortafolioAdmin();
-  renderPortafolioPublico();
+  let mediaActualizada = [...(portafolio[idx].media || [])];
 
   try {
+    if (nuevosArchivos.length > 0) {
+      alert(`Subiendo ${nuevosArchivos.length} archivo(s) nuevo(s)... Espera un momento.`);
+      for (const archivo of nuevosArchivos) {
+        const resultado = await subirArchivoCloudinary(archivo);
+        mediaActualizada.push({
+          tipo: archivo.type.startsWith("video/") ? "video" : "imagen",
+          url: resultado.secure_url || resultado.url,
+          public_id: resultado.public_id || "",
+          nombre: archivo.name
+        });
+      }
+    }
+
+    portafolio[idx].titulo = nuevoTitulo;
+    portafolio[idx].descripcion = nuevaDesc;
+    portafolio[idx].media = mediaActualizada;
+
+    renderPortafolioAdmin();
+    renderPortafolioPublico();
+
     await db.collection("portafolio").doc(id).update({
       titulo: nuevoTitulo,
-      descripcion: nuevaDesc
+      descripcion: nuevaDesc,
+      media: mediaActualizada
     });
+
     alert("¡Trabajo actualizado correctamente!");
   } catch (error) {
     console.error("Error al actualizar portafolio:", error);
-    alert("Hubo un error al actualizar los datos.");
+    alert("Hubo un error al actualizar los datos: " + error.message);
   }
 }
 
@@ -1378,7 +1447,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
   const filtroIngresos = document.getElementById("ingresos-mes");
   if (filtroIngresos) {
-    constahora = new Date();
+    const ahora = new Date();
     filtroIngresos.value = `${ahora.getFullYear()}-${String(ahora.getMonth() + 1).padStart(2, "0")}`;
     filtroIngresos.addEventListener("change", () => renderGestionIngresos());
   }
