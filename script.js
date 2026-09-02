@@ -155,7 +155,6 @@ function mostrarPanelAdministrador() {
 
   if (login) login.classList.add("hidden");
 
-  // Forzamos al contenedor modal a comportarse como pantalla completa limpia
   if (modalOverlay) {
     modalOverlay.style.position = "relative";
     modalOverlay.style.background = "transparent";
@@ -171,9 +170,7 @@ function mostrarPanelAdministrador() {
 
   try {
     cambiarVistaAdmin('inicio');
-  } catch (e) {
-    // Ignorado silenciosamente si la vista no existe
-  }
+  } catch (e) {}
 }
 
 
@@ -729,7 +726,6 @@ async function exportarIngresosPDF() {
   const periodo = mesInput && mesInput.value ? mesInput.value : new Date().toISOString().slice(0, 7);
   const fechaGeneracion = new Date().toLocaleDateString('es-ES');
 
-  // Filtrar ingresos del mes seleccionado
   const lista = ingresos.filter(ingreso => {
     if (!ingreso.fechaCreacion || !ingreso.fechaCreacion.toDate) return true;
     const fecha = ingreso.fechaCreacion.toDate();
@@ -737,7 +733,6 @@ async function exportarIngresosPDF() {
     return mes === periodo;
   });
 
-  // Calcular totales reales basados en los datos del mes
   let totalContratadoNum = 0;
   let adelantosRecibidosNum = 0;
   let saldosCobradosNum = 0;
@@ -751,7 +746,6 @@ async function exportarIngresosPDF() {
   const totalIngresadoNum = adelantosRecibidosNum + saldosCobradosNum;
   const pendienteNum = Math.max(totalContratadoNum - totalIngresadoNum, 0);
 
-  // Encabezado
   doc.setFont("helvetica", "bold");
   doc.setFontSize(18);
   doc.text("HN MUEBLES", 14, 20);
@@ -764,7 +758,6 @@ async function exportarIngresosPDF() {
   doc.text(`Periodo: ${periodo}`, 14, 36);
   doc.text(`Generado: ${fechaGeneracion}`, 14, 42);
 
-  // Resumen Financiero
   doc.setFont("helvetica", "bold");
   doc.setFontSize(12);
   doc.text("RESUMEN FINANCIERO", 14, 54);
@@ -782,12 +775,10 @@ async function exportarIngresosPDF() {
   doc.setFont("helvetica", "normal");
   doc.text(`Pendiente: Bs. ${pendienteNum}`, 14, 86);
 
-  // Detalle de Movimientos (Tabla)
   doc.setFont("helvetica", "bold");
   doc.setFontSize(12);
   doc.text("DETALLE DE MOVIMIENTOS", 14, 100);
 
-  // Cabecera de la tabla
   doc.setFontSize(10);
   doc.text("Fecha", 14, 108);
   doc.text("Codigo", 50, 108);
@@ -795,7 +786,6 @@ async function exportarIngresosPDF() {
   doc.text("Tipo", 130, 108);
   doc.text("Monto", 170, 108);
 
-  // Línea divisoria
   doc.setLineWidth(0.3);
   doc.line(14, 112, 196, 112);
 
@@ -810,7 +800,7 @@ async function exportarIngresosPDF() {
       const fechaMov = ing.fechaCreacion && ing.fechaCreacion.toDate ? ing.fechaCreacion.toDate().toLocaleDateString('es-ES') : fechaGeneracion;
       const codigoMov = ing.codigo || "";
       const clienteMov = ing.cliente || "";
-      const tipoMov = "Adelanto"; // O tipo correspondiente
+      const tipoMov = "Adelanto";
       const montoMov = `Bs. ${Number(ing.adelanto) || 0}`;
 
       doc.text(fechaMov, 14, posY);
@@ -822,22 +812,19 @@ async function exportarIngresosPDF() {
     });
   }
 
-  // Total al pie de tabla
   doc.setFont("helvetica", "bold");
   doc.text(`TOTAL INGRESADO: Bs. ${totalIngresadoNum}`, 14, posY + 6);
 
-  // Pie de página / Nota interna
   doc.setFont("helvetica", "italic");
   doc.setFontSize(8);
   doc.text("HN Muebles - Documento interno de control financiero.", 14, 280);
 
-  // Descargar PDF
   doc.save(`HN-Muebles-Ingresos-${periodo}.pdf`);
 }
 
 
 // ============================================================
-// 10. WHATSAPP (CON RESUMEN FINANCIERO INCLUIDO)
+// 10. WHATSAPP
 // ============================================================
 
 function notificarWhatsApp(index) {
@@ -1086,19 +1073,26 @@ async function subirArchivoCloudinary(archivo) {
       if (xhr.status >= 200 && xhr.status < 300) {
         resolve(JSON.parse(xhr.responseText));
       } else {
-        reject(new Error("Cloudinary rechazó el archivo."));
+        reject(new Error("Cloudinary rechazó el archivo. Código: " + xhr.status));
       }
     };
 
-    xhr.onerror = () => reject(new Error("Error de conexión."));
+    xhr.onerror = () => reject(new Error("Error de conexión con Cloudinary."));
     xhr.send(formData);
   });
 }
 
 
+// ============================================================
+// CORRECCIÓN PRINCIPAL PARA MÓVIL Y ESCRITORIO
+// ============================================================
 async function publicarTrabajoPortafolio(e) {
   e.preventDefault();
-  if (!esAdmin || !auth.currentUser) return;
+  
+  if (!esAdmin || !auth.currentUser) {
+    alert("Acceso denegado. Debes iniciar sesión como administrador.");
+    return;
+  }
 
   const titulo = document.getElementById("portfolio-titulo")?.value.trim() || "";
   const descripcion = document.getElementById("portfolio-descripcion")?.value.trim() || "";
@@ -1106,10 +1100,18 @@ async function publicarTrabajoPortafolio(e) {
   const videos = Array.from(document.getElementById("portfolio-videos")?.files || []);
   const archivos = [...fotos, ...videos];
 
-  if (!titulo || !archivos.length) {
-    alert("Completa el título y selecciona al menos un archivo.");
+  if (!titulo) {
+    alert("Por favor escribe un título para el trabajo.");
     return;
   }
+
+  if (!archivos.length) {
+    alert("Por favor selecciona al menos una foto o video.");
+    return;
+  }
+
+  // Notificación visual en celular para indicar que el proceso comenzó
+  alert(`Subiendo ${archivos.length} archivo(s)... Por favor espera un momento.`);
 
   try {
     const media = [];
@@ -1132,14 +1134,16 @@ async function publicarTrabajoPortafolio(e) {
     });
 
     document.getElementById("form-portafolio")?.reset();
-    document.getElementById("portfolio-files-preview").innerHTML = "";
+    const previewContainer = document.getElementById("portfolio-files-preview");
+    if (previewContainer) previewContainer.innerHTML = "";
 
     await cargarPortafolioAdmin();
     await cargarPortafolioPublico();
-    alert("Trabajo publicado correctamente.");
+    
+    alert("¡Trabajo publicado correctamente!");
   } catch (error) {
     console.error("Error publicando portafolio:", error);
-    alert("No se pudo publicar el trabajo.");
+    alert("Error al publicar: " + error.message);
   }
 }
 
@@ -1229,9 +1233,6 @@ document.addEventListener("DOMContentLoaded", function () {
     });
   }
 
-  // ============================================================
-  // CARGA AUTOMÁTICA DE SEGUIMIENTO DESDE EL LINK DE WHATSAPP
-  // ============================================================
   const urlParams = new URLSearchParams(window.location.search);
   const codigoUrl = urlParams.get("codigo");
   if (codigoUrl) {
@@ -1320,7 +1321,6 @@ document.addEventListener("DOMContentLoaded", function () {
         batch.set(ingresoRef, ingreso);
         batch.set(publicoRef, { codigo, cliente, mueble, estado: "Diseño Aprobado", progreso: 20, detalles: "Diseño confirmado por WhatsApp.", fechaEntrega });
         await batch.commit();
-        console.log("Proyecto guardado exitosamente en Firebase.");
       } catch (error) {
         console.error("Error creando proyecto:", error);
         alert("Hubo un error al guardar en la base de datos: " + error.message);
