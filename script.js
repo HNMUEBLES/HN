@@ -714,163 +714,125 @@ async function registrarPago(ingresoId) {
 // 9. PDF
 // ============================================================
 
-async function obtenerLogoPDF() {
-  try {
-    const response = await fetch("logo.png");
-    if (!response.ok) return null;
-    const blob = await response.blob();
-    return await new Promise(resolve => {
-      const reader = new FileReader();
-      reader.onloadend = () => resolve(reader.result);
-      reader.onerror = () => resolve(null);
-      reader.readAsDataURL(blob);
-    });
-  } catch (error) {
-    return null;
-  }
-}
-
-
 async function exportarIngresosPDF() {
   if (!esAdmin) return;
 
-  const filtro = document.getElementById("ingresos-mes")?.value || "";
-  if (!filtro) return;
-
-  if (!window.jspdf || !window.jspdf.jsPDF) {
+  const { jsPDF } = window.jspdf;
+  if (!jsPDF) {
     alert("jsPDF no disponible.");
     return;
   }
 
+  const doc = new jsPDF();
+
+  const mesInput = document.getElementById('ingresos-mes');
+  const periodo = mesInput && mesInput.value ? mesInput.value : new Date().toISOString().slice(0, 7);
+  const fechaGeneracion = new Date().toLocaleDateString('es-ES');
+
+  // Filtrar ingresos del mes seleccionado
   const lista = ingresos.filter(ingreso => {
     if (!ingreso.fechaCreacion || !ingreso.fechaCreacion.toDate) return true;
     const fecha = ingreso.fechaCreacion.toDate();
     const mes = `${fecha.getFullYear()}-${String(fecha.getMonth() + 1).padStart(2, "0")}`;
-    return mes === filtro;
+    return mes === periodo;
   });
 
-  const jsPDF = window.jspdf.jsPDF;
-  const doc = new jsPDF({ orientation: "landscape", unit: "mm", format: "a4" });
+  // Calcular totales reales basados en los datos del mes
+  let totalContratadoNum = 0;
+  let adelantosRecibidosNum = 0;
+  let saldosCobradosNum = 0;
 
-  const [anio, mes] = filtro.split("-");
-  const nombresMes = ["Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"];
-  const nombreMes = nombresMes[Number(mes) - 1] || mes;
-
-  const logo = await obtenerLogoPDF();
-
-  const NEGRO = [18, 18, 18];
-  const GRIS = [105, 105, 105];
-  const DORADO = [156, 113, 81];
-  const BLANCO = [255, 255, 255];
-  const VERDE = [22, 163, 74];
-  const AZUL = [37, 99, 235];
-
-  let sumaMontosTotales = 0;
-  let sumaAdelantosMateriales = 0;
-  let sumaSaldosGanancia = 0;
-
-  const filas = lista.map(ingreso => {
-    const monto = Number(ingreso.presupuesto || ingreso.monto) || 0;
-    const adelantoMateriales = Number(ingreso.adelanto) || 0;
-    const saldoGanancia = Number(ingreso.saldo !== undefined ? ingreso.saldo : Math.max(monto - adelantoMateriales, 0)) || 0;
-
-    sumaMontosTotales += monto;
-    sumaAdelantosMateriales += adelantoMateriales;
-    sumaSaldosGanancia += saldoGanancia;
-
-    return [
-      ingreso.codigo || "",
-      ingreso.cliente || "",
-      ingreso.mueble || ingreso.concepto || "",
-      `Bs. ${formatearMonto(monto)}`,
-      `Bs. ${formatearMonto(adelantoMateriales)}`,
-      `Bs. ${formatearMonto(saldoGanancia)}`
-    ];
+  lista.forEach(ing => {
+    totalContratadoNum += Number(ing.presupuesto) || 0;
+    adelantosRecibidosNum += Number(ing.adelanto) || 0;
+    saldosCobradosNum += Number(ing.pagosFinales) || 0;
   });
 
-  if (logo) {
-    try { doc.addImage(logo, "PNG", 14, 10, 25, 18); } catch (e) {}
-  }
+  const totalIngresadoNum = adelantosRecibidosNum + saldosCobradosNum;
+  const pendienteNum = Math.max(totalContratadoNum - totalIngresadoNum, 0);
 
-  const posicionTexto = logo ? 45 : 14;
-
-  doc.setTextColor(...NEGRO);
+  // Encabezado
   doc.setFont("helvetica", "bold");
-  doc.setFontSize(20);
-  doc.text("HN MUEBLES", posicionTexto, 17);
+  doc.setFontSize(18);
+  doc.text("HN MUEBLES", 14, 20);
 
-  doc.setFont("helvetica", "normal");
-  doc.setFontSize(9);
-  doc.setTextColor(...GRIS);
-  doc.text("DISEÑO Y FABRICACIÓN DE MUEBLES A MEDIDA", posicionTexto, 23);
-
-  doc.setFont("helvetica", "bold");
   doc.setFontSize(14);
-  doc.setTextColor(...DORADO);
-  doc.text("REPORTE FINANCIERO - GESTIÓN DE INGRESOS", 14, 38);
+  doc.text("REPORTE MENSUAL DE INGRESOS", 14, 28);
 
   doc.setFont("helvetica", "normal");
-  doc.setFontSize(11);
-  doc.setTextColor(...NEGRO);
-  doc.text(`${nombreMes} ${anio}`, 14, 45);
+  doc.setFontSize(10);
+  doc.text(`Periodo: ${periodo}`, 14, 36);
+  doc.text(`Generado: ${fechaGeneracion}`, 14, 42);
 
-  doc.setDrawColor(...DORADO);
-  doc.setLineWidth(0.8);
-  doc.line(14, 49, 283, 49);
+  // Resumen Financiero
+  doc.setFont("helvetica", "bold");
+  doc.setFontSize(12);
+  doc.text("RESUMEN FINANCIERO", 14, 54);
 
-  const resumenY = 55;
-  const anchoCaja = 85;
-  const altoCaja = 20;
-  const separacion = 10;
+  doc.setFont("helvetica", "normal");
+  doc.setFontSize(10);
+  
+  doc.text(`Total contratado: Bs. ${totalContratadoNum}`, 14, 62);
+  doc.text(`Adelantos recibidos: Bs. ${adelantosRecibidosNum}`, 14, 68);
+  doc.text(`Saldos cobrados: Bs. ${saldosCobradosNum}`, 14, 74);
+  
+  doc.setFont("helvetica", "bold");
+  doc.text(`TOTAL INGRESADO: Bs. ${totalIngresadoNum}`, 14, 80);
+  
+  doc.setFont("helvetica", "normal");
+  doc.text(`Pendiente: Bs. ${pendienteNum}`, 14, 86);
 
-  const resumen = [
-    { titulo: "TOTAL MONTO PROYECTOS", valor: `Bs. ${formatearMonto(sumaMontosTotales)}`, color: AZUL },
-    { titulo: "TOTAL MATERIALES (ADELANTOS)", valor: `Bs. ${formatearMonto(sumaAdelantosMateriales)}`, color: DORADO },
-    { titulo: "TOTAL GANANCIA NETA (SALDOS)", valor: `Bs. ${formatearMonto(sumaSaldosGanancia)}`, color: VERDE }
-  ];
+  // Detalle de Movimientos (Tabla)
+  doc.setFont("helvetica", "bold");
+  doc.setFontSize(12);
+  doc.text("DETALLE DE MOVIMIENTOS", 14, 100);
 
-  resumen.forEach((item, index) => {
-    const x = 14 + index * (anchoCaja + separacion);
-    doc.setFillColor(248, 248, 248);
-    doc.setDrawColor(225, 225, 225);
-    doc.roundedRect(x, resumenY, anchoCaja, altoCaja, 3, 3, "FD");
-    doc.setFillColor(...item.color);
-    doc.roundedRect(x, resumenY, 2.5, altoCaja, 1, 1, "F");
+  // Cabecera de la tabla
+  doc.setFontSize(10);
+  doc.text("Fecha", 14, 108);
+  doc.text("Codigo", 50, 108);
+  doc.text("Cliente", 80, 108);
+  doc.text("Tipo", 130, 108);
+  doc.text("Monto", 170, 108);
 
-    doc.setFont("helvetica", "bold");
-    doc.setFontSize(7);
-    doc.setTextColor(...GRIS);
-    doc.text(item.titulo, x + 7, resumenY + 7);
+  // Línea divisoria
+  doc.setLineWidth(0.3);
+  doc.line(14, 112, 196, 112);
 
-    doc.setFontSize(11);
-    doc.setTextColor(...NEGRO);
-    doc.text(item.valor, x + 7, resumenY + 15);
-  });
+  let posY = 118;
+  doc.setFont("helvetica", "normal");
 
-  const tablaY = resumenY + altoCaja + 8;
+  if (lista.length === 0) {
+    doc.text("Sin movimientos registrados en este periodo.", 14, posY);
+    posY += 8;
+  } else {
+    lista.forEach(ing => {
+      const fechaMov = ing.fechaCreacion && ing.fechaCreacion.toDate ? ing.fechaCreacion.toDate().toLocaleDateString('es-ES') : fechaGeneracion;
+      const codigoMov = ing.codigo || "";
+      const clienteMov = ing.cliente || "";
+      const tipoMov = "Adelanto"; // O tipo correspondiente
+      const montoMov = `Bs. ${Number(ing.adelanto) || 0}`;
 
-  if (typeof doc.autoTable === "function") {
-    doc.autoTable({
-      startY: tablaY,
-      margin: { left: 14, right: 14 },
-      head: [["CÓDIGO", "CLIENTE", "PROYECTO", "MONTO TOTAL", "ADELANTO (MATERIALES)", "SALDO (GANANCIA NETA)"]],
-      body: filas,
-      theme: "grid",
-      headStyles: { fillColor: NEGRO, textColor: BLANCO, fontStyle: "bold", fontSize: 8, halign: "center", valign: "middle", cellPadding: 4 },
-      bodyStyles: { fontSize: 8, textColor: [45,45,45], cellPadding: 3.5, valign: "middle" },
-      alternateRowStyles: { fillColor: [248,248,248] },
-      columnStyles: {
-        0: { cellWidth: 30, halign: "center" },
-        1: { cellWidth: 60 },
-        2: { cellWidth: 83 },
-        3: { cellWidth: 35, halign: "right" },
-        4: { cellWidth: 35, halign: "right" },
-        5: { cellWidth: 42, halign: "right" }
-      }
+      doc.text(fechaMov, 14, posY);
+      doc.text(codigoMov, 50, posY);
+      doc.text(clienteMov, 80, posY);
+      doc.text(tipoMov, 130, posY);
+      doc.text(montoMov, 170, posY);
+      posY += 8;
     });
   }
 
-  doc.save(`HN-MUEBLES-Gestion-Ingresos-${anio}-${mes}.pdf`);
+  // Total al pie de tabla
+  doc.setFont("helvetica", "bold");
+  doc.text(`TOTAL INGRESADO: Bs. ${totalIngresadoNum}`, 14, posY + 6);
+
+  // Pie de página / Nota interna
+  doc.setFont("helvetica", "italic");
+  doc.setFontSize(8);
+  doc.text("HN Muebles - Documento interno de control financiero.", 14, 280);
+
+  // Descargar PDF
+  doc.save(`HN-Muebles-Ingresos-${periodo}.pdf`);
 }
 
 
