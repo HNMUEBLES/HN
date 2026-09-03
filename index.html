@@ -34,16 +34,15 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 
   <!-- =====================================================
-       ESTILOS PARA PANELES A PANTALLA COMPLETA Y POPUP DE COTIZACIÓN
+       ESTILOS PARA PANELES A PANTALLA COMPLETA Y POPUPS
        ===================================================== -->
 
   <style>
 
     /*
       =====================================================
-      PANELES ADMINISTRATIVOS
-      Ahora funcionan como páginas completas,
-      no como ventanas flotantes.
+      PANELES ADMINISTRATIVOS Y DE COTIZACIÓN
+      Funcionan como páginas completas flotantes.
       =====================================================
     */
 
@@ -279,83 +278,22 @@
 
     /*
       =====================================================
-      FORMULARIO NUEVO PROYECTO
+      ESTILOS PARA EL FORMULARIO COTIZADOR EN MODAL
       =====================================================
     */
-
-    .admin-form {
+    .cotizador-container-modal {
       width: 100%;
-
-      margin-bottom: 35px;
-    }
-
-
-    /*
-      =====================================================
-      PORTAFOLIO ADMIN
-      =====================================================
-    */
-
-    .portfolio-admin-title {
-      max-width: 1450px;
-
-      margin: 0 auto 30px;
-    }
-
-    .portfolio-form {
-      max-width: 1450px;
-
+      max-width: 900px;
       margin: 0 auto;
+      padding-bottom: 60px;
     }
 
-    .portfolio-admin-list-title {
-      max-width: 1450px;
-
-      margin: 45px auto 20px;
-    }
-
-    .portfolio-admin-list {
-      max-width: 1450px;
-
-      margin: 0 auto;
-
-      padding-bottom: 50px;
-    }
-
-
-    /*
-      =====================================================
-      INGRESOS
-      =====================================================
-    */
-
-    .income-title,
-    .income-filter,
-    .income-summary,
-    #lista-ingresos {
-      width: 100%;
-      max-width: 1450px;
-
-      margin-left: auto;
-      margin-right: auto;
-    }
-
-    .income-title {
-      margin-bottom: 30px;
-    }
-
-
-    /*
-      =====================================================
-      ESTILOS NUEVOS PARA FORMULARIO DE CLIENTE Y POPUP
-      =====================================================
-    */
     .cotizador-card {
       background: rgba(255, 255, 255, 0.02);
       border: 1px solid rgba(255, 255, 255, 0.08);
       border-radius: 16px;
       padding: 30px;
-      margin-top: 40px;
+      margin-top: 20px;
     }
 
     .cotizador-grid {
@@ -582,6 +520,15 @@
       class="active"
     >
       Inicio
+    </button>
+
+
+    <button
+      onclick="abrirModalCotizar()"
+      class="btn-nav-cotizar"
+      style="color: #f59e0b; font-weight: bold;"
+    >
+      <i class="fa-solid fa-calculator"></i> Cotizar
     </button>
 
 
@@ -973,106 +920,6 @@
 
 
 <!-- =========================================================
-     COTIZADOR / FORMULARIO PARA CLIENTES (NUEVO)
-========================================================= -->
-
-<section class="content-section" style="padding-top: 0;">
-  <div class="section-inner" style="max-width: 900px;">
-    <h2>
-      <i class="fa-solid fa-calculator font-amber"></i>
-      Solicita tu Cotización
-    </h2>
-    <p class="subtitle">
-      Llena los datos de tu proyecto y nos pondremos en contacto contigo por WhatsApp
-    </p>
-
-    <div class="cotizador-card">
-      <form id="form-cotizacion">
-        <div class="cotizador-grid">
-          
-          <!-- Nombre -->
-          <div>
-            <label for="cot-nombre">Nombre y Apellido *</label>
-            <input type="text" id="cot-nombre" placeholder="Tu nombre completo" required />
-          </div>
-
-          <!-- Teléfono / WhatsApp -->
-          <div>
-            <label for="cot-telefono">Tu Teléfono / WhatsApp *</label>
-            <input type="tel" id="cot-telefono" placeholder="Ej: 71234567" required />
-          </div>
-
-          <!-- Categoría de Mueble -->
-          <div class="cotizador-full">
-            <label for="cot-categoria">Categoría de Mueble *</label>
-            <select id="cot-categoria" required>
-              <option value="" disabled selected>Selecciona una categoría</option>
-              <option value="Cocina">Cocina</option>
-              <option value="Ropero / Placard">Ropero / Placard</option>
-              <option value="Mueble de TV">Mueble de TV</option>
-              <option value="Escritorio / Oficina">Escritorio / Oficina</option>
-              <option value="Baño">Baño</option>
-              <option value="Otro tipo de mueble">Otro tipo de mueble</option>
-            </select>
-          </div>
-
-          <!-- Opción de Solicitud de Visita Técnica -->
-          <div class="cotizador-full">
-            <div class="visita-check-row">
-              <input type="checkbox" id="cot-solicita-visita" onchange="toggleVisitaMedidas()" />
-              <label for="cot-solicita-visita" style="cursor: pointer; color: #fff; font-weight: 600;">
-                No tengo las medidas / Solicito una visita técnica en el lugar
-              </label>
-            </div>
-          </div>
-
-          <!-- Medidas de Referencia -->
-          <div class="cotizador-full" id="contenedor-medidas">
-            <label for="cot-medidas">
-              Medidas de referencia <span class="medidas-nota">(no requiere ser exacto)</span>
-            </label>
-            <input type="text" id="cot-medidas" placeholder="Ej: Alto 2.00m x Ancho 1.50m aprox." />
-          </div>
-
-          <!-- Descripción del Proyecto -->
-          <div class="cotizador-full">
-            <label for="cot-descripcion">Descripción o detalles del proyecto *</label>
-            <textarea id="cot-descripcion" rows="4" placeholder="Cuéntanos cómo lo imaginas, colores, materiales o distribución..." required></textarea>
-          </div>
-
-          <!-- Archivo opcional -->
-          <div class="cotizador-full">
-            <label for="cot-archivo">Foto o plano de referencia (Opcional)</label>
-            <input type="file" id="cot-archivo" accept="image/*" />
-          </div>
-
-          <!-- Ubicación / GPS -->
-          <div class="cotizador-full">
-            <label for="cot-ubicacion">Ubicación para instalación / visita</label>
-            <div class="gps-row">
-              <input type="text" id="cot-ubicacion" placeholder="Haz clic en el botón para capturar GPS o escribe tu zona..." />
-              <button type="button" class="btn-gps" onclick="obtenerUbicacionGPS()">
-                <i class="fa-solid fa-location-dot"></i> Obtener mi ubicación
-              </button>
-            </div>
-          </div>
-
-          <!-- Botón Enviar -->
-          <div class="cotizador-full" style="margin-top: 10px;">
-            <button type="submit" class="btn-primary-modern full-btn" style="padding: 15px; font-size: 1.05rem;">
-              <i class="fa-brands fa-whatsapp"></i> Enviar Solicitud por WhatsApp
-            </button>
-          </div>
-
-        </div>
-      </form>
-    </div>
-  </div>
-</section>
-
-
-
-<!-- =========================================================
      PORTAFOLIO
 ========================================================= -->
 
@@ -1189,6 +1036,119 @@
   <i class="fa-brands fa-whatsapp"></i>
 
 </a>
+
+
+
+<!-- =========================================================
+     VENTANA EMERGENTE (MODAL) DEL COTIZADOR
+========================================================= -->
+<div id="modal-cotizador" class="modal-overlay hidden">
+  <div class="modal-box">
+    
+    <button
+      class="modal-close"
+      onclick="cerrarModalCotizar()"
+      aria-label="Cerrar cotizador"
+    >
+      &times;
+    </button>
+
+    <div class="cotizador-container-modal">
+      <div style="text-align: center; margin-bottom: 20px;">
+        <h2>
+          <i class="fa-solid fa-calculator font-amber"></i>
+          Solicita tu Cotización
+        </h2>
+        <p class="subtitle">
+          Llena los datos de tu proyecto y nos pondremos en contacto contigo por WhatsApp
+        </p>
+      </div>
+
+      <div class="cotizador-card">
+        <form id="form-cotizacion">
+          <div class="cotizador-grid">
+            
+            <!-- Nombre -->
+            <div>
+              <label for="cot-nombre">Nombre y Apellido *</label>
+              <input type="text" id="cot-nombre" placeholder="Tu nombre completo" required />
+            </div>
+
+            <!-- Teléfono / WhatsApp -->
+            <div>
+              <label for="cot-telefono">Tu Teléfono / WhatsApp *</label>
+              <input type="tel" id="cot-telefono" placeholder="Ej: 71234567" required />
+            </div>
+
+            <!-- Categoría de Mueble -->
+            <div class="cotizador-full">
+              <label for="cot-categoria">Categoría de Mueble *</label>
+              <select id="cot-categoria" required>
+                <option value="" disabled selected>Selecciona una categoría</option>
+                <option value="Cocina">Cocina</option>
+                <option value="Ropero / Placard">Ropero / Placard</option>
+                <option value="Mueble de TV">Mueble de TV</option>
+                <option value="Escritorio / Oficina">Escritorio / Oficina</option>
+                <option value="Baño">Baño</option>
+                <option value="Otro tipo de mueble">Otro tipo de mueble</option>
+              </select>
+            </div>
+
+            <!-- Opción de Solicitud de Visita Técnica -->
+            <div class="cotizador-full">
+              <div class="visita-check-row">
+                <input type="checkbox" id="cot-solicita-visita" onchange="toggleVisitaMedidas()" />
+                <label for="cot-solicita-visita" style="cursor: pointer; color: #fff; font-weight: 600;">
+                  No tengo las medidas / Solicito una visita técnica en el lugar
+                </label>
+              </div>
+            </div>
+
+            <!-- Medidas de Referencia -->
+            <div class="cotizador-full" id="contenedor-medidas">
+              <label for="cot-medidas">
+                Medidas de referencia <span class="medidas-nota">(no requiere ser exacto)</span>
+              </label>
+              <input type="text" id="cot-medidas" placeholder="Ej: Alto 2.00m x Ancho 1.50m aprox." />
+            </div>
+
+            <!-- Descripción del Proyecto -->
+            <div class="cotizador-full">
+              <label for="cot-descripcion">Descripción o detalles del proyecto *</label>
+              <textarea id="cot-descripcion" rows="4" placeholder="Cuéntanos cómo lo imaginas, colores, materiales o distribución..." required></textarea>
+            </div>
+
+            <!-- Archivo opcional -->
+            <div class="cotizador-full">
+              <label for="cot-archivo">Foto o plano de referencia (Opcional)</label>
+              <input type="file" id="cot-archivo" accept="image/*" />
+            </div>
+
+            <!-- Ubicación / GPS -->
+            <div class="cotizador-full">
+              <label for="cot-ubicacion">Ubicación para instalación / visita</label>
+              <div class="gps-row">
+                <input type="text" id="cot-ubicacion" placeholder="Haz clic en el botón para capturar GPS o escribe tu zona..." />
+                <button type="button" class="btn-gps" onclick="obtenerUbicacionGPS()">
+                  <i class="fa-solid fa-location-dot"></i> Obtener mi ubicación
+                </button>
+              </div>
+            </div>
+
+            <!-- Botón Enviar -->
+            <div class="cotizador-full" style="margin-top: 10px;">
+              <button type="submit" class="btn-primary-modern full-btn" style="padding: 15px; font-size: 1.05rem;">
+                <i class="fa-brands fa-whatsapp"></i> Enviar Solicitud por WhatsApp
+              </button>
+            </div>
+
+          </div>
+        </form>
+      </div>
+    </div>
+
+  </div>
+</div>
 
 
 
@@ -1980,6 +1940,25 @@
 
 /*
 =============================================================
+CONTROL MODAL COTIZAR
+=============================================================
+*/
+function abrirModalCotizar() {
+  const modal = document.getElementById("modal-cotizador");
+  if (!modal) return;
+  modal.classList.remove("hidden");
+  document.body.style.overflow = "hidden";
+}
+
+function cerrarModalCotizar() {
+  const modal = document.getElementById("modal-cotizador");
+  if (!modal) return;
+  modal.classList.add("hidden");
+  document.body.style.overflow = "";
+}
+
+/*
+=============================================================
 CONTROL DE VISITA TÉCNICA Y MEDIDAS
 =============================================================
 */
@@ -2066,7 +2045,8 @@ document.getElementById('form-cotizacion').addEventListener('submit', function(e
   // Abrir WhatsApp en nueva pestaña
   window.open(urlWhatsApp, '_blank');
 
-  // Mostrar la ventana emergente (Popup)
+  // Cerrar modal del cotizador y abrir popup de éxito
+  cerrarModalCotizar();
   document.getElementById('popup-confirmacion').classList.remove('hidden');
 
   // Limpiar formulario
@@ -2220,6 +2200,18 @@ document.addEventListener(
     ) {
 
       cerrarModalAdmin();
+
+    }
+
+    const cotizador =
+      document.getElementById("modal-cotizador");
+
+    if (
+      cotizador &&
+      !cotizador.classList.contains("hidden")
+    ) {
+
+      cerrarModalCotizar();
 
     }
 
