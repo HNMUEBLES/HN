@@ -1100,14 +1100,14 @@
                 <option value="Otro tipo de mueble">Otro tipo de mueble</option>
               </select>
               
-              <!-- Aviso naranja elegante que aparece solo cuando eligen Cocina -->
+              <!-- Aviso orientativo que aparece solo cuando eligen Cocina (sin marcar nada automáticamente) -->
               <div id="msg-aviso-cocina" class="hidden" style="margin-top: 8px; font-size: 0.85rem; color: #f59e0b; font-weight: 500; display: flex; align-items: center; gap: 6px;">
                 <i class="fa-solid fa-circle-info"></i>
-                <span>Para proyectos de cocina se recomienda agendar una visita técnica. Si prefieres, puedes marcar abajo la opción de visita.</span>
+                <span>Para proyectos de cocina a medida, si no cuentas con medidas exactas o fotos de referencia, recuerda que puedes marcar la opción de visita técnica abajo.</span>
               </div>
             </div>
 
-            <!-- Opción de Solicitud de Visita Técnica (100% Libre / Manual) -->
+            <!-- Opción de Solicitud de Visita Técnica (100% Libre / Manual para todas las categorías) -->
             <div class="cotizador-full">
               <div class="visita-check-row">
                 <input type="checkbox" id="cot-solicita-visita" onchange="toggleVisitaMedidas()" />
@@ -1985,14 +1985,14 @@ function cerrarModalCotizar() {
 
 /*
 =============================================================
-CONTROL DINÁMICO DE CATEGORÍA (SOLO MUESTRA AVISO NARANJA)
+CONTROL DE AVISO DE COCINA (SIN ACTIVAR NADA AUTOMÁTICAMENTE)
 =============================================================
 */
 function actualizarCamposDinamicos() {
   const categoria = document.getElementById('cot-categoria').value;
   const msgAvisoCocina = document.getElementById('msg-aviso-cocina');
 
-  // Si elige Cocina, mostramos el aviso naranja informativo de manera elegante (sin marcar nada por él)
+  // Solo mostramos el texto guía informativo si elige cocina. La casilla de visita se queda libre para que el usuario decida.
   if (categoria === 'Cocina') {
     msgAvisoCocina.classList.remove('hidden');
     msgAvisoCocina.style.display = 'flex';
