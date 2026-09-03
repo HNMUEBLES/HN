@@ -34,7 +34,7 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 
   <!-- =====================================================
-       ESTILOS PARA PANELES A PANTALLA COMPLETA
+       ESTILOS PARA PANELES A PANTALLA COMPLETA Y POPUP DE COTIZACIÓN
        ===================================================== -->
 
   <style>
@@ -347,6 +347,163 @@
 
     /*
       =====================================================
+      ESTILOS NUEVOS PARA FORMULARIO DE CLIENTE Y POPUP
+      =====================================================
+    */
+    .cotizador-card {
+      background: rgba(255, 255, 255, 0.02);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 16px;
+      padding: 30px;
+      margin-top: 40px;
+    }
+
+    .cotizador-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 20px;
+      margin-top: 20px;
+    }
+
+    .cotizador-full {
+      grid-column: span 2;
+    }
+
+    .cotizador-card input,
+    .cotizador-card select,
+    .cotizador-card textarea {
+      width: 100%;
+      padding: 12px 15px;
+      background: rgba(0, 0, 0, 0.4);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      border-radius: 8px;
+      color: #fff;
+      font-family: inherit;
+      font-size: 0.95rem;
+      margin-top: 6px;
+    }
+
+    .cotizador-card label {
+      font-size: 0.9rem;
+      color: rgba(255, 255, 255, 0.8);
+      font-weight: 500;
+    }
+
+    .medidas-nota {
+      font-size: 0.8rem;
+      color: #f59e0b;
+      font-weight: normal;
+    }
+
+    .visita-check-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-top: 10px;
+      background: rgba(245, 158, 11, 0.05);
+      border: 1px dashed rgba(245, 158, 11, 0.3);
+      padding: 12px;
+      border-radius: 8px;
+    }
+
+    .visita-check-row input[type="checkbox"] {
+      width: 18px;
+      height: 18px;
+      accent-color: #f59e0b;
+      margin-top: 0;
+    }
+
+    .gps-row {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+      margin-top: 6px;
+    }
+
+    .gps-row input {
+      margin-top: 0;
+    }
+
+    .btn-gps {
+      background: rgba(245, 158, 11, 0.15);
+      color: #f59e0b;
+      border: 1px solid #f59e0b;
+      padding: 12px 18px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-weight: bold;
+      white-space: nowrap;
+      transition: all 0.2s;
+    }
+
+    .btn-gps:hover {
+      background: #f59e0b;
+      color: #000;
+    }
+
+    /* Estilos del Popup de confirmación */
+    .popup-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.85);
+      z-index: 999999;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+
+    .popup-overlay.hidden {
+      display: none !important;
+    }
+
+    .popup-content {
+      background: #111;
+      border: 1px solid rgba(245, 158, 11, 0.4);
+      border-radius: 16px;
+      padding: 35px;
+      max-width: 480px;
+      width: 100%;
+      text-align: center;
+      box-shadow: 0 25px 50px rgba(0,0,0,0.5);
+    }
+
+    .popup-content h3 {
+      color: #fff;
+      font-size: 1.4rem;
+      margin-bottom: 15px;
+      line-height: 1.4;
+    }
+
+    .popup-content p {
+      color: rgba(255, 255, 255, 0.75);
+      font-size: 0.95rem;
+      margin-bottom: 12px;
+      line-height: 1.5;
+    }
+
+    .popup-brand {
+      margin-top: 20px;
+      font-family: 'Chakra Petch', sans-serif;
+      font-size: 1.1rem;
+      color: #f59e0b;
+      letter-spacing: 1px;
+    }
+
+    .popup-brand-sub {
+      font-size: 0.8rem;
+      color: rgba(255, 255, 255, 0.5);
+      margin-top: 4px;
+    }
+
+    .popup-btn {
+      margin-top: 25px;
+      width: 100%;
+    }
+
+
+    /*
+      =====================================================
       RESPONSIVE
       =====================================================
     */
@@ -370,6 +527,22 @@
 
       #admin-login {
         padding: 25px 18px;
+      }
+
+      .cotizador-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .cotizador-full {
+        grid-column: span 1;
+      }
+
+      .gps-row {
+        flex-direction: column;
+      }
+
+      .btn-gps {
+        width: 100%;
       }
 
     }
@@ -800,6 +973,106 @@
 
 
 <!-- =========================================================
+     COTIZADOR / FORMULARIO PARA CLIENTES (NUEVO)
+========================================================= -->
+
+<section class="content-section" style="padding-top: 0;">
+  <div class="section-inner" style="max-width: 900px;">
+    <h2>
+      <i class="fa-solid fa-calculator font-amber"></i>
+      Solicita tu Cotización
+    </h2>
+    <p class="subtitle">
+      Llena los datos de tu proyecto y nos pondremos en contacto contigo por WhatsApp
+    </p>
+
+    <div class="cotizador-card">
+      <form id="form-cotizacion">
+        <div class="cotizador-grid">
+          
+          <!-- Nombre -->
+          <div>
+            <label for="cot-nombre">Nombre y Apellido *</label>
+            <input type="text" id="cot-nombre" placeholder="Tu nombre completo" required />
+          </div>
+
+          <!-- Teléfono / WhatsApp -->
+          <div>
+            <label for="cot-telefono">Tu Teléfono / WhatsApp *</label>
+            <input type="tel" id="cot-telefono" placeholder="Ej: 71234567" required />
+          </div>
+
+          <!-- Categoría de Mueble -->
+          <div class="cotizador-full">
+            <label for="cot-categoria">Categoría de Mueble *</label>
+            <select id="cot-categoria" required>
+              <option value="" disabled selected>Selecciona una categoría</option>
+              <option value="Cocina">Cocina</option>
+              <option value="Ropero / Placard">Ropero / Placard</option>
+              <option value="Mueble de TV">Mueble de TV</option>
+              <option value="Escritorio / Oficina">Escritorio / Oficina</option>
+              <option value="Baño">Baño</option>
+              <option value="Otro tipo de mueble">Otro tipo de mueble</option>
+            </select>
+          </div>
+
+          <!-- Opción de Solicitud de Visita Técnica -->
+          <div class="cotizador-full">
+            <div class="visita-check-row">
+              <input type="checkbox" id="cot-solicita-visita" onchange="toggleVisitaMedidas()" />
+              <label for="cot-solicita-visita" style="cursor: pointer; color: #fff; font-weight: 600;">
+                No tengo las medidas / Solicito una visita técnica en el lugar
+              </label>
+            </div>
+          </div>
+
+          <!-- Medidas de Referencia -->
+          <div class="cotizador-full" id="contenedor-medidas">
+            <label for="cot-medidas">
+              Medidas de referencia <span class="medidas-nota">(no requiere ser exacto)</span>
+            </label>
+            <input type="text" id="cot-medidas" placeholder="Ej: Alto 2.00m x Ancho 1.50m aprox." />
+          </div>
+
+          <!-- Descripción del Proyecto -->
+          <div class="cotizador-full">
+            <label for="cot-descripcion">Descripción o detalles del proyecto *</label>
+            <textarea id="cot-descripcion" rows="4" placeholder="Cuéntanos cómo lo imaginas, colores, materiales o distribución..." required></textarea>
+          </div>
+
+          <!-- Archivo opcional -->
+          <div class="cotizador-full">
+            <label for="cot-archivo">Foto o plano de referencia (Opcional)</label>
+            <input type="file" id="cot-archivo" accept="image/*" />
+          </div>
+
+          <!-- Ubicación / GPS -->
+          <div class="cotizador-full">
+            <label for="cot-ubicacion">Ubicación para instalación / visita</label>
+            <div class="gps-row">
+              <input type="text" id="cot-ubicacion" placeholder="Haz clic en el botón para capturar GPS o escribe tu zona..." />
+              <button type="button" class="btn-gps" onclick="obtenerUbicacionGPS()">
+                <i class="fa-solid fa-location-dot"></i> Obtener mi ubicación
+              </button>
+            </div>
+          </div>
+
+          <!-- Botón Enviar -->
+          <div class="cotizador-full" style="margin-top: 10px;">
+            <button type="submit" class="btn-primary-modern full-btn" style="padding: 15px; font-size: 1.05rem;">
+              <i class="fa-brands fa-whatsapp"></i> Enviar Solicitud por WhatsApp
+            </button>
+          </div>
+
+        </div>
+      </form>
+    </div>
+  </div>
+</section>
+
+
+
+<!-- =========================================================
      PORTAFOLIO
 ========================================================= -->
 
@@ -901,7 +1174,7 @@
 
 
 <!-- =========================================================
-     WHATSAPP
+     WHATSAPP FLOTANTE
 ========================================================= -->
 
 <a
@@ -916,6 +1189,29 @@
   <i class="fa-brands fa-whatsapp"></i>
 
 </a>
+
+
+
+<!-- =========================================================
+     VENTANA EMERGENTE (POPUP) DE CONFIRMACIÓN
+========================================================= -->
+<div id="popup-confirmacion" class="popup-overlay hidden">
+  <div class="popup-content">
+    <div style="font-size: 3rem; color: #10b981; margin-bottom: 10px;">
+      <i class="fa-solid fa-circle-check"></i>
+    </div>
+    <h3>¡Solicitud enviada correctamente! ✓</h3>
+    <p>Gracias por contactarnos.</p>
+    <p>Hemos recibido tu solicitud de cotización.<br>Nos pondremos en contacto contigo por WhatsApp para conversar sobre tu proyecto.</p>
+    
+    <div class="popup-brand">HN MUEBLES</div>
+    <div class="popup-brand-sub">Diseñamos y fabricamos tus muebles a medida.</div>
+
+    <button type="button" class="btn-primary-modern popup-btn" onclick="cerrarPopupConfirmacion()">
+      Entendido
+    </button>
+  </div>
+</div>
 
 
 
@@ -1677,10 +1973,110 @@
 
 
 <!-- =========================================================
-     FUNCIONES INDEX
+     FUNCIONES INDEX Y COTIZADOR WHATSAPP
 ========================================================= -->
 
 <script>
+
+/*
+=============================================================
+CONTROL DE VISITA TÉCNICA Y MEDIDAS
+=============================================================
+*/
+function toggleVisitaMedidas() {
+  const checkbox = document.getElementById('cot-solicita-visita');
+  const contenedorMedidas = document.getElementById('contenedor-medidas');
+  const inputMedidas = document.getElementById('cot-medidas');
+
+  if (checkbox.checked) {
+    contenedorMedidas.style.display = 'none';
+    inputMedidas.value = '';
+  } else {
+    contenedorMedidas.style.display = 'block';
+  }
+}
+
+/*
+=============================================================
+GEOLOCALIZACIÓN GPS
+=============================================================
+*/
+function obtenerUbicacionGPS() {
+  const inputUbicacion = document.getElementById('cot-ubicacion');
+  
+  if (!navigator.geolocation) {
+    alert('Tu navegador no soporta geolocalización.');
+    return;
+  }
+
+  inputUbicacion.value = 'Obteniendo ubicación GPS...';
+
+  navigator.geolocation.getCurrentPosition(
+    (position) => {
+      const lat = position.coords.latitude;
+      const lng = position.coords.longitude;
+      const mapsLink = `https://maps.google.com/?q=${lat},${lng}`;
+      inputUbicacion.value = mapsLink;
+    },
+    (error) => {
+      alert('No se pudo obtener la ubicación. Por favor escribe tu zona manualmente.');
+      inputUbicacion.value = '';
+    }
+  );
+}
+
+/*
+=============================================================
+ENVÍO DE COTIZACIÓN A WHATSAPP Y POPUP
+=============================================================
+*/
+document.getElementById('form-cotizacion').addEventListener('submit', function(e) {
+  e.preventDefault();
+
+  const nombre = document.getElementById('cot-nombre').value.trim();
+  const telefono = document.getElementById('cot-telefono').value.trim();
+  const categoria = document.getElementById('cot-categoria').value;
+  const solicitaVisita = document.getElementById('cot-solicita-visita').checked;
+  const medidas = document.getElementById('cot-medidas').value.trim();
+  const descripcion = document.getElementById('cot-descripcion').value.trim();
+  const ubicacion = document.getElementById('cot-ubicacion').value.trim();
+
+  // Construir mensaje estructurado para WhatsApp
+  let mensaje = `Hola, vengo desde la web de HN Muebles. ¡Quiero una cotización!\n\n`;
+  mensaje += `*Cliente:* ${nombre}\n`;
+  mensaje += `*Teléfono:* ${telefono}\n`;
+  mensaje += `*Mueble:* ${categoria}\n`;
+
+  if (solicitaVisita) {
+    mensaje += `*Medidas:* No tiene medidas / Solicita visita técnica\n`;
+  } else {
+    mensaje += `*Medidas:* ${medidas || 'No especificadas'}\n`;
+  }
+
+  mensaje += `*Descripción:* ${descripcion}\n`;
+
+  if (ubicacion) {
+    mensaje += `*Ubicación:* ${ubicacion}\n`;
+  }
+
+  // Número de WhatsApp del negocio configurado
+  const numeroWhatsApp = "59162037033";
+  const urlWhatsApp = `https://wa.me/${numeroWhatsApp}?text=${encodeURIComponent(mensaje)}`;
+
+  // Abrir WhatsApp en nueva pestaña
+  window.open(urlWhatsApp, '_blank');
+
+  // Mostrar la ventana emergente (Popup)
+  document.getElementById('popup-confirmacion').classList.remove('hidden');
+
+  // Limpiar formulario
+  this.reset();
+  toggleVisitaMedidas();
+});
+
+function cerrarPopupConfirmacion() {
+  document.getElementById('popup-confirmacion').classList.add('hidden');
+}
 
 
 /*
