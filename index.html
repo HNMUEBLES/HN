@@ -1100,14 +1100,14 @@
                 <option value="Otro tipo de mueble">Otro tipo de mueble</option>
               </select>
               
-              <!-- Mensaje naranja dinámico para Cocinas -->
+              <!-- Aviso naranja elegante que aparece solo cuando eligen Cocina -->
               <div id="msg-aviso-cocina" class="hidden" style="margin-top: 8px; font-size: 0.85rem; color: #f59e0b; font-weight: 500; display: flex; align-items: center; gap: 6px;">
-                <i class="fa-solid fa-triangle-exclamation"></i>
-                <span>Para proyectos de cocina es ideal realizar una visita técnica. No te preocupes por las medidas exactas por ahora.</span>
+                <i class="fa-solid fa-circle-info"></i>
+                <span>Para proyectos de cocina se recomienda agendar una visita técnica. Si prefieres, puedes marcar abajo la opción de visita.</span>
               </div>
             </div>
 
-            <!-- Opción de Solicitud de Visita Técnica -->
+            <!-- Opción de Solicitud de Visita Técnica (100% Libre / Manual) -->
             <div class="cotizador-full">
               <div class="visita-check-row">
                 <input type="checkbox" id="cot-solicita-visita" onchange="toggleVisitaMedidas()" />
@@ -1985,38 +1985,26 @@ function cerrarModalCotizar() {
 
 /*
 =============================================================
-CONTROL DINÁMICO DE CAMPOS SEGÚN LA CATEGORÍA
+CONTROL DINÁMICO DE CATEGORÍA (SOLO MUESTRA AVISO NARANJA)
 =============================================================
 */
 function actualizarCamposDinamicos() {
   const categoria = document.getElementById('cot-categoria').value;
-  const contenedorMedidas = document.getElementById('contenedor-medidas-detalladas');
-  const checkVisita = document.getElementById('cot-solicita-visita');
   const msgAvisoCocina = document.getElementById('msg-aviso-cocina');
 
+  // Si elige Cocina, mostramos el aviso naranja informativo de manera elegante (sin marcar nada por él)
   if (categoria === 'Cocina') {
-    // Marcamos la visita técnica por defecto de forma elegante
-    checkVisita.checked = true;
-    toggleVisitaMedidas();
-    
-    // Mostramos el mensajito naranja de aviso
     msgAvisoCocina.classList.remove('hidden');
     msgAvisoCocina.style.display = 'flex';
   } else {
-    // Ocultamos el mensaje naranja si cambia de categoría
     msgAvisoCocina.classList.add('hidden');
     msgAvisoCocina.style.display = 'none';
-
-    // Para otras categorías, si no marcó la visita manual, mostramos las medidas
-    if (!checkVisita.checked) {
-      contenedorMedidas.style.display = 'block';
-    }
   }
 }
 
 /*
 =============================================================
-CONTROL DE VISITA TÉCNICA Y MEDIDAS
+CONTROL MANUAL DE VISITA TÉCNICA Y MEDIDAS
 =============================================================
 */
 function toggleVisitaMedidas() {
