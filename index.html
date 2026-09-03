@@ -1099,12 +1099,6 @@
                 <option value="Baño">Baño</option>
                 <option value="Otro tipo de mueble">Otro tipo de mueble</option>
               </select>
-              
-              <!-- Aviso orientativo que aparece solo cuando eligen Cocina (sin marcar nada automáticamente) -->
-              <div id="msg-aviso-cocina" class="hidden" style="margin-top: 8px; font-size: 0.85rem; color: #f59e0b; font-weight: 500; display: flex; align-items: center; gap: 6px;">
-                <i class="fa-solid fa-circle-info"></i>
-                <span>Para proyectos de cocina a medida, si no cuentas con medidas exactas o fotos de referencia, recuerda que puedes marcar la opción de visita técnica abajo.</span>
-              </div>
             </div>
 
             <!-- Opción de Solicitud de Visita Técnica (100% Libre / Manual para todas las categorías) -->
@@ -1138,6 +1132,17 @@
               </div>
             </div>
 
+            <!-- Aviso específico de Cocina para subir fotos con medidas -->
+            <div class="cotizador-full hidden" id="msg-cocina-foto">
+              <div style="background: rgba(245, 158, 11, 0.08); border: 1px solid rgba(245, 158, 11, 0.3); padding: 15px; border-radius: 8px; text-align: center;">
+                <i class="fa-solid fa-camera font-amber" style="font-size: 1.5rem; margin-bottom: 8px; display: block;"></i>
+                <strong style="color: #fff; display: block; margin-bottom: 4px;">Proyecto de Cocina</strong>
+                <p style="color: rgba(255,255,255,0.8); font-size: 0.9rem; margin: 0;">
+                  Por favor, sube fotos de tu espacio con las medidas de tu cocina en la sección de archivos de abajo.
+                </p>
+              </div>
+            </div>
+
             <!-- Descripción del Proyecto -->
             <div class="cotizador-full">
               <label for="cot-descripcion">Descripción o detalles del proyecto *</label>
@@ -1146,7 +1151,7 @@
 
             <!-- Archivo opcional -->
             <div class="cotizador-full">
-              <label for="cot-archivo">Foto de referencia (Opcional)</label>
+              <label for="cot-archivo">Foto de referencia o medidas (Opcional)</label>
               <input type="file" id="cot-archivo" accept="image/*" />
             </div>
 
@@ -1985,20 +1990,33 @@ function cerrarModalCotizar() {
 
 /*
 =============================================================
-CONTROL DE AVISO DE COCINA (SIN ACTIVAR NADA AUTOMÁTICAMENTE)
+CONTROL DINÁMICO SEGÚN LA CATEGORÍA (COCINA VS OTROS)
 =============================================================
 */
 function actualizarCamposDinamicos() {
   const categoria = document.getElementById('cot-categoria').value;
-  const msgAvisoCocina = document.getElementById('msg-aviso-cocina');
+  const contenedorMedidas = document.getElementById('contenedor-medidas-detalladas');
+  const msgCocinaFoto = document.getElementById('msg-cocina-foto');
+  const checkboxVisita = document.getElementById('cot-solicita-visita');
 
-  // Solo mostramos el texto guía informativo si elige cocina. La casilla de visita se queda libre para que el usuario decida.
   if (categoria === 'Cocina') {
-    msgAvisoCocina.classList.remove('hidden');
-    msgAvisoCocina.style.display = 'flex';
+    // Si es cocina, ocultamos los inputs de alto, largo y profundidad, y mostramos el aviso para subir foto con medidas
+    contenedorMedidas.style.display = 'none';
+    msgCocinaFoto.classList.remove('hidden');
+    msgCocinaFoto.style.display = 'block';
+
+    // Limpiamos los valores de medidas para que no viajen vacíos extraños
+    document.getElementById('cot-alto').value = '';
+    document.getElementById('cot-largo').value = '';
+    document.getElementById('cot-profundidad').value = '';
   } else {
-    msgAvisoCocina.classList.add('hidden');
-    msgAvisoCocina.style.display = 'none';
+    // Para cualquier otro mueble, restauramos según el estado del checkbox de visita técnica
+    msgCocinaFoto.classList.add('hidden');
+    msgCocinaFoto.style.display = 'none';
+
+    if (!checkboxVisita.checked) {
+      contenedorMedidas.style.display = 'block';
+    }
   }
 }
 
@@ -2010,6 +2028,7 @@ CONTROL MANUAL DE VISITA TÉCNICA Y MEDIDAS
 function toggleVisitaMedidas() {
   const checkbox = document.getElementById('cot-solicita-visita');
   const contenedorMedidas = document.getElementById('contenedor-medidas-detalladas');
+  const categoria = document.getElementById('cot-categoria').value;
   
   if (checkbox.checked) {
     contenedorMedidas.style.display = 'none';
@@ -2017,7 +2036,10 @@ function toggleVisitaMedidas() {
     document.getElementById('cot-largo').value = '';
     document.getElementById('cot-profundidad').value = '';
   } else {
-    contenedorMedidas.style.display = 'block';
+    // Si no está chequeado, solo mostramos las medidas si NO es cocina
+    if (categoria !== 'Cocina') {
+      contenedorMedidas.style.display = 'block';
+    }
   }
 }
 
@@ -2078,6 +2100,8 @@ document.getElementById('form-cotizacion').addEventListener('submit', function(e
 
   if (solicitaVisita) {
     mensaje += `*Medidas:* No tiene medidas / Solicita visita técnica en el lugar\n`;
+  } else if (categoria === 'Cocina') {
+    mensaje += `*Medidas:* Adjuntará foto con las medidas de la cocina\n`;
   } else {
     mensaje += `*Medidas ingresadas:*\n`;
     if (alto) mensaje += ` - Alto: ${alto}\n`;
