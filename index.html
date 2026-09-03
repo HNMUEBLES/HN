@@ -1099,6 +1099,12 @@
                 <option value="Baño">Baño</option>
                 <option value="Otro tipo de mueble">Otro tipo de mueble</option>
               </select>
+              
+              <!-- Mensaje naranja dinámico para Cocinas -->
+              <div id="msg-aviso-cocina" class="hidden" style="margin-top: 8px; font-size: 0.85rem; color: #f59e0b; font-weight: 500; display: flex; align-items: center; gap: 6px;">
+                <i class="fa-solid fa-triangle-exclamation"></i>
+                <span>Para proyectos de cocina es ideal realizar una visita técnica. No te preocupes por las medidas exactas por ahora.</span>
+              </div>
             </div>
 
             <!-- Opción de Solicitud de Visita Técnica -->
@@ -1305,7 +1311,7 @@
 
 
     <!-- =====================================================
-         PANEL ADMIN CON PESTAÑAS
+         PANEL ADMIN
     ====================================================== -->
 
     <div
@@ -1986,13 +1992,22 @@ function actualizarCamposDinamicos() {
   const categoria = document.getElementById('cot-categoria').value;
   const contenedorMedidas = document.getElementById('contenedor-medidas-detalladas');
   const checkVisita = document.getElementById('cot-solicita-visita');
+  const msgAvisoCocina = document.getElementById('msg-aviso-cocina');
 
-  // Si selecciona Cocina, sugerimos la visita técnica por defecto ocultando los campos de medidas
   if (categoria === 'Cocina') {
+    // Marcamos la visita técnica por defecto de forma elegante
     checkVisita.checked = true;
     toggleVisitaMedidas();
+    
+    // Mostramos el mensajito naranja de aviso
+    msgAvisoCocina.classList.remove('hidden');
+    msgAvisoCocina.style.display = 'flex';
   } else {
-    // Para roperos, TV, escritorios, etc., permitimos que llenen las medidas si desean
+    // Ocultamos el mensaje naranja si cambia de categoría
+    msgAvisoCocina.classList.add('hidden');
+    msgAvisoCocina.style.display = 'none';
+
+    // Para otras categorías, si no marcó la visita manual, mostramos las medidas
     if (!checkVisita.checked) {
       contenedorMedidas.style.display = 'block';
     }
