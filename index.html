@@ -485,6 +485,13 @@
 
     }
 
+    @media (max-width: 600px) {
+      #contenedor-medidas-detalladas > div {
+        grid-template-columns: 1fr !important;
+        gap: 10px !important;
+      }
+    }
+
   </style>
 
 </head>
@@ -1083,7 +1090,7 @@
             <!-- Categoría de Mueble -->
             <div class="cotizador-full">
               <label for="cot-categoria">Categoría de Mueble *</label>
-              <select id="cot-categoria" required>
+              <select id="cot-categoria" required onchange="actualizarCamposDinamicos()">
                 <option value="" disabled selected>Selecciona una categoría</option>
                 <option value="Cocina">Cocina</option>
                 <option value="Ropero / Placard">Ropero / Placard</option>
@@ -1104,12 +1111,25 @@
               </div>
             </div>
 
-            <!-- Medidas de Referencia -->
-            <div class="cotizador-full" id="contenedor-medidas">
-              <label for="cot-medidas">
-                Medidas de referencia <span class="medidas-nota">(no requiere ser exacto)</span>
+            <!-- Contenedor de Medidas Detalladas (Alto, Largo, Profundidad) -->
+            <div class="cotizador-full" id="contenedor-medidas-detalladas">
+              <label style="display: block; margin-bottom: 8px;">
+                Medidas aproximadas <span class="medidas-nota">(en metros o centímetros)</span>
               </label>
-              <input type="text" id="cot-medidas" placeholder="Ej: Alto 2.00m x Ancho 1.50m aprox." />
+              <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px;">
+                <div>
+                  <label for="cot-alto" style="font-size: 0.8rem; color: #aaa;">Alto</label>
+                  <input type="text" id="cot-alto" placeholder="Ej: 2.10m" />
+                </div>
+                <div>
+                  <label for="cot-largo" style="font-size: 0.8rem; color: #aaa;">Largo / Ancho</label>
+                  <input type="text" id="cot-largo" placeholder="Ej: 1.80m" />
+                </div>
+                <div>
+                  <label for="cot-profundidad" style="font-size: 0.8rem; color: #aaa;">Profundidad</label>
+                  <input type="text" id="cot-profundidad" placeholder="Ej: 60cm" />
+                </div>
+              </div>
             </div>
 
             <!-- Descripción del Proyecto -->
@@ -1118,7 +1138,7 @@
               <textarea id="cot-descripcion" rows="4" placeholder="Cuéntanos cómo lo imaginas, colores, materiales o distribución..." required></textarea>
             </div>
 
-            <!-- Archivo opcional (CORREGIDO) -->
+            <!-- Archivo opcional -->
             <div class="cotizador-full">
               <label for="cot-archivo">Foto de referencia (Opcional)</label>
               <input type="file" id="cot-archivo" accept="image/*" />
@@ -1959,17 +1979,40 @@ function cerrarModalCotizar() {
 
 /*
 =============================================================
+CONTROL DINÁMICO DE CAMPOS SEGÚN LA CATEGORÍA
+=============================================================
+*/
+function actualizarCamposDinamicos() {
+  const categoria = document.getElementById('cot-categoria').value;
+  const contenedorMedidas = document.getElementById('contenedor-medidas-detalladas');
+  const checkVisita = document.getElementById('cot-solicita-visita');
+
+  // Si selecciona Cocina, sugerimos la visita técnica por defecto ocultando los campos de medidas
+  if (categoria === 'Cocina') {
+    checkVisita.checked = true;
+    toggleVisitaMedidas();
+  } else {
+    // Para roperos, TV, escritorios, etc., permitimos que llenen las medidas si desean
+    if (!checkVisita.checked) {
+      contenedorMedidas.style.display = 'block';
+    }
+  }
+}
+
+/*
+=============================================================
 CONTROL DE VISITA TÉCNICA Y MEDIDAS
 =============================================================
 */
 function toggleVisitaMedidas() {
   const checkbox = document.getElementById('cot-solicita-visita');
-  const contenedorMedidas = document.getElementById('contenedor-medidas');
-  const inputMedidas = document.getElementById('cot-medidas');
-
+  const contenedorMedidas = document.getElementById('contenedor-medidas-detalladas');
+  
   if (checkbox.checked) {
     contenedorMedidas.style.display = 'none';
-    inputMedidas.value = '';
+    document.getElementById('cot-alto').value = '';
+    document.getElementById('cot-largo').value = '';
+    document.getElementById('cot-profundidad').value = '';
   } else {
     contenedorMedidas.style.display = 'block';
   }
@@ -2016,7 +2059,11 @@ document.getElementById('form-cotizacion').addEventListener('submit', function(e
   const telefono = document.getElementById('cot-telefono').value.trim();
   const categoria = document.getElementById('cot-categoria').value;
   const solicitaVisita = document.getElementById('cot-solicita-visita').checked;
-  const medidas = document.getElementById('cot-medidas').value.trim();
+  
+  const alto = document.getElementById('cot-alto').value.trim();
+  const largo = document.getElementById('cot-largo').value.trim();
+  const profundidad = document.getElementById('cot-profundidad').value.trim();
+  
   const descripcion = document.getElementById('cot-descripcion').value.trim();
   const ubicacion = document.getElementById('cot-ubicacion').value.trim();
 
@@ -2027,9 +2074,15 @@ document.getElementById('form-cotizacion').addEventListener('submit', function(e
   mensaje += `*Mueble:* ${categoria}\n`;
 
   if (solicitaVisita) {
-    mensaje += `*Medidas:* No tiene medidas / Solicita visita técnica\n`;
+    mensaje += `*Medidas:* No tiene medidas / Solicita visita técnica en el lugar\n`;
   } else {
-    mensaje += `*Medidas:* ${medidas || 'No especificadas'}\n`;
+    mensaje += `*Medidas ingresadas:*\n`;
+    if (alto) mensaje += ` - Alto: ${alto}\n`;
+    if (largo) mensaje += ` - Largo/Ancho: ${largo}\n`;
+    if (profundidad) mensaje += ` - Profundidad: ${profundidad}\n`;
+    if (!alto && !largo && !profundidad) {
+      mensaje += ` (No especificadas)\n`;
+    }
   }
 
   mensaje += `*Descripción:* ${descripcion}\n`;
