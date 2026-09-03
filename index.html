@@ -631,13 +631,13 @@
 
 
         <h2>
-          ¿Ya tienes un pedido con nosotros?
+          Hacer el seguimiento a tu pedido
         </h2>
 
 
         <p class="subtitle">
 
-          Si ya realizaste un proyecto, ingresa tu código único para revisar su estado actual en el taller.
+          Ingresa tu código único para revisar el estado actual de tu mueble en el taller.
 
         </p>
 
@@ -1142,10 +1142,10 @@
               </div>
             </div>
 
-            <!-- Descripción del Proyecto -->
+            <!-- Descripción del Proyecto (Opcional) -->
             <div class="cotizador-full">
-              <label for="cot-descripcion">Descripción o detalles del proyecto *</label>
-              <textarea id="cot-descripcion" rows="4" placeholder="Cuéntanos cómo lo imaginas, colores, materiales o distribución..." required></textarea>
+              <label for="cot-descripcion">Descripción o detalles del proyecto <span style="font-size:0.8rem; color:#aaa; font-weight:normal;">(Opcional)</span></label>
+              <textarea id="cot-descripcion" rows="4" placeholder="Cuéntanos cómo lo imaginas, colores, materiales o distribución..."></textarea>
             </div>
 
             <!-- Archivo opcional -->
@@ -2111,7 +2111,9 @@ document.getElementById('form-cotizacion').addEventListener('submit', function(e
     }
   }
 
-  mensaje += `*Descripción:* ${descripcion}\n`;
+  if (descripcion) {
+    mensaje += `*Descripción:* ${descripcion}\n`;
+  }
 
   if (ubicacion) {
     mensaje += `*Ubicación:* ${ubicacion}\n`;
