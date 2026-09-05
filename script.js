@@ -1158,11 +1158,22 @@ function mostrarPreviewArchivos() {
 }
 
 
-async function subirArchivoCloudinary(archivo) {
+// MODIFICADA: Ahora acepta un parámetro opcional 'nombreCarpeta' para Cloudinary
+async function subirArchivoCloudinary(archivo, nombreCarpeta = "") {
   return new Promise((resolve, reject) => {
     const formData = new FormData();
     formData.append("file", archivo);
     formData.append("upload_preset", CLOUDINARY_UPLOAD_PRESET);
+
+    // Si se provee un nombre de cliente, creamos una carpeta dinámica limpia
+    if (nombreCarpeta) {
+      const carpetaLimpia = nombreCarpeta
+        .trim()
+        .replace(/[^a-zA-Z0-9áéíóúÁÉÍÓÚñÑ_]/g, "_") // Limpia caracteres especiales extraños
+        .replace(/\s+/g, "_"); // Reemplaza espacios por guiones bajos
+      
+      formData.append("folder", `cotizaciones/${carpetaLimpia}`);
+    }
 
     const xhr = new XMLHttpRequest();
     xhr.open("POST", `https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD_NAME}/auto/upload`);
@@ -1437,7 +1448,7 @@ async function ejecutarEliminarTrabajoPortafolio(id) {
 
 
 // ============================================================
-// 12. DOM READY & COTIZADOR WHATSAPP CON CLOUDINARY (MÚLTIPLES FOTOS/VIDEOS)
+// 12. DOM READY & COTIZADOR WHATSAPP CON CLOUDINARY
 // ============================================================
 
 document.addEventListener("DOMContentLoaded", function () {
@@ -1563,16 +1574,10 @@ document.addEventListener("DOMContentLoaded", function () {
   }
 
   // ============================================================
-  // INTEGRACIÓN DEL FORMULARIO DE COTIZACIÓN CON MEDIDAS Y MULTI-FOTOS/VIDEOS A WHATSAPP
+  // INTEGRACIÓN DEL FORMULARIO DE COTIZACIÓN CON CARPETA DINÁMICA
   // ============================================================
   const formCotizacionMedidas = document.getElementById("form-cotizacion") || document.getElementById("form-cotizacion-medidas"); 
   if (formCotizacionMedidas) {
-    // Aseguramos por código que el input de archivo permita múltiples selecciones
-    const inputArchivo = document.getElementById("cotiza-foto") || document.getElementById("foto-referencia") || document.querySelector("input[type='file']");
-    if (inputArchivo && !inputArchivo.hasAttribute("multiple")) {
-      inputArchivo.setAttribute("multiple", "multiple");
-    }
-
     formCotizacionMedidas.addEventListener("submit", async function (e) {
       e.preventDefault();
 
@@ -1584,34 +1589,30 @@ document.addEventListener("DOMContentLoaded", function () {
       const alto = document.getElementById("medida-alto")?.value.trim() || "";
       const largo = document.getElementById("medida-largo")?.value.trim() || "";
       const profundidad = document.getElementById("medida-profundidad")?.value.trim() || "";
-      
-      // Capturamos la ubicación si existe en el formulario
-      const ubicacion = document.getElementById("cot-ubicacion")?.value.trim() || "";
 
+      // Soporte para múltiples archivos o un archivo único de referencia
+      const inputArchivo = document.getElementById("cotiza-foto") || document.getElementById("foto-referencia") || document.querySelector("input[type='file']"); 
       const archivosSeleccionados = inputArchivo?.files ? Array.from(inputArchivo.files) : [];
-      let linksImagenesSubidas = [];
-      const botonEnviar = formCotizacionMedidas.querySelector("button[type='submit']");
-      const textoOriginalBtn = botonEnviar ? botonEnviar.innerHTML : "";
+
+      let urlsImagenesSubidas = [];
 
       if (archivosSeleccionados.length > 0) {
         try {
-          if (botonEnviar) botonEnviar.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> Subiendo archivos (${archivosSeleccionados.length})...`;
+          const botonEnviar = formCotizacionMedidas.querySelector("button[type='submit']");
+          if (botonEnviar) botonEnviar.textContent = "Subiendo archivos...";
 
+          // Subimos cada archivo enviando el nombre del cliente para agruparlos en su propia carpeta en Cloudinary
           for (const archivo of archivosSeleccionados) {
-            const resultadoSubida = await subirArchivoCloudinary(archivo);
+            const resultadoSubida = await subirArchivoCloudinary(archivo, nombreCliente);
             const urlFinal = resultadoSubida.secure_url || resultadoSubida.url || "";
-            if (urlFinal) {
-              linksImagenesSubidas.push(urlFinal);
-            }
+            if (urlFinal) urlsImagenesSubidas.push(urlFinal);
           }
+          
+          if (botonEnviar) botonEnviar.textContent = "Enviar cotización";
         } catch (error) {
           console.error("Error subiendo archivos:", error);
-          alert("Hubo un problema al subir algunos archivos a Cloudinary, pero se enviarán los datos de texto.");
+          alert("Hubo un problema al subir los archivos a Cloudinary, pero se enviarán los datos de texto.");
         }
-      }
-
-      if (botonEnviar) {
-        botonEnviar.innerHTML = textoOriginalBtn;
       }
 
       const numeroTaller = "59162037033";
@@ -1619,40 +1620,32 @@ document.addEventListener("DOMContentLoaded", function () {
       let lineasMensaje = [
         "Hola, vengo desde la web de HN Muebles. ¡Quiero una cotización!",
         "",
-        `👤 *Cliente:* ${nombreCliente}`,
-        `📱 *Teléfono:* ${telefonoCliente || 'No especificado'}`,
-        `🪑 *Mueble:* ${tipoMueble}`
+        `Cliente: ${nombreCliente}`,
+        `Teléfono: ${telefonoCliente || 'No especificado'}`,
+        `Mueble: ${tipoMueble}`
       ];
 
       if (alto || largo || profundidad) {
-        lineasMensaje.push("");
-        lineasMensaje.push("📏 *Medidas ingresadas:*");
-        if (alto) lineasMensaje.push(` • Alto: ${alto}`);
-        if (largo) lineasMensaje.push(` • Largo/Ancho: ${largo}`);
-        if (profundidad) lineasMensaje.push(` • Profundidad: ${profundidad}`);
+        lineasMensaje.push("Medidas ingresadas:");
+        if (alto) lineasMensaje.push(` - Alto: ${alto}`);
+        if (largo) lineasMensaje.push(` - Largo/Ancho: ${largo}`);
+        if (profundidad) lineasMensaje.push(` - Profundidad: ${profundidad}`);
       }
 
       if (detallesMueble) {
-        lineasMensaje.push("");
-        lineasMensaje.push(`📝 *Detalles:* ${detallesMueble}`);
+        lineasMensaje.push(`Detalles: ${detallesMueble}`);
       }
 
-      if (ubicacion) {
-        lineasMensaje.push(`📍 *Ubicación:* ${ubicacion}`);
-      }
-
-      // Si subió una o varias fotos/videos, los agregamos todos con sus respectivos links
-      if (linksImagenesSubidas.length > 0) {
+      if (urlsImagenesSubidas.length > 0) {
         lineasMensaje.push("");
-        lineasMensaje.push("📸 *Fotos o videos de referencia:*");
-        linksImagenesSubidas.forEach((link, idx) => {
-          lineasMensaje.push(`• Archivo ${idx + 1}: ${link}`);
+        lineasMensaje.push("📸 *Fotos o bocetos de referencia:*");
+        urlsImagenesSubidas.forEach((url, i) => {
+          lineasMensaje.push(`- ${url}`);
         });
       }
 
       const mensajeFinal = encodeURIComponent(lineasMensaje.join("\n"));
       window.open(`https://wa.me/${numeroTaller}?text=${mensajeFinal}`, "_blank");
-      formCotizacionMedidas.reset();
     });
   }
 
