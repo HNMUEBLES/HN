@@ -1,7 +1,7 @@
 // ============================================================
 // HN MUEBLES - SCRIPT PRINCIPAL COMPLETO
 // Firebase Authentication + Firestore
-// Cloudinary para Portafolio (Con Modales de Confirmación y Edición)
+// Cloudinary para Portafolio y Cotizador Web
 // ============================================================
 
 
@@ -341,7 +341,7 @@ async function cargarIngresosDesdeNube() {
 
 
 // ============================================================
-// 6. BÚSQUEDA PÚBLICA
+// 6. BÚSQUEDA PÚBLICA Y COTIZADOR WEB CON WHATSAPP
 // ============================================================
 
 async function buscarProyectoPublico(codigo) {
@@ -1477,6 +1477,77 @@ document.addEventListener("DOMContentLoaded", function () {
     }
   }
 
+  // ============================================================
+  // INTEGRACIÓN COTIZADOR PÚBLICO -> WHATSAPP CON CLOUDINARY
+  // ============================================================
+  const formCotizacion = document.getElementById("form-cotizacion");
+  if (formCotizacion) {
+    formCotizacion.addEventListener("submit", async function (e) {
+      e.preventDefault();
+
+      // Recopilar datos del formulario (ajusta los IDs según los nombres en tu HTML si es necesario)
+      const nombre = document.getElementById("cot-nombre")?.value.trim() || "Cliente";
+      const telefonoCliente = document.getElementById("cot-telefono")?.value.trim() || "";
+      const categoria = document.getElementById("cot-categoria")?.value || "Mueble a medida";
+      const descripcion = document.getElementById("cot-descripcion")?.value.trim() || "Sin detalles adicionales";
+      const inputArchivo = document.getElementById("cot-archivo");
+      const archivo = inputArchivo?.files[0];
+
+      let urlImagenSubida = "";
+
+      // Si el usuario adjuntó una foto, la subimos a Cloudinary primero
+      if (archivo) {
+        try {
+          // Crear un indicador visual temporal de carga
+          const btnSubmit = formCotizacion.querySelector("button[type='submit']") || formCotizacion.querySelector("button");
+          const textoOriginal = btnSubmit ? btnSubmit.innerText : "";
+          if (btnSubmit) {
+            btnSubmit.disabled = true;
+            btnSubmit.innerText = "Subiendo imagen y enviando...";
+          }
+
+          const resultadoCloudinary = await subirArchivoCloudinary(archivo);
+          urlImagenSubida = resultadoCloudinary.secure_url || resultadoCloudinary.url;
+
+          if (btnSubmit) {
+            btnSubmit.disabled = false;
+            btnSubmit.innerText = textoOriginal;
+          }
+        } catch (error) {
+          console.error("Error subiendo foto de cotización:", error);
+          alert("No se pudo subir la foto adjunta, pero continuaremos con el envío del mensaje.");
+        }
+      }
+
+      // Número de WhatsApp del negocio (puedes cambiarlo si deseas otro número por defecto)
+      const numeroWhatsAppNegocio = "59162037033";
+
+      // Construir mensaje estructurado para WhatsApp
+      let mensajeWhatsApp = `Hola *HN Muebles* 👋, quiero solicitar una cotización:
+
+👤 *Cliente:* ${nombre}
+📞 *Teléfono:* ${telefonoCliente || "No especificado"}
+🗄️ *Categoría:* ${categoria}
+📝 *Detalles / Medidas:* ${descripcion}`;
+
+      if (urlImagenSubida) {
+        mensajeWhatsApp += `\n\n📸 *Foto / Boceto de referencia:* \n${urlImagenSubida}`;
+      }
+
+      // Redirigir directamente a WhatsApp
+      const urlWhatsApp = `https://wa.me/${numeroWhatsAppNegocio}?text=${encodeURIComponent(mensajeWhatsApp)}`;
+      window.open(urlWhatsApp, "_blank");
+
+      // Mostrar popup de confirmación si existe en el DOM
+      const popupConfirmacion = document.getElementById("popup-confirmacion");
+      if (popupConfirmacion) {
+        popupConfirmacion.style.display = "flex";
+      }
+
+      formCotizacion.reset();
+    });
+  }
+
   const presupuestoInput = document.getElementById("nuevo-presupuesto");
   const adelantoInput = document.getElementById("nuevo-adelanto");
 
@@ -1564,7 +1635,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
   const filtroIngresos = document.getElementById("ingresos-mes");
   if (filtroIngresos) {
-    const ahora = new Date();
+    constahora = new Date();
     filtroIngresos.value = `${ahora.getFullYear()}-${String(ahora.getMonth() + 1).padStart(2, "0")}`;
     filtroIngresos.addEventListener("change", () => renderGestionIngresos());
   }
