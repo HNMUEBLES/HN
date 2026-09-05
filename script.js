@@ -1232,7 +1232,7 @@ function mostrarPreviewArchivos() {
 }
 
 
-// FUNCIÓN MODIFICADA: Soporta /auto/upload para imágenes y videos, y carpetas dinámicas por cliente
+// FUNCIÓN CORREGIDA: Limpia el nombre del cliente y crea carpetas ordenadas en Cloudinary
 async function subirArchivoCloudinary(archivo, nombreCarpeta = "") {
   return new Promise((resolve, reject) => {
     const formData = new FormData();
@@ -1242,14 +1242,16 @@ async function subirArchivoCloudinary(archivo, nombreCarpeta = "") {
     if (nombreCarpeta) {
       const carpetaLimpia = nombreCarpeta
         .trim()
-        .replace(/[^a-zA-Z0-9áéíóúÁÉÍÓÚñÑ_]/g, "_")
-        .replace(/\s+/g, "_");
-      
-      formData.append("folder", `cotizaciones/${carpetaLimpia}`);
+        .toLowerCase()
+        .normalize("NFD")
+        .replace(/[\u0300-\u036f]/g, "") // Remueve tildes y acentos
+        .replace(/[^a-z0-9]/g, "_")      // Cambia espacios y símbolos por guiones bajos
+        .replace(/_+/g, "_");            // Evita guiones bajos múltiples
+
+      formData.append("folder", `cotizaciones_clientes/${carpetaLimpia}`);
     }
 
     const xhr = new XMLHttpRequest();
-    // Usamos /auto/upload para aceptar tanto fotos como videos de manera transparente
     xhr.open("POST", `https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD_NAME}/auto/upload`);
 
     xhr.onload = () => {
@@ -1676,6 +1678,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
         if (archivosSeleccionados.length > 0) {
           for (const archivo of archivosSeleccionados) {
+            // Aquí le pasamos el nombre del cliente para que cree la carpeta en Cloudinary
             const resultadoSubida = await subirArchivoCloudinary(archivo, nombreCliente);
             const urlFinal = resultadoSubida.secure_url || resultadoSubida.url || "";
             if (urlFinal) {
