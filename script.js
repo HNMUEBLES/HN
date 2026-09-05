@@ -1589,7 +1589,7 @@ document.addEventListener("DOMContentLoaded", function () {
         }
       }
 
-      const numeroTaller = "59171234567"; // Reemplaza por tu número de WhatsApp de destino si es necesario
+      const numeroTaller = "59162037033"; // Número de WhatsApp del taller configurado
 
       let mensajeWhatsApp = `Hola *HN Muebles* 👋, quiero solicitar una cotización:
 
