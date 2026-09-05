@@ -231,7 +231,7 @@
 
     /*
       =====================================================
-      MENÚ DE PESTAÑAS (NUEVO)
+      MENÚ DE PESTAÑAS (ACTUALIZADO CON FOTOS COTIZACIONES)
       =====================================================
     */
 
@@ -437,6 +437,83 @@
     .popup-btn {
       margin-top: 25px;
       width: 100%;
+    }
+
+    /* Estilos de las Tarjetas/Carpetas en Fotos Cotizaciones */
+    .cotizacion-carpeta-card {
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 12px;
+      padding: 20px;
+      margin-bottom: 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 15px;
+    }
+
+    .carpeta-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+      padding-bottom: 12px;
+    }
+
+    .carpeta-info h4 {
+      color: #f59e0b;
+      font-size: 1.2rem;
+      margin-bottom: 4px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .carpeta-info p {
+      color: rgba(255, 255, 255, 0.7);
+      font-size: 0.9rem;
+      margin: 2px 0;
+    }
+
+    .carpeta-grid-fotos {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+      gap: 12px;
+    }
+
+    .foto-item-box {
+      position: relative;
+      border-radius: 8px;
+      overflow: hidden;
+      background: #000;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      aspect-ratio: 1;
+    }
+
+    .foto-item-box img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      transition: transform 0.2s;
+    }
+
+    .foto-item-box img:hover {
+      transform: scale(1.05);
+    }
+
+    .foto-item-box a {
+      position: absolute;
+      bottom: 8px;
+      right: 8px;
+      background: rgba(0,0,0,0.8);
+      color: #fff;
+      padding: 6px 10px;
+      border-radius: 6px;
+      font-size: 0.8rem;
+      text-decoration: none;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      border: 1px solid rgba(255,255,255,0.2);
     }
 
 
@@ -1100,7 +1177,7 @@
               </select>
             </div>
 
-            <!-- Opción de Solicitud de Visita Técnica (100% Libre / Manual para todas las categorías) -->
+            <!-- Opción de Solicitud de Visita Técnica -->
             <div class="cotizador-full">
               <div class="visita-check-row">
                 <input type="checkbox" id="cot-solicita-visita" onchange="toggleVisitaMedidas()" />
@@ -1110,7 +1187,7 @@
               </div>
             </div>
 
-            <!-- Contenedor de Medidas Detalladas (Alto, Largo, Profundidad) -->
+            <!-- Contenedor de Medidas Detalladas -->
             <div class="cotizador-full" id="contenedor-medidas-detalladas">
               <label style="display: block; margin-bottom: 8px;">
                 Medidas aproximadas <span class="medidas-nota">(en metros o centímetros)</span>
@@ -1131,7 +1208,7 @@
               </div>
             </div>
 
-            <!-- Aviso específico de Cocina para subir fotos con medidas -->
+            <!-- Aviso específico de Cocina -->
             <div class="cotizador-full hidden" id="msg-cocina-foto">
               <div style="background: rgba(245, 158, 11, 0.08); border: 1px solid rgba(245, 158, 11, 0.3); padding: 15px; border-radius: 8px; text-align: center;">
                 <i class="fa-solid fa-camera font-amber" style="font-size: 1.5rem; margin-bottom: 8px; display: block;"></i>
@@ -1142,13 +1219,13 @@
               </div>
             </div>
 
-            <!-- Descripción del Proyecto (Opcional) -->
+            <!-- Descripción del Proyecto -->
             <div class="cotizador-full">
               <label for="cot-descripcion">Descripción o detalles del proyecto <span style="font-size:0.8rem; color:#aaa; font-weight:normal;">(Opcional)</span></label>
               <textarea id="cot-descripcion" rows="4" placeholder="Cuéntanos cómo lo imaginas, colores, materiales o distribución..."></textarea>
             </div>
 
-            <!-- Archivo opcional (ID corregido a cotiza-foto) -->
+            <!-- Archivo opcional -->
             <div class="cotizador-full">
               <label for="cotiza-foto">Foto de referencia o medidas (Opcional)</label>
               <input type="file" id="cotiza-foto" accept="image/*" />
@@ -1351,7 +1428,7 @@
 
 
       <!-- =================================================
-           MENÚ DE PESTAÑAS SUPERIOR
+           MENÚ DE PESTAÑAS SUPERIOR (INCLUYE FOTOS COTIZACIONES)
       ================================================== -->
 
       <nav class="admin-nav-tabs" id="admin-menu">
@@ -1363,6 +1440,9 @@
         </button>
         <button onclick="cambiarVistaAdmin('portafolio', this)">
           <i class="fa-solid fa-images"></i> Portafolio
+        </button>
+        <button onclick="cambiarVistaAdmin('fotos-cotizaciones', this)">
+          <i class="fa-solid fa-folder-tree"></i> Fotos Cotizaciones
         </button>
       </nav>
 
@@ -1937,6 +2017,30 @@
       </div>
 
 
+
+      <!-- =================================================
+           VISTA 4: FOTOS COTIZACIONES (NUEVA PESTAÑA)
+      ================================================== -->
+
+      <div id="vista-fotos-cotizaciones" class="admin-vista hidden">
+        <div class="portfolio-admin-title">
+          <h2>
+            <i class="fa-solid fa-folder-tree font-amber"></i>
+            Fotos de Cotizaciones de Clientes
+          </h2>
+          <p class="subtitle">
+            Aquí encontrarás organizadas las carpetas de cada cliente que envió fotos e información a través del cotizador web.
+          </p>
+        </div>
+
+        <div id="lista-fotos-cotizaciones" style="margin-top: 20px;">
+          <div style="text-align: center; color: rgba(255,255,255,0.6); padding: 30px;">
+            <i class="fa-solid fa-spinner fa-spin"></i> Cargando cotizaciones...
+          </div>
+        </div>
+      </div>
+
+
     </div>
 
   </div>
@@ -1963,7 +2067,7 @@
 
 
 <!-- =========================================================
-     FUNCIONES INDEX Y COTIZADOR WHATSAPP
+     FUNCIONES INDEX Y COTIZADOR WHATSAPP + GESTIÓN FOTOS COTIZACIONES
 ========================================================= -->
 
 <script>
@@ -1999,17 +2103,14 @@ function actualizarCamposDinamicos() {
   const checkboxVisita = document.getElementById('cot-solicita-visita');
 
   if (categoria === 'Cocina') {
-    // Si es cocina, ocultamos los inputs de alto, largo y profundidad, y mostramos el aviso para subir foto con medidas
     contenedorMedidas.style.display = 'none';
     msgCocinaFoto.classList.remove('hidden');
     msgCocinaFoto.style.display = 'block';
 
-    // Limpiamos los valores de medidas para que no viajen vacíos extraños
     document.getElementById('cot-alto').value = '';
     document.getElementById('cot-largo').value = '';
     document.getElementById('cot-profundidad').value = '';
   } else {
-    // Para cualquier otro mueble, restauramos según el estado del checkbox de visita técnica
     msgCocinaFoto.classList.add('hidden');
     msgCocinaFoto.style.display = 'none';
 
@@ -2035,7 +2136,6 @@ function toggleVisitaMedidas() {
     document.getElementById('cot-largo').value = '';
     document.getElementById('cot-profundidad').value = '';
   } else {
-    // Si no está chequeado, solo mostramos las medidas si NO es cocina
     if (categoria !== 'Cocina') {
       contenedorMedidas.style.display = 'block';
     }
@@ -2073,7 +2173,7 @@ function obtenerUbicacionGPS() {
 
 /*
 =============================================================
-ENVÍO DE COTIZACIÓN A WHATSAPP, SUBIDA A CLOUDINARY Y POPUP
+ENVÍO DE COTIZACIÓN, SUBIDA A FIREBASE FIRESTORE & STORAGE Y WHATSAPP
 =============================================================
 */
 document.getElementById('form-cotizacion').addEventListener('submit', async function(e) {
@@ -2091,35 +2191,40 @@ document.getElementById('form-cotizacion').addEventListener('submit', async func
   const descripcion = document.getElementById('cot-descripcion').value.trim();
   const ubicacion = document.getElementById('cot-ubicacion').value.trim();
   
-  // Capturar archivo del input corregido
   const inputArchivo = document.getElementById('cotiza-foto');
   let fotoUrl = '';
 
   const btnSubmit = this.querySelector('button[type="submit"]');
   const textoOriginal = btnSubmit.innerHTML;
-  btnSubmit.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> Subiendo foto y enviando...`;
+  btnSubmit.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> Guardando y enviando...`;
   btnSubmit.disabled = true;
 
   try {
+    // Si hay archivo, lo subimos a Firebase Storage en la carpeta del cliente
     if (inputArchivo && inputArchivo.files[0]) {
       const file = inputArchivo.files[0];
-      const formData = new FormData();
-      formData.append('file', file);
-      // REEMPLAZA ESTO CON TUS DATOS REALES DE CLOUDINARY
-      formData.append('upload_preset', 'TU_UPLOAD_PRESET'); 
+      const nombreCarpeta = nombre.replace(/[^a-zA-Z0-9]/g, '_');
+      const storageRef = firebase.storage().ref(`Clientes_Cotizaciones/${nombreCarpeta}/${Date.now()}_${file.name}`);
+      const snapshot = await storageRef.put(file);
+      fotoUrl = await snapshot.ref.getDownloadURL();
+    }
 
-      const response = await fetch('https://api.cloudinary.com/v1_1/TU_CLOUD_NAME/image/upload', {
-        method: 'POST',
-        body: formData
+    // Guardar el registro completo en Firestore para la pestaña "Fotos Cotizaciones"
+    if (typeof db !== 'undefined') {
+      await db.collection('cotizaciones_clientes').add({
+        nombre: nombre,
+        telefono: telefono,
+        categoria: categoria,
+        solicitaVisita: solicitaVisita,
+        medidas: { alto, largo, profundidad },
+        descripcion: descripcion,
+        ubicacion: ubicacion,
+        fotoUrl: fotoUrl,
+        fechaCreacion: firebase.firestore.FieldValue.serverTimestamp()
       });
-
-      const data = await response.json();
-      if (data.secure_url) {
-        fotoUrl = data.secure_url;
-      }
     }
   } catch (error) {
-    console.error("Error subiendo la foto:", error);
+    console.error("Error guardando cotización en Firebase:", error);
   }
 
   // Construir mensaje estructurado para WhatsApp
@@ -2150,27 +2255,21 @@ document.getElementById('form-cotizacion').addEventListener('submit', async func
     mensaje += `*Ubicación:* ${ubicacion}\n`;
   }
 
-  // Agregar el link de la foto si se subió correctamente
   if (fotoUrl) {
     mensaje += `\n*Foto de referencia:* ${fotoUrl}\n`;
   }
 
-  // Número de WhatsApp del negocio configurado
   const numeroWhatsApp = "59162037033";
   const urlWhatsApp = `https://wa.me/${numeroWhatsApp}?text=${encodeURIComponent(mensaje)}`;
 
-  // Restaurar botón
   btnSubmit.innerHTML = textoOriginal;
   btnSubmit.disabled = false;
 
-  // Abrir WhatsApp en nueva pestaña
   window.open(urlWhatsApp, '_blank');
 
-  // Cerrar modal del cotizador y abrir popup de éxito
   cerrarModalCotizar();
   document.getElementById('popup-confirmacion').classList.remove('hidden');
 
-  // Limpiar formulario
   this.reset();
   toggleVisitaMedidas();
 });
@@ -2182,41 +2281,87 @@ function cerrarPopupConfirmacion() {
 
 /*
 =============================================================
+CARGAR FOTOS Y COTIZACIONES EN EL PANEL ADMIN
+=============================================================
+*/
+async function cargarFotosCotizacionesAdmin() {
+  const contenedor = document.getElementById('lista-fotos-cotizaciones');
+  if (!contenedor) return;
+
+  contenedor.innerHTML = `<div style="text-align: center; color: rgba(255,255,255,0.6); padding: 30px;"><i class="fa-solid fa-spinner fa-spin"></i> Cargando carpetas de clientes...</div>`;
+
+  try {
+    if (typeof db === 'undefined') {
+      contenedor.innerHTML = `<p style="text-align:center; color:#ef4444;">Error: Base de datos no disponible.</p>`;
+      return;
+    }
+
+    const snapshot = await db.collection('cotizaciones_clientes').orderBy('fechaCreacion', 'desc').get();
+
+    if (snapshot.empty) {
+      contenedor.innerHTML = `<div style="text-align: center; color: rgba(255,255,255,0.6); padding: 40px; background: rgba(255,255,255,0.02); border-radius: 12px;">No hay cotizaciones con archivos registrados todavía.</div>`;
+      return;
+    }
+
+    let html = '';
+    snapshot.forEach(doc => {
+      const data = doc.data();
+      const fecha = data.fechaCreacion ? data.fechaCreacion.toDate().toLocaleString() : 'Fecha reciente';
+
+      html += `
+        <div class="cotizacion-carpeta-card">
+          <div class="carpeta-header">
+            <div class="carpeta-info">
+              <h4><i class="fa-solid fa-folder-open"></i> ${data.nombre} (${data.categoria})</h4>
+              <p><strong>Teléfono:</strong> <a href="https://wa.me/591${data.telefono}" target="_blank" style="color: #f59e0b; text-decoration: underline;">${data.telefono}</a></p>
+              <p><strong>Fecha:</strong> ${fecha}</p>
+              <p><strong>Ubicación:</strong> ${data.ubicacion || 'No especificada'}</p>
+              <p><strong>Descripción:</strong> ${data.descripcion || 'Sin descripción'}</p>
+              ${data.solicitaVisita ? '<p style="color: #f59e0b;"><strong>⚠️ Solicita Visita Técnica en el lugar</strong></p>' : ''}
+            </div>
+          </div>
+          <div>
+            <strong style="font-size: 0.9rem; color: #aaa; display: block; margin-bottom: 8px;">Archivos / Fotos del cliente:</strong>
+            <div class="carpeta-grid-fotos">
+              ${data.fotoUrl ? `
+                <div class="foto-item-box">
+                  <img src="${data.fotoUrl}" alt="Foto cotización" />
+                  <a href="${data.fotoUrl}" target="_blank" download>
+                    <i class="fa-solid fa-download"></i> Ver / Descargar
+                  </a>
+                </div>
+              ` : `
+                <p style="font-size: 0.85rem; color: rgba(255,255,255,0.4); font-style: italic;">El cliente no adjuntó ninguna foto en esta cotización.</p>
+              `}
+            </div>
+          </div>
+        </div>
+      `;
+    });
+
+    contenedor.innerHTML = html;
+  } catch (error) {
+    console.error("Error al cargar fotos de cotizaciones:", error);
+    contenedor.innerHTML = `<p style="text-align:center; color:#ef4444;">Error al cargar los datos. Verifica tus permisos de Firebase.</p>`;
+  }
+}
+
+
+/*
+=============================================================
 NAVEGACIÓN
 =============================================================
 */
 
 function irASeccion(id) {
-
   const el = document.getElementById(id);
-
   if (!el) return;
-
-  el.scrollIntoView({
-    behavior: "smooth",
-    block: "start"
-  });
-
+  el.scrollIntoView({ behavior: "smooth", block: "start" });
 }
-
-
-
-/*
-=============================================================
-INICIO
-=============================================================
-*/
 
 function irInicio() {
-
-  window.scrollTo({
-    top: 0,
-    behavior: "smooth"
-  });
-
+  window.scrollTo({ top: 0, behavior: "smooth" });
 }
-
-
 
 /*
 =============================================================
@@ -2225,34 +2370,18 @@ ADMIN
 */
 
 function abrirModalAdmin() {
-
-  const modal =
-    document.getElementById("modal-admin");
-
+  const modal = document.getElementById("modal-admin");
   if (!modal) return;
-
   modal.classList.remove("hidden");
-
   document.body.style.overflow = "hidden";
-
 }
-
-
 
 function cerrarModalAdmin() {
-
-  const modal =
-    document.getElementById("modal-admin");
-
+  const modal = document.getElementById("modal-admin");
   if (!modal) return;
-
   modal.classList.add("hidden");
-
   document.body.style.overflow = "";
-
 }
-
-
 
 /*
 =============================================================
@@ -2261,15 +2390,10 @@ NAVEGACIÓN INTERNA ADMIN (PESTAÑAS)
 */
 
 function cambiarVistaAdmin(vista, botonSeleccionado) {
-
-  if (
-    typeof esAdmin !== "undefined" &&
-    !esAdmin
-  ) {
+  if (typeof esAdmin !== "undefined" && !esAdmin) {
     return;
   }
 
-  // 1. Quitar clase active de los botones del menú superior
   const botones = document.querySelectorAll('#admin-menu button');
   botones.forEach(btn => btn.classList.remove('active'));
 
@@ -2277,15 +2401,13 @@ function cambiarVistaAdmin(vista, botonSeleccionado) {
     botonSeleccionado.classList.add('active');
   }
 
-  // 2. Ocultar todas las vistas
   document.getElementById('vista-proyectos').classList.add('hidden');
   document.getElementById('vista-ingresos').classList.add('hidden');
   document.getElementById('vista-portafolio').classList.add('hidden');
+  document.getElementById('vista-fotos-cotizaciones').classList.add('hidden');
 
-  // 3. Mostrar la vista seleccionada
   document.getElementById('vista-' + vista).classList.remove('hidden');
 
-  // 4. Cargar datos específicos si corresponde
   if (vista === 'ingresos' && typeof renderGestionIngresos === "function") {
     renderGestionIngresos();
   }
@@ -2294,9 +2416,10 @@ function cambiarVistaAdmin(vista, botonSeleccionado) {
     cargarPortafolioAdmin();
   }
 
+  if (vista === 'fotos-cotizaciones') {
+    cargarFotosCotizacionesAdmin();
+  }
 }
-
-
 
 /*
 =============================================================
@@ -2307,35 +2430,17 @@ ESC PARA CERRAR PANELES
 document.addEventListener(
   "keydown",
   function(event) {
+    if (event.key !== "Escape") return;
 
-    if (event.key !== "Escape") {
-      return;
-    }
-
-    const admin =
-      document.getElementById("modal-admin");
-
-    if (
-      admin &&
-      !admin.classList.contains("hidden")
-    ) {
-
+    const admin = document.getElementById("modal-admin");
+    if (admin && !admin.classList.contains("hidden")) {
       cerrarModalAdmin();
-
     }
 
-    const cotizador =
-      document.getElementById("modal-cotizador");
-
-    if (
-      cotizador &&
-      !cotizador.classList.contains("hidden")
-    ) {
-
+    const cotizador = document.getElementById("modal-cotizador");
+    if (cotizador && !cotizador.classList.contains("hidden")) {
       cerrarModalCotizar();
-
     }
-
   }
 );
 
