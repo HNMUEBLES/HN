@@ -1437,7 +1437,7 @@ async function ejecutarEliminarTrabajoPortafolio(id) {
 
 
 // ============================================================
-// 12. DOM READY
+// 12. DOM READY & COTIZADOR WHATSAPP CON CLOUDINARY
 // ============================================================
 
 document.addEventListener("DOMContentLoaded", function () {
@@ -1559,6 +1559,51 @@ document.addEventListener("DOMContentLoaded", function () {
         console.error("Error creando proyecto:", error);
         alert("Hubo un error al guardar en la base de datos: " + error.message);
       }
+    });
+  }
+
+  // ============================================================
+  // INTEGRACIÓN DEL FORMULARIO DE COTIZACIÓN PÚBLICA CON WHATSAPP Y CLOUDINARY
+  // ============================================================
+  const formCotizacion = document.getElementById("form-cotizacion"); // Ajusta el ID de tu formulario de cotización si es diferente (ej: form-cotizar)
+  if (formCotizacion) {
+    formCotizacion.addEventListener("submit", async function (e) {
+      e.preventDefault();
+
+      const nombreCliente = document.getElementById("cotiza-nombre")?.value.trim() || "Cliente";
+      const telefonoCliente = document.getElementById("cotiza-telefono")?.value.trim() || "";
+      const categoriaMueble = document.getElementById("cotiza-categoria")?.value.trim() || "Mueble a medida";
+      const detallesMueble = document.getElementById("cotiza-detalles")?.value.trim() || "";
+      const inputArchivo = document.getElementById("cotiza-foto"); // Ajusta el ID del input type="file" de tu cotizador
+      const archivoFoto = inputArchivo?.files?.[0];
+
+      let urlImagenSubida = "";
+
+      if (archivoFoto) {
+        try {
+          const resultadoSubida = await subirArchivoCloudinary(archivoFoto);
+          urlImagenSubida = resultadoSubida.secure_url || resultadoSubida.url || "";
+        } catch (error) {
+          console.error("Error subiendo foto de cotización:", error);
+          alert("No se pudo adjuntar la foto, pero continuaremos con el envío del mensaje.");
+        }
+      }
+
+      // Número de WhatsApp del taller (reemplaza si es necesario o mantén tu número de destino)
+      const numeroTaller = "59171234567"; // Asegúrate de que sea tu número con código de país sin '+'
+
+      let mensajeWhatsApp = `Hola *HN Muebles* 👋, quiero solicitar una cotización:
+
+👤 *Cliente:* ${nombreCliente}
+📞 *Teléfono:* ${telefonoCliente || 'No especificado'}
+🗄️ *Categoría:* ${categoriaMueble}
+📝 *Detalles / Medidas:* ${detallesMueble}`;
+
+      if (urlImagenSubida) {
+        mensajeWhatsApp += `\n\n📸 *Foto / Boceto de referencia:*\n${urlImagenSubida}`;
+      }
+
+      window.open(`https://wa.me/${numeroTaller}?text=${encodeURIComponent(mensajeWhatsApp)}`, "_blank");
     });
   }
 
