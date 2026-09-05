@@ -92,6 +92,7 @@ function escaparHTML(texto) {
 }
 
 
+// Modal flotante de confirmación unificado con el estilo de la web
 function mostrarModalConfirmacion(titulo, mensaje, callbackConfirmar) {
   const modalId = "hn-confirm-modal-overlay";
   let overlay = document.getElementById(modalId);
@@ -140,6 +141,7 @@ function mostrarModalConfirmacion(titulo, mensaje, callbackConfirmar) {
           font-weight: 600;
           cursor: pointer;
           font-size: 0.9rem;
+          transition: background 0.2s;
         ">Cancelar</button>
         <button type="button" id="hn-confirm-ok" style="
           flex: 1;
@@ -151,6 +153,7 @@ function mostrarModalConfirmacion(titulo, mensaje, callbackConfirmar) {
           font-weight: 600;
           cursor: pointer;
           font-size: 0.9rem;
+          transition: background 0.2s;
         ">Sí, eliminar</button>
       </div>
     </div>
@@ -183,6 +186,7 @@ function mostrarModalConfirmacion(titulo, mensaje, callbackConfirmar) {
 // ============================================================
 
 auth.onAuthStateChanged(async (user) => {
+
   if (!user) {
     esAdmin = false;
     ocultarPanelAdministrador();
@@ -212,6 +216,7 @@ auth.onAuthStateChanged(async (user) => {
   } catch (error) {
     console.error("Error cargando panel:", error);
   }
+
 });
 
 
@@ -229,7 +234,7 @@ async function cerrarSesionAdmin() {
 
 
 // ============================================================
-// 4. CONTROL DE VISTAS ADMIN
+// 4. CONTROL DE VISTAS ADMIN (PANTALLA COMPLETA)
 // ============================================================
 
 function mostrarPanelAdministrador() {
@@ -312,7 +317,7 @@ function cambiarVistaAdmin(vistaId) {
 
 
 // ============================================================
-// 5. FIRESTORE
+// 5. FIRESTORE (SIN BLOQUEOS)
 // ============================================================
 
 async function cargarProyectosDesdeNube() {
@@ -857,11 +862,14 @@ async function exportarIngresosPDF() {
 
   doc.setFont("helvetica", "normal");
   doc.setFontSize(10);
+  
   doc.text(`Total contratado: Bs. ${totalContratadoNum}`, 14, 62);
   doc.text(`Adelantos recibidos: Bs. ${adelantosRecibidosNum}`, 14, 68);
   doc.text(`Saldos cobrados: Bs. ${saldosCobradosNum}`, 14, 74);
+  
   doc.setFont("helvetica", "bold");
   doc.text(`TOTAL INGRESADO: Bs. ${totalIngresadoNum}`, 14, 80);
+  
   doc.setFont("helvetica", "normal");
   doc.text(`Pendiente: Bs. ${pendienteNum}`, 14, 86);
 
@@ -884,20 +892,31 @@ async function exportarIngresosPDF() {
 
   if (lista.length === 0) {
     doc.text("Sin movimientos registrados en este periodo.", 14, posY);
+    posY += 8;
   } else {
     lista.forEach(ing => {
       const fechaMov = ing.fechaCreacion && ing.fechaCreacion.toDate ? ing.fechaCreacion.toDate().toLocaleDateString('es-ES') : fechaGeneracion;
+      const codigoMov = ing.codigo || "";
+      const clienteMov = ing.cliente || "";
+      const tipoMov = "Adelanto";
+      const montoMov = `Bs. ${Number(ing.adelanto) || 0}`;
+
       doc.text(fechaMov, 14, posY);
-      doc.text(ing.codigo || "", 50, posY);
-      doc.text(ing.cliente || "", 80, posY);
-      doc.text("Adelanto", 130, posY);
-      doc.text(`Bs. ${Number(ing.adelanto) || 0}`, 170, posY);
+      doc.text(codigoMov, 50, posY);
+      doc.text(clienteMov, 80, posY);
+      doc.text(tipoMov, 130, posY);
+      doc.text(montoMov, 170, posY);
       posY += 8;
     });
   }
 
   doc.setFont("helvetica", "bold");
   doc.text(`TOTAL INGRESADO: Bs. ${totalIngresadoNum}`, 14, posY + 6);
+
+  doc.setFont("helvetica", "italic");
+  doc.setFontSize(8);
+  doc.text("HN Muebles - Documento interno de control financiero.", 14, 280);
+
   doc.save(`HN-Muebles-Ingresos-${periodo}.pdf`);
 }
 
@@ -943,7 +962,7 @@ ${link}`;
 
 
 // ============================================================
-// 11. PORTAFOLIO
+// 11. PORTAFOLIO (PÚBLICO, ADMIN Y EDICIÓN AVANZADA)
 // ============================================================
 
 async function cargarPortafolioPublico() {
@@ -1176,10 +1195,17 @@ async function publicarTrabajoPortafolio(e) {
   const videos = Array.from(document.getElementById("portfolio-videos")?.files || []);
   const archivos = [...fotos, ...videos];
 
-  if (!titulo || !archivos.length) {
-    alert("Por favor escribe un título y selecciona al menos una foto o video.");
+  if (!titulo) {
+    alert("Por favor escribe un título para el trabajo.");
     return;
   }
+
+  if (!archivos.length) {
+    alert("Por favor selecciona al menos una foto o video.");
+    return;
+  }
+
+  alert(`Subiendo ${archivos.length} archivo(s)... Por favor espera un momento.`);
 
   try {
     const media = [];
@@ -1207,6 +1233,7 @@ async function publicarTrabajoPortafolio(e) {
 
     await cargarPortafolioAdmin();
     await cargarPortafolioPublico();
+    
     alert("¡Trabajo publicado correctamente!");
   } catch (error) {
     console.error("Error publicando portafolio:", error);
@@ -1230,6 +1257,8 @@ function renderPortafolioAdmin() {
   portafolio.forEach((trabajo) => {
     const card = document.createElement("div");
     card.className = "portfolio-admin-card";
+    card.id = `portfolio-admin-item-${trabajo.id}`;
+    
     const primerMedia = trabajo.media?.[0];
     const thumb = primerMedia?.url || "";
 
@@ -1244,7 +1273,7 @@ function renderPortafolioAdmin() {
       </div>
       <div class="portfolio-admin-actions" style="display:flex; gap:6px;">
         <button type="button" onclick="activarEdicionPortafolio('${trabajo.id}')" style="background:#3b82f6; color:#fff; border:none; padding:8px 10px; border-radius:6px; cursor:pointer;" title="Editar trabajo">✏️</button>
-        <button type="button" onclick="confirmarEliminarTrabajoPortafolio('${trabajo.id}', '${escaparHTML(trabajo.titulo || "")}')" style="background:#ef4444; color:#fff; border:none; padding:8px 10px; border-radius:6px; cursor:pointer;" title="Eliminar trabajo">🗑️</button>
+        <button type="button" class="delete-portfolio-btn" onclick="confirmarEliminarTrabajoPortafolio('${trabajo.id}', '${escaparHTML(trabajo.titulo || "")}')" style="background:#ef4444; color:#fff; border:none; padding:8px 10px; border-radius:6px; cursor:pointer;" title="Eliminar trabajo">🗑️</button>
       </div>
     `;
     container.appendChild(card);
@@ -1262,8 +1291,8 @@ function activarEdicionPortafolio(id) {
   let mediaItemsHTML = media.map((m, idx) => `
     <div style="display:flex; align-items:center; gap:8px; background:rgba(255,255,255,0.05); padding:5px; border-radius:4px; margin-bottom:4px;">
       <img src="${m.url}" style="width:35px; height:35px; object-fit:cover; border-radius:3px;" alt="">
-      <span style="font-size:0.75rem; color:#ccc; flex:1; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${m.name || `Archivo ${idx + 1}`}</span>
-      <button type="button" onclick="confirmarEliminarArchivoIndividual('${id}', ${idx})" style="background:#ef4444; color:#fff; border:none; padding:3px 7px; border-radius:3px; cursor:pointer; font-size:0.7rem;" title="Eliminar foto">✕</button>
+      <span style="font-size:0.75rem; color:#ccc; flex:1; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${m.nombre || `Archivo ${idx + 1}`}</span>
+      <button type="button" onclick="confirmarEliminarArchivoIndividual('${id}', ${idx})" style="background:#ef4444; color:#fff; border:none; padding:3px 7px; border-radius:3px; cursor:pointer; font-size:0.7rem;" title="Eliminar esta foto">✕</button>
     </div>
   `).join("");
 
@@ -1271,14 +1300,19 @@ function activarEdicionPortafolio(id) {
     <div style="display:flex; flex-direction:column; gap:8px; width:100%;">
       <input type="text" id="edit-port-titulo-${id}" value="${escaparHTML(trabajo.titulo || "")}" placeholder="Título" style="padding:6px; border-radius:4px; border:1px solid #555; background:#222; color:#fff; font-size:0.9rem;">
       <textarea id="edit-port-desc-${id}" placeholder="Descripción" style="padding:6px; border-radius:4px; border:1px solid #555; background:#222; color:#fff; font-size:0.85rem; resize:vertical;">${escaparHTML(trabajo.descripcion || "")}</textarea>
-      <div style="font-size:0.8rem; color:#38bdf8;">Archivos actuales:</div>
-      <div style="max-height:140px; overflow-y:auto;">${mediaItemsHTML}</div>
+      
+      <div style="font-size:0.8rem; color:#38bdf8; margin-top:2px;">Archivos actuales (puedes eliminar los que no quieras):</div>
+      <div style="max-height:140px; overflow-y:auto; padding-right:4px;">
+        ${mediaItemsHTML || '<div style="font-size:0.75rem; color:#777;">No hay archivos.</div>'}
+      </div>
+
       <div style="margin-top:4px;">
         <label style="font-size:0.78rem; color:#a3a3a3; display:block; margin-bottom:3px;">Agregar más fotos/videos:</label>
         <input type="file" id="edit-port-nuevos-archivos-${id}" multiple accept="image/*,video/*" style="font-size:0.75rem; color:#ccc;">
       </div>
+
       <div style="display:flex; gap:6px; margin-top:6px;">
-        <button type="button" onclick="guardarEdicionPortafolio('${id}')" style="background:#16a34a; color:#fff; border:none; padding:6px 12px; border-radius:4px; cursor:pointer; font-size:0.8rem; font-weight:bold;">Guardar</button>
+        <button type="button" onclick="guardarEdicionPortafolio('${id}')" style="background:#16a34a; color:#fff; border:none; padding:6px 12px; border-radius:4px; cursor:pointer; font-size:0.8rem; font-weight:bold;">Guardar cambios</button>
         <button type="button" onclick="renderPortafolioAdmin()" style="background:#555; color:#fff; border:none; padding:6px 12px; border-radius:4px; cursor:pointer; font-size:0.8rem;">Cancelar</button>
       </div>
     </div>
@@ -1291,7 +1325,7 @@ function confirmarEliminarArchivoIndividual(trabajoId, indexMedia) {
   if (!trabajo || !trabajo.media) return;
 
   if (trabajo.media.length <= 1) {
-    alert("El trabajo debe tener al menos una foto o video.");
+    alert("El trabajo debe tener al menos una foto o video. No puedes eliminar la última.");
     return;
   }
 
@@ -1318,7 +1352,8 @@ async function ejecutarEliminarArchivoIndividual(trabajoId, indexMedia) {
     });
     renderPortafolioPublico();
   } catch (error) {
-    console.error("Error al eliminar archivo:", error);
+    console.error("Error al eliminar archivo individual:", error);
+    alert("Hubo un error al actualizar la base de datos.");
   }
 }
 
@@ -1343,6 +1378,7 @@ async function guardarEdicionPortafolio(id) {
 
   try {
     if (nuevosArchivos.length > 0) {
+      alert(`Subiendo ${nuevosArchivos.length} archivo(s) nuevo(s)... Espera un momento.`);
       for (const archivo of nuevosArchivos) {
         const resultado = await subirArchivoCloudinary(archivo);
         mediaActualizada.push({
@@ -1370,6 +1406,7 @@ async function guardarEdicionPortafolio(id) {
     alert("¡Trabajo actualizado correctamente!");
   } catch (error) {
     console.error("Error al actualizar portafolio:", error);
+    alert("Hubo un error al actualizar los datos: " + error.message);
   }
 }
 
@@ -1377,7 +1414,7 @@ async function guardarEdicionPortafolio(id) {
 function confirmarEliminarTrabajoPortafolio(id, tituloTrabajo) {
   mostrarModalConfirmacion(
     "¿Eliminar trabajo del portafolio?",
-    `¿Estás seguro de que deseas eliminar "${tituloTrabajo || 'este trabajo'}"? Esta acción es irreversible.`,
+    `¿Estás seguro de que deseas eliminar "${tituloTrabajo || 'este trabajo'}" del portafolio? Esta acción es irreversible.`,
     () => ejecutarEliminarTrabajoPortafolio(id)
   );
 }
@@ -1400,7 +1437,7 @@ async function ejecutarEliminarTrabajoPortafolio(id) {
 
 
 // ============================================================
-// 12. DOM READY & COTIZADOR WHATSAPP CON LINK DE FOTO GARANTIZADO
+// 12. DOM READY & COTIZADOR WHATSAPP CON CLOUDINARY
 // ============================================================
 
 document.addEventListener("DOMContentLoaded", function () {
@@ -1520,12 +1557,13 @@ document.addEventListener("DOMContentLoaded", function () {
         await batch.commit();
       } catch (error) {
         console.error("Error creando proyecto:", error);
+        alert("Hubo un error al guardar en la base de datos: " + error.message);
       }
     });
   }
 
   // ============================================================
-  // COTIZADOR WHATSAPP - CAPTURA DE FOTO Y LINK DIRECTO AL TALLER
+  // INTEGRACIÓN DEL FORMULARIO DE COTIZACIÓN CON MEDIDAS Y FOTO A WHATSAPP
   // ============================================================
   const formCotizacionMedidas = document.getElementById("form-cotizacion") || document.getElementById("form-cotizacion-medidas"); 
   if (formCotizacionMedidas) {
@@ -1533,7 +1571,7 @@ document.addEventListener("DOMContentLoaded", function () {
       e.preventDefault();
 
       const nombreCliente = document.getElementById("cot-nombre")?.value.trim() || document.getElementById("cotiza-nombre")?.value.trim() || document.getElementById("nombre-cliente")?.value.trim() || "Cliente";
-      const telefonoCliente = document.getElementById("cot-telefono")?.value.trim() || document.getElementById("cotiza-telefono")?.value.trim() || document.getElementById("telefono-cliente")?.value.trim() || "No especificado";
+      const telefonoCliente = document.getElementById("cot-telefono")?.value.trim() || document.getElementById("cotiza-telefono")?.value.trim() || document.getElementById("telefono-cliente")?.value.trim() || "";
       const tipoMueble = document.getElementById("cot-categoria")?.value.trim() || document.getElementById("cotiza-categoria")?.value.trim() || document.getElementById("tipo-mueble")?.value.trim() || "Mueble a medida";
       
       const alto = document.getElementById("cot-alto")?.value.trim() || document.getElementById("medida-alto")?.value.trim() || "";
@@ -1554,6 +1592,7 @@ document.addEventListener("DOMContentLoaded", function () {
         try {
           if (botonEnviar) botonEnviar.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> Subiendo foto...`;
           
+          // Subida limpia directa con fetch usando el preset de Cloudinary
           const formData = new FormData();
           formData.append("file", archivoFoto);
           formData.append("upload_preset", "ml_default");
@@ -1564,14 +1603,10 @@ document.addEventListener("DOMContentLoaded", function () {
           });
 
           const resultadoSubida = await response.json();
-          
-          if (resultadoSubida && resultadoSubida.secure_url) {
-            urlImagenSubida = resultadoSubida.secure_url;
-          } else if (resultadoSubida && resultadoSubida.url) {
-            urlImagenSubida = resultadoSubida.url;
-          }
+          urlImagenSubida = resultadoSubida.secure_url || resultadoSubida.url || "";
         } catch (error) {
-          console.error("Error subiendo foto al servidor:", error);
+          console.error("Error subiendo foto:", error);
+          alert("Hubo un problema al subir la foto, pero se enviará tu mensaje de texto.");
         }
       }
 
@@ -1579,37 +1614,35 @@ document.addEventListener("DOMContentLoaded", function () {
         botonEnviar.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> Abriendo WhatsApp...`;
       }
 
-      const numeroTuTaller = "59162037033";
+      const numeroTaller = "59162037033";
 
       let lineasMensaje = [
-        "🔔 *¡NUEVA COTIZACIÓN WEB!*",
+        "Hola, vengo desde la web de HN Muebles. ¡Quiero una cotización!",
         "",
-        `👤 *Cliente:* ${nombreCliente}`,
-        `📱 *Teléfono:* ${telefonoCliente}`,
-        `🪑 *Mueble:* ${tipoMueble}`
+        `*Cliente:* ${nombreCliente}`,
+        `*Teléfono:* ${telefonoCliente || 'No especificado'}`,
+        `*Mueble:* ${tipoMueble}`
       ];
 
       if (alto || largo || profundidad) {
-        lineasMensaje.push("");
-        lineasMensaje.push("📏 *Medidas:*");
-        if (alto) lineasMensaje.push(` • Alto: ${alto}`);
-        if (largo) lineasMensaje.push(` • Largo: ${largo}`);
-        if (profundidad) lineasMensaje.push(` • Profundidad: ${profundidad}`);
+        lineasMensaje.push("*Medidas ingresadas:*");
+        if (alto) lineasMensaje.push(` - Alto: ${alto}`);
+        if (largo) lineasMensaje.push(` - Largo/Ancho: ${largo}`);
+        if (profundidad) lineasMensaje.push(` - Profundidad: ${profundidad}`);
       }
 
       if (descripcion) {
-        lineasMensaje.push("");
-        lineasMensaje.push(`📝 *Detalles:* ${descripcion}`);
+        lineasMensaje.push(`*Descripción:* ${descripcion}`);
       }
 
       if (ubicacion) {
-        lineasMensaje.push(`📍 *Ubicación:* ${ubicacion}`);
+        lineasMensaje.push(`*Ubicación:* ${ubicacion}`);
       }
 
-      if (urlImagenSubida && urlImagenSubida.trim() !== "") {
+      if (urlImagenSubida) {
         lineasMensaje.push("");
-        lineasMensaje.push("📸 *Foto o diseño de referencia:*");
-        lineasMensaje.push(urlImagenSubida.trim());
+        lineasMensaje.push("📸 *Foto o boceto de referencia:*");
+        lineasMensaje.push(urlImagenSubida);
       }
 
       const mensajeFinal = encodeURIComponent(lineasMensaje.join("\n"));
@@ -1618,7 +1651,12 @@ document.addEventListener("DOMContentLoaded", function () {
         botonEnviar.innerHTML = textoOriginalBtn;
       }
 
-      window.open(`https://wa.me/${numeroTuTaller}?text=${mensajeFinal}`, "_blank");
+      window.open(`https://wa.me/${numeroTaller}?text=${mensajeFinal}`, "_blank");
+
+      // Si existe popup de éxito en tu HTML, lo activa
+      const popupExito = document.getElementById('popup-confirmacion');
+      if (popupExito) popupExito.classList.remove('hidden');
+
       formCotizacionMedidas.reset();
     });
   }
