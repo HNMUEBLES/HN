@@ -1565,7 +1565,7 @@ document.addEventListener("DOMContentLoaded", function () {
   // ============================================================
   // INTEGRACIÓN DEL FORMULARIO DE COTIZACIÓN PÚBLICA CON WHATSAPP Y CLOUDINARY
   // ============================================================
-  const formCotizacion = document.getElementById("form-cotizacion"); // Ajusta el ID de tu formulario de cotización si es diferente (ej: form-cotizar)
+  const formCotizacion = document.getElementById("form-cotizacion"); 
   if (formCotizacion) {
     formCotizacion.addEventListener("submit", async function (e) {
       e.preventDefault();
@@ -1574,7 +1574,7 @@ document.addEventListener("DOMContentLoaded", function () {
       const telefonoCliente = document.getElementById("cotiza-telefono")?.value.trim() || "";
       const categoriaMueble = document.getElementById("cotiza-categoria")?.value.trim() || "Mueble a medida";
       const detallesMueble = document.getElementById("cotiza-detalles")?.value.trim() || "";
-      const inputArchivo = document.getElementById("cotiza-foto"); // Ajusta el ID del input type="file" de tu cotizador
+      const inputArchivo = document.getElementById("cotiza-foto"); 
       const archivoFoto = inputArchivo?.files?.[0];
 
       let urlImagenSubida = "";
@@ -1589,8 +1589,7 @@ document.addEventListener("DOMContentLoaded", function () {
         }
       }
 
-      // Número de WhatsApp del taller (reemplaza si es necesario o mantén tu número de destino)
-      const numeroTaller = "59171234567"; // Asegúrate de que sea tu número con código de país sin '+'
+      const numeroTaller = "59171234567"; // Reemplaza por tu número de WhatsApp de destino si es necesario
 
       let mensajeWhatsApp = `Hola *HN Muebles* 👋, quiero solicitar una cotización:
 
