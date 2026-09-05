@@ -1225,10 +1225,10 @@
               <textarea id="cot-descripcion" rows="4" placeholder="Cuéntanos cómo lo imaginas, colores, materiales o distribución..."></textarea>
             </div>
 
-            <!-- Archivo opcional -->
+            <!-- Archivos múltiples opcionales -->
             <div class="cotizador-full">
-              <label for="cotiza-foto">Foto de referencia o medidas (Opcional)</label>
-              <input type="file" id="cotiza-foto" accept="image/*" />
+              <label for="cotiza-foto">Fotos de referencia o medidas (Puedes seleccionar varias)</label>
+              <input type="file" id="cotiza-foto" accept="image/*" multiple />
             </div>
 
             <!-- Ubicación / GPS -->
@@ -2067,7 +2067,7 @@
 
 
 <!-- =========================================================
-     FUNCIONES INDEX Y COTIZADOR WHATSAPP + GESTIÓN FOTOS COTIZACIONES
+     FUNCIONES INDEX Y COTIZADOR WHATSAPP + GESTIÓN FOTOS COTIZACIONES (ACTUALIZADO MÚLTIPLE)
 ========================================================= -->
 
 <script>
@@ -2173,7 +2173,7 @@ function obtenerUbicacionGPS() {
 
 /*
 =============================================================
-ENVÍO DE COTIZACIÓN, SUBIDA A FIREBASE FIRESTORE & STORAGE Y WHATSAPP
+ENVÍO DE COTIZACIÓN, SUBIDA MÚLTIPLE A FIREBASE & WHATSAPP
 =============================================================
 */
 document.getElementById('form-cotizacion').addEventListener('submit', async function(e) {
@@ -2192,7 +2192,7 @@ document.getElementById('form-cotizacion').addEventListener('submit', async func
   const ubicacion = document.getElementById('cot-ubicacion').value.trim();
   
   const inputArchivo = document.getElementById('cotiza-foto');
-  let fotoUrl = '';
+  let fotosUrls = [];
 
   const btnSubmit = this.querySelector('button[type="submit"]');
   const textoOriginal = btnSubmit.innerHTML;
@@ -2200,16 +2200,19 @@ document.getElementById('form-cotizacion').addEventListener('submit', async func
   btnSubmit.disabled = true;
 
   try {
-    // Si hay archivo, lo subimos a Firebase Storage en la carpeta del cliente
-    if (inputArchivo && inputArchivo.files[0]) {
-      const file = inputArchivo.files[0];
+    // Si hay archivos seleccionados, los subimos todos a Firebase Storage de forma iterativa
+    if (inputArchivo && inputArchivo.files.length > 0) {
       const nombreCarpeta = nombre.replace(/[^a-zA-Z0-9]/g, '_');
-      const storageRef = firebase.storage().ref(`Clientes_Cotizaciones/${nombreCarpeta}/${Date.now()}_${file.name}`);
-      const snapshot = await storageRef.put(file);
-      fotoUrl = await snapshot.ref.getDownloadURL();
+      for (let i = 0; i < inputArchivo.files.length; i++) {
+        const file = inputArchivo.files[i];
+        const storageRef = firebase.storage().ref(`Clientes_Cotizaciones/${nombreCarpeta}/${Date.now()}_${i}_${file.name}`);
+        const snapshot = await storageRef.put(file);
+        const downloadUrl = await snapshot.ref.getDownloadURL();
+        fotosUrls.push(downloadUrl);
+      }
     }
 
-    // Guardar el registro completo en Firestore para la pestaña "Fotos Cotizaciones"
+    // Guardar el registro completo en Firestore incluyendo el arreglo de URLs
     if (typeof db !== 'undefined') {
       await db.collection('cotizaciones_clientes').add({
         nombre: nombre,
@@ -2219,7 +2222,7 @@ document.getElementById('form-cotizacion').addEventListener('submit', async func
         medidas: { alto, largo, profundidad },
         descripcion: descripcion,
         ubicacion: ubicacion,
-        fotoUrl: fotoUrl,
+        fotosUrls: fotosUrls, // Array con las múltiples URLs de las fotos
         fechaCreacion: firebase.firestore.FieldValue.serverTimestamp()
       });
     }
@@ -2236,7 +2239,7 @@ document.getElementById('form-cotizacion').addEventListener('submit', async func
   if (solicitaVisita) {
     mensaje += `*Medidas:* No tiene medidas / Solicita visita técnica en el lugar\n`;
   } else if (categoria === 'Cocina') {
-    mensaje += `*Medidas:* Adjuntará foto con las medidas de la cocina\n`;
+    mensaje += `*Medidas:* Adjuntará fotos con las medidas de la cocina\n`;
   } else {
     mensaje += `*Medidas ingresadas:*\n`;
     if (alto) mensaje += ` - Alto: ${alto}\n`;
@@ -2255,8 +2258,11 @@ document.getElementById('form-cotizacion').addEventListener('submit', async func
     mensaje += `*Ubicación:* ${ubicacion}\n`;
   }
 
-  if (fotoUrl) {
-    mensaje += `\n*Foto de referencia:* ${fotoUrl}\n`;
+  if (fotosUrls.length > 0) {
+    mensaje += `\n*Fotos de referencia (${fotosUrls.length}):*\n`;
+    fotosUrls.forEach((url, index) => {
+      mensaje += `Foto ${index + 1}: ${url}\n`;
+    });
   }
 
   const numeroWhatsApp = "59162037033";
@@ -2281,7 +2287,7 @@ function cerrarPopupConfirmacion() {
 
 /*
 =============================================================
-CARGAR FOTOS Y COTIZACIONES EN EL PANEL ADMIN
+CARGAR FOTOS Y COTIZACIONES EN EL PANEL ADMIN (MÚLTIPLES FOTOS)
 =============================================================
 */
 async function cargarFotosCotizacionesAdmin() {
@@ -2307,6 +2313,28 @@ async function cargarFotosCotizacionesAdmin() {
     snapshot.forEach(doc => {
       const data = doc.data();
       const fecha = data.fechaCreacion ? data.fechaCreacion.toDate().toLocaleString() : 'Fecha reciente';
+      
+      // Soportar tanto registros nuevos con múltiples fotos como registros antiguos de una sola foto (fotoUrl)
+      let listaUrls = data.fotosUrls || [];
+      if (listaUrls.length === 0 && data.fotoUrl) {
+        listaUrls = [data.fotoUrl];
+      }
+
+      let gridFotosHtml = '';
+      if (listaUrls.length > 0) {
+        listaUrls.forEach(url => {
+          gridFotosHtml += `
+            <div class="foto-item-box">
+              <img src="${url}" alt="Foto cotización" />
+              <a href="${url}" target="_blank" download>
+                <i class="fa-solid fa-download"></i> Ver / Descargar
+              </a>
+            </div>
+          `;
+        });
+      } else {
+        gridFotosHtml = `<p style="font-size: 0.85rem; color: rgba(255,255,255,0.4); font-style: italic;">El cliente no adjuntó ninguna foto en esta cotización.</p>`;
+      }
 
       html += `
         <div class="cotizacion-carpeta-card">
@@ -2321,18 +2349,9 @@ async function cargarFotosCotizacionesAdmin() {
             </div>
           </div>
           <div>
-            <strong style="font-size: 0.9rem; color: #aaa; display: block; margin-bottom: 8px;">Archivos / Fotos del cliente:</strong>
+            <strong style="font-size: 0.9rem; color: #aaa; display: block; margin-bottom: 8px;">Archivos / Fotos del cliente (${listaUrls.length}):</strong>
             <div class="carpeta-grid-fotos">
-              ${data.fotoUrl ? `
-                <div class="foto-item-box">
-                  <img src="${data.fotoUrl}" alt="Foto cotización" />
-                  <a href="${data.fotoUrl}" target="_blank" download>
-                    <i class="fa-solid fa-download"></i> Ver / Descargar
-                  </a>
-                </div>
-              ` : `
-                <p style="font-size: 0.85rem; color: rgba(255,255,255,0.4); font-style: italic;">El cliente no adjuntó ninguna foto en esta cotización.</p>
-              `}
+              ${gridFotosHtml}
             </div>
           </div>
         </div>
