@@ -2105,11 +2105,6 @@ document.getElementById('form-cotizacion').addEventListener('submit', async func
       const file = inputArchivo.files[0];
       const formData = new FormData();
       formData.append('file', file);
-      
-      // Limpiamos el nombre del cliente para usarlo como carpeta limpia
-      const nombreCarpeta = nombre.replace(/[^a-zA-Z0-9]/g, '_');
-      formData.append('folder', `Clientes_Cotizaciones/${nombreCarpeta}`);
-      
       // REEMPLAZA ESTO CON TUS DATOS REALES DE CLOUDINARY
       formData.append('upload_preset', 'TU_UPLOAD_PRESET'); 
 
