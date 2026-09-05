@@ -1,5 +1,5 @@
 // ============================================================
-// HN MUEBLES - SCRIPT PRINCIPAL COMPLETO
+// HN MUEBLES - SCRIPT PRINCIPAL COMPLETO (CORREGIDO)
 // Firebase Authentication + Firestore
 // Cloudinary para Portafolio y Cotizaciones con Link de Fotos
 // ============================================================
@@ -1570,33 +1570,48 @@ document.addEventListener("DOMContentLoaded", function () {
     formCotizacionMedidas.addEventListener("submit", async function (e) {
       e.preventDefault();
 
-      const nombreCliente = document.getElementById("cotiza-nombre")?.value.trim() || document.getElementById("nombre-cliente")?.value.trim() || "Cliente";
-      const telefonoCliente = document.getElementById("cotiza-telefono")?.value.trim() || document.getElementById("telefono-cliente")?.value.trim() || "";
-      const tipoMueble = document.getElementById("cotiza-categoria")?.value.trim() || document.getElementById("tipo-mueble")?.value.trim() || "Mueble a medida";
-      const detallesMueble = document.getElementById("cotiza-detalles")?.value.trim() || document.getElementById("detalles-mueble")?.value.trim() || "";
+      const nombreCliente = document.getElementById("cot-nombre")?.value.trim() || document.getElementById("cotiza-nombre")?.value.trim() || document.getElementById("nombre-cliente")?.value.trim() || "Cliente";
+      const telefonoCliente = document.getElementById("cot-telefono")?.value.trim() || document.getElementById("cotiza-telefono")?.value.trim() || document.getElementById("telefono-cliente")?.value.trim() || "";
+      const tipoMueble = document.getElementById("cot-categoria")?.value.trim() || document.getElementById("cotiza-categoria")?.value.trim() || document.getElementById("tipo-mueble")?.value.trim() || "Mueble a medida";
       
-      const alto = document.getElementById("medida-alto")?.value.trim() || "";
-      const largo = document.getElementById("medida-largo")?.value.trim() || "";
-      const profundidad = document.getElementById("medida-profundidad")?.value.trim() || "";
+      const alto = document.getElementById("cot-alto")?.value.trim() || document.getElementById("medida-alto")?.value.trim() || "";
+      const largo = document.getElementById("cot-largo")?.value.trim() || document.getElementById("medida-largo")?.value.trim() || "";
+      const profundidad = document.getElementById("cot-profundidad")?.value.trim() || document.getElementById("medida-profundidad")?.value.trim() || "";
+      
+      const descripcion = document.getElementById("cot-descripcion")?.value.trim() || document.getElementById("cotiza-detalles")?.value.trim() || "";
+      const ubicacion = document.getElementById("cot-ubicacion")?.value.trim() || "";
 
-      const inputArchivo = document.getElementById("cotiza-foto") || document.getElementById("foto-referencia") || document.querySelector("input[type='file']"); 
+      const inputArchivo = document.getElementById("cotiza-foto") || document.getElementById("foto-referencia") || document.getElementById("cot-foto") || formCotizacionMedidas.querySelector("input[type='file']"); 
       const archivoFoto = inputArchivo?.files?.[0];
 
       let urlImagenSubida = "";
+      const botonEnviar = formCotizacionMedidas.querySelector("button[type='submit']");
+      const textoOriginalBtn = botonEnviar ? botonEnviar.innerHTML : "";
 
       if (archivoFoto) {
         try {
-          const botonEnviar = formCotizacionMedidas.querySelector("button[type='submit']");
-          if (botonEnviar) botonEnviar.textContent = "Subiendo imagen...";
-
-          const resultadoSubida = await subirArchivoCloudinary(archivoFoto);
-          urlImagenSubida = resultadoSubida.secure_url || resultadoSubida.url || "";
+          if (botonEnviar) botonEnviar.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> Subiendo foto...`;
           
-          if (botonEnviar) botonEnviar.textContent = "Enviar cotización";
+          // Subida limpia directa con fetch usando el preset de Cloudinary
+          const formData = new FormData();
+          formData.append("file", archivoFoto);
+          formData.append("upload_preset", "ml_default");
+
+          const response = await fetch(`https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD_NAME}/image/upload`, {
+            method: "POST",
+            body: formData
+          });
+
+          const resultadoSubida = await response.json();
+          urlImagenSubida = resultadoSubida.secure_url || resultadoSubida.url || "";
         } catch (error) {
           console.error("Error subiendo foto:", error);
-          alert("Hubo un problema al subir la foto a Cloudinary, pero se enviarán los datos de texto.");
+          alert("Hubo un problema al subir la foto, pero se enviará tu mensaje de texto.");
         }
+      }
+
+      if (botonEnviar) {
+        botonEnviar.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> Abriendo WhatsApp...`;
       }
 
       const numeroTaller = "59162037033";
@@ -1604,20 +1619,24 @@ document.addEventListener("DOMContentLoaded", function () {
       let lineasMensaje = [
         "Hola, vengo desde la web de HN Muebles. ¡Quiero una cotización!",
         "",
-        `Cliente: ${nombreCliente}`,
-        `Teléfono: ${telefonoCliente || 'No especificado'}`,
-        `Mueble: ${tipoMueble}`
+        `*Cliente:* ${nombreCliente}`,
+        `*Teléfono:* ${telefonoCliente || 'No especificado'}`,
+        `*Mueble:* ${tipoMueble}`
       ];
 
       if (alto || largo || profundidad) {
-        lineasMensaje.push("Medidas ingresadas:");
+        lineasMensaje.push("*Medidas ingresadas:*");
         if (alto) lineasMensaje.push(` - Alto: ${alto}`);
         if (largo) lineasMensaje.push(` - Largo/Ancho: ${largo}`);
         if (profundidad) lineasMensaje.push(` - Profundidad: ${profundidad}`);
       }
 
-      if (detallesMueble) {
-        lineasMensaje.push(`Detalles: ${detallesMueble}`);
+      if (descripcion) {
+        lineasMensaje.push(`*Descripción:* ${descripcion}`);
+      }
+
+      if (ubicacion) {
+        lineasMensaje.push(`*Ubicación:* ${ubicacion}`);
       }
 
       if (urlImagenSubida) {
@@ -1627,7 +1646,18 @@ document.addEventListener("DOMContentLoaded", function () {
       }
 
       const mensajeFinal = encodeURIComponent(lineasMensaje.join("\n"));
+      
+      if (botonEnviar) {
+        botonEnviar.innerHTML = textoOriginalBtn;
+      }
+
       window.open(`https://wa.me/${numeroTaller}?text=${mensajeFinal}`, "_blank");
+
+      // Si existe popup de éxito en tu HTML, lo activa
+      const popupExito = document.getElementById('popup-confirmacion');
+      if (popupExito) popupExito.classList.remove('hidden');
+
+      formCotizacionMedidas.reset();
     });
   }
 
