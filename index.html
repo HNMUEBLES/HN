@@ -1148,10 +1148,10 @@
               <textarea id="cot-descripcion" rows="4" placeholder="Cuéntanos cómo lo imaginas, colores, materiales o distribución..."></textarea>
             </div>
 
-            <!-- Archivo opcional -->
+            <!-- Archivo opcional (ID corregido a cotiza-foto) -->
             <div class="cotizador-full">
-              <label for="cot-archivo">Foto de referencia o medidas (Opcional)</label>
-              <input type="file" id="cot-archivo" accept="image/*" />
+              <label for="cotiza-foto">Foto de referencia o medidas (Opcional)</label>
+              <input type="file" id="cotiza-foto" accept="image/*" />
             </div>
 
             <!-- Ubicación / GPS -->
@@ -2073,10 +2073,10 @@ function obtenerUbicacionGPS() {
 
 /*
 =============================================================
-ENVÍO DE COTIZACIÓN A WHATSAPP Y POPUP
+ENVÍO DE COTIZACIÓN A WHATSAPP, SUBIDA A CLOUDINARY Y POPUP
 =============================================================
 */
-document.getElementById('form-cotizacion').addEventListener('submit', function(e) {
+document.getElementById('form-cotizacion').addEventListener('submit', async function(e) {
   e.preventDefault();
 
   const nombre = document.getElementById('cot-nombre').value.trim();
@@ -2090,6 +2090,37 @@ document.getElementById('form-cotizacion').addEventListener('submit', function(e
   
   const descripcion = document.getElementById('cot-descripcion').value.trim();
   const ubicacion = document.getElementById('cot-ubicacion').value.trim();
+  
+  // Capturar archivo del input corregido
+  const inputArchivo = document.getElementById('cotiza-foto');
+  let fotoUrl = '';
+
+  const btnSubmit = this.querySelector('button[type="submit"]');
+  const textoOriginal = btnSubmit.innerHTML;
+  btnSubmit.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> Subiendo foto y enviando...`;
+  btnSubmit.disabled = true;
+
+  try {
+    if (inputArchivo && inputArchivo.files[0]) {
+      const file = inputArchivo.files[0];
+      const formData = new FormData();
+      formData.append('file', file);
+      // REEMPLAZA ESTO CON TUS DATOS REALES DE CLOUDINARY
+      formData.append('upload_preset', 'TU_UPLOAD_PRESET'); 
+
+      const response = await fetch('https://api.cloudinary.com/v1_1/TU_CLOUD_NAME/image/upload', {
+        method: 'POST',
+        body: formData
+      });
+
+      const data = await response.json();
+      if (data.secure_url) {
+        fotoUrl = data.secure_url;
+      }
+    }
+  } catch (error) {
+    console.error("Error subiendo la foto:", error);
+  }
 
   // Construir mensaje estructurado para WhatsApp
   let mensaje = `Hola, vengo desde la web de HN Muebles. ¡Quiero una cotización!\n\n`;
@@ -2119,9 +2150,18 @@ document.getElementById('form-cotizacion').addEventListener('submit', function(e
     mensaje += `*Ubicación:* ${ubicacion}\n`;
   }
 
+  // Agregar el link de la foto si se subió correctamente
+  if (fotoUrl) {
+    mensaje += `\n*Foto de referencia:* ${fotoUrl}\n`;
+  }
+
   // Número de WhatsApp del negocio configurado
   const numeroWhatsApp = "59162037033";
   const urlWhatsApp = `https://wa.me/${numeroWhatsApp}?text=${encodeURIComponent(mensaje)}`;
+
+  // Restaurar botón
+  btnSubmit.innerHTML = textoOriginal;
+  btnSubmit.disabled = false;
 
   // Abrir WhatsApp en nueva pestaña
   window.open(urlWhatsApp, '_blank');
