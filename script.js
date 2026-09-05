@@ -1,7 +1,7 @@
 // ============================================================
 // HN MUEBLES - SCRIPT PRINCIPAL COMPLETO
 // Firebase Authentication + Firestore
-// Cloudinary para Portafolio (Con Modales de Confirmación y Edición)
+// Cloudinary para Portafolio y Cotizaciones con Link de Fotos
 // ============================================================
 
 
@@ -1563,46 +1563,71 @@ document.addEventListener("DOMContentLoaded", function () {
   }
 
   // ============================================================
-  // INTEGRACIÓN DEL FORMULARIO DE COTIZACIÓN PÚBLICA CON WHATSAPP Y CLOUDINARY
+  // INTEGRACIÓN DEL FORMULARIO DE COTIZACIÓN CON MEDIDAS Y FOTO A WHATSAPP
   // ============================================================
-  const formCotizacion = document.getElementById("form-cotizacion"); 
-  if (formCotizacion) {
-    formCotizacion.addEventListener("submit", async function (e) {
+  const formCotizacionMedidas = document.getElementById("form-cotizacion") || document.getElementById("form-cotizacion-medidas"); 
+  if (formCotizacionMedidas) {
+    formCotizacionMedidas.addEventListener("submit", async function (e) {
       e.preventDefault();
 
-      const nombreCliente = document.getElementById("cotiza-nombre")?.value.trim() || "Cliente";
-      const telefonoCliente = document.getElementById("cotiza-telefono")?.value.trim() || "";
-      const categoriaMueble = document.getElementById("cotiza-categoria")?.value.trim() || "Mueble a medida";
-      const detallesMueble = document.getElementById("cotiza-detalles")?.value.trim() || "";
-      const inputArchivo = document.getElementById("cotiza-foto"); 
+      const nombreCliente = document.getElementById("cotiza-nombre")?.value.trim() || document.getElementById("nombre-cliente")?.value.trim() || "Cliente";
+      const telefonoCliente = document.getElementById("cotiza-telefono")?.value.trim() || document.getElementById("telefono-cliente")?.value.trim() || "";
+      const tipoMueble = document.getElementById("cotiza-categoria")?.value.trim() || document.getElementById("tipo-mueble")?.value.trim() || "Mueble a medida";
+      const detallesMueble = document.getElementById("cotiza-detalles")?.value.trim() || document.getElementById("detalles-mueble")?.value.trim() || "";
+      
+      const alto = document.getElementById("medida-alto")?.value.trim() || "";
+      const largo = document.getElementById("medida-largo")?.value.trim() || "";
+      const profundidad = document.getElementById("medida-profundidad")?.value.trim() || "";
+
+      const inputArchivo = document.getElementById("cotiza-foto") || document.getElementById("foto-referencia") || document.querySelector("input[type='file']"); 
       const archivoFoto = inputArchivo?.files?.[0];
 
       let urlImagenSubida = "";
 
       if (archivoFoto) {
         try {
+          const botonEnviar = formCotizacionMedidas.querySelector("button[type='submit']");
+          if (botonEnviar) botonEnviar.textContent = "Subiendo imagen...";
+
           const resultadoSubida = await subirArchivoCloudinary(archivoFoto);
           urlImagenSubida = resultadoSubida.secure_url || resultadoSubida.url || "";
+          
+          if (botonEnviar) botonEnviar.textContent = "Enviar cotización";
         } catch (error) {
-          console.error("Error subiendo foto de cotización:", error);
-          alert("No se pudo adjuntar la foto, pero continuaremos con el envío del mensaje.");
+          console.error("Error subiendo foto:", error);
+          alert("Hubo un problema al subir la foto a Cloudinary, pero se enviarán los datos de texto.");
         }
       }
 
-      const numeroTaller = "59162037033"; // Número de WhatsApp del taller configurado
+      const numeroTaller = "59162037033";
 
-      let mensajeWhatsApp = `Hola *HN Muebles* 👋, quiero solicitar una cotización:
+      let lineasMensaje = [
+        "Hola, vengo desde la web de HN Muebles. ¡Quiero una cotización!",
+        "",
+        `Cliente: ${nombreCliente}`,
+        `Teléfono: ${telefonoCliente || 'No especificado'}`,
+        `Mueble: ${tipoMueble}`
+      ];
 
-👤 *Cliente:* ${nombreCliente}
-📞 *Teléfono:* ${telefonoCliente || 'No especificado'}
-🗄️ *Categoría:* ${categoriaMueble}
-📝 *Detalles / Medidas:* ${detallesMueble}`;
-
-      if (urlImagenSubida) {
-        mensajeWhatsApp += `\n\n📸 *Foto / Boceto de referencia:*\n${urlImagenSubida}`;
+      if (alto || largo || profundidad) {
+        lineasMensaje.push("Medidas ingresadas:");
+        if (alto) lineasMensaje.push(` - Alto: ${alto}`);
+        if (largo) lineasMensaje.push(` - Largo/Ancho: ${largo}`);
+        if (profundidad) lineasMensaje.push(` - Profundidad: ${profundidad}`);
       }
 
-      window.open(`https://wa.me/${numeroTaller}?text=${encodeURIComponent(mensajeWhatsApp)}`, "_blank");
+      if (detallesMueble) {
+        lineasMensaje.push(`Detalles: ${detallesMueble}`);
+      }
+
+      if (urlImagenSubida) {
+        lineasMensaje.push("");
+        lineasMensaje.push("📸 *Foto o boceto de referencia:*");
+        lineasMensaje.push(urlImagenSubida);
+      }
+
+      const mensajeFinal = encodeURIComponent(lineasMensaje.join("\n"));
+      window.open(`https://wa.me/${numeroTaller}?text=${mensajeFinal}`, "_blank");
     });
   }
 
