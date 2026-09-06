@@ -1158,19 +1158,18 @@ function mostrarPreviewArchivos() {
 }
 
 
-// MODIFICADA: Ahora acepta un parámetro opcional 'nombreCarpeta' para Cloudinary
+// Función de subida a Cloudinary
 async function subirArchivoCloudinary(archivo, nombreCarpeta = "") {
   return new Promise((resolve, reject) => {
     const formData = new FormData();
     formData.append("file", archivo);
     formData.append("upload_preset", CLOUDINARY_UPLOAD_PRESET);
 
-    // Si se provee un nombre de cliente, creamos una carpeta dinámica limpia
     if (nombreCarpeta) {
       const carpetaLimpia = nombreCarpeta
         .trim()
-        .replace(/[^a-zA-Z0-9áéíóúÁÉÍÓÚñÑ_]/g, "_") // Limpia caracteres especiales extraños
-        .replace(/\s+/g, "_"); // Reemplaza espacios por guiones bajos
+        .replace(/[^a-zA-Z0-9áéíóúÁÉÍÓÚñÑ_]/g, "_")
+        .replace(/\s+/g, "_");
       
       formData.append("folder", `cotizaciones/${carpetaLimpia}`);
     }
@@ -1574,7 +1573,7 @@ document.addEventListener("DOMContentLoaded", function () {
   }
 
   // ============================================================
-  // INTEGRACIÓN DEL FORMULARIO DE COTIZACIÓN CON CARPETA DINÁMICA
+  // INTEGRACIÓN DEL FORMULARIO DE COTIZACIÓN CON CLOUDINARY
   // ============================================================
   const formCotizacionMedidas = document.getElementById("form-cotizacion") || document.getElementById("form-cotizacion-medidas"); 
   if (formCotizacionMedidas) {
@@ -1590,7 +1589,6 @@ document.addEventListener("DOMContentLoaded", function () {
       const largo = document.getElementById("medida-largo")?.value.trim() || "";
       const profundidad = document.getElementById("medida-profundidad")?.value.trim() || "";
 
-      // Soporte para múltiples archivos o un archivo único de referencia
       const inputArchivo = document.getElementById("cotiza-foto") || document.getElementById("foto-referencia") || document.querySelector("input[type='file']"); 
       const archivosSeleccionados = inputArchivo?.files ? Array.from(inputArchivo.files) : [];
 
@@ -1601,7 +1599,6 @@ document.addEventListener("DOMContentLoaded", function () {
           const botonEnviar = formCotizacionMedidas.querySelector("button[type='submit']");
           if (botonEnviar) botonEnviar.textContent = "Subiendo archivos...";
 
-          // Subimos cada archivo enviando el nombre del cliente para agruparlos en su propia carpeta en Cloudinary
           for (const archivo of archivosSeleccionados) {
             const resultadoSubida = await subirArchivoCloudinary(archivo, nombreCliente);
             const urlFinal = resultadoSubida.secure_url || resultadoSubida.url || "";
