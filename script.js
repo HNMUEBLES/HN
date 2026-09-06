@@ -1592,7 +1592,8 @@ document.addEventListener("DOMContentLoaded", function () {
       const inputArchivo = document.getElementById("cotiza-foto") || document.getElementById("foto-referencia") || document.querySelector("input[type='file']"); 
       const archivosSeleccionados = inputArchivo?.files ? Array.from(inputArchivo.files) : [];
 
-      let urlsImagenesSubidas = [];
+      let contadorFotos = 1;
+      let detalleArchivosMensaje = [];
 
       if (archivosSeleccionados.length > 0) {
         try {
@@ -1600,9 +1601,16 @@ document.addEventListener("DOMContentLoaded", function () {
           if (botonEnviar) botonEnviar.textContent = "Subiendo archivos...";
 
           for (const archivo of archivosSeleccionados) {
-            const resultadoSubida = await subirArchivoCloudinary(archivo, nombreCliente);
-            const urlFinal = resultadoSubida.secure_url || resultadoSubida.url || "";
-            if (urlFinal) urlsImagenesSubidas.push(urlFinal);
+            // Sube la foto a Cloudinary por detrás para que no se pierda
+            await subirArchivoCloudinary(archivo, nombreCliente);
+
+            // Genera el texto limpio para WhatsApp según sea foto o video
+            if (archivo.type && archivo.type.startsWith("video/")) {
+              detalleArchivosMensaje.push("- Video");
+            } else {
+              detalleArchivosMensaje.push(`- Foto ${contadorFotos}`);
+              contadorFotos++;
+            }
           }
           
           if (botonEnviar) botonEnviar.textContent = "Enviar cotización";
@@ -1625,7 +1633,7 @@ document.addEventListener("DOMContentLoaded", function () {
       if (alto || largo || profundidad) {
         lineasMensaje.push("Medidas ingresadas:");
         if (alto) lineasMensaje.push(` - Alto: ${alto}`);
-        if (largo) lineasMensaje.push(` - Largo/Ancho: ${largo}`);
+        if (largo) lineasNetas = lineasMensaje.push(` - Largo/Ancho: ${largo}`);
         if (profundidad) lineasMensaje.push(` - Profundidad: ${profundidad}`);
       }
 
@@ -1633,12 +1641,10 @@ document.addEventListener("DOMContentLoaded", function () {
         lineasMensaje.push(`Detalles: ${detallesMueble}`);
       }
 
-      if (urlsImagenesSubidas.length > 0) {
+      if (detalleArchivosMensaje.length > 0) {
         lineasMensaje.push("");
-        lineasMensaje.push("📸 *Fotos o bocetos de referencia:*");
-        urlsImagenesSubidas.forEach((url, i) => {
-          lineasMensaje.push(`- ${url}`);
-        });
+        lineasMensaje.push("📸 *Archivos adjuntos:*");
+        lineasMensaje.push(...detalleArchivosMensaje);
       }
 
       const mensajeFinal = encodeURIComponent(lineasMensaje.join("\n"));
