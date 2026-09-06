@@ -231,7 +231,7 @@
 
     /*
       =====================================================
-      MENÚ DE PESTAÑAS (ACTUALIZADO CON FOTOS COTIZACIONES)
+      MENÚ DE PESTAÑAS
       =====================================================
     */
 
@@ -437,83 +437,6 @@
     .popup-btn {
       margin-top: 25px;
       width: 100%;
-    }
-
-    /* Estilos de las Tarjetas/Carpetas en Fotos Cotizaciones */
-    .cotizacion-carpeta-card {
-      background: rgba(255, 255, 255, 0.03);
-      border: 1px solid rgba(255, 255, 255, 0.08);
-      border-radius: 12px;
-      padding: 20px;
-      margin-bottom: 20px;
-      display: flex;
-      flex-direction: column;
-      gap: 15px;
-    }
-
-    .carpeta-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: flex-start;
-      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
-      padding-bottom: 12px;
-    }
-
-    .carpeta-info h4 {
-      color: #f59e0b;
-      font-size: 1.2rem;
-      margin-bottom: 4px;
-      display: flex;
-      align-items: center;
-      gap: 8px;
-    }
-
-    .carpeta-info p {
-      color: rgba(255, 255, 255, 0.7);
-      font-size: 0.9rem;
-      margin: 2px 0;
-    }
-
-    .carpeta-grid-fotos {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
-      gap: 12px;
-    }
-
-    .foto-item-box {
-      position: relative;
-      border-radius: 8px;
-      overflow: hidden;
-      background: #000;
-      border: 1px solid rgba(255, 255, 255, 0.1);
-      aspect-ratio: 1;
-    }
-
-    .foto-item-box img {
-      width: 100%;
-      height: 100%;
-      object-fit: cover;
-      transition: transform 0.2s;
-    }
-
-    .foto-item-box img:hover {
-      transform: scale(1.05);
-    }
-
-    .foto-item-box a {
-      position: absolute;
-      bottom: 8px;
-      right: 8px;
-      background: rgba(0,0,0,0.8);
-      color: #fff;
-      padding: 6px 10px;
-      border-radius: 6px;
-      font-size: 0.8rem;
-      text-decoration: none;
-      display: flex;
-      align-items: center;
-      gap: 4px;
-      border: 1px solid rgba(255,255,255,0.2);
     }
 
 
@@ -1428,7 +1351,7 @@
 
 
       <!-- =================================================
-           MENÚ DE PESTAÑAS SUPERIOR (INCLUYE FOTOS COTIZACIONES)
+           MENÚ DE PESTAÑAS SUPERIOR
       ================================================== -->
 
       <nav class="admin-nav-tabs" id="admin-menu">
@@ -1440,9 +1363,6 @@
         </button>
         <button onclick="cambiarVistaAdmin('portafolio', this)">
           <i class="fa-solid fa-images"></i> Portafolio
-        </button>
-        <button onclick="cambiarVistaAdmin('fotos-cotizaciones', this)">
-          <i class="fa-solid fa-folder-tree"></i> Fotos Cotizaciones
         </button>
       </nav>
 
@@ -2017,30 +1937,6 @@
       </div>
 
 
-
-      <!-- =================================================
-           VISTA 4: FOTOS COTIZACIONES (NUEVA PESTAÑA)
-      ================================================== -->
-
-      <div id="vista-fotos-cotizaciones" class="admin-vista hidden">
-        <div class="portfolio-admin-title">
-          <h2>
-            <i class="fa-solid fa-folder-tree font-amber"></i>
-            Fotos de Cotizaciones de Clientes
-          </h2>
-          <p class="subtitle">
-            Aquí encontrarás organizadas las carpetas de cada cliente que envió fotos e información a través del cotizador web.
-          </p>
-        </div>
-
-        <div id="lista-fotos-cotizaciones" style="margin-top: 20px;">
-          <div style="text-align: center; color: rgba(255,255,255,0.6); padding: 30px;">
-            <i class="fa-solid fa-spinner fa-spin"></i> Cargando cotizaciones...
-          </div>
-        </div>
-      </div>
-
-
     </div>
 
   </div>
@@ -2067,7 +1963,7 @@
 
 
 <!-- =========================================================
-     FUNCIONES INDEX Y COTIZADOR WHATSAPP + GESTIÓN FOTOS COTIZACIONES (ACTUALIZADO MÚLTIPLE)
+     FUNCIONES INDEX Y COTIZADOR WHATSAPP
 ========================================================= -->
 
 <script>
@@ -2200,7 +2096,6 @@ document.getElementById('form-cotizacion').addEventListener('submit', async func
   btnSubmit.disabled = true;
 
   try {
-    // Si hay archivos seleccionados, los subimos todos a Firebase Storage de forma iterativa
     if (inputArchivo && inputArchivo.files.length > 0) {
       const nombreCarpeta = nombre.replace(/[^a-zA-Z0-9]/g, '_');
       for (let i = 0; i < inputArchivo.files.length; i++) {
@@ -2212,7 +2107,6 @@ document.getElementById('form-cotizacion').addEventListener('submit', async func
       }
     }
 
-    // Guardar el registro completo en Firestore incluyendo el arreglo de URLs
     if (typeof db !== 'undefined') {
       await db.collection('cotizaciones_clientes').add({
         nombre: nombre,
@@ -2222,7 +2116,7 @@ document.getElementById('form-cotizacion').addEventListener('submit', async func
         medidas: { alto, largo, profundidad },
         descripcion: descripcion,
         ubicacion: ubicacion,
-        fotosUrls: fotosUrls, // Array con las múltiples URLs de las fotos
+        fotosUrls: fotosUrls,
         fechaCreacion: firebase.firestore.FieldValue.serverTimestamp()
       });
     }
@@ -2230,7 +2124,6 @@ document.getElementById('form-cotizacion').addEventListener('submit', async func
     console.error("Error guardando cotización en Firebase:", error);
   }
 
-  // Construir mensaje estructurado para WhatsApp
   let mensaje = `Hola, vengo desde la web de HN Muebles. ¡Quiero una cotización!\n\n`;
   mensaje += `*Cliente:* ${nombre}\n`;
   mensaje += `*Teléfono:* ${telefono}\n`;
@@ -2283,88 +2176,6 @@ document.getElementById('form-cotizacion').addEventListener('submit', async func
 function cerrarPopupConfirmacion() {
   document.getElementById('popup-confirmacion').classList.add('hidden');
 }
-
-
-/*
-=============================================================
-CARGAR FOTOS Y COTIZACIONES EN EL PANEL ADMIN (MÚLTIPLES FOTOS)
-=============================================================
-*/
-async function cargarFotosCotizacionesAdmin() {
-  const contenedor = document.getElementById('lista-fotos-cotizaciones');
-  if (!contenedor) return;
-
-  contenedor.innerHTML = `<div style="text-align: center; color: rgba(255,255,255,0.6); padding: 30px;"><i class="fa-solid fa-spinner fa-spin"></i> Cargando carpetas de clientes...</div>`;
-
-  try {
-    if (typeof db === 'undefined') {
-      contenedor.innerHTML = `<p style="text-align:center; color:#ef4444;">Error: Base de datos no disponible.</p>`;
-      return;
-    }
-
-    const snapshot = await db.collection('cotizaciones_clientes').orderBy('fechaCreacion', 'desc').get();
-
-    if (snapshot.empty) {
-      contenedor.innerHTML = `<div style="text-align: center; color: rgba(255,255,255,0.6); padding: 40px; background: rgba(255,255,255,0.02); border-radius: 12px;">No hay cotizaciones con archivos registrados todavía.</div>`;
-      return;
-    }
-
-    let html = '';
-    snapshot.forEach(doc => {
-      const data = doc.data();
-      const fecha = data.fechaCreacion ? data.fechaCreacion.toDate().toLocaleString() : 'Fecha reciente';
-      
-      // Soportar tanto registros nuevos con múltiples fotos como registros antiguos de una sola foto (fotoUrl)
-      let listaUrls = data.fotosUrls || [];
-      if (listaUrls.length === 0 && data.fotoUrl) {
-        listaUrls = [data.fotoUrl];
-      }
-
-      let gridFotosHtml = '';
-      if (listaUrls.length > 0) {
-        listaUrls.forEach(url => {
-          gridFotosHtml += `
-            <div class="foto-item-box">
-              <img src="${url}" alt="Foto cotización" />
-              <a href="${url}" target="_blank" download>
-                <i class="fa-solid fa-download"></i> Ver / Descargar
-              </a>
-            </div>
-          `;
-        });
-      } else {
-        gridFotosHtml = `<p style="font-size: 0.85rem; color: rgba(255,255,255,0.4); font-style: italic;">El cliente no adjuntó ninguna foto en esta cotización.</p>`;
-      }
-
-      html += `
-        <div class="cotizacion-carpeta-card">
-          <div class="carpeta-header">
-            <div class="carpeta-info">
-              <h4><i class="fa-solid fa-folder-open"></i> ${data.nombre} (${data.categoria})</h4>
-              <p><strong>Teléfono:</strong> <a href="https://wa.me/591${data.telefono}" target="_blank" style="color: #f59e0b; text-decoration: underline;">${data.telefono}</a></p>
-              <p><strong>Fecha:</strong> ${fecha}</p>
-              <p><strong>Ubicación:</strong> ${data.ubicacion || 'No especificada'}</p>
-              <p><strong>Descripción:</strong> ${data.descripcion || 'Sin descripción'}</p>
-              ${data.solicitaVisita ? '<p style="color: #f59e0b;"><strong>⚠️ Solicita Visita Técnica en el lugar</strong></p>' : ''}
-            </div>
-          </div>
-          <div>
-            <strong style="font-size: 0.9rem; color: #aaa; display: block; margin-bottom: 8px;">Archivos / Fotos del cliente (${listaUrls.length}):</strong>
-            <div class="carpeta-grid-fotos">
-              ${gridFotosHtml}
-            </div>
-          </div>
-        </div>
-      `;
-    });
-
-    contenedor.innerHTML = html;
-  } catch (error) {
-    console.error("Error al cargar fotos de cotizaciones:", error);
-    contenedor.innerHTML = `<p style="text-align:center; color:#ef4444;">Error al cargar los datos. Verifica tus permisos de Firebase.</p>`;
-  }
-}
-
 
 /*
 =============================================================
@@ -2423,7 +2234,6 @@ function cambiarVistaAdmin(vista, botonSeleccionado) {
   document.getElementById('vista-proyectos').classList.add('hidden');
   document.getElementById('vista-ingresos').classList.add('hidden');
   document.getElementById('vista-portafolio').classList.add('hidden');
-  document.getElementById('vista-fotos-cotizaciones').classList.add('hidden');
 
   document.getElementById('vista-' + vista).classList.remove('hidden');
 
@@ -2433,10 +2243,6 @@ function cambiarVistaAdmin(vista, botonSeleccionado) {
 
   if (vista === 'portafolio' && typeof cargarPortafolioAdmin === "function") {
     cargarPortafolioAdmin();
-  }
-
-  if (vista === 'fotos-cotizaciones') {
-    cargarFotosCotizacionesAdmin();
   }
 }
 
