@@ -2173,15 +2173,11 @@ function cerrarModalAdmin() {
 
 /*
 =============================================================
-NAVEGACIÓN INTERNA ADMIN (PESTAÑAS)
+NAVEGACIÓN INTERNA ADMIN (PESTAÑAS) - CORREGIDA Y LIBRE
 =============================================================
 */
 
 function cambiarVistaAdmin(vista, botonSeleccionado) {
-  if (typeof esAdmin !== "undefined" && !esAdmin) {
-    return;
-  }
-
   const botones = document.querySelectorAll('#admin-menu button');
   botones.forEach(btn => btn.classList.remove('active'));
 
@@ -2194,7 +2190,10 @@ function cambiarVistaAdmin(vista, botonSeleccionado) {
   document.getElementById('vista-portafolio').classList.add('hidden');
   document.getElementById('vista-cotizador3d').classList.add('hidden');
 
-  document.getElementById('vista-' + vista).classList.remove('hidden');
+  const vistaActiva = document.getElementById('vista-' + vista);
+  if (vistaActiva) {
+    vistaActiva.classList.remove('hidden');
+  }
 
   if (vista === 'ingresos' && typeof renderGestionIngresos === "function") {
     renderGestionIngresos();
@@ -2231,7 +2230,7 @@ function actualizarModelo3D() {
   specs.innerHTML = `
     <strong>Cálculos Automáticos de Taller:</strong><br>
     - Holgura para correderas de cajón: 26 mm total restados (13 mm por lado).<br>
-    - Fondo: ${tieneFondo ? 'Tablero 3mm apoyado y atornillado (sin ranuras).' : 'Omitido (Placard empotrado sin fondo).'<}<br>
+    - Fondo: ${tieneFondo ? 'Tablero 3mm apoyado y atornillado (sin ranuras).' : 'Omitido (Placard empotrado sin fondo).'}<br>
     - Herraje seleccionado: ${jalador}.
   `;
 }
