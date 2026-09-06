@@ -209,8 +209,7 @@ auth.onAuthStateChanged(async (user) => {
     await Promise.all([
       cargarProyectosDesdeNube(),
       cargarIngresosDesdeNube(),
-      cargarPortafolioAdmin(),
-      cargarFotosCotizacionesAdmin()
+      cargarPortafolioAdmin()
     ]);
     renderProyectosAdmin();
     renderGestionIngresos();
@@ -290,8 +289,7 @@ function cambiarVistaAdmin(vistaId) {
     'admin-vista-inicio',
     'admin-vista-nuevo-proyecto',
     'admin-vista-ingresos',
-    'admin-vista-portafolio',
-    'admin-vista-fotos-cotizaciones'
+    'admin-vista-portafolio'
   ];
 
   vistas.forEach(id => {
@@ -339,78 +337,6 @@ async function cargarIngresosDesdeNube() {
   snapshot.forEach(doc => {
     ingresos.push({ id: doc.id, ...doc.data() });
   });
-}
-
-
-async function cargarFotosCotizacionesAdmin() {
-  if (!auth.currentUser || !esAdmin) return;
-  const container = document.getElementById("lista-fotos-cotizaciones");
-  if (!container) return;
-
-  try {
-    const snapshot = await db.collection("cotizaciones_clientes").orderBy("creadoEn", "desc").get();
-    container.innerHTML = "";
-
-    if (snapshot.empty) {
-      container.innerHTML = `<div style="text-align:center; color:#777; padding:25px;">No hay cotizaciones con archivos registrados aún.</div>`;
-      return;
-    }
-
-    snapshot.forEach(doc => {
-      const data = doc.data();
-      const archivos = Array.isArray(data.archivos) ? data.archivos : [];
-
-      let multimediaHTML = archivos.map(item => {
-        if (item.tipo === "video") {
-          return `
-            <video controls style="width:90px; height:90px; object-fit:cover; border-radius:6px; border:1px solid rgba(255,255,255,0.2);">
-              <source src="${item.url}" type="video/mp4">
-              Tu navegador no soporta video.
-            </video>
-          `;
-        } else {
-          return `
-            <a href="${item.url}" target="_blank" style="display:inline-block; margin:4px;">
-              <img src="${item.url}" style="width:90px; height:90px; object-fit:cover; border-radius:6px; border:1px solid rgba(255,255,255,0.2);" alt="Foto cotización">
-            </a>
-          `;
-        }
-      }).join("");
-
-      const card = document.createElement("div");
-      card.style.cssText = `
-        background: rgba(255,255,255,0.04);
-        border: 1px solid rgba(255,255,255,0.1);
-        border-radius: 10px;
-        padding: 15px;
-        margin-bottom: 12px;
-        color: #fff;
-      `;
-
-      card.innerHTML = `
-        <div style="display:flex; justify-content:space-between; align-items:flex-start; flex-wrap:wrap; gap:10px;">
-          <div>
-            <span style="background:#38bdf8; color:#000; padding:2px 8px; border-radius:4px; font-weight:bold; font-size:0.8rem;">
-              ${escaparHTML(data.tipoMueble || "Cotización")}
-            </span>
-            <h4 style="margin:6px 0 2px 0; font-size:1.1rem;">${escaparHTML(data.nombreCliente)}</h4>
-            <p style="margin:0; color:#a3a3a3; font-size:0.85rem;">Teléfono: ${escaparHTML(data.telefonoCliente || "No especificado")}</p>
-            <p style="margin:4px 0 0 0; color:#ccc; font-size:0.9rem;">${escaparHTML(data.detallesMueble || "Sin detalles adicionales")}</p>
-          </div>
-          <div style="text-align:right; font-size:0.8rem; color:#f59e0b;">
-            Medidas: A: ${data.medidas?.alto || '-'} | L: ${data.medidas?.largo || '-'} | P: ${data.medidas?.profundidad || '-'}
-          </div>
-        </div>
-        <div style="margin-top:10px; display:flex; flex-wrap:wrap; gap:5px;">
-          ${multimediaHTML || '<span style="color:#777; font-size:0.85rem;">Sin archivos adjuntos.</span>'}
-        </div>
-      `;
-      container.appendChild(card);
-    });
-
-  } catch (error) {
-    console.error("Error al cargar fotos de cotizaciones:", error);
-  }
 }
 
 
@@ -1232,23 +1158,21 @@ function mostrarPreviewArchivos() {
 }
 
 
-// FUNCIÓN DE SUBIDA A CLOUDINARY (Crea carpetas ordenadas por nombre de cliente)
+// MODIFICADA: Ahora acepta un parámetro opcional 'nombreCarpeta' para Cloudinary
 async function subirArchivoCloudinary(archivo, nombreCarpeta = "") {
   return new Promise((resolve, reject) => {
     const formData = new FormData();
     formData.append("file", archivo);
     formData.append("upload_preset", CLOUDINARY_UPLOAD_PRESET);
 
+    // Si se provee un nombre de cliente, creamos una carpeta dinámica limpia
     if (nombreCarpeta) {
       const carpetaLimpia = nombreCarpeta
         .trim()
-        .toLowerCase()
-        .normalize("NFD")
-        .replace(/[\u0300-\u036f]/g, "") // Remueve tildes y acentos
-        .replace(/[^a-z0-9]/g, "_")      // Cambia espacios y símbolos por guiones bajos
-        .replace(/_+/g, "_");            // Evita guiones bajos múltiples
-
-      formData.append("folder", `cotizaciones_clientes/${carpetaLimpia}`);
+        .replace(/[^a-zA-Z0-9áéíóúÁÉÍÓÚñÑ_]/g, "_") // Limpia caracteres especiales extraños
+        .replace(/\s+/g, "_"); // Reemplaza espacios por guiones bajos
+      
+      formData.append("folder", `cotizaciones/${carpetaLimpia}`);
     }
 
     const xhr = new XMLHttpRequest();
@@ -1650,7 +1574,7 @@ document.addEventListener("DOMContentLoaded", function () {
   }
 
   // ============================================================
-  // INTEGRACIÓN DEL FORMULARIO DE COTIZACIÓN (CREA CARPETA CON NOMBRE DE CLIENTE)
+  // INTEGRACIÓN DEL FORMULARIO DE COTIZACIÓN CON CARPETA DINÁMICA
   // ============================================================
   const formCotizacionMedidas = document.getElementById("form-cotizacion") || document.getElementById("form-cotizacion-medidas"); 
   if (formCotizacionMedidas) {
@@ -1666,49 +1590,33 @@ document.addEventListener("DOMContentLoaded", function () {
       const largo = document.getElementById("medida-largo")?.value.trim() || "";
       const profundidad = document.getElementById("medida-profundidad")?.value.trim() || "";
 
+      // Soporte para múltiples archivos o un archivo único de referencia
       const inputArchivo = document.getElementById("cotiza-foto") || document.getElementById("foto-referencia") || document.querySelector("input[type='file']"); 
       const archivosSeleccionados = inputArchivo?.files ? Array.from(inputArchivo.files) : [];
 
-      let urlsArchivosSubidos = [];
+      let urlsImagenesSubidas = [];
 
-      try {
-        const botonEnviar = formCotizacionMedidas.querySelector("button[type='submit']");
-        if (botonEnviar) botonEnviar.textContent = "Subiendo archivos y creando cotización...";
+      if (archivosSeleccionados.length > 0) {
+        try {
+          const botonEnviar = formCotizacionMedidas.querySelector("button[type='submit']");
+          if (botonEnviar) botonEnviar.textContent = "Subiendo archivos...";
 
-        if (archivosSeleccionados.length > 0) {
+          // Subimos cada archivo enviando el nombre del cliente para agruparlos en su propia carpeta en Cloudinary
           for (const archivo of archivosSeleccionados) {
-            // AQUÍ SE CREA LA CARPETA CON EL NOMBRE DEL CLIENTE AUTOMÁTICAMENTE
             const resultadoSubida = await subirArchivoCloudinary(archivo, nombreCliente);
             const urlFinal = resultadoSubida.secure_url || resultadoSubida.url || "";
-            if (urlFinal) {
-              urlsArchivosSubidos.push({
-                url: urlFinal,
-                tipo: archivo.type.startsWith("video/") ? "video" : "imagen"
-              });
-            }
+            if (urlFinal) urlsImagenesSubidas.push(urlFinal);
           }
+          
+          if (botonEnviar) botonEnviar.textContent = "Enviar cotización";
+        } catch (error) {
+          console.error("Error subiendo archivos:", error);
+          alert("Hubo un problema al subir los archivos a Cloudinary, pero se enviarán los datos de texto.");
         }
-
-        // Guardar en Firestore para que aparezca en la pestaña "Fotos cotizaciones"
-        await db.collection("cotizaciones_clientes").add({
-          nombreCliente,
-          telefonoCliente,
-          tipoMueble,
-          detallesMueble,
-          medidas: { alto, largo, profundidad },
-          archivos: urlsArchivosSubidos,
-          creadoEn: firebase.firestore.FieldValue.serverTimestamp()
-        });
-
-        if (botonEnviar) botonEnviar.textContent = "Enviar cotización";
-
-      } catch (error) {
-        console.error("Error en el proceso de cotización:", error);
-        alert("Hubo un problema al subir los archivos, pero se intentará abrir WhatsApp.");
       }
 
-      // WhatsApp limpio con aviso de archivos adjuntos
       const numeroTaller = "59162037033";
+
       let lineasMensaje = [
         "Hola, vengo desde la web de HN Muebles. ¡Quiero una cotización!",
         "",
@@ -1728,9 +1636,12 @@ document.addEventListener("DOMContentLoaded", function () {
         lineasMensaje.push(`Detalles: ${detallesMueble}`);
       }
 
-      if (urlsArchivosSubidos.length > 0) {
+      if (urlsImagenesSubidas.length > 0) {
         lineasMensaje.push("");
-        lineasMensaje.push("📸🎥 *El cliente ha adjuntado fotos y/o videos de referencia.* (Ya están guardados y visibles en tu panel de administración).");
+        lineasMensaje.push("📸 *Fotos o bocetos de referencia:*");
+        urlsImagenesSubidas.forEach((url, i) => {
+          lineasMensaje.push(`- ${url}`);
+        });
       }
 
       const mensajeFinal = encodeURIComponent(lineasMensaje.join("\n"));
