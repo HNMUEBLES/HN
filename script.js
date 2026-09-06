@@ -1232,7 +1232,7 @@ function mostrarPreviewArchivos() {
 }
 
 
-// FUNCIÓN CORREGIDA: Limpia el nombre del cliente y crea carpetas ordenadas en Cloudinary
+// FUNCIÓN DE SUBIDA A CLOUDINARY (Crea carpetas ordenadas por nombre de cliente)
 async function subirArchivoCloudinary(archivo, nombreCarpeta = "") {
   return new Promise((resolve, reject) => {
     const formData = new FormData();
@@ -1650,7 +1650,7 @@ document.addEventListener("DOMContentLoaded", function () {
   }
 
   // ============================================================
-  // INTEGRACIÓN DEL FORMULARIO DE COTIZACIÓN (MÚLTIPLES FOTOS/VIDEOS, CARPETA Y FIRESTORE)
+  // INTEGRACIÓN DEL FORMULARIO DE COTIZACIÓN (CREA CARPETA CON NOMBRE DE CLIENTE)
   // ============================================================
   const formCotizacionMedidas = document.getElementById("form-cotizacion") || document.getElementById("form-cotizacion-medidas"); 
   if (formCotizacionMedidas) {
@@ -1666,7 +1666,6 @@ document.addEventListener("DOMContentLoaded", function () {
       const largo = document.getElementById("medida-largo")?.value.trim() || "";
       const profundidad = document.getElementById("medida-profundidad")?.value.trim() || "";
 
-      // Soporte para múltiples archivos (imágenes y videos)
       const inputArchivo = document.getElementById("cotiza-foto") || document.getElementById("foto-referencia") || document.querySelector("input[type='file']"); 
       const archivosSeleccionados = inputArchivo?.files ? Array.from(inputArchivo.files) : [];
 
@@ -1678,7 +1677,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
         if (archivosSeleccionados.length > 0) {
           for (const archivo of archivosSeleccionados) {
-            // Aquí le pasamos el nombre del cliente para que cree la carpeta en Cloudinary
+            // AQUÍ SE CREA LA CARPETA CON EL NOMBRE DEL CLIENTE AUTOMÁTICAMENTE
             const resultadoSubida = await subirArchivoCloudinary(archivo, nombreCliente);
             const urlFinal = resultadoSubida.secure_url || resultadoSubida.url || "";
             if (urlFinal) {
@@ -1690,7 +1689,7 @@ document.addEventListener("DOMContentLoaded", function () {
           }
         }
 
-        // Guardar en Firestore para que se muestre en la nueva pestaña del Admin
+        // Guardar en Firestore para que aparezca en la pestaña "Fotos cotizaciones"
         await db.collection("cotizaciones_clientes").add({
           nombreCliente,
           telefonoCliente,
@@ -1708,7 +1707,7 @@ document.addEventListener("DOMContentLoaded", function () {
         alert("Hubo un problema al subir los archivos, pero se intentará abrir WhatsApp.");
       }
 
-      // WhatsApp limpio sin links largos de Cloudinary
+      // WhatsApp limpio con aviso de archivos adjuntos
       const numeroTaller = "59162037033";
       let lineasMensaje = [
         "Hola, vengo desde la web de HN Muebles. ¡Quiero una cotización!",
