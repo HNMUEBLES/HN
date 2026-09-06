@@ -781,12 +781,30 @@
           </div>
 
           <div class="admin-viewer-box">
-            <div id="canvas-mock-3d" style="flex-grow:1; background:rgba(255,255,255,0.02); border:2px dashed rgba(245,158,11,0.3); display:flex; flex-direction:column; align-items:center; justify-content:center; color:#fff; border-radius:8px; padding:20px; text-align:center;">
-              <i class="fa-solid fa-cube font-amber" style="font-size: 2.5rem; margin-bottom: 12px;"></i>
-              <span id="c3d-txt-visual" style="font-size: 1.1rem;">Placard de 1200mm x 2200mm</span>
+            <div id="canvas-mock-3d" style="flex-grow:1; background:radial-gradient(circle at center, #1a1a1a 0%, #080808 100%); border:2px solid rgba(245,158,11,0.4); display:flex; flex-direction:column; align-items:center; justify-content:center; border-radius:12px; padding:30px; position:relative; overflow:hidden; min-height:350px; perspective: 1000px;">
+              
+              <div style="position: absolute; top: 15px; left: 20px; font-size: 0.8rem; color: #f59e0b; font-weight: bold;">
+                <i class="fa-solid fa-cube"></i> VISTA TÉCNICA 3D (SKETCHUP PREVIEW)
+              </div>
+
+              <!-- Contenedor del Mueble en 3D Isométrico -->
+              <div id="mueble-3d-real" style="width: 140px; height: 210px; background: linear-gradient(135deg, #3d312a 0%, #1f1814 100%); border: 2px solid #f59e0b; border-radius: 4px; box-shadow: -15px 15px 30px rgba(0,0,0,0.8), inset 0 0 15px rgba(0,0,0,0.5); display: flex; flex-direction: column; justify-content: space-between; padding: 12px; transform: rotateX(15deg) rotateY(-20deg); transform-style: preserve-3d; transition: all 0.3s ease;">
+                <div style="height: 3px; background: rgba(245,158,11,0.6); width: 100%;"></div>
+                <div style="height: 3px; background: rgba(245,158,11,0.4); width: 100%;"></div>
+                <div style="text-align: center; color: #f59e0b; font-size: 0.7rem; font-weight: bold; text-shadow: 0 2px 4px rgba(0,0,0,0.9);" id="3d-label-mueble">
+                  HN Muebles
+                </div>
+                <div style="height: 3px; background: rgba(245,158,11,0.4); width: 100%;"></div>
+                <div style="height: 3px; background: rgba(245,158,11,0.6); width: 100%;"></div>
+              </div>
+
+              <div style="margin-top: 25px; font-size: 0.95rem; color: #fff; font-weight: 600;" id="c3d-txt-visual">
+                Placard de 1200mm x 2200mm x 600mm
+              </div>
             </div>
+
             <div class="specs-box-3d" id="c3d-resumen-specs">
-              <strong>Cálculos Automáticos:</strong><br>- Holgura correderas: 26mm.<br>- Melamina 18mm estructurada.
+              <strong>Cálculos Automáticos:</strong><br>- Holgura correderas: 26mm.<br>- Melamina 18mm estructurada con cantos coordinados.
             </div>
           </div>
         </div>
@@ -925,10 +943,20 @@ function cambiarVistaAdmin(vista, botonSeleccionado) {
 }
 
 function actualizarModelo3DAdmin() {
-  const alto = document.getElementById('c3d-alto').value;
-  const ancho = document.getElementById('c3d-ancho').value;
-  const prof = document.getElementById('c3d-prof').value;
-  document.getElementById('c3d-txt-visual').innerHTML = `Mueble: ${ancho}mm x ${alto}mm x ${prof}mm`;
+  const alto = parseFloat(document.getElementById('c3d-alto').value) || 2200;
+  const ancho = parseFloat(document.getElementById('c3d-ancho').value) || 1200;
+  const prof = parseFloat(document.getElementById('c3d-prof').value) || 600;
+
+  document.getElementById('c3d-txt-visual').innerHTML = `Mueble: ${ancho}mm (Ancho) x ${alto}mm (Alto) x ${prof}mm (Prof)`;
+  
+  // Escalar dinámicamente la caja 3D visual según las proporciones ingresadas
+  const caja3D = document.getElementById('mueble-3d-real');
+  if (caja3D) {
+    const anchoVisual = Math.min(Math.max((ancho / 10), 90), 220);
+    const altoVisual = Math.min(Math.max((alto / 15), 120), 260);
+    caja3D.style.width = anchoVisual + 'px';
+    caja3D.style.height = altoVisual + 'px';
+  }
 }
 
 function exportarDespiece3D() {
