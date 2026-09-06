@@ -2314,7 +2314,6 @@ async function cargarFotosCotizacionesAdmin() {
       const data = doc.data();
       const fecha = data.fechaCreacion ? data.fechaCreacion.toDate().toLocaleString() : 'Fecha reciente';
       
-      // Soportar tanto registros nuevos con múltiples fotos como registros antiguos de una sola foto (fotoUrl)
       let listaUrls = data.fotosUrls || [];
       if (listaUrls.length === 0 && data.fotoUrl) {
         listaUrls = [data.fotoUrl];
@@ -2442,6 +2441,96 @@ function cambiarVistaAdmin(vista, botonSeleccionado) {
 
 /*
 =============================================================
+CORRECCIÓN Y VISOR DEL PORTAFOLIO (INTEGRADO)
+=============================================================
+*/
+let visorTrabajoActual = null;
+let visorIndiceActual = 0;
+
+function crearVisorPortafolio() {
+    if (document.getElementById("hn-portfolio-viewer")) return;
+
+    const viewerHtml = `
+    <div id="hn-portfolio-viewer" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.9); z-index:999999; justify-content:center; align-items:center; flex-direction:column; padding:20px; box-sizing:border-box;">
+        <button onclick="cerrarVisorPortafolio()" style="position:absolute; top:20px; right:30px; background:none; border:none; color:#fff; font-size:2rem; cursor:pointer; z-index:1000000;">&times;</button>
+        <div id="hn-portfolio-counter" style="position:absolute; top:25px; left:30px; color:#fff; font-size:1rem; display:none;"></div>
+        
+        <button onclick="visorPortafolioAnterior(event)" style="position:absolute; left:20px; top:50%; transform:translateY(-50%); background:rgba(255,255,255,0.2); border:none; color:#fff; font-size:1.5rem; padding:10px 15px; cursor:pointer; border-radius:50%;">&#10094;</button>
+        <button onclick="visorPortafolioSiguiente(event)" style="position:absolute; right:20px; top:50%; transform:translateY(-50%); background:rgba(255,255,255,0.2); border:none; color:#fff; font-size:1.5rem; padding:10px 15px; cursor:pointer; border-radius:50%;">&#10095;</button>
+
+        <div id="hn-portfolio-content" style="display:flex; flex-direction:column; align-items:center; justify-content:center; max-width:90%; max-height:90%;"></div>
+    </div>
+    `;
+    document.body.insertAdjacentHTML('beforeend', viewerHtml);
+}
+
+function abrirVisorPortafolio(trabajoId, indice = 0) {  
+  if (typeof portafolio === 'undefined') return;
+  const trabajo = portafolio.find(p => p.id === trabajoId);  
+  if (!trabajo || !trabajo.imagenes || !trabajo.imagenes.length) return;  
+  
+  visorTrabajoActual = trabajo;  
+  visorIndiceActual = indice;  
+  
+  crearVisorPortafolio();  
+  const visor = document.getElementById("hn-portfolio-viewer");  
+  if (visor) {  
+    visor.style.display = "flex";  
+  }  
+  renderContenidoVisorPortafolio();  
+}  
+  
+function cerrarVisorPortafolio() {  
+  const visor = document.getElementById("hn-portfolio-viewer");  
+  if (visor) {  
+    visor.style.display = "none";  
+  }  
+  visorTrabajoActual = null;  
+  visorIndiceActual = 0;  
+}  
+  
+function visorPortafolioAnterior(event) {  
+  event.stopPropagation();  
+  if (!visorTrabajoActual || !visorTrabajoActual.imagenes) return;  
+  visorIndiceActual = (visorIndiceActual - 1 + visorTrabajoActual.imagenes.length) % visorTrabajoActual.imagenes.length;  
+  renderContenidoVisorPortafolio();  
+}  
+  
+function visorPortafolioSiguiente(event) {  
+  event.stopPropagation();  
+  if (!visorTrabajoActual || !visorTrabajoActual.imagenes) return;  
+  visorIndiceActual = (visorIndiceActual + 1) % visorTrabajoActual.imagenes.length;  
+  renderContenidoVisorPortafolio();  
+}  
+  
+function renderContenidoVisorPortafolio() {  
+  const container = document.getElementById("hn-portfolio-content");  
+  const counter = document.getElementById("hn-portfolio-counter");  
+  if (!container || !visorTrabajoActual) return;  
+  
+  const imagenUrl = visorTrabajoActual.imagenes[visorIndiceActual];  
+  
+  // Función auxiliar de escape por seguridad si existe, o valor directo
+  const safeImg = typeof escaparHTML === 'function' ? escaparHTML(imagenUrl) : imagenUrl;
+  const safeTitle = typeof escaparHTML === 'function' ? escaparHTML(visorTrabajoActual.titulo || "") : (visorTrabajoActual.titulo || "");
+  const safeDesc = typeof escaparHTML === 'function' ? escaparHTML(visorTrabajoActual.descripcion || "") : (visorTrabajoActual.descripcion || "");
+
+  container.innerHTML = `  
+    <img src="${safeImg}" alt="Trabajo Portafolio" style="max-width:100%; max-height:80vh; object-fit:contain; border-radius:8px; box-shadow:0 10px 30px rgba(0,0,0,0.5);" />  
+    <h3 style="color:#fff; margin-top:15px; font-size:1.2rem;">${safeTitle}</h3>  
+    <p style="color:#a3a3a3; font-size:0.9rem; text-align:center; max-width:600px;">${safeDesc}</p>  
+  `;  
+  
+  if (counter && visorTrabajoActual.imagenes.length > 1) {  
+    counter.innerText = `${visorIndiceActual + 1} / ${visorTrabajoActual.imagenes.length}`;  
+    counter.style.display = "block";  
+  } else if (counter) {  
+    counter.style.display = "none";  
+  }  
+}
+
+/*
+=============================================================
 ESC PARA CERRAR PANELES
 =============================================================
 */
@@ -2459,6 +2548,11 @@ document.addEventListener(
     const cotizador = document.getElementById("modal-cotizador");
     if (cotizador && !cotizador.classList.contains("hidden")) {
       cerrarModalCotizar();
+    }
+
+    const visor = document.getElementById("hn-portfolio-viewer");
+    if (visor && visor.style.display === "flex") {
+      cerrarVisorPortafolio();
     }
   }
 );
