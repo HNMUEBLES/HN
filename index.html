@@ -1148,10 +1148,10 @@
               <textarea id="cot-descripcion" rows="4" placeholder="Cuéntanos cómo lo imaginas, colores, materiales o distribución..."></textarea>
             </div>
 
-            <!-- Archivos múltiples opcionales -->
+            <!-- Archivos múltiples opcionales (Fotos y Videos) -->
             <div class="cotizador-full">
-              <label for="cotiza-foto">Fotos de referencia o medidas (Puedes seleccionar varias)</label>
-              <input type="file" id="cotiza-foto" accept="image/*" multiple />
+              <label for="cotiza-foto">Fotos o videos de referencia o medidas (Puedes seleccionar varios)</label>
+              <input type="file" id="cotiza-foto" accept="image/*,video/*" multiple />
             </div>
 
             <!-- Ubicación / GPS -->
@@ -2066,112 +2066,6 @@ function obtenerUbicacionGPS() {
     }
   );
 }
-
-/*
-=============================================================
-ENVÍO DE COTIZACIÓN, SUBIDA MÚLTIPLE A FIREBASE & WHATSAPP
-=============================================================
-*/
-document.getElementById('form-cotizacion').addEventListener('submit', async function(e) {
-  e.preventDefault();
-
-  const nombre = document.getElementById('cot-nombre').value.trim();
-  const telefono = document.getElementById('cot-telefono').value.trim();
-  const categoria = document.getElementById('cot-categoria').value;
-  const solicitaVisita = document.getElementById('cot-solicita-visita').checked;
-  
-  const alto = document.getElementById('cot-alto').value.trim();
-  const largo = document.getElementById('cot-largo').value.trim();
-  const profundidad = document.getElementById('cot-profundidad').value.trim();
-  
-  const descripcion = document.getElementById('cot-descripcion').value.trim();
-  const ubicacion = document.getElementById('cot-ubicacion').value.trim();
-  
-  const inputArchivo = document.getElementById('cotiza-foto');
-  let fotosUrls = [];
-
-  const btnSubmit = this.querySelector('button[type="submit"]');
-  const textoOriginal = btnSubmit.innerHTML;
-  btnSubmit.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> Guardando y enviando...`;
-  btnSubmit.disabled = true;
-
-  try {
-    if (inputArchivo && inputArchivo.files.length > 0) {
-      const nombreCarpeta = nombre.replace(/[^a-zA-Z0-9]/g, '_');
-      for (let i = 0; i < inputArchivo.files.length; i++) {
-        const file = inputArchivo.files[i];
-        const storageRef = firebase.storage().ref(`Clientes_Cotizaciones/${nombreCarpeta}/${Date.now()}_${i}_${file.name}`);
-        const snapshot = await storageRef.put(file);
-        const downloadUrl = await snapshot.ref.getDownloadURL();
-        fotosUrls.push(downloadUrl);
-      }
-    }
-
-    if (typeof db !== 'undefined') {
-      await db.collection('cotizaciones_clientes').add({
-        nombre: nombre,
-        telefono: telefono,
-        categoria: categoria,
-        solicitaVisita: solicitaVisita,
-        medidas: { alto, largo, profundidad },
-        descripcion: descripcion,
-        ubicacion: ubicacion,
-        fotosUrls: fotosUrls,
-        fechaCreacion: firebase.firestore.FieldValue.serverTimestamp()
-      });
-    }
-  } catch (error) {
-    console.error("Error guardando cotización en Firebase:", error);
-  }
-
-  let mensaje = `Hola, vengo desde la web de HN Muebles. ¡Quiero una cotización!\n\n`;
-  mensaje += `*Cliente:* ${nombre}\n`;
-  mensaje += `*Teléfono:* ${telefono}\n`;
-  mensaje += `*Mueble:* ${categoria}\n`;
-
-  if (solicitaVisita) {
-    mensaje += `*Medidas:* No tiene medidas / Solicita visita técnica en el lugar\n`;
-  } else if (categoria === 'Cocina') {
-    mensaje += `*Medidas:* Adjuntará fotos con las medidas de la cocina\n`;
-  } else {
-    mensaje += `*Medidas ingresadas:*\n`;
-    if (alto) mensaje += ` - Alto: ${alto}\n`;
-    if (largo) mensaje += ` - Largo/Ancho: ${largo}\n`;
-    if (profundidad) mensaje += ` - Profundidad: ${profundidad}\n`;
-    if (!alto && !largo && !profundidad) {
-      mensaje += ` (No especificadas)\n`;
-    }
-  }
-
-  if (descripcion) {
-    mensaje += `*Descripción:* ${descripcion}\n`;
-  }
-
-  if (ubicacion) {
-    mensaje += `*Ubicación:* ${ubicacion}\n`;
-  }
-
-  if (fotosUrls.length > 0) {
-    mensaje += `\n*Fotos de referencia (${fotosUrls.length}):*\n`;
-    fotosUrls.forEach((url, index) => {
-      mensaje += `Foto ${index + 1}: ${url}\n`;
-    });
-  }
-
-  const numeroWhatsApp = "59162037033";
-  const urlWhatsApp = `https://wa.me/${numeroWhatsApp}?text=${encodeURIComponent(mensaje)}`;
-
-  btnSubmit.innerHTML = textoOriginal;
-  btnSubmit.disabled = false;
-
-  window.open(urlWhatsApp, '_blank');
-
-  cerrarModalCotizar();
-  document.getElementById('popup-confirmacion').classList.remove('hidden');
-
-  this.reset();
-  toggleVisitaMedidas();
-});
 
 function cerrarPopupConfirmacion() {
   document.getElementById('popup-confirmacion').classList.add('hidden');
