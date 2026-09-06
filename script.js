@@ -1,7 +1,7 @@
 // ============================================================
 // HN MUEBLES - SCRIPT PRINCIPAL COMPLETO
 // Firebase Authentication + Firestore
-// Cloudinary para Portafolio y Cotizaciones con Link de Fotos
+// Cloudinary para Portafolio y Cotizaciones con Links de Fotos
 // ============================================================
 
 
@@ -1447,7 +1447,7 @@ async function ejecutarEliminarTrabajoPortafolio(id) {
 
 
 // ============================================================
-// 12. DOM READY & COTIZADOR WHATSAPP CON CLOUDINARY
+// 12. DOM READY & COTIZADOR WHATSAPP CON CLOUDINARY (LINKS NOMBRADOS)
 // ============================================================
 
 document.addEventListener("DOMContentLoaded", function () {
@@ -1593,6 +1593,7 @@ document.addEventListener("DOMContentLoaded", function () {
       const archivosSeleccionados = inputArchivo?.files ? Array.from(inputArchivo.files) : [];
 
       let contadorFotos = 1;
+      let contadorVideos = 1;
       let detalleArchivosMensaje = [];
 
       if (archivosSeleccionados.length > 0) {
@@ -1601,14 +1602,14 @@ document.addEventListener("DOMContentLoaded", function () {
           if (botonEnviar) botonEnviar.textContent = "Subiendo archivos...";
 
           for (const archivo of archivosSeleccionados) {
-            // Sube la foto a Cloudinary por detrás para que no se pierda
-            await subirArchivoCloudinary(archivo, nombreCliente);
+            const resultado = await subirArchivoCloudinary(archivo, nombreCliente);
+            const urlCloudinary = resultado.secure_url || resultado.url;
 
-            // Genera el texto limpio para WhatsApp según sea foto o video
             if (archivo.type && archivo.type.startsWith("video/")) {
-              detalleArchivosMensaje.push("- Video");
+              detalleArchivosMensaje.push(`🎥 Video ${contadorVideos}: ${urlCloudinary}`);
+              contadorVideos++;
             } else {
-              detalleArchivosMensaje.push(`- Foto ${contadorFotos}`);
+              detalleArchivosMensaje.push(`📷 Foto ${contadorFotos}: ${urlCloudinary}`);
               contadorFotos++;
             }
           }
@@ -1633,7 +1634,7 @@ document.addEventListener("DOMContentLoaded", function () {
       if (alto || largo || profundidad) {
         lineasMensaje.push("Medidas ingresadas:");
         if (alto) lineasMensaje.push(` - Alto: ${alto}`);
-        if (largo) lineasNetas = lineasMensaje.push(` - Largo/Ancho: ${largo}`);
+        if (largo) lineasMensaje.push(` - Largo/Ancho: ${largo}`);
         if (profundidad) lineasMensaje.push(` - Profundidad: ${profundidad}`);
       }
 
@@ -1643,7 +1644,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
       if (detalleArchivosMensaje.length > 0) {
         lineasMensaje.push("");
-        lineasMensaje.push("📸 *Archivos adjuntos:*");
+        lineasMensaje.push("📂 *Archivos de referencia:*");
         lineasMensaje.push(...detalleArchivosMensaje);
       }
 
