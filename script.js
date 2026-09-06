@@ -1671,4 +1671,4 @@ document.addEventListener("DOMContentLoaded", function () {
     formPortfolio.addEventListener("submit", publicarTrabajoPortafolio);
   }
 
-});
+})
