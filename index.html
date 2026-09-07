@@ -34,6 +34,13 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 
   <!-- =====================================================
+       LIBRERÍAS Y ESTILOS AISLADOS PARA EL MÓDULO DISEÑADOR 3D
+       ===================================================== -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+  <link rel="stylesheet" href="disenador.css" />
+
+  <!-- =====================================================
        ESTILOS PARA PANELES A PANTALLA COMPLETA Y POPUPS
        ===================================================== -->
 
@@ -2160,11 +2167,94 @@ document.addEventListener(
     if (cotizador && !cotizador.classList.contains("hidden")) {
       cerrarModalCotizar();
     }
+
+    const designer = document.getElementById("hn-designer-modal");
+    if (designer && !designer.classList.contains("hn-designer-hidden")) {
+      cerrarDisenadorMueble();
+    }
   }
 );
 
 </script>
 
+
+
+<!-- =========================================================
+     CONTENEDOR AISLADO MÓDULO DISEÑADOR 3D (INICIALMENTE OCULTO)
+========================================================= -->
+<div id="hn-designer-modal" class="hn-designer-modal hn-designer-hidden">
+  <div class="hn-designer-box">
+    
+    <button
+      class="hn-designer-close"
+      onclick="cerrarDisenadorMueble()"
+      aria-label="Cerrar diseñador"
+    >
+      &times;
+    </button>
+
+    <div class="hn-designer-wrapper">
+      
+      <!-- Panel Izquierdo: Construir -->
+      <aside class="hn-designer-panel-left">
+        <div class="hn-designer-panel-title">
+          <i class="fa-solid fa-hammer"></i> Construir
+        </div>
+        <div class="hn-designer-section">
+          <button class="hn-designer-tool-btn" type="button"><i class="fa-solid fa-square-plus"></i> División</button>
+          <button class="hn-designer-tool-btn" type="button"><i class="fa-solid fa-bars"></i> Repisa</button>
+          <button class="hn-designer-tool-btn" type="button"><i class="fa-solid fa-box"></i> Cajón</button>
+          <button class="hn-designer-tool-btn" type="button"><i class="fa-solid fa-door-closed"></i> Puerta</button>
+          <button class="hn-designer-tool-btn" type="button"><i class="fa-solid fa-border-all"></i> Fondo</button>
+        </div>
+      </aside>
+
+      <!-- Área Central 3D -->
+      <div class="hn-designer-canvas-container" id="hn-designer-canvas-container">
+        <div class="hn-designer-view-controls">
+          <button class="hn-designer-view-btn hn-designer-active" onclick="cambiarVista3DAislada('3d')">3D</button>
+          <button class="hn-designer-view-btn" onclick="cambiarVista3DAislada('frente')">Frente</button>
+          <button class="hn-designer-view-btn" onclick="cambiarVista3DAislada('lateral')">Lateral</button>
+          <button class="hn-designer-view-btn" onclick="cambiarVista3DAislada('superior')">Superior</button>
+        </div>
+      </div>
+
+      <!-- Panel Derecho: Propiedades -->
+      <aside class="hn-designer-panel-right">
+        <div class="hn-designer-panel-title">
+          <i class="fa-solid fa-sliders"></i> Propiedades
+        </div>
+        <div class="hn-designer-section">
+          <label>Pieza Seleccionada</label>
+          <input type="text" id="hn-prop-tipo" value="Ninguna" readonly />
+
+          <label>Ancho</label>
+          <input type="text" id="hn-prop-ancho" value="0 mm" readonly />
+
+          <label>Alto</label>
+          <input type="text" id="hn-prop-alto" value="0 mm" readonly />
+
+          <label>Profundidad</label>
+          <input type="text" id="hn-prop-prof" value="0 mm" readonly />
+
+          <label>Espesor</label>
+          <input type="text" id="hn-prop-espesor" value="18 mm" readonly />
+
+          <label>Material / Melamina</label>
+          <select id="hn-prop-material">
+            <option value="Melamina 18mm">Melamina 18mm</option>
+            <option value="Melamina Blanca">Melamina Blanca</option>
+          </select>
+        </div>
+      </aside>
+
+    </div>
+
+  </div>
+</div>
+
+<!-- Script Aislado del Diseñador 3D -->
+<script src="disenador.js"></script>
 
 </body>
 </html>
