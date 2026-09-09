@@ -32,6 +32,10 @@
   />
 
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  
+  <!-- Three.js para el motor 3D del Diseñador -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
 
   <!-- =====================================================
        ESTILOS PARA PANELES A PANTALLA COMPLETA Y POPUPS
@@ -441,7 +445,7 @@
 
 
     /* ==========================================================
-       HN DESIGNER - INTERFAZ VISUAL PROFESIONAL (PASO 1)
+       HN DESIGNER - INTERFAZ VISUAL PROFESIONAL (PASO 2)
        Aislado con contenedor principal #hn-designer
        Estilo limpio, profesional, blanco/gris, sin romper nada.
        ========================================================== */
@@ -614,82 +618,6 @@
       align-items: center;
       justify-content: center;
       overflow: hidden;
-    }
-
-    #hn-designer .hn-viewport-placeholder {
-      text-align: center;
-      padding: 2rem;
-      background: rgba(255, 255, 255, 0.85);
-      border: 1px dashed #cbd5e1;
-      border-radius: 12px;
-      box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05);
-      max-width: 450px;
-      z-index: 2;
-    }
-
-    #hn-designer .hn-viewport-placeholder h3 {
-      font-size: 1.2rem;
-      color: #1e293b;
-      margin-bottom: 0.5rem;
-    }
-
-    #hn-designer .hn-viewport-placeholder p {
-      font-size: 0.9rem;
-      color: #64748b;
-      margin-bottom: 1rem;
-    }
-
-    #hn-designer .hn-viewport-badge {
-      display: inline-block;
-      background: #dbeafe;
-      color: #1e40af;
-      font-size: 0.75rem;
-      font-weight: 600;
-      padding: 0.25rem 0.75rem;
-      border-radius: 9999px;
-      margin-bottom: 0.5rem;
-    }
-
-    #hn-designer .hn-demo-cube-scene {
-      position: absolute;
-      width: 100%;
-      height: 100%;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      pointer-events: none;
-    }
-
-    #hn-designer .hn-demo-cabinet {
-      width: 220px;
-      height: 300px;
-      border: 2px solid #334155;
-      background: rgba(255, 255, 255, 0.6);
-      box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
-      position: relative;
-      border-radius: 4px;
-      transform: perspective(800px) rotateY(-15deg) rotateX(5deg);
-    }
-
-    #hn-designer .hn-demo-shelf {
-      position: absolute;
-      width: 100%;
-      height: 12px;
-      background: #cbd5e1;
-      border-top: 1px solid #94a3b8;
-      border-bottom: 1px solid #94a3b8;
-      top: 45%;
-    }
-
-    #hn-designer .hn-demo-montante {
-      position: absolute;
-      width: 12px;
-      height: 100%;
-      background: #cbd5e1;
-      left: 50%;
-      transform: translateX(-50%);
-      border-left: 1px solid #94a3b8;
-      border-right: 1px solid #94a3b8;
     }
 
     #hn-designer .hn-right-panel {
@@ -2285,7 +2213,7 @@
 
 
 <!-- ==========================================================
-     HN DESIGNER - INTERFAZ VISUAL PROFESIONAL (PASO 1)
+     HN DESIGNER - INTERFAZ VISUAL PROFESIONAL (PASO 2)
      Contenedor aislado independiente
      ========================================================== -->
 <div id="hn-designer">
@@ -2297,7 +2225,7 @@
                 <span class="hn-subbrand">HN DESIGNER</span>
             </div>
             <div class="hn-menu-bar">
-                <button class="hn-menu-btn" onclick="alert('Nuevo proyecto (Visual)')">Nuevo</button>
+                <button class="hn-menu-btn" onclick="crearModuloNuevoVisual()">Nuevo Módulo</button>
                 <button class="hn-menu-btn" onclick="alert('Abrir proyecto (Visual)')">Abrir</button>
                 <button class="hn-menu-btn" onclick="alert('Guardar modelo (Visual)')">Guardar</button>
                 <button class="hn-menu-btn" onclick="alert('Deshacer (Visual)')">Deshacer</button>
@@ -2307,7 +2235,7 @@
             </div>
         </div>
         <div class="hn-topbar-right">
-            <span style="font-size: 0.8rem; color: #6b7280; font-weight: 500;">Modo Interfaz Visual v1.0</span>
+            <span style="font-size: 0.8rem; color: #6b7280; font-weight: 500;">Modo Interfaz Visual v2.0 (3D Real)</span>
             <button class="hn-close-designer-btn" onclick="cerrarHNDesigner()">Cerrar Diseñador</button>
         </div>
     </div>
@@ -2320,7 +2248,7 @@
             <div class="hn-sidebar-section">
                 <div class="hn-sidebar-title">Proyecto</div>
                 <div class="hn-sidebar-group">
-                    <div class="hn-tool-item" onclick="seleccionarHerramientaVisual('Nuevo módulo')">Nuevo módulo <span class="hn-note">Módulo</span></div>
+                    <div class="hn-tool-item" onclick="crearModuloNuevoVisual()">Nuevo módulo <span class="hn-note">Módulo</span></div>
                     <div class="hn-tool-item" onclick="seleccionarHerramientaVisual('Módulos')">Módulos <span class="hn-note">Lista</span></div>
                     <div class="hn-tool-item" onclick="seleccionarHerramientaVisual('Conjuntos')">Conjuntos <span class="hn-note">Grupo</span></div>
                 </div>
@@ -2386,59 +2314,43 @@
             </div>
         </div>
 
-        <!-- ÁREA CENTRAL (VISOR 3D DEMO) -->
-        <div class="hn-center-viewport">
-            <div class="hn-demo-cube-scene">
-                <div class="hn-demo-cabinet">
-                    <div class="hn-demo-montante"></div>
-                    <div class="hn-demo-shelf"></div>
-                </div>
-            </div>
-
-            <div class="hn-viewport-placeholder">
-                <span class="hn-viewport-badge">Visor 3D Preparado</span>
-                <h3>Área del Visor 3D Profesional</h3>
-                <p>Preparado para la futura integración con Three.js / WebGL y el motor paramétrico independiente.</p>
-                <button class="btn-primary-modern" style="padding: 0.5rem 1rem; font-size: 0.85rem;" onclick="alternarEjemploPanelDerecho()">Cambiar Elemento de Prueba</button>
-            </div>
+        <!-- ÁREAS CENTRAL (VISOR 3D REAL CON THREE.JS) -->
+        <div class="hn-center-viewport" id="hn-viewport-3d">
+            <!-- Canvas 3D de Three.js se insertará aquí dinámicamente -->
         </div>
 
         <!-- PANEL DERECHO (PROPIEDADES CONTEXTUALES) -->
         <div class="hn-right-panel">
             <div class="hn-properties-header">
                 <div class="hn-properties-title">
-                    <span id="hn-prop-title-text">REPISA #3</span>
-                    <span class="hn-selected-indicator">Seleccionado</span>
+                    <span id="hn-prop-title-text">DIMENSIONES MAESTRAS</span>
+                    <span class="hn-selected-indicator" id="hn-selected-badge">Módulo</span>
                 </div>
             </div>
             <div class="hn-properties-body" id="hn-properties-content-container">
                 <div class="hn-prop-row">
                     <label>Ancho (mm)</label>
-                    <input type="number" value="964" id="hn-prop-ancho">
+                    <input type="number" value="1000" id="hn-master-ancho" oninput="actualizarDimensionesMaestras()">
+                </div>
+                <div class="hn-prop-row">
+                    <label>Alto (mm)</label>
+                    <input type="number" value="2000" id="hn-master-alto" oninput="actualizarDimensionesMaestras()">
                 </div>
                 <div class="hn-prop-row">
                     <label>Profundidad (mm)</label>
-                    <input type="number" value="482" id="hn-prop-prof">
+                    <input type="number" value="500" id="hn-master-prof" oninput="actualizarDimensionesMaestras()">
                 </div>
                 <div class="hn-prop-row">
-                    <label>Espesor (mm)</label>
-                    <input type="number" value="18" id="hn-prop-esp">
+                    <label>Espesor estructural (mm)</label>
+                    <input type="number" value="18" id="hn-master-espesor" oninput="actualizarDimensionesMaestras()">
                 </div>
                 <div class="hn-prop-row">
-                    <label>Desde abajo (mm)</label>
-                    <input type="number" value="730" id="hn-prop-y">
-                </div>
-                <div class="hn-prop-row">
-                    <label>Material</label>
-                    <select id="hn-prop-mat">
-                        <option value="Blanco">Blanco</option>
-                        <option value="Roble">Roble Natural</option>
-                        <option value="Negro Mate">Negro Mate</option>
-                    </select>
+                    <label>Fondo (mm)</label>
+                    <input type="number" value="3" id="hn-master-fondo" oninput="actualizarDimensionesMaestras()">
                 </div>
                 <div class="hn-properties-divider"></div>
                 <div style="font-size: 0.75rem; color: #6b7280; text-align: center;">
-                    Propiedades visuales de demostración para el Paso 1.
+                    Modifica las dimensiones maestras para recalcular el módulo estructural.
                 </div>
             </div>
         </div>
@@ -2644,14 +2556,27 @@ function cambiarVistaAdmin(vista, botonSeleccionado) {
 
 /*
 =============================================================
-FUNCIONES DE HN DESIGNER (AISLADAS)
+FUNCIONES DE HN DESIGNER Y MOTOR 3D (THREE.JS)
 =============================================================
 */
+
+let hnScene = null;
+let hnCamera = null;
+let hnRenderer = null;
+let hnControls = null;
+let hnAnimationId = null;
+let hnRaycaster = new THREE.Raycaster();
+let hnMouse = new THREE.Vector2();
+
+// Estado del módulo y piezas
+let hnPiezasActuales = [];
+let hnPiezaSeleccionada = null;
 
 function abrirHNDesigner() {
     const designer = document.getElementById('hn-designer');
     if (designer) {
         designer.style.display = 'flex';
+        initHNDesigner3D();
     }
 }
 
@@ -2659,6 +2584,10 @@ function cerrarHNDesigner() {
     const designer = document.getElementById('hn-designer');
     if (designer) {
         designer.style.display = 'none';
+        if (hnAnimationId) {
+            cancelAnimationFrame(hnAnimationId);
+            hnAnimationId = null;
+        }
     }
 }
 
@@ -2666,102 +2595,477 @@ function seleccionarHerramientaVisual(nombreHerramienta) {
     console.log("HN Designer - Herramienta seleccionada visualmente:", nombreHerramienta);
 }
 
-let tipoEjemploActual = 1;
-function alternarEjemploPanelDerecho() {
-    const titleText = document.getElementById('hn-prop-title-text');
-    const container = document.getElementById('hn-properties-content-container');
-    
-    if (tipoEjemploActual === 1) {
-        titleText.innerText = "CAJÓN #2";
-        container.innerHTML = `
-            <div class="hn-prop-row">
-                <label>Ancho (mm)</label>
-                <input type="number" value="764">
-            </div>
-            <div class="hn-prop-row">
-                <label>Alto (mm)</label>
-                <input type="number" value="180">
-            </div>
-            <div class="hn-prop-row">
-                <label>Profundidad (mm)</label>
-                <input type="number" value="450">
-            </div>
-            <div class="hn-prop-row">
-                <label>Espesor (mm)</label>
-                <input type="number" value="18">
-            </div>
-            <div class="hn-prop-row">
-                <label>Riel</label>
-                <select>
-                    <option value="Telescópico">Telescópico</option>
-                    <option value="Oculto">Oculto</option>
-                </select>
-            </div>
-            <div class="hn-properties-divider"></div>
-            <div style="font-size: 0.75rem; color: #6b7280; text-align: center;">Propiedad de cajón demostrativa.</div>
-        `;
-        tipoEjemploActual = 2;
-    } else if (tipoEjemploActual === 2) {
-        titleText.innerText = "PERCHERO #1";
-        container.innerHTML = `
-            <div class="hn-prop-row">
-                <label>Tipo</label>
-                <select>
-                    <option value="Ovalado">Ovalado</option>
-                    <option value="Redondo">Redondo</option>
-                </select>
-            </div>
-            <div class="hn-prop-row">
-                <label>Longitud (mm)</label>
-                <input type="number" value="964">
-            </div>
-            <div class="hn-prop-row">
-                <label>Altura (mm)</label>
-                <input type="number" value="350">
-            </div>
-            <div class="hn-prop-row">
-                <label>Material</label>
-                <input type="text" value="Aluminio">
-            </div>
-            <div class="hn-prop-row">
-                <label>Perchas</label>
-                <input type="number" value="6">
-            </div>
-            <div class="hn-properties-divider"></div>
-            <div style="font-size: 0.75rem; color: #6b7280; text-align: center;">Propiedad de perchero demostrativa.</div>
-        `;
-        tipoEjemploActual = 3;
-    } else {
-        titleText.innerText = "REPISA #3";
-        container.innerHTML = `
-            <div class="hn-prop-row">
-                <label>Ancho (mm)</label>
-                <input type="number" value="964">
-            </div>
-            <div class="hn-prop-row">
-                <label>Profundidad (mm)</label>
-                <input type="number" value="482">
-            </div>
-            <div class="hn-prop-row">
-                <label>Espesor (mm)</label>
-                <input type="number" value="18">
-            </div>
-            <div class="hn-prop-row">
-                <label>Desde abajo (mm)</label>
-                <input type="number" value="730">
-            </div>
-            <div class="hn-prop-row">
-                <label>Material</label>
-                <select>
-                    <option value="Blanco">Blanco</option>
-                    <option value="Roble">Roble Natural</option>
-                </select>
-            </div>
-            <div class="hn-properties-divider"></div>
-            <div style="font-size: 0.75rem; color: #6b7280; text-align: center;">Propiedad de repisa demostrativa.</div>
-        `;
-        tipoEjemploActual = 1;
+function initHNDesigner3D() {
+    const container = document.getElementById('hn-viewport-3d');
+    if (!container) return;
+
+    // Limpiar canvas anterior si existe
+    container.innerHTML = '';
+
+    const width = container.clientWidth;
+    const height = container.clientHeight;
+
+    hnScene = new THREE.Scene();
+    hnScene.background = new THREE.Color(0xf8fafc);
+
+    hnCamera = new THREE.PerspectiveCamera(45, width / height, 1, 50000);
+    // Posición inicial de cámara acorde a un módulo de 2000 mm de alto
+    hnCamera.position.set(0, 1000, 3000);
+
+    hnRenderer = new THREE.WebGLRenderer({ antialias: true });
+    hnRenderer.setSize(width, height);
+    hnRenderer.setPixelRatio(window.devicePixelRatio);
+    hnRenderer.shadowMap.enabled = true;
+    container.appendChild(hnRenderer.domElement);
+
+    hnControls = new THREE.OrbitControls(hnCamera, hnRenderer.domElement);
+    hnControls.enableDamping = true;
+    hnControls.dampingFactor = 0.05;
+    hnControls.target.set(0, 1000, 0);
+
+    // Iluminación
+    const ambientLight = new THREE.AmbientLight(0xffffff, 0.7);
+    hnScene.add(ambientLight);
+
+    const dirLight = new THREE.DirectionalLight(0xffffff, 0.6);
+    dirLight.position.set(1000, 3000, 2000);
+    hnScene.add(dirLight);
+
+    const dirLight2 = new THREE.DirectionalLight(0xffffff, 0.3);
+    dirLight2.position.set(-1000, -1000, -2000);
+    hnScene.add(dirLight2);
+
+    // Grid de referencia en el piso
+    const gridHelper = new THREE.GridHelper(5000, 50, 0xd1d5db, 0xe5e7eb);
+    gridHelper.position.y = 0;
+    hnScene.add(gridHelper);
+
+    // Event listeners para selección de piezas 3D
+    container.addEventListener('click', onHNDesignerClick, false);
+
+    // Redimensionado de ventana
+    window.addEventListener('resize', onHNDesignerResize, false);
+
+    // Crear el módulo inicial estándar
+    crearModuloNuevoVisual();
+
+    // Loop de renderizado
+    animateHNDesigner();
+}
+
+function animateHNDesigner() {
+    hnAnimationId = requestAnimationFrame(animateHNDesigner);
+    if (hnControls) hnControls.update();
+    if (hnRenderer && hnScene && hnCamera) {
+        hnRenderer.render(hnScene, hnCamera);
     }
+}
+
+function onHNDesignerResize() {
+    const container = document.getElementById('hn-viewport-3d');
+    if (!container || document.getElementById('hn-designer').style.display !== 'flex') return;
+    const width = container.clientWidth;
+    const height = container.clientHeight;
+    hnCamera.aspect = width / height;
+    hnCamera.updateProjectionMatrix();
+    hnRenderer.setSize(width, height);
+}
+
+// Generar o reconstruir módulo inicial de 5 piezas independientes con ID y estructura conceptual
+function crearModuloNuevoVisual() {
+    // Leer dimensiones maestras actuales o valores por defecto
+    const anchoInput = document.getElementById('hn-master-ancho');
+    const altoInput = document.getElementById('hn-master-alto');
+    const profInput = document.getElementById('hn-master-prof');
+    const espInput = document.getElementById('hn-master-espesor');
+    const fondoInput = document.getElementById('hn-master-fondo');
+
+    const W = anchoInput ? parseFloat(anchoInput.value) : 1000;
+    const H = altoInput ? parseFloat(altoInput.value) : 2000;
+    const D = profInput ? parseFloat(profInput.value) : 500;
+    const T = espInput ? parseFloat(espInput.value) : 18;
+    const F = fondoInput ? parseFloat(fondoInput.value) : 3;
+
+    // Limpiar piezas anteriores en la escena
+    if (hnScene) {
+        hnPiezasActuales.forEach(piezaObj => {
+            hnScene.remove(piezaObj.mesh);
+            if (piezaObj.mesh.geometry) piezaObj.mesh.geometry.dispose();
+            if (piezaObj.mesh.material) {
+                if (Array.isArray(piezaObj.mesh.material)) {
+                    piezaObj.mesh.material.forEach(m => m.dispose());
+                } else {
+                    piezaObj.mesh.material.dispose();
+                }
+            }
+        });
+    }
+
+    hnPiezasActuales = [];
+    hnPiezaSeleccionada = null;
+    restaurarPanelDerechoMaestro();
+
+    const moduleId = 'mod_' + Math.random().toString(36).substr(2, 9);
+
+    // Definición de las 5 piezas estructurales independientes en milímetros
+    // Sistema de coordenadas Three.js: Origen (0,0,0) en el centro geométrico del módulo o base inferior.
+    // Para simplificar la arquitectura paramétrica en mm, posicionamos desde la base inferior (Y=0 hasta Y=H).
+    
+    const definicionesPiezas = [
+        {
+            id: 'piez_lat_izq_' + Math.random().toString(36).substr(2, 5),
+            moduleId: moduleId,
+            type: 'Lateral izquierdo',
+            width: T,
+            height: H,
+            depth: D,
+            thickness: T,
+            x: T / 2,
+            y: H / 2,
+            z: D / 2,
+            material: 'Blanco'
+        },
+        {
+            id: 'piez_lat_der_' + Math.random().toString(36).substr(2, 5),
+            moduleId: moduleId,
+            type: 'Lateral derecho',
+            width: T,
+            height: H,
+            depth: D,
+            thickness: T,
+            x: W - (T / 2),
+            y: H / 2,
+            z: D / 2,
+            material: 'Blanco'
+        },
+        {
+            id: 'piez_tapa_' + Math.random().toString(36).substr(2, 5),
+            moduleId: moduleId,
+            type: 'Tapa superior',
+            width: W - (2 * T),
+            height: T,
+            depth: D,
+            thickness: T,
+            x: W / 2,
+            y: H - (T / 2),
+            z: D / 2,
+            material: 'Blanco'
+        },
+        {
+            id: 'piez_base_' + Math.random().toString(36).substr(2, 5),
+            moduleId: moduleId,
+            type: 'Base inferior',
+            width: W - (2 * T),
+            height: T,
+            depth: D,
+            thickness: T,
+            x: W / 2,
+            y: T / 2,
+            z: D / 2,
+            material: 'Blanco'
+        },
+        {
+            id: 'piez_fondo_' + Math.random().toString(36).substr(2, 5),
+            moduleId: moduleId,
+            type: 'Fondo',
+            width: W - (2 * T),
+            height: H - (2 * T),
+            depth: F,
+            thickness: F,
+            x: W / 2,
+            y: H / 2,
+            z: F / 2,
+            material: 'Blanco'
+        }
+    ];
+
+    // Crear geometría 3D en Three.js para cada pieza independiente
+    definicionesPiezas.forEach(data => {
+        let geometry;
+        if (data.type === 'Lateral izquierdo' || data.type === 'Lateral derecho') {
+            geometry = new THREE.BoxGeometry(data.width, data.height, data.depth);
+        } else if (data.type === 'Tapa superior' || data.type === 'Base inferior') {
+            geometry = new THREE.BoxGeometry(data.width, data.height, data.depth);
+        } else if (data.type === 'Fondo') {
+            geometry = new THREE.BoxGeometry(data.width, data.height, data.depth);
+        }
+
+        // Material visual limpio tipo melamina blanca con sutil contorno/borde o tono profesional
+        const material = new THREE.MeshStandardMaterial({
+            color: 0xfafafa,
+            roughness: 0.4,
+            metalness: 0.1
+        });
+
+        const mesh = new THREE.Mesh(geometry, material);
+        
+        // Posicionar el mesh según la lógica milimétrica
+        // Desplazamos para que el origen (0,0,0) del módulo sea la esquina inferior trasera izquierda si se desea, 
+        // o centrado. Aquí centramos horizontal y profundidad respecto al ancho y profundidad del mueble:
+        // X va de 0 a W, por lo que centramos restando W/2.
+        // Y va de 0 a H (base en 0).
+        // Z va de 0 a D.
+        mesh.position.set(data.x - (W / 2), data.y, data.z - (D / 2));
+
+        // Añadir bordes visuales para simular cantos o definición de pieza independiente
+        const edges = new THREE.EdgesGeometry(geometry);
+        const line = new THREE.LineSegments(edges, new THREE.LineBasicMaterial({ color: 0x94a3b8, linewidth: 1 }));
+        mesh.add(line);
+
+        // Guardar referencia en el mesh para selección
+        mesh.userData = { pieceData: data };
+
+        hnScene.add(mesh);
+        hnPiezasActuales.push({
+            ...data,
+            mesh: mesh,
+            originalColor: 0xfafafa
+        });
+    });
+
+    if (hnControls) {
+        hnControls.target.set(0, H / 2, 0);
+        hnControls.update();
+    }
+}
+
+// Recálculo automático en tiempo real al cambiar dimensiones maestras
+function actualizarDimensionesMaestras() {
+    const anchoInput = document.getElementById('hn-master-ancho');
+    const altoInput = document.getElementById('hn-master-alto');
+    const profInput = document.getElementById('hn-master-prof');
+    const espInput = document.getElementById('hn-master-espesor');
+    const fondoInput = document.getElementById('hn-master-fondo');
+
+    if (!anchoInput || !altoInput || !profInput || !espInput || !fondoInput) return;
+
+    const W = parseFloat(anchoInput.value) || 1000;
+    const H = parseFloat(altoInput.value) || 2000;
+    const D = parseFloat(profInput.value) || 500;
+    const T = parseFloat(espInput.value) || 18;
+    const F = parseFloat(fondoInput.value) || 3;
+
+    // Actualizar geometrías y posiciones de cada pieza existente sin destruir el array conceptual
+    hnPiezasActuales.forEach(pieza => {
+        let newWidth = pieza.width;
+        let newHeight = pieza.height;
+        let newDepth = pieza.depth;
+        let newX = pieza.x;
+        let newY = pieza.y;
+        let newZ = pieza.z;
+
+        if (pieza.type === 'Lateral izquierdo') {
+            newWidth = T;
+            newHeight = H;
+            newDepth = D;
+            newX = T / 2;
+            newY = H / 2;
+            newZ = D / 2;
+        } else if (pieza.type === 'Lateral derecho') {
+            newWidth = T;
+            newHeight = H;
+            newDepth = D;
+            newX = W - (T / 2);
+            newY = H / 2;
+            newZ = D / 2;
+        } else if (pieza.type === 'Tapa superior') {
+            newWidth = W - (2 * T);
+            newHeight = T;
+            newDepth = D;
+            newX = W / 2;
+            newY = H - (T / 2);
+            newZ = D / 2;
+        } else if (pieza.type === 'Base inferior') {
+            newWidth = W - (2 * T);
+            newHeight = T;
+            newDepth = D;
+            newX = W / 2;
+            newY = T / 2;
+            newZ = D / 2;
+        } else if (pieza.type === 'Fondo') {
+            newWidth = W - (2 * T);
+            newHeight = H - (2 * T);
+            newDepth = F;
+            newX = W / 2;
+            newY = H / 2;
+            newZ = F / 2;
+        }
+
+        pieza.width = newWidth;
+        pieza.height = newHeight;
+        pieza.depth = newDepth;
+        pieza.x = newX;
+        pieza.y = newY;
+        pieza.z = newZ;
+
+        // Reconstruir geometría del mesh
+        pieza.mesh.geometry.dispose();
+        pieza.mesh.geometry = new THREE.BoxGeometry(newWidth, newHeight, newDepth);
+
+        // Actualizar posición
+        pieza.mesh.position.set(newX - (W / 2), newY, newZ - (D / 2));
+    });
+
+    if (hnControls) {
+        hnControls.target.set(0, H / 2, 0);
+    }
+
+    // Si hay una pieza seleccionada y sigue activa, actualizar panel derecho con sus nuevas dimensiones
+    if (hnPiezaSeleccionada) {
+        mostrarPropiedadesPieza(hnPiezaSeleccionada);
+    }
+}
+
+// Selección de pieza desde la vista 3D mediante Raycasting
+function onHNDesignerClick(event) {
+    const container = document.getElementById('hn-viewport-3d');
+    if (!container) return;
+
+    const rect = container.getBoundingClientRect();
+    hnMouse.x = ((event.clientX - rect.left) / container.clientWidth) * 2 - 1;
+    hnMouse.y = -((event.clientY - rect.top) / container.clientHeight) * 2 + 1;
+
+    hnRaycaster.setFromCamera(hnMouse, hnCamera);
+    
+    // Obtener todos los meshes de las piezas
+    const meshes = hnPiezasActuales.map(p => p.mesh);
+    const intersects = hnRaycaster.intersectObjects(meshes, false);
+
+    if (intersects.length > 0) {
+        const intersectedMesh = intersects[0].object;
+        const piezaData = intersectedMesh.userData.pieceData;
+        if (piezaData) {
+            seleccionarPiezaPorId(piezaData.id);
+        }
+    }
+}
+
+function seleccionarPiezaPorId(id) {
+    // Restaurar color anterior de todas las piezas
+    hnPiezasActuales.forEach(p => {
+        if (p.mesh && p.mesh.material) {
+            p.mesh.material.color.setHex(0xfafafa);
+        }
+    });
+
+    const piezaEncontrada = hnPiezasActuales.find(p => p.id === id);
+    if (!piezaEncontrada) return;
+
+    hnPiezaSeleccionada = piezaEncontrada;
+
+    // Resaltar pieza seleccionada (color ámbar suave o azulado distintivo)
+    if (piezaEncontrada.mesh && piezaEncontrada.mesh.material) {
+        piezaEncontrada.mesh.material.color.setHex(0xf59e0b);
+    }
+
+    // Mostrar propiedades en el panel derecho existente
+    mostrarPropiedadesPieza(piezaEncontrada);
+}
+
+function mostrarPropiedadesPieza(pieza) {
+    const titleText = document.getElementById('hn-prop-title-text');
+    const selectedBadge = document.getElementById('hn-selected-badge');
+    const container = document.getElementById('hn-properties-content-container');
+
+    if (!titleText || !container) return;
+
+    titleText.innerText = pieza.type.toUpperCase();
+    if (selectedBadge) selectedBadge.innerText = 'Seleccionado';
+
+    container.innerHTML = `
+        <div class="hn-prop-row">
+            <label>ID de Pieza</label>
+            <input type="text" value="${pieza.id}" readonly style="background:#f3f4f6; color:#6b7280; font-size:0.75rem;">
+        </div>
+        <div class="hn-prop-row">
+            <label>Ancho (mm)</label>
+            <input type="number" value="${pieza.width.toFixed(1)}" readonly>
+        </div>
+        <div class="hn-prop-row">
+            <label>Alto / Longitud (mm)</label>
+            <input type="number" value="${pieza.height.toFixed(1)}" readonly>
+        </div>
+        <div class="hn-prop-row">
+            <label>Profundidad / Espesor (mm)</label>
+            <input type="number" value="${pieza.depth.toFixed(1)}" readonly>
+        </div>
+        <div class="hn-prop-row">
+            <label>Posición X (mm)</label>
+            <input type="number" value="${pieza.x.toFixed(1)}" readonly>
+        </div>
+        <div class="hn-prop-row">
+            <label>Posición Y (mm)</label>
+            <input type="number" value="${pieza.y.toFixed(1)}" readonly>
+        </div>
+        <div class="hn-prop-row">
+            <label>Posición Z (mm)</label>
+            <input type="number" value="${pieza.z.toFixed(1)}" readonly>
+        </div>
+        <div class="hn-prop-row">
+            <label>Material</label>
+            <select id="hn-prop-mat-pieza">
+                <option value="Blanco" ${pieza.material === 'Blanco' ? 'selected' : ''}>Blanco</option>
+                <option value="Roble" ${pieza.material === 'Roble' ? 'selected' : ''}>Roble Natural</option>
+                <option value="Negro Mate" ${pieza.material === 'Negro Mate' ? 'selected' : ''}>Negro Mate</option>
+            </select>
+        </div>
+        <div class="hn-properties-divider"></div>
+        <button type="button" class="btn-primary-modern full-btn" style="padding: 8px; font-size: 0.85rem;" onclick="restaurarPanelDerechoMaestro()">
+            Volver a Dimensiones Maestras
+        </button>
+    `;
+}
+
+function restaurarPanelDerechoMaestro() {
+    hnPiezaSeleccionada = null;
+    hnPiezasActuales.forEach(p => {
+        if (p.mesh && p.mesh.material) {
+            p.mesh.material.color.setHex(0xfafafa);
+        }
+    });
+
+    const titleText = document.getElementById('hn-prop-title-text');
+    const selectedBadge = document.getElementById('hn-selected-badge');
+    const container = document.getElementById('hn-properties-content-container');
+
+    if (!titleText || !container) return;
+
+    titleText.innerText = "DIMENSIONES MAESTRAS";
+    if (selectedBadge) selectedBadge.innerText = 'Módulo';
+
+    // Obtener valores actuales de los inputs maestros o defaults
+    const wVal = document.getElementById('hn-master-ancho') ? document.getElementById('hn-master-ancho').value : 1000;
+    const hVal = document.getElementById('hn-master-alto') ? document.getElementById('hn-master-alto').value : 2000;
+    const dVal = document.getElementById('hn-master-prof') ? document.getElementById('hn-master-prof').value : 500;
+    const tVal = document.getElementById('hn-master-espesor') ? document.getElementById('hn-master-espesor').value : 18;
+    const fVal = document.getElementById('hn-master-fondo') ? document.getElementById('hn-master-fondo').value : 3;
+
+    container.innerHTML = `
+        <div class="hn-prop-row">
+            <label>Ancho (mm)</label>
+            <input type="number" value="${wVal}" id="hn-master-ancho" oninput="actualizarDimensionesMaestras()">
+        </div>
+        <div class="hn-prop-row">
+            <label>Alto (mm)</label>
+            <input type="number" value="${hVal}" id="hn-master-alto" oninput="actualizarDimensionesMaestras()">
+        </div>
+        <div class="hn-prop-row">
+            <label>Profundidad (mm)</label>
+            <input type="number" value="${dVal}" id="hn-master-prof" oninput="actualizarDimensionesMaestras()">
+        </div>
+        <div class="hn-prop-row">
+            <label>Espesor estructural (mm)</label>
+            <input type="number" value="${tVal}" id="hn-master-espesor" oninput="actualizarDimensionesMaestras()">
+        </div>
+        <div class="hn-prop-row">
+            <label>Fondo (mm)</label>
+            <input type="number" value="${fVal}" id="hn-master-fondo" oninput="actualizarDimensionesMaestras()">
+        </div>
+        <div class="hn-properties-divider"></div>
+        <div style="font-size: 0.75rem; color: #6b7280; text-align: center;">
+            Modifica las dimensiones maestras para recalcular el módulo estructural.
+        </div>
+    `;
 }
 
 /*
