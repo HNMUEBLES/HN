@@ -445,7 +445,7 @@
 
 
     /* ==========================================================
-       HN DESIGNER - INTERFAZ VISUAL PROFESIONAL (PASO 6)
+       HN DESIGNER - INTERFAZ VISUAL PROFESIONAL (PASO 7)
        Aislado con contenedor principal #hn-designer
        Estilo limpio, profesional, blanco/gris, sin romper nada.
        ========================================================== */
@@ -2213,7 +2213,7 @@
 
 
 <!-- ==========================================================
-     HN DESIGNER - MOTOR PARAMÉTRICO REAL DE MUEBLE, ESPACIOS Y ELEMENTOS (PASO 6)
+     HN DESIGNER - MOTOR PARAMÉTRICO DE ELEMENTOS DENTRO DE ESPACIOS (PASO 7)
      Contenedor aislado independiente
      ========================================================== -->
 <div id="hn-designer">
@@ -2227,11 +2227,11 @@
             <div class="hn-menu-bar">
                 <button class="hn-menu-btn" onclick="crearModuloNuevoParametrico()">Nuevo Módulo</button>
                 <button class="hn-menu-btn" onclick="agregarMontanteParametricoModal()">+ Montante</button>
-                <button class="hn-menu-btn" onclick="agregarRepisaParametricaModal()">+ Repisa</button>
+                <button class="hn-menu-btn" onclick="agregarRepisaParametricaPrompt()">+ Repisa</button>
             </div>
         </div>
         <div class="hn-topbar-right">
-            <span style="font-size: 0.8rem; color: #6b7280; font-weight: 500;">Motor Paramétrico v6.0 (Milímetros)</span>
+            <span style="font-size: 0.8rem; color: #6b7280; font-weight: 500;">Motor Paramétrico v7.0 (Milímetros)</span>
             <button class="hn-close-designer-btn" onclick="cerrarHNDesigner()">Cerrar Diseñador</button>
         </div>
     </div>
@@ -2253,7 +2253,7 @@
                 <div class="hn-sidebar-title">Estructura & Espacios</div>
                 <div class="hn-sidebar-group">
                     <div class="hn-tool-item" onclick="agregarMontanteParametricoModal()">Agregar montante <span class="hn-note">Vertical</span></div>
-                    <div class="hn-tool-item" onclick="agregarRepisaParametricaModal()">Agregar repisa <span class="hn-note">Horizontal</span></div>
+                    <div class="hn-tool-item" onclick="agregarRepisaParametricaPrompt()">Agregar repisa <span class="hn-note">Horizontal</span></div>
                 </div>
             </div>
 
@@ -2508,7 +2508,7 @@ function cambiarVistaAdmin(vista, botonSeleccionado) {
 
 /*
 =============================================================
-HN DESIGNER - MOTOR PARAMÉTRICO REAL PASO 6 (EDICIÓN MANUAL DE ESPACIOS Y ELEMENTOS)
+HN DESIGNER - MOTOR PARAMÉTRICO REAL PASO 7 (ESTRUCTURA -> ESPACIOS -> ELEMENTOS)
 =============================================================
 */
 
@@ -2702,7 +2702,7 @@ function ejecutarRecalculoParametricoCompleto() {
                 elem.width = espacioAsociado.xMax - espacioAsociado.xMin;
                 elem.x = espacioAsociado.xMin + (elem.width / 2);
                 elem.profundidad = espacioAsociado.profundidad;
-                elem.y = Math.max(espacioAsociado.yMin + (elem.espesor / 2), Math.min(elem.y, espacioAsociado.yMax - (elem.espesor / 2)));
+                elem.y = Math.max(espacioAsociado.yMin + (hnModuloActual.espesor / 2), Math.min(elem.y, espacioAsociado.yMax - (hnModuloActual.espesor / 2)));
             }
         }
     });
@@ -2767,6 +2767,7 @@ function reconstruirEscena3DParametrica() {
             if (espacioAsociado) {
                 elem.width = espacioAsociado.xMax - espacioAsociado.xMin;
                 elem.x = espacioAsociado.xMin + (elem.width / 2);
+                elem.profundidad = espacioAsociado.profundidad;
             }
             geom = new THREE.BoxGeometry(elem.width, elem.espesor, elem.profundidad);
         }
@@ -2813,83 +2814,127 @@ function agregarMontanteParametricoModal() {
     };
 
     hnElementosActuales.push(nuevoMontante);
-    recalcularEspaciosConMontante(posX);
+    recalcularEspaciosYElementosPorMontante(pieceId, posX);
     reconstruirEscena3DParametrica();
     actualizarSidebarEspacios();
     seleccionarElementoPorId(pieceId);
 }
 
-function recalcularEspaciosConMontante(posX) {
+function recalcularEspaciosYElementosPorMontante(movMontantePieceId = null, posXForzada = null) {
+    // Si se movió un montante específico, actualizamos su posición primero si se pasó
+    if (movMontantePieceId && posXForzada !== null) {
+        const mObj = hnElementosActuales.find(e => e.pieceId === movMontantePieceId);
+        if (mObj) mObj.x = posXForzada;
+    }
+
+    // Recogemos todos los montantes ordenados por coordenada X
+    const montantes = hnElementosActuales
+        .filter(e => e.tipo === 'montante')
+        .sort((a, b) => a.x - b.x);
+
+    let limitesX = [hnModuloActual.espesor];
+    montantes.forEach(m => {
+        limitesX.push(m.x - (hnModuloActual.espesor / 2));
+        limitesX.push(m.x + (hnModuloActual.espesor / 2));
+    });
+    limitesX.push(hnModuloActual.ancho - hnModuloActual.espesor);
+
     let nuevosEspacios = [];
-    hnEspaciosActuales.forEach(esp => {
-        if (posX > esp.xMin && posX < esp.xMax) {
-            const idIzquierda = 'space_' + Math.random().toString(36).substr(2, 6);
-            const espIzquierda = {
-                spaceId: idIzquierda,
-                moduleId: hnModuloActual.moduleId,
-                xMin: esp.xMin,
-                xMax: posX - (hnModuloActual.espesor / 2),
-                yMin: esp.yMin,
-                yMax: esp.yMax,
-                profundidad: esp.profundidad
-            };
-            nuevosEspacios.push(espIzquierda);
+    for (let i = 0; i < limitesX.length; i += 2) {
+        if (i + 1 < limitesX.length) {
+            let xMin = limitesX[i];
+            let xMax = limitesX[i+1];
+            if (xMax - xMin > 10) { // Espacio válido
+                // Buscamos si ya existía un espacio que cubriera esta zona para conservar su ID si es posible o crear uno estable
+                let espacioExistente = hnEspaciosActuales.find(e => Math.abs(e.xMin - xMin) < 5 && Math.abs(e.xMax - xMax) < 5);
+                let spaceId = espacioExistente ? espacioExistente.spaceId : ('space_' + Math.random().toString(36).substr(2, 6));
+                
+                nuevosEspacios.push({
+                    spaceId: spaceId,
+                    moduleId: hnModuloActual.moduleId,
+                    xMin: xMin,
+                    xMax: xMax,
+                    yMin: hnModuloActual.espesor,
+                    yMax: hnModuloActual.alto - hnModuloActual.espesor,
+                    profundidad: hnModuloActual.profundidad - hnModuloActual.fondo
+                });
+            }
+        }
+    }
 
-            const idDerecha = 'space_' + Math.random().toString(36).substr(2, 6);
-            const espDerecha = {
-                spaceId: idDerecha,
-                moduleId: hnModuloActual.moduleId,
-                xMin: posX + (hnModuloActual.espesor / 2),
-                xMax: esp.xMax,
-                yMin: esp.yMin,
-                yMax: esp.yMax,
-                profundidad: esp.profundidad
-            };
-            nuevosEspacios.push(espDerecha);
+    hnEspaciosActuales = nuevosEspacios;
 
-            hnElementosActuales.forEach(elem => {
-                if (elem.tipo === 'repisa' && elem.spaceId === esp.spaceId) {
-                    if (elem.x < posX) {
-                        elem.spaceId = idIzquierda;
-                    } else {
-                        elem.spaceId = idDerecha;
-                    }
-                }
-            });
-        } else {
-            nuevosEspacios.push(esp);
+    // Actualizar spaceId de las repisas si quedaron dentro de nuevos límites
+    hnElementosActuales.forEach(elem => {
+        if (elem.tipo === 'repisa') {
+            let espCorrecto = hnEspaciosActuales.find(e => elem.x >= e.xMin && elem.x <= e.xMax);
+            if (espCorrecto) {
+                elem.spaceId = espCorrecto.spaceId;
+                elem.width = espCorrecto.xMax - espCorrecto.xMin;
+                elem.x = espCorrecto.xMin + (elem.width / 2);
+            } else if (hnEspaciosActuales.length > 0) {
+                elem.spaceId = hnEspaciosActuales[0].spaceId;
+                elem.width = hnEspaciosActuales[0].xMax - hnEspaciosActuales[0].xMin;
+                elem.x = hnEspaciosActuales[0].xMin + (elem.width / 2);
+            }
         }
     });
-    hnEspaciosActuales = nuevosEspacios;
 }
 
-function agregarRepisaParametricaModal() {
-    if (hnEspaciosActuales.length === 0) return;
+function agregarRepisaParametricaPrompt() {
+    if (hnEspaciosActuales.length === 0) {
+        alert('Primero debes tener al menos un espacio creado.');
+        return;
+    }
 
-    const espacioDestino = hnEspaciosActuales[0];
-    const posY = (espacioDestino.yMin + espacioDestino.yMax) / 2;
+    // Si hay más de un espacio, permitimos elegir o usamos el primero por defecto (o el seleccionado)
+    let espacioDestino = hnEspaciosActuales[0];
+    if (hnSeleccionActual && hnSeleccionActual.tipo === 'espacio') {
+        espacioDestino = hnSeleccionActual.objeto;
+    } else if (hnSeleccionActual && hnSeleccionActual.tipo === 'repisa') {
+        espacioDestino = hnEspaciosActuales.find(e => e.spaceId === hnSeleccionActual.objeto.spaceId) || hnEspaciosActuales[0];
+    }
 
-    const pieceId = 'rep_' + Math.random().toString(36).substr(2, 6);
-    const anchoEspacio = espacioDestino.xMax - espacioDestino.xMin;
+    let cantidadStr = prompt(`¿Cuántas repisas deseas agregar en el espacio seleccionado (${(espacioDestino.xMax - espacioDestino.xMin).toFixed(0)} mm ancho)?`, "1");
+    if (!cantidadStr) return;
 
-    const nuevaRepisa = {
-        pieceId: pieceId,
-        moduleId: hnModuloActual.moduleId,
-        spaceId: espacioDestino.spaceId,
-        tipo: 'repisa',
-        width: anchoEspacio,
-        espesor: hnModuloActual.espesor,
-        profundidad: espacioDestino.profundidad,
-        x: espacioDestino.xMin + (anchoEspacio / 2),
-        y: posY,
-        z: espacioDestino.profundidad / 2,
-        material: 'Blanco'
-    };
+    let cantidad = parseInt(cantidadStr);
+    if (isNaN(cantidad) || cantidad <= 0) {
+        alert('Cantidad inválida.');
+        return;
+    }
 
-    hnElementosActuales.push(nuevaRepisa);
+    const yMin = espacioDestino.yMin;
+    const yMax = espacioDestino.yMax;
+    const alturaUtil = yMax - yMin;
+    
+    // Separación y distribución automática profesional
+    let separacion = alturaUtil / (cantidad + 1);
+
+    for (let i = 1; i <= cantidad; i++) {
+        let posY = yMin + (separacion * i);
+        let pieceId = 'rep_' + Math.random().toString(36).substr(2, 6);
+        let anchoEspacio = espacioDestino.xMax - espacioDestino.xMin;
+
+        let nuevaRepisa = {
+            pieceId: pieceId,
+            moduleId: hnModuloActual.moduleId,
+            spaceId: espacioDestino.spaceId,
+            tipo: 'repisa',
+            width: anchoEspacio,
+            espesor: hnModuloActual.espesor,
+            profundidad: espacioDestino.profundidad,
+            x: espacioDestino.xMin + (anchoEspacio / 2),
+            y: posY,
+            z: espacioDestino.profundidad / 2,
+            material: 'Blanco'
+        };
+
+        hnElementosActuales.push(nuevaRepisa);
+    }
+
     reconstruirEscena3DParametrica();
     actualizarSidebarEspacios();
-    seleccionarElementoPorId(pieceId);
 }
 
 function actualizarSidebarEspacios() {
@@ -2900,6 +2945,8 @@ function actualizarSidebarEspacios() {
     hnEspaciosActuales.forEach((esp, idx) => {
         const anchoUtil = esp.xMax - esp.xMin;
         const altoUtil = esp.yMax - esp.yMin;
+        const repisasEnEspacio = hnElementosActuales.filter(e => e.tipo === 'repisa' && e.spaceId === esp.spaceId).length;
+
         const div = document.createElement('div');
         div.className = 'hn-tool-item';
         div.style.flexDirection = 'column';
@@ -2910,7 +2957,7 @@ function actualizarSidebarEspacios() {
         div.innerHTML = `
             <div style="display:flex; justify-content:space-between; width:100%; align-items:center;">
                 <strong>Espacio #${idx + 1}</strong>
-                <span class="hn-note">${anchoUtil.toFixed(0)} x ${altoUtil.toFixed(0)} mm</span>
+                <span class="hn-note">${anchoUtil.toFixed(0)} x ${altoUtil.toFixed(0)} mm (${repisasEnEspacio} repisas)</span>
             </div>
             <div style="font-size:0.7rem; color:#6b7280;">X: [${esp.xMin.toFixed(0)} - ${esp.xMax.toFixed(0)}]</div>
         `;
@@ -2954,7 +3001,11 @@ function seleccionarElementoPorId(pieceId) {
 
     hnSeleccionActual = { tipo: elem.tipo, objeto: elem };
     reconstruirEscena3DParametrica();
-    mostrarPropiedadesElemento(elem);
+    if (elem.tipo === 'montante') {
+        mostrarPropiedadesMontante(elem);
+    } else if (elem.tipo === 'repisa') {
+        mostrarPropiedadesRepisa(elem);
+    }
 }
 
 function seleccionarEspacioPorId(spaceId) {
@@ -2997,104 +3048,15 @@ function mostrarPropiedadesEspacio(esp) {
         </div>
         <div class="hn-prop-row">
             <label>Límite X mínimo (mm)</label>
-            <input type="number" id="hn-edit-xmin" value="${esp.xMin.toFixed(1)}" oninput="actualizarEspacioManual('${esp.spaceId}')">
+            <input type="number" id="hn-edit-xmin" value="${esp.xMin.toFixed(1)}" readonly style="background:#f3f4f6;">
         </div>
         <div class="hn-prop-row">
             <label>Límite X máximo (mm)</label>
-            <input type="number" id="hn-edit-xmax" value="${esp.xMax.toFixed(1)}" oninput="actualizarEspacioManual('${esp.spaceId}')">
-        </div>
-        <div class="hn-prop-row">
-            <label>Límite Y mínimo (mm)</label>
-            <input type="number" id="hn-edit-ymin" value="${esp.yMin.toFixed(1)}" oninput="actualizarEspacioManual('${esp.spaceId}')">
-        </div>
-        <div class="hn-prop-row">
-            <label>Límite Y máximo (mm)</label>
-            <input type="number" id="hn-edit-ymax" value="${esp.yMax.toFixed(1)}" oninput="actualizarEspacioManual('${esp.spaceId}')">
-        </div>
-        <div id="hn-validacion-espacio-error" style="color: #ef4444; font-size: 0.75rem; margin-top: 2px;"></div>
-        <div class="hn-properties-divider"></div>
-        <button type="button" class="btn-primary-modern full-btn" style="padding: 8px; font-size: 0.85rem;" onclick="restaurarPanelDerechoMaestro()">
-            Volver a Dimensiones Maestras
-        </button>
-    `;
-}
-
-function actualizarEspacioManual(spaceId) {
-    const esp = hnEspaciosActuales.find(e => e.spaceId === spaceId);
-    const errorDiv = document.getElementById('hn-validacion-espacio-error');
-    if (!esp) return;
-
-    const xMinInput = document.getElementById('hn-edit-xmin');
-    const xMaxInput = document.getElementById('hn-edit-xmax');
-    const yMinInput = document.getElementById('hn-edit-ymin');
-    const yMaxInput = document.getElementById('hn-edit-ymax');
-
-    if (!xMinInput || !xMaxInput || !yMinInput || !yMaxInput) return;
-
-    const newXMin = parseFloat(xMinInput.value);
-    const newXMax = parseFloat(xMaxInput.value);
-    const newYMin = parseFloat(yMinInput.value);
-    const newYMax = parseFloat(yMaxInput.value);
-
-    if (isNaN(newXMin) || isNaN(newXMax) || isNaN(newYMin) || isNaN(newYMax)) return;
-
-    if (newXMin >= newXMax || newYMin >= newYMax) {
-        if (errorDiv) errorDiv.innerText = 'Límites inválidos: Mínimo debe ser menor que máximo.';
-        return;
-    }
-    if (newXMin < hnModuloActual.espesor || newXMax > hnModuloActual.ancho - hnModuloActual.espesor ||
-        newYMin < hnModuloActual.espesor || newYMax > hnModuloActual.alto - hnModuloActual.espesor) {
-        if (errorDiv) errorDiv.innerText = 'El espacio excede los límites del módulo.';
-        return;
-    }
-
-    if (errorDiv) errorDiv.innerText = '';
-    esp.xMin = newXMin;
-    esp.xMax = newXMax;
-    esp.yMin = newYMin;
-    esp.yMax = newYMax;
-
-    hnElementosActuales.forEach(elem => {
-        if (elem.tipo === 'repisa' && elem.spaceId === esp.spaceId) {
-            elem.width = esp.xMax - esp.xMin;
-            elem.x = esp.xMin + (elem.width / 2);
-            if (elem.y < esp.yMin || elem.y > esp.yMax) {
-                elem.y = (esp.yMin + esp.yMax) / 2;
-            }
-        }
-    });
-
-    reconstruirEscena3DParametrica();
-    actualizarSidebarEspacios();
-}
-
-function mostrarPropiedadesElemento(elem) {
-    const titleText = document.getElementById('hn-prop-title-text');
-    const selectedBadge = document.getElementById('hn-selected-badge');
-    const container = document.getElementById('hn-properties-content-container');
-
-    if (!titleText || !container) return;
-
-    titleText.innerText = elem.tipo.toUpperCase();
-    if (selectedBadge) selectedBadge.innerText = 'Seleccionado';
-
-    container.innerHTML = `
-        <div class="hn-prop-row">
-            <label>ID de Pieza</label>
-            <input type="text" value="${elem.pieceId}" readonly style="background:#f3f4f6; color:#6b7280; font-size:0.75rem;">
-        </div>
-        <div class="hn-prop-row">
-            <label>Posición ${elem.tipo === 'montante' ? 'X (mm)' : 'Y / Altura (mm)'}</label>
-            <input type="number" id="hn-edit-pos-elem" value="${elem.tipo === 'montante' ? elem.x.toFixed(1) : elem.y.toFixed(1)}" oninput="actualizarPosicionElementoManual('${elem.pieceId}', this.value)">
-        </div>
-        <div id="hn-validacion-error" style="color: #ef4444; font-size: 0.75rem; margin-top: 2px;"></div>
-        <div class="hn-prop-row">
-            <label>Espesor / Profundidad (mm)</label>
-            <input type="number" value="${elem.espesor}" readonly>
+            <input type="number" id="hn-edit-xmax" value="${esp.xMax.toFixed(1)}" readonly style="background:#f3f4f6;">
         </div>
         <div class="hn-properties-divider"></div>
-        <button type="button" class="btn-primary-modern full-btn" style="padding: 8px; font-size: 0.85rem; background:#ef4444; border:none;" onclick="eliminarElementoParametrico('${elem.pieceId}')">
-            Eliminar Pieza
+        <button type="button" class="btn-primary-modern full-btn" style="padding: 8px; font-size: 0.85rem; background:#10b981; border:none;" onclick="agregarRepisaParametricaPrompt()">
+            + Agregar Repisa a este Espacio
         </button>
         <button type="button" class="btn-primary-modern full-btn" style="padding: 8px; font-size: 0.85rem; margin-top:6px;" onclick="restaurarPanelDerechoMaestro()">
             Volver a Dimensiones Maestras
@@ -3102,7 +3064,98 @@ function mostrarPropiedadesElemento(elem) {
     `;
 }
 
-function actualizarPosicionElementoManual(pieceId, nuevoValorStr) {
+function mostrarPropiedadesMontante(elem) {
+    const titleText = document.getElementById('hn-prop-title-text');
+    const selectedBadge = document.getElementById('hn-selected-badge');
+    const container = document.getElementById('hn-properties-content-container');
+
+    if (!titleText || !container) return;
+
+    titleText.innerText = "MONTANTE VERTICAL";
+    if (selectedBadge) selectedBadge.innerText = 'Seleccionado';
+
+    container.innerHTML = `
+        <div class="hn-prop-row">
+            <label>ID de Pieza (pieceId)</label>
+            <input type="text" value="${elem.pieceId}" readonly style="background:#f3f4f6; color:#6b7280; font-size:0.75rem;">
+        </div>
+        <div class="hn-prop-row">
+            <label>Posición X (mm)</label>
+            <input type="number" id="hn-edit-pos-montante" value="${elem.x.toFixed(1)}" oninput="actualizarPosicionMontanteManual('${elem.pieceId}', this.value)">
+        </div>
+        <div id="hn-validacion-error" style="color: #ef4444; font-size: 0.75rem; margin-top: 2px;"></div>
+        <div class="hn-prop-row">
+            <label>Espesor (mm)</label>
+            <input type="number" value="${elem.espesor}" readonly>
+        </div>
+        <div class="hn-properties-divider"></div>
+        <button type="button" class="btn-primary-modern full-btn" style="padding: 8px; font-size: 0.85rem; background:#ef4444; border:none;" onclick="eliminarElementoParametrico('${elem.pieceId}')">
+            Eliminar Montante
+        </button>
+        <button type="button" class="btn-primary-modern full-btn" style="padding: 8px; font-size: 0.85rem; margin-top:6px;" onclick="restaurarPanelDerechoMaestro()">
+            Volver a Dimensiones Maestras
+        </button>
+    `;
+}
+
+function mostrarPropiedadesRepisa(elem) {
+    const titleText = document.getElementById('hn-prop-title-text');
+    const selectedBadge = document.getElementById('hn-selected-badge');
+    const container = document.getElementById('hn-properties-content-container');
+
+    if (!titleText || !container) return;
+
+    titleText.innerText = "REPISA";
+    if (selectedBadge) selectedBadge.innerText = 'Seleccionado';
+
+    const espAsociado = hnEspaciosActuales.find(e => e.spaceId === elem.spaceId);
+    const yMinValid = espAsociado ? espAsociado.yMin : hnModuloActual.espesor;
+    const yMaxValid = espAsociado ? espAsociado.yMax : hnModuloActual.alto - hnModuloActual.espesor;
+
+    container.innerHTML = `
+        <div class="hn-prop-row">
+            <label>ID de Pieza (pieceId)</label>
+            <input type="text" value="${elem.pieceId}" readonly style="background:#f3f4f6; color:#6b7280; font-size:0.75rem;">
+        </div>
+        <div class="hn-prop-row">
+            <label>Espacio (spaceId)</label>
+            <input type="text" value="${elem.spaceId}" readonly style="background:#f3f4f6; color:#6b7280; font-size:0.75rem;">
+        </div>
+        <div class="hn-prop-row">
+            <label>Ancho actual (mm)</label>
+            <input type="number" value="${elem.width.toFixed(1)}" readonly style="background:#f3f4f6;">
+        </div>
+        <div class="hn-prop-row">
+            <label>Posición Y / Altura (mm)</label>
+            <input type="number" id="hn-edit-pos-repisa" value="${elem.y.toFixed(1)}" oninput="actualizarPosicionRepisaManual('${elem.pieceId}', this.value)">
+        </div>
+        <div id="hn-validacion-error" style="color: #ef4444; font-size: 0.75rem; margin-top: 2px;">Rango válido: [${yMinValid.toFixed(0)} - ${yMaxValid.toFixed(0)}] mm</div>
+        <div class="hn-properties-divider"></div>
+        <button type="button" class="btn-primary-modern full-btn" style="padding: 8px; font-size: 0.85rem; background:#ef4444; border:none;" onclick="eliminarElementoParametrico('${elem.pieceId}')">
+            Eliminar Repisa
+        </button>
+        <button type="button" class="btn-primary-modern full-btn" style="padding: 8px; font-size: 0.85rem; margin-top:6px;" onclick="restaurarPanelDerechoMaestro()">
+            Volver a Dimensiones Maestras
+        </button>
+    `;
+}
+
+function actualizarPosicionMontanteManual(pieceId, nuevoValorStr) {
+    const val = parseFloat(nuevoValorStr);
+    const errorDiv = document.getElementById('hn-validacion-error');
+    if (isNaN(val)) return;
+
+    if (val > hnModuloActual.espesor + 50 && val < hnModuloActual.ancho - hnModuloActual.espesor - 50) {
+        if (errorDiv) errorDiv.innerText = '';
+        recalcularEspaciosYElementosPorMontante(pieceId, val);
+        reconstruirEscena3DParametrica();
+        actualizarSidebarEspacios();
+    } else {
+        if (errorDiv) errorDiv.innerText = 'Posición fuera de los límites estructurales válidos.';
+    }
+}
+
+function actualizarPosicionRepisaManual(pieceId, nuevoValorStr) {
     const val = parseFloat(nuevoValorStr);
     const errorDiv = document.getElementById('hn-validacion-error');
     if (isNaN(val)) return;
@@ -3110,32 +3163,27 @@ function actualizarPosicionElementoManual(pieceId, nuevoValorStr) {
     const elem = hnElementosActuales.find(e => e.pieceId === pieceId);
     if (!elem) return;
 
-    if (elem.tipo === 'montante') {
-        if (val > hnModuloActual.espesor && val < hnModuloActual.ancho - hnModuloActual.espesor) {
-            if (errorDiv) errorDiv.innerText = '';
-            elem.x = val;
-            recalcularEspaciosConMontante(val);
-        } else {
-            if (errorDiv) errorDiv.innerText = 'Valor fuera de los límites estructurales válidos.';
-            return;
-        }
-    } else if (elem.tipo === 'repisa') {
-        const esp = hnEspaciosActuales.find(e => e.spaceId === elem.spaceId);
-        if (esp && val >= esp.yMin && val <= esp.yMax) {
-            if (errorDiv) errorDiv.innerText = '';
-            elem.y = val;
-        } else {
-            if (errorDiv) errorDiv.innerText = 'La repisa debe permanecer dentro del espacio.';
-            return;
-        }
-    }
+    const esp = hnEspaciosActuales.find(e => e.spaceId === elem.spaceId);
+    if (!esp) return;
 
-    reconstruirEscena3DParametrica();
-    actualizarSidebarEspacios();
+    if (val >= esp.yMin && val <= esp.yMax) {
+        if (errorDiv) errorDiv.innerText = `Rango válido: [${esp.yMin.toFixed(0)} - ${esp.yMax.toFixed(0)}] mm`;
+        elem.y = val;
+        reconstruirEscena3DParametrica();
+    } else {
+        if (errorDiv) errorDiv.innerText = 'La repisa debe permanecer estrictamente dentro de su espacio.';
+    }
 }
 
 function eliminarElementoParametrico(pieceId) {
-    hnElementosActuales = hnElementosActuales.filter(e => e.pieceId !== pieceId);
+    const elem = hnElementosActuales.find(e => e.pieceId === pieceId);
+    if (elem && elem.tipo === 'montante') {
+        hnElementosActuales = hnElementosActuales.filter(e => e.pieceId !== pieceId);
+        recalcularEspaciosYElementosPorMontante();
+    } else {
+        hnElementosActuales = hnElementosActuales.filter(e => e.pieceId !== pieceId);
+    }
+
     restaurarPanelDerechoMaestro();
     reconstruirEscena3DParametrica();
     actualizarSidebarEspacios();
