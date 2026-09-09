@@ -2530,7 +2530,6 @@ function reconstruirEstructuraMuebleMaestro() {
 
   repisasExistentes.forEach(rep => {
     const space = espaciosDisenador.find(s => s.id === rep.spaceId) || espacioInterior;
-    // Si ya tiene una altura personalizada guardada, respetarla
     if (rep.alturaDesdeAbajo !== undefined) {
       crearRepisaIndividualConAltura(space, rep.alturaDesdeAbajo, rep.id);
     } else {
@@ -2624,7 +2623,6 @@ function ejecutarRepisasAutomaticas() {
 function recalcularYAgregarRepisa(space, cantidad) {
   const espesorRepisa = 18;
   
-  // Limpiar repisas anteriores de este espacio específico
   const idsAnteriores = piezasDisenador.filter(p => p.spaceId === space.id && p.tipo === 'repisa').map(p => p.id);
   idsAnteriores.forEach(id => {
     const m = meshesPiezasMap.get(id);
@@ -2645,7 +2643,6 @@ function recalcularYAgregarRepisa(space, cantidad) {
     const posYRepisa = baseYInferior + (pasoY * i);
     const repId = 'rep_' + Math.random().toString(36).substring(2, 9);
     
-    // Altura relativa desde la base inferior del espacio en mm
     const alturaDesdeAbajo = Math.round(posYRepisa - baseYInferior);
 
     const nuevaRepisa = {
@@ -2693,7 +2690,6 @@ function crearRepisaIndividualConAltura(space, alturaDesdeAbajo, repId) {
   crearPiezaEnEscena(nuevaRepisa);
 }
 
-// Modificación individual estricta: Solo se mueve la repisa seleccionada, las demás permanecen intactas
 function actualizarRepisaDesdeAbajoPanel() {
   if (!piezaSeleccionadaId) return;
 
@@ -2710,7 +2706,6 @@ function actualizarRepisaDesdeAbajoPanel() {
   pieza.alturaDesdeAbajo = nuevaAlturaMm;
   pieza.posY = baseYInferior + nuevaAlturaMm;
 
-  // Actualizar solo el mesh de esta repisa específica sin tocar ninguna otra pieza
   const mesh = meshesPiezasMap.get(piezaSeleccionadaId);
   if (mesh) {
     scene3D.remove(mesh);
@@ -2737,7 +2732,6 @@ function ejecutarCajonesAutomaticos() {
 
   const cantidad = parseInt(document.getElementById('input-cant-cajones').value) || 2;
   
-  // Limpiar cajones anteriores de este espacio específico
   const drawersAnteriores = piezasDisenador.filter(p => p.spaceId === space.id && p.tipo === 'cajon').map(p => p.id);
   drawersAnteriores.forEach(id => {
     const m = meshesPiezasMap.get(id);
@@ -2757,7 +2751,6 @@ function ejecutarCajonesAutomaticos() {
     const drawerId = 'drawer_' + Math.random().toString(36).substring(2, 9);
     const posYActual = baseY + (i * (alturaCajonUnidad + 15));
 
-    // 1. Frente del cajón
     agregarPiezaDirecta({
       id: drawerId + '_frente',
       tipo: 'cajon',
@@ -2773,7 +2766,6 @@ function ejecutarCajonesAutomaticos() {
       materialColor: 0xe9d8a6
     });
 
-    // 2. Lateral izquierdo del cajón
     agregarPiezaDirecta({
       id: drawerId + '_lat_izq',
       tipo: 'cajon',
@@ -2789,7 +2781,6 @@ function ejecutarCajonesAutomaticos() {
       materialColor: 0xcbc0ad
     });
 
-    // 3. Lateral derecho del cajón
     agregarPiezaDirecta({
       id: drawerId + '_lat_der',
       tipo: 'cajon',
@@ -2805,7 +2796,6 @@ function ejecutarCajonesAutomaticos() {
       materialColor: 0xcbc0ad
     });
 
-    // 4. Base del cajón
     agregarPiezaDirecta({
       id: drawerId + '_base',
       tipo: 'cajon',
@@ -2821,7 +2811,6 @@ function ejecutarCajonesAutomaticos() {
       materialColor: 0xcbc0ad
     });
 
-    // 5. Fondo / trasera del cajón
     agregarPiezaDirecta({
       id: drawerId + '_fondo',
       tipo: 'cajon',
@@ -3062,7 +3051,6 @@ function seleccionarPieza(id) {
   document.getElementById('prop-prof').value = pieza.profundidad || 0;
   document.getElementById('prop-espesor').value = pieza.espesor || 18;
 
-  // Mostrar u ocultar el control de "Desde abajo: ___ mm" si la pieza seleccionada es una repisa
   const grupoDesdeAbajo = document.getElementById('grupo-posicion-desde-abajo');
   const lblDesdeAbajoTitulo = document.getElementById('lbl-desde-abajo-titulo');
   const inputDesdeAbajo = document.getElementById('prop-desde-abajo');
