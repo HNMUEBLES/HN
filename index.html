@@ -2119,7 +2119,7 @@ function irInicio() {
 
 /*
 =============================================================
-ADMIN
+ADMIN Y SEGURIDAD RESTAURADOS
 =============================================================
 */
 
@@ -2129,7 +2129,16 @@ function abrirModalAdmin() {
   modal.classList.remove("hidden");
   document.body.style.overflow = "hidden";
   
-  setTimeout(initDisenador3D, 100);
+  // Verificación segura de autenticación existente
+  if (typeof auth !== "undefined" && auth.currentUser) {
+    esAdmin = true;
+    document.getElementById("admin-login").classList.add("hidden");
+    document.getElementById("admin-panel").classList.remove("hidden");
+    if (typeof cargarProyectosAdmin === "function") cargarProyectosAdmin();
+  } else {
+    document.getElementById("admin-login").classList.remove("hidden");
+    document.getElementById("admin-panel").classList.add("hidden");
+  }
 }
 
 function cerrarModalAdmin() {
@@ -2219,9 +2228,8 @@ function initDisenador3D() {
 
 // Función para crear una pieza individual y registrarla en el sistema
 function agregarPieza(datos) {
-  // Asegurar valores por defecto si no se especifican
   const pieza = {
-    id: datos.id || 'pieza_' + Math.random().toString(36.substring(2, 9)),
+    id: datos.id || 'pieza_' + Math.random().toString(36).substring(2, 9),
     tipo: datos.tipo || 'repisa',
     ancho: datos.ancho !== undefined ? datos.ancho : 0.6,
     alto: datos.alto !== undefined ? datos.alto : 0.6,
@@ -2233,7 +2241,7 @@ function agregarPieza(datos) {
     rotX: datos.rotX || 0,
     rotY: datos.rotY || 0,
     rotZ: datos.rotZ || 0,
-    materialColor: datos.materialColor || 0xd4a373 // Color madera clara estándar para pruebas
+    materialColor: datos.materialColor || 0xd4a373
   };
 
   piezasDisenador.push(pieza);
@@ -2245,12 +2253,10 @@ function agregarPieza(datos) {
 function crearPiezaEnEscena(pieza) {
   if (!scene3D) return;
 
-  // Las dimensiones de la caja dependen de la geometría de la pieza
   let geomAncho = pieza.ancho;
   let geomAlto = pieza.alto;
   let geomProf = pieza.profundidad;
 
-  // Ajustar dimensiones según el espesor estándar de la melamina según orientación de la pieza
   if (pieza.tipo === 'lateral') {
     geomAncho = pieza.espesor;
     geomAlto = pieza.alto;
@@ -2276,7 +2282,6 @@ function crearPiezaEnEscena(pieza) {
   mesh.position.set(pieza.posX, pieza.posY, pieza.posZ);
   mesh.rotation.set(pieza.rotX, pieza.rotY, pieza.rotZ);
 
-  // Guardar referencia del ID en el objeto 3D para identificación futura
   mesh.userData = { id: pieza.id, tipo: pieza.tipo };
 
   scene3D.add(mesh);
@@ -2304,13 +2309,10 @@ function actualizarPieza(id, nuevosDatos) {
   const pieza = piezasDisenador.find(p => p.id === id);
   if (!pieza) return;
 
-  // Actualizar propiedades de datos
   Object.assign(pieza, nuevosDatos);
 
-  // Recrear la malla 3D actualizada
   eliminarPieza(id);
   
-  // Re-insertar con los datos actualizados
   const geometry = new THREE.BoxGeometry(
     pieza.tipo === 'lateral' ? pieza.espesor : pieza.ancho,
     pieza.tipo === 'tapa' || pieza.tipo === 'base' || pieza.tipo === 'repisa' ? pieza.espesor : pieza.alto,
@@ -2332,16 +2334,14 @@ function actualizarPieza(id, nuevosDatos) {
   piezasDisenador.push(pieza);
 }
 
-// Estructura de prueba automática compuesta por varias piezas independientes (2 laterales, 1 tapa, 1 base, 1 fondo, 1 repisa)
+// Estructura de prueba automática compuesta por varias piezas independientes
 function inicializarEstructuraPruebaMueble() {
-  // Limpiar si ya existían piezas previas
   piezasDisenador.forEach(p => eliminarPieza(p.id));
   piezasDisenador = [];
   meshesPiezasMap.clear();
 
-  const colorMelamina = 0xd4a373; // Tono madera melamina
+  const colorMelamina = 0xd4a373;
 
-  // 1. Lateral Izquierdo
   agregarPieza({
     id: 'pieza_lat_izq',
     tipo: 'lateral',
@@ -2354,7 +2354,6 @@ function inicializarEstructuraPruebaMueble() {
     materialColor: colorMelamina
   });
 
-  // 2. Lateral Derecho
   agregarPieza({
     id: 'pieza_lat_der',
     tipo: 'lateral',
@@ -2367,7 +2366,6 @@ function inicializarEstructuraPruebaMueble() {
     materialColor: colorMelamina
   });
 
-  // 3. Base Inferior
   agregarPieza({
     id: 'pieza_base',
     tipo: 'base',
@@ -2380,7 +2378,6 @@ function inicializarEstructuraPruebaMueble() {
     materialColor: colorMelamina
   });
 
-  // 4. Tapa Superior
   agregarPieza({
     id: 'pieza_tapa',
     tipo: 'tapa',
@@ -2393,7 +2390,6 @@ function inicializarEstructuraPruebaMueble() {
     materialColor: colorMelamina
   });
 
-  // 5. Fondo Trasero
   agregarPieza({
     id: 'pieza_fondo',
     tipo: 'fondo',
@@ -2406,7 +2402,6 @@ function inicializarEstructuraPruebaMueble() {
     materialColor: 0xbc8a5f
   });
 
-  // 6. Repisa Central
   agregarPieza({
     id: 'pieza_repisa',
     tipo: 'repisa',
@@ -2439,10 +2434,6 @@ NAVEGACIÓN INTERNA ADMIN (PESTAÑAS)
 */
 
 function cambiarVistaAdmin(vista, botonSeleccionado) {
-  if (typeof esAdmin !== "undefined" && !esAdmin) {
-    return;
-  }
-
   const botones = document.querySelectorAll('#admin-menu button');
   botones.forEach(btn => btn.classList.remove('active'));
 
