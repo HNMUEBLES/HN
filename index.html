@@ -445,7 +445,7 @@
 
 
     /* ==========================================================
-       HN DESIGNER - INTERFAZ VISUAL PROFESIONAL (PASO 5)
+       HN DESIGNER - INTERFAZ VISUAL PROFESIONAL (PASO 6)
        Aislado con contenedor principal #hn-designer
        Estilo limpio, profesional, blanco/gris, sin romper nada.
        ========================================================== */
@@ -2213,7 +2213,7 @@
 
 
 <!-- ==========================================================
-     HN DESIGNER - MOTOR PARAMÉTRICO REAL DE MUEBLE, ESPACIOS Y ELEMENTOS (PASO 5)
+     HN DESIGNER - MOTOR PARAMÉTRICO REAL DE MUEBLE, ESPACIOS Y ELEMENTOS (PASO 6)
      Contenedor aislado independiente
      ========================================================== -->
 <div id="hn-designer">
@@ -2231,7 +2231,7 @@
             </div>
         </div>
         <div class="hn-topbar-right">
-            <span style="font-size: 0.8rem; color: #6b7280; font-weight: 500;">Motor Paramétrico v5.0 (Milímetros)</span>
+            <span style="font-size: 0.8rem; color: #6b7280; font-weight: 500;">Motor Paramétrico v6.0 (Milímetros)</span>
             <button class="hn-close-designer-btn" onclick="cerrarHNDesigner()">Cerrar Diseñador</button>
         </div>
     </div>
@@ -2508,7 +2508,7 @@ function cambiarVistaAdmin(vista, botonSeleccionado) {
 
 /*
 =============================================================
-HN DESIGNER - MOTOR PARAMÉTRICO REAL PASO 5 (MONTANTE -> ESPACIO -> REPISA)
+HN DESIGNER - MOTOR PARAMÉTRICO REAL PASO 6 (EDICIÓN MANUAL SIN PROMPT/ALERT)
 =============================================================
 */
 
@@ -2623,7 +2623,7 @@ function onHNDesignerResize() {
     hnRenderer.setSize(width, height);
 }
 
-// MOTOR DE RECÁLCULO CENTRAL PARAMÉTRICO (PASO 5)
+// MOTOR DE RECÁLCULO CENTRAL PARAMÉTRICO (PASO 6)
 function crearModuloNuevoParametrico() {
     const anchoInput = document.getElementById('hn-master-ancho');
     const altoInput = document.getElementById('hn-master-alto');
@@ -2707,7 +2707,6 @@ function ejecutarRecalculoParametricoCompleto() {
                 elem.width = espacioAsociado.xMax - espacioAsociado.xMin;
                 elem.x = espacioAsociado.xMin + (elem.width / 2);
                 elem.profundidad = espacioAsociado.profundidad;
-                // Asegurar que la repisa no rebase el espacio vertical
                 elem.y = Math.max(espacioAsociado.yMin + (elem.espesor / 2), Math.min(elem.y, espacioAsociado.yMax - (elem.espesor / 2)));
             }
         }
@@ -2772,7 +2771,6 @@ function reconstruirEscena3DParametrica() {
         if (elem.tipo === 'montante') {
             geom = new THREE.BoxGeometry(elem.espesor, elem.alto, elem.profundidad);
         } else if (elem.tipo === 'repisa') {
-            // Revalidar ancho dinámicamente con el espacio asociado
             const espacioAsociado = hnEspaciosActuales.find(e => e.spaceId === elem.spaceId);
             if (espacioAsociado) {
                 elem.width = espacioAsociado.xMax - espacioAsociado.xMin;
@@ -2804,16 +2802,10 @@ function reconstruirEscena3DParametrica() {
     }
 }
 
-// GESTIÓN DE MONTANTES Y ACTUALIZACIÓN DE ESPACIOS
+// GESTIÓN DE MONTANTES SIN PROMPT/ALERT (DESDE BOTONES / PANEL)
 function agregarMontanteParametricoModal() {
-    const posicionXInput = prompt("Ingrese la posición X en milímetros para el montante vertical:", (hnModuloActual.ancho / 2).toString());
-    if (posicionXInput === null) return;
-    const posX = parseFloat(posicionXInput);
-
-    if (isNaN(posX) || posX <= hnModuloActual.espesor || posX >= hnModuloActual.ancho - hnModuloActual.espesor) {
-        alert("Posición inválida. El montante debe quedar dentro de los límites válidos del módulo.");
-        return;
-    }
+    const posX = hnModuloActual.ancho / 2; // Posición inicial por defecto al centro
+    if (posX <= hnModuloActual.espesor || posX >= hnModuloActual.ancho - hnModuloActual.espesor) return;
 
     const pieceId = 'mont_' + Math.random().toString(36).substr(2, 6);
     const nuevoMontante = {
@@ -2830,8 +2822,6 @@ function agregarMontanteParametricoModal() {
     };
 
     hnElementosActuales.push(nuevoMontante);
-
-    // Actualizar espacios dividiéndolos y reasignando repisas a sus nuevos espacios
     recalcularEspaciosConMontante(posX);
     reconstruirEscena3DParametrica();
     actualizarSidebarEspacios();
@@ -2842,7 +2832,6 @@ function recalcularEspaciosConMontante(posX) {
     let nuevosEspacios = [];
     hnEspaciosActuales.forEach(esp => {
         if (posX > esp.xMin && posX < esp.xMax) {
-            // Espacio izquierdo
             const idIzquierda = 'space_' + Math.random().toString(36).substr(2, 6);
             const espIzquierda = {
                 spaceId: idIzquierda,
@@ -2855,7 +2844,6 @@ function recalcularEspaciosConMontante(posX) {
             };
             nuevosEspacios.push(espIzquierda);
 
-            // Espacio derecho
             const idDerecha = 'space_' + Math.random().toString(36).substr(2, 6);
             const espDerecha = {
                 spaceId: idDerecha,
@@ -2868,7 +2856,6 @@ function recalcularEspaciosConMontante(posX) {
             };
             nuevosEspacios.push(espDerecha);
 
-            // Reasignar repisas que pertenecían al espacio anterior según su posición X
             hnElementosActuales.forEach(elem => {
                 if (elem.tipo === 'repisa' && elem.spaceId === esp.spaceId) {
                     if (elem.x < posX) {
@@ -2885,25 +2872,12 @@ function recalcularEspaciosConMontante(posX) {
     hnEspaciosActuales = nuevosEspacios;
 }
 
-// GESTIÓN DE REPISAS PARAMÉTRICAS (RELACIÓN ESPACIO -> REPISA)
+// GESTIÓN DE REPISAS PARAMÉTRICAS SIN PROMPT/ALERT
 function agregarRepisaParametricaModal() {
-    if (hnEspaciosActuales.length === 0) {
-        alert("No hay espacios disponibles en el módulo.");
-        return;
-    }
+    if (hnEspaciosActuales.length === 0) return;
 
-    // Permitir elegir o usar el primer espacio disponible
     const espacioDestino = hnEspaciosActuales[0];
-    const alturaDefecto = (espacioDestino.yMin + espacioDestino.yMax) / 2;
-
-    const posYInput = prompt(`Ingrese la altura Y (en milímetros) para la repisa dentro del espacio (Rango: ${espacioDestino.yMin}mm - ${espacioDestino.yMax}mm):`, alturaDefecto.toString());
-    if (posYInput === null) return;
-    const posY = parseFloat(posYInput);
-
-    if (isNaN(posY) || posY < espacioDestino.yMin || posY > espacioDestino.yMax) {
-        alert("La repisa queda fuera de los límites válidos del espacio seleccionado.");
-        return;
-    }
+    const posY = (espacioDestino.yMin + espacioDestino.yMax) / 2;
 
     const pieceId = 'rep_' + Math.random().toString(36).substr(2, 6);
     const anchoEspacio = espacioDestino.xMax - espacioDestino.xMin;
@@ -2941,8 +2915,10 @@ function actualizarSidebarEspacios() {
         div.style.flexDirection = 'column';
         div.style.alignItems = 'flex-start';
         div.style.gap = '2px';
+        div.style.cursor = 'pointer';
+        div.onclick = () => seleccionarEspacioPorId(esp.spaceId);
         div.innerHTML = `
-            <div style="display:flex; justify-content:space-width; width:100%; align-items:center;">
+            <div style="display:flex; justify-content:space-between; width:100%; align-items:center;">
                 <strong>Espacio #${idx + 1}</strong>
                 <span class="hn-note">${anchoUtil.toFixed(0)} x ${altoUtil.toFixed(0)} mm</span>
             </div>
@@ -2992,6 +2968,59 @@ function seleccionarElementoPorId(pieceId) {
     mostrarPropiedadesElemento(elem);
 }
 
+function seleccionarEspacioPorId(spaceId) {
+    const esp = hnEspaciosActuales.find(e => e.spaceId === spaceId);
+    if (!esp) return;
+
+    hnSeleccionActual = { tipo: 'espacio', objeto: esp };
+    mostrarPropiedadesEspacio(esp);
+}
+
+function mostrarPropiedadesEspacio(esp) {
+    const titleText = document.getElementById('hn-prop-title-text');
+    const selectedBadge = document.getElementById('hn-selected-badge');
+    const container = document.getElementById('hn-properties-content-container');
+
+    if (!titleText || !container) return;
+
+    titleText.innerText = "ESPACIO INTERNO";
+    if (selectedBadge) selectedBadge.innerText = 'Seleccionado';
+
+    const anchoUtil = esp.xMax - esp.xMin;
+    const altoUtil = esp.yMax - esp.yMin;
+
+    container.innerHTML = `
+        <div class="hn-prop-row">
+            <label>ID del Espacio</label>
+            <input type="text" value="${esp.spaceId}" readonly style="background:#f3f4f6; color:#6b7280; font-size:0.75rem;">
+        </div>
+        <div class="hn-prop-row">
+            <label>Ancho útil (mm)</label>
+            <input type="number" value="${anchoUtil.toFixed(1)}" readonly>
+        </div>
+        <div class="hn-prop-row">
+            <label>Alto útil (mm)</label>
+            <input type="number" value="${altoUtil.toFixed(1)}" readonly>
+        </div>
+        <div class="hn-prop-row">
+            <label>Profundidad útil (mm)</label>
+            <input type="number" value="${esp.profundidad.toFixed(1)}" readonly>
+        </div>
+        <div class="hn-prop-row">
+            <label>Límite X (Iz - Der)</label>
+            <input type="text" value="${esp.xMin.toFixed(0)} - ${esp.xMax.toFixed(0)}" readonly>
+        </div>
+        <div class="hn-prop-row">
+            <label>Límite Y (Inf - Sup)</label>
+            <input type="text" value="${esp.yMin.toFixed(0)} - ${esp.yMax.toFixed(0)}" readonly>
+        </div>
+        <div class="hn-properties-divider"></div>
+        <button type="button" class="btn-primary-modern full-btn" style="padding: 8px; font-size: 0.85rem;" onclick="restaurarPanelDerechoMaestro()">
+            Volver a Dimensiones Maestras
+        </button>
+    `;
+}
+
 function mostrarPropiedadesElemento(elem) {
     const titleText = document.getElementById('hn-prop-title-text');
     const selectedBadge = document.getElementById('hn-selected-badge');
@@ -3011,6 +3040,7 @@ function mostrarPropiedadesElemento(elem) {
             <label>Posición ${elem.tipo === 'montante' ? 'X (mm)' : 'Y / Altura (mm)'}</label>
             <input type="number" id="hn-edit-pos-elem" value="${elem.tipo === 'montante' ? elem.x.toFixed(1) : elem.y.toFixed(1)}" oninput="actualizarPosicionElementoManual('${elem.pieceId}', this.value)">
         </div>
+        <div id="hn-validacion-error" style="color: #ef4444; font-size: 0.75rem; margin-top: 2px;"></div>
         <div class="hn-prop-row">
             <label>Espesor / Profundidad (mm)</label>
             <input type="number" value="${elem.espesor}" readonly>
@@ -3027,6 +3057,7 @@ function mostrarPropiedadesElemento(elem) {
 
 function actualizarPosicionElementoManual(pieceId, nuevoValorStr) {
     const val = parseFloat(nuevoValorStr);
+    const errorDiv = document.getElementById('hn-validacion-error');
     if (isNaN(val)) return;
 
     const elem = hnElementosActuales.find(e => e.pieceId === pieceId);
@@ -3034,14 +3065,21 @@ function actualizarPosicionElementoManual(pieceId, nuevoValorStr) {
 
     if (elem.tipo === 'montante') {
         if (val > hnModuloActual.espesor && val < hnModuloActual.ancho - hnModuloActual.espesor) {
+            if (errorDiv) errorDiv.innerText = '';
             elem.x = val;
-            // Al mover un montante manualmente, actualizamos la estructura de espacios y adaptamos repisas dependientes
             recalcularEspaciosConMontante(val);
+        } else {
+            if (errorDiv) errorDiv.innerText = 'Valor fuera de los límites estructurales válidos.';
+            return;
         }
     } else if (elem.tipo === 'repisa') {
         const esp = hnEspaciosActuales.find(e => e.spaceId === elem.spaceId);
         if (esp && val >= esp.yMin && val <= esp.yMax) {
+            if (errorDiv) errorDiv.innerText = '';
             elem.y = val;
+        } else {
+            if (errorDiv) errorDiv.innerText = 'La repisa debe permanecer dentro del espacio.';
+            return;
         }
     }
 
