@@ -445,7 +445,7 @@
 
 
     /* ==========================================================
-       HN DESIGNER - INTERFAZ VISUAL PROFESIONAL (PASO 4)
+       HN DESIGNER - INTERFAZ VISUAL PROFESIONAL (PASO 5)
        Aislado con contenedor principal #hn-designer
        Estilo limpio, profesional, blanco/gris, sin romper nada.
        ========================================================== */
@@ -2213,7 +2213,7 @@
 
 
 <!-- ==========================================================
-     HN DESIGNER - MOTOR PARAMÉTRICO REAL DE MUEBLE, ESPACIOS Y ELEMENTOS (PASO 4)
+     HN DESIGNER - MOTOR PARAMÉTRICO REAL DE MUEBLE, ESPACIOS Y ELEMENTOS (PASO 5)
      Contenedor aislado independiente
      ========================================================== -->
 <div id="hn-designer">
@@ -2231,7 +2231,7 @@
             </div>
         </div>
         <div class="hn-topbar-right">
-            <span style="font-size: 0.8rem; color: #6b7280; font-weight: 500;">Motor Paramétrico v4.0 (Milímetros)</span>
+            <span style="font-size: 0.8rem; color: #6b7280; font-weight: 500;">Motor Paramétrico v5.0 (Milímetros)</span>
             <button class="hn-close-designer-btn" onclick="cerrarHNDesigner()">Cerrar Diseñador</button>
         </div>
     </div>
@@ -2508,7 +2508,7 @@ function cambiarVistaAdmin(vista, botonSeleccionado) {
 
 /*
 =============================================================
-HN DESIGNER - MOTOR PARAMÉTRICO REAL (PASO 4)
+HN DESIGNER - MOTOR PARAMÉTRICO REAL PASO 5 (MONTANTE -> ESPACIO -> REPISA)
 =============================================================
 */
 
@@ -2534,7 +2534,7 @@ let hnModuloActual = {
 };
 
 let hnEspaciosActuales = [];
-let hnElementosActuales = []; // Contiene montantes y repisas
+let hnElementosActuales = []; // Contiene montantes y repisas con spaceId real
 let hnSeleccionActual = null; // { tipo: 'modulo'|'espacio'|'montante'|'repisa', objeto: ... }
 let timerDimensionesMaestras = null;
 
@@ -2623,7 +2623,7 @@ function onHNDesignerResize() {
     hnRenderer.setSize(width, height);
 }
 
-// MOTOR DE RECÁLCULO CENTRAL PARAMÉTRICO
+// MOTOR DE RECÁLCULO CENTRAL PARAMÉTRICO (PASO 5)
 function crearModuloNuevoParametrico() {
     const anchoInput = document.getElementById('hn-master-ancho');
     const altoInput = document.getElementById('hn-master-alto');
@@ -2694,7 +2694,7 @@ function ejecutarRecalculoParametricoCompleto() {
         esp.profundidad = hnModuloActual.profundidad - hnModuloActual.fondo;
     });
 
-    // Recalcular elementos dependientes (montantes y repisas) para que encajen estrictamente en sus espacios
+    // RELACIÓN PARAMÉTRICA estricta: MONTANTE -> ESPACIO -> REPISA
     hnElementosActuales.forEach(elem => {
         if (elem.tipo === 'montante') {
             elem.x = Math.max(hnModuloActual.espesor, Math.min(elem.x * factorAncho, hnModuloActual.ancho - hnModuloActual.espesor - elem.espesor));
@@ -2766,12 +2766,18 @@ function reconstruirEscena3DParametrica() {
         hnScene.add(mesh);
     });
 
-    // 2. ELEMENTOS DEPENDIENTES (Montantes y Repisas)
+    // 2. ELEMENTOS DEPENDIENTES (Montantes y Repisas adaptadas a sus espacios)
     hnElementosActuales.forEach(elem => {
         let geom;
         if (elem.tipo === 'montante') {
             geom = new THREE.BoxGeometry(elem.espesor, elem.alto, elem.profundidad);
         } else if (elem.tipo === 'repisa') {
+            // Revalidar ancho dinámicamente con el espacio asociado
+            const espacioAsociado = hnEspaciosActuales.find(e => e.spaceId === elem.spaceId);
+            if (espacioAsociado) {
+                elem.width = espacioAsociado.xMax - espacioAsociado.xMin;
+                elem.x = espacioAsociado.xMin + (elem.width / 2);
+            }
             geom = new THREE.BoxGeometry(elem.width, elem.espesor, elem.profundidad);
         }
 
@@ -2798,7 +2804,7 @@ function reconstruirEscena3DParametrica() {
     }
 }
 
-// GESTIÓN DE MONTANTES Y RECURSOS ESPACIALES
+// GESTIÓN DE MONTANTES Y ACTUALIZACIÓN DE ESPACIOS
 function agregarMontanteParametricoModal() {
     const posicionXInput = prompt("Ingrese la posición X en milímetros para el montante vertical:", (hnModuloActual.ancho / 2).toString());
     if (posicionXInput === null) return;
@@ -2825,7 +2831,7 @@ function agregarMontanteParametricoModal() {
 
     hnElementosActuales.push(nuevoMontante);
 
-    // Generar nuevos espacios dividiendo el espacio afectado
+    // Actualizar espacios dividiéndolos y reasignando repisas a sus nuevos espacios
     recalcularEspaciosConMontante(posX);
     reconstruirEscena3DParametrica();
     actualizarSidebarEspacios();
@@ -2837,24 +2843,40 @@ function recalcularEspaciosConMontante(posX) {
     hnEspaciosActuales.forEach(esp => {
         if (posX > esp.xMin && posX < esp.xMax) {
             // Espacio izquierdo
-            nuevosEspacios.push({
-                spaceId: 'space_' + Math.random().toString(36).substr(2, 6),
+            const idIzquierda = 'space_' + Math.random().toString(36).substr(2, 6);
+            const espIzquierda = {
+                spaceId: idIzquierda,
                 moduleId: hnModuloActual.moduleId,
                 xMin: esp.xMin,
                 xMax: posX - (hnModuloActual.espesor / 2),
                 yMin: esp.yMin,
                 yMax: esp.yMax,
                 profundidad: esp.profundidad
-            });
+            };
+            nuevosEspacios.push(espIzquierda);
+
             // Espacio derecho
-            nuevosEspacios.push({
-                spaceId: 'space_' + Math.random().toString(36).substr(2, 6),
+            const idDerecha = 'space_' + Math.random().toString(36).substr(2, 6);
+            const espDerecha = {
+                spaceId: idDerecha,
                 moduleId: hnModuloActual.moduleId,
                 xMin: posX + (hnModuloActual.espesor / 2),
                 xMax: esp.xMax,
                 yMin: esp.yMin,
                 yMax: esp.yMax,
                 profundidad: esp.profundidad
+            };
+            nuevosEspacios.push(espDerecha);
+
+            // Reasignar repisas que pertenecían al espacio anterior según su posición X
+            hnElementosActuales.forEach(elem => {
+                if (elem.tipo === 'repisa' && elem.spaceId === esp.spaceId) {
+                    if (elem.x < posX) {
+                        elem.spaceId = idIzquierda;
+                    } else {
+                        elem.spaceId = idDerecha;
+                    }
+                }
             });
         } else {
             nuevosEspacios.push(esp);
@@ -2863,14 +2885,14 @@ function recalcularEspaciosConMontante(posX) {
     hnEspaciosActuales = nuevosEspacios;
 }
 
-// GESTIÓN DE REPISAS / ESTANTES
+// GESTIÓN DE REPISAS PARAMÉTRICAS (RELACIÓN ESPACIO -> REPISA)
 function agregarRepisaParametricaModal() {
     if (hnEspaciosActuales.length === 0) {
         alert("No hay espacios disponibles en el módulo.");
         return;
     }
 
-    // Por defecto seleccionar el primer espacio o pedir altura
+    // Permitir elegir o usar el primer espacio disponible
     const espacioDestino = hnEspaciosActuales[0];
     const alturaDefecto = (espacioDestino.yMin + espacioDestino.yMax) / 2;
 
@@ -3013,6 +3035,8 @@ function actualizarPosicionElementoManual(pieceId, nuevoValorStr) {
     if (elem.tipo === 'montante') {
         if (val > hnModuloActual.espesor && val < hnModuloActual.ancho - hnModuloActual.espesor) {
             elem.x = val;
+            // Al mover un montante manualmente, actualizamos la estructura de espacios y adaptamos repisas dependientes
+            recalcularEspaciosConMontante(val);
         }
     } else if (elem.tipo === 'repisa') {
         const esp = hnEspaciosActuales.find(e => e.spaceId === elem.spaceId);
@@ -3022,6 +3046,7 @@ function actualizarPosicionElementoManual(pieceId, nuevoValorStr) {
     }
 
     reconstruirEscena3DParametrica();
+    actualizarSidebarEspacios();
 }
 
 function eliminarElementoParametrico(pieceId) {
