@@ -2996,18 +2996,76 @@ function mostrarPropiedadesEspacio(esp) {
             <input type="number" value="${esp.profundidad.toFixed(1)}" readonly>
         </div>
         <div class="hn-prop-row">
-            <label>Límite X (Iz - Der)</label>
-            <input type="text" value="${esp.xMin.toFixed(0)} - ${esp.xMax.toFixed(0)}" readonly>
+            <label>Límite X mínimo (mm)</label>
+            <input type="number" id="hn-edit-xmin" value="${esp.xMin.toFixed(1)}" oninput="actualizarEspacioManual('${esp.spaceId}')">
         </div>
         <div class="hn-prop-row">
-            <label>Límite Y (Inf - Sup)</label>
-            <input type="text" value="${esp.yMin.toFixed(0)} - ${esp.yMax.toFixed(0)}" readonly>
+            <label>Límite X máximo (mm)</label>
+            <input type="number" id="hn-edit-xmax" value="${esp.xMax.toFixed(1)}" oninput="actualizarEspacioManual('${esp.spaceId}')">
         </div>
+        <div class="hn-prop-row">
+            <label>Límite Y mínimo (mm)</label>
+            <input type="number" id="hn-edit-ymin" value="${esp.yMin.toFixed(1)}" oninput="actualizarEspacioManual('${esp.spaceId}')">
+        </div>
+        <div class="hn-prop-row">
+            <label>Límite Y máximo (mm)</label>
+            <input type="number" id="hn-edit-ymax" value="${esp.yMax.toFixed(1)}" oninput="actualizarEspacioManual('${esp.spaceId}')">
+        </div>
+        <div id="hn-validacion-espacio-error" style="color: #ef4444; font-size: 0.75rem; margin-top: 2px;"></div>
         <div class="hn-properties-divider"></div>
         <button type="button" class="btn-primary-modern full-btn" style="padding: 8px; font-size: 0.85rem;" onclick="restaurarPanelDerechoMaestro()">
             Volver a Dimensiones Maestras
         </button>
     `;
+}
+
+function actualizarEspacioManual(spaceId) {
+    const esp = hnEspaciosActuales.find(e => e.spaceId === spaceId);
+    const errorDiv = document.getElementById('hn-validacion-espacio-error');
+    if (!esp) return;
+
+    const xMinInput = document.getElementById('hn-edit-xmin');
+    const xMaxInput = document.getElementById('hn-edit-xmax');
+    const yMinInput = document.getElementById('hn-edit-ymin');
+    const yMaxInput = document.getElementById('hn-edit-ymax');
+
+    if (!xMinInput || !xMaxInput || !yMinInput || !yMaxInput) return;
+
+    const newXMin = parseFloat(xMinInput.value);
+    const newXMax = parseFloat(xMaxInput.value);
+    const newYMin = parseFloat(yMinInput.value);
+    const newYMax = parseFloat(yMaxInput.value);
+
+    if (isNaN(newXMin) || isNaN(newXMax) || isNaN(newYMin) || isNaN(newYMax)) return;
+
+    if (newXMin >= newXMax || newYMin >= newYMax) {
+        if (errorDiv) errorDiv.innerText = 'Límites inválidos: Mínimo debe ser menor que máximo.';
+        return;
+    }
+    if (newXMin < hnModuloActual.espesor || newXMax > hnModuloActual.ancho - hnModuloActual.espesor ||
+        newYMin < hnModuloActual.espesor || newYMax > hnModuloActual.alto - hnModuloActual.espesor) {
+        if (errorDiv) errorDiv.innerText = 'El espacio excede los límites del módulo.';
+        return;
+    }
+
+    if (errorDiv) errorDiv.innerText = '';
+    esp.xMin = newXMin;
+    esp.xMax = newXMax;
+    esp.yMin = newYMin;
+    esp.yMax = newYMax;
+
+    hnElementosActuales.forEach(elem => {
+        if (elem.tipo === 'repisa' && elem.spaceId === esp.spaceId) {
+            elem.width = esp.xMax - esp.xMin;
+            elem.x = esp.xMin + (elem.width / 2);
+            if (elem.y < esp.yMin || elem.y > esp.yMax) {
+                elem.y = (esp.yMin + esp.yMax) / 2;
+            }
+        }
+    });
+
+    reconstruirEscena3DParametrica();
+    actualizarSidebarEspacios();
 }
 
 function mostrarPropiedadesElemento(elem) {
