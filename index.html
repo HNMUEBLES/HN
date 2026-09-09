@@ -34,6 +34,12 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 
   <!-- =====================================================
+       THREE.JS Y CONTROLES
+       ===================================================== -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+
+  <!-- =====================================================
        ESTILOS PARA PANELES A PANTALLA COMPLETA Y POPUPS
        ===================================================== -->
 
@@ -1942,7 +1948,7 @@
 
 
       <!-- =================================================
-           VISTA 4: DISEÑADOR 3D (ÁREA DE TRABAJO VISUAL)
+           VISTA 4: DISEÑADOR 3D (VISOR THREE.JS)
       ================================================== -->
 
       <div id="vista-disenador" class="admin-vista hidden">
@@ -1951,15 +1957,12 @@
             <i class="fa-solid fa-cube font-amber"></i> DISEÑADOR 3D
           </h2>
           <span style="font-size: 0.85rem; color: rgba(255,255,255,0.6); background: rgba(255,255,255,0.05); padding: 6px 12px; border-radius: 6px; border: 1px solid rgba(255,255,255,0.08);">
-            Área de Trabajo 3D
+            Visor 3D Activo
           </span>
         </div>
 
-        <div id="disenador-workspace" style="width: 100%; height: 75vh; min-height: 500px; background: rgba(0,0,0,0.5); border: 1px dashed rgba(245,158,11,0.3); border-radius: 12px; display: flex; align-items: center; justify-content: center; position: relative; overflow: hidden;">
-          <div style="text-align: center; color: rgba(255,255,255,0.4); padding: 20px;">
-            <i class="fa-solid fa-cube" style="font-size: 3rem; margin-bottom: 12px; display: block; color: rgba(245,158,11,0.3);"></i>
-            <p style="font-size: 1rem; font-weight: 500; margin: 0;">Espacio preparado para el visor 3D</p>
-          </div>
+        <div id="disenador-workspace" style="width: 100%; height: 75vh; min-height: 500px; background: #080808; border: 1px solid rgba(245,158,11,0.3); border-radius: 12px; position: relative; overflow: hidden;">
+          <!-- El canvas de Three.js se inyectará aquí -->
         </div>
       </div>
 
@@ -2125,6 +2128,9 @@ function abrirModalAdmin() {
   if (!modal) return;
   modal.classList.remove("hidden");
   document.body.style.overflow = "hidden";
+  
+  // Inicializar o reacomodar el visor 3D si ya está abierto
+  setTimeout(initDisenador3D, 100);
 }
 
 function cerrarModalAdmin() {
@@ -2132,6 +2138,97 @@ function cerrarModalAdmin() {
   if (!modal) return;
   modal.classList.add("hidden");
   document.body.style.overflow = "";
+}
+
+/*
+=============================================================
+VISOR THREE.JS PARA DISEÑADOR 3D (PASO 4)
+=============================================================
+*/
+let scene3D, camera3D, renderer3D, controls3D, animationFrameId3D;
+let isInitialized3D = false;
+
+function initDisenador3D() {
+  const container = document.getElementById('disenador-workspace');
+  if (!container) return;
+
+  // Si ya está inicializado, solo actualizamos dimensiones por si cambió de tamaño
+  if (isInitialized3D) {
+    onWindowResize3D();
+    return;
+  }
+
+  // 1. Escena
+  scene3D = new THREE.Scene();
+  scene3D.background = new THREE.Color(0x0b0b0b);
+
+  // 2. Cámara
+  const width = container.clientWidth;
+  const height = container.clientHeight;
+  camera3D = new THREE.PerspectiveCamera(45, width / height, 0.1, 1000);
+  camera3D.position.set(5, 4, 6);
+
+  // 3. Renderizador WebGL
+  renderer3D = new THREE.WebGLRenderer({ antialias: true });
+  renderer3D.setSize(width, height);
+  renderer3D.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+  container.appendChild(renderer3D.domElement);
+
+  // 4. Controles de Órbita (Girar, Zoom, Pan)
+  controls3D = new THREE.OrbitControls(camera3D, renderer3D.domElement);
+  controls3D.enableDamping = true;
+  controls3D.dampingFactor = 0.05;
+
+  // 5. Iluminación básica
+  const ambientLight = new THREE.AmbientLight(0xffffff, 0.7);
+  scene3D.add(ambientLight);
+
+  const dirLight = new THREE.DirectionalLight(0xffffff, 0.8);
+  dirLight.position.set(10, 20, 15);
+  scene3D.add(dirLight);
+
+  // 6. Piso / Plano de referencia (Grid y Suelo)
+  const gridHelper = new THREE.GridHelper(10, 10, 0xf59e0b, 0x333333);
+  gridHelper.position.y = -0.01;
+  scene3D.add(gridHelper);
+
+  const floorGeometry = new THREE.PlaneGeometry(10, 10);
+  const floorMaterial = new THREE.MeshStandardMaterial({ color: 0x111111, roughness: 0.9 });
+  const floor = new THREE.Mesh(floorGeometry, floorMaterial);
+  floor.rotation.x = -Math.PI / 2;
+  scene3D.add(floor);
+
+  // 7. Estructura de prueba simple (Cubo de validación 3D)
+  const testGeo = new THREE.BoxGeometry(1, 1, 1);
+  const testMat = new THREE.MeshStandardMaterial({ color: 0xf59e0b, roughness: 0.4 });
+  const testCube = new THREE.Mesh(testGeo, testMat);
+  testCube.position.set(0, 0.5, 0);
+  scene3D.add(testCube);
+
+  isInitialized3D = true;
+
+  // 8. Loop de animación
+  function animate() {
+    animationFrameId3D = requestAnimationFrame(animate);
+    controls3D.update();
+    renderer3D.render(scene3D, camera3D);
+  }
+  animate();
+
+  // Escuchar cambios de tamaño en la ventana
+  window.addEventListener('resize', onWindowResize3D);
+}
+
+function onWindowResize3D() {
+  const container = document.getElementById('disenador-workspace');
+  if (!container || !renderer3D || !camera3D) return;
+
+  const width = container.clientWidth;
+  const height = container.clientHeight;
+
+  camera3D.aspect = width / height;
+  camera3D.updateProjectionMatrix();
+  renderer3D.setSize(width, height);
 }
 
 /*
@@ -2165,6 +2262,12 @@ function cambiarVistaAdmin(vista, botonSeleccionado) {
 
   if (vista === 'portafolio' && typeof cargarPortafolioAdmin === "function") {
     cargarPortafolioAdmin();
+  }
+
+  if (vista === 'disenador') {
+    setTimeout(() => {
+      initDisenador3D();
+    }, 50);
   }
 }
 
