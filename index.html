@@ -2330,23 +2330,23 @@
             <div class="hn-properties-body" id="hn-properties-content-container">
                 <div class="hn-prop-row">
                     <label>Ancho (mm)</label>
-                    <input type="number" value="1000" id="hn-master-ancho" oninput="actualizarDimensionesMaestras()">
+                    <input type="number" value="1000" id="hn-master-ancho" oninput="actualizarDimensionesMaestrasDebounced()">
                 </div>
                 <div class="hn-prop-row">
                     <label>Alto (mm)</label>
-                    <input type="number" value="2000" id="hn-master-alto" oninput="actualizarDimensionesMaestras()">
+                    <input type="number" value="2000" id="hn-master-alto" oninput="actualizarDimensionesMaestrasDebounced()">
                 </div>
                 <div class="hn-prop-row">
                     <label>Profundidad (mm)</label>
-                    <input type="number" value="500" id="hn-master-prof" oninput="actualizarDimensionesMaestras()">
+                    <input type="number" value="500" id="hn-master-prof" oninput="actualizarDimensionesMaestrasDebounced()">
                 </div>
                 <div class="hn-prop-row">
                     <label>Espesor estructural (mm)</label>
-                    <input type="number" value="18" id="hn-master-espesor" oninput="actualizarDimensionesMaestras()">
+                    <input type="number" value="18" id="hn-master-espesor" oninput="actualizarDimensionesMaestrasDebounced()">
                 </div>
                 <div class="hn-prop-row">
                     <label>Fondo (mm)</label>
-                    <input type="number" value="3" id="hn-master-fondo" oninput="actualizarDimensionesMaestras()">
+                    <input type="number" value="3" id="hn-master-fondo" oninput="actualizarDimensionesMaestrasDebounced()">
                 </div>
                 <div class="hn-properties-divider"></div>
                 <div style="font-size: 0.75rem; color: #6b7280; text-align: center;">
@@ -2571,6 +2571,7 @@ let hnMouse = new THREE.Vector2();
 // Estado del módulo y piezas
 let hnPiezasActuales = [];
 let hnPiezaSeleccionada = null;
+let timerDimensionesMaestras = null;
 
 function abrirHNDesigner() {
     const designer = document.getElementById('hn-designer');
@@ -2816,6 +2817,14 @@ function crearModuloNuevoVisual() {
         hnControls.target.set(0, H / 2, 0);
         hnControls.update();
     }
+}
+
+// Wrapper con debounce para evitar pérdida de foco al escribir rápido en los inputs maestros
+function actualizarDimensionesMaestrasDebounced() {
+    if (timerDimensionesMaestras) clearTimeout(timerDimensionesMaestras);
+    timerDimensionesMaestras = setTimeout(() => {
+        actualizarDimensionesMaestras();
+    }, 250);
 }
 
 // Recálculo paramétrico en tiempo real: Reconstruye completamente la geometría con las nuevas dimensiones sin dejar rastros anteriores
@@ -3087,23 +3096,23 @@ function restaurarPanelDerechoMaestro() {
     container.innerHTML = `
         <div class="hn-prop-row">
             <label>Ancho (mm)</label>
-            <input type="number" value="${wVal}" id="hn-master-ancho" oninput="actualizarDimensionesMaestras()">
+            <input type="number" value="${wVal}" id="hn-master-ancho" oninput="actualizarDimensionesMaestrasDebounced()">
         </div>
         <div class="hn-prop-row">
             <label>Alto (mm)</label>
-            <input type="number" value="${hVal}" id="hn-master-alto" oninput="actualizarDimensionesMaestras()">
+            <input type="number" value="${hVal}" id="hn-master-alto" oninput="actualizarDimensionesMaestrasDebounced()">
         </div>
         <div class="hn-prop-row">
             <label>Profundidad (mm)</label>
-            <input type="number" value="${dVal}" id="hn-master-prof" oninput="actualizarDimensionesMaestras()">
+            <input type="number" value="${dVal}" id="hn-master-prof" oninput="actualizarDimensionesMaestrasDebounced()">
         </div>
         <div class="hn-prop-row">
             <label>Espesor estructural (mm)</label>
-            <input type="number" value="${tVal}" id="hn-master-espesor" oninput="actualizarDimensionesMaestras()">
+            <input type="number" value="${tVal}" id="hn-master-espesor" oninput="actualizarDimensionesMaestrasDebounced()">
         </div>
         <div class="hn-prop-row">
             <label>Fondo (mm)</label>
-            <input type="number" value="${fVal}" id="hn-master-fondo" oninput="actualizarDimensionesMaestras()">
+            <input type="number" value="${fVal}" id="hn-master-fondo" oninput="actualizarDimensionesMaestrasDebounced()">
         </div>
         <div class="hn-properties-divider"></div>
         <div style="font-size: 0.75rem; color: #6b7280; text-align: center;">
