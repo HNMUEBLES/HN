@@ -2708,9 +2708,6 @@ function crearModuloNuevoVisual() {
     const moduleId = 'mod_' + Math.random().toString(36).substr(2, 9);
 
     // Definición de las 5 piezas estructurales independientes en milímetros
-    // Sistema de coordenadas Three.js: Origen (0,0,0) en el centro geométrico del módulo o base inferior.
-    // Para simplificar la arquitectura paramétrica en mm, posicionamos desde la base inferior (Y=0 hasta Y=H).
-    
     const definicionesPiezas = [
         {
             id: 'piez_lat_izq_' + Math.random().toString(36).substr(2, 5),
@@ -2790,7 +2787,6 @@ function crearModuloNuevoVisual() {
             geometry = new THREE.BoxGeometry(data.width, data.height, data.depth);
         }
 
-        // Material visual limpio tipo melamina blanca con sutil contorno/borde o tono profesional
         const material = new THREE.MeshStandardMaterial({
             color: 0xfafafa,
             roughness: 0.4,
@@ -2798,21 +2794,12 @@ function crearModuloNuevoVisual() {
         });
 
         const mesh = new THREE.Mesh(geometry, material);
-        
-        // Posicionar el mesh según la lógica milimétrica
-        // Desplazamos para que el origen (0,0,0) del módulo sea la esquina inferior trasera izquierda si se desea, 
-        // o centrado. Aquí centramos horizontal y profundidad respecto al ancho y profundidad del mueble:
-        // X va de 0 a W, por lo que centramos restando W/2.
-        // Y va de 0 a H (base en 0).
-        // Z va de 0 a D.
         mesh.position.set(data.x - (W / 2), data.y, data.z - (D / 2));
 
-        // Añadir bordes visuales para simular cantos o definición de pieza independiente
         const edges = new THREE.EdgesGeometry(geometry);
         const line = new THREE.LineSegments(edges, new THREE.LineBasicMaterial({ color: 0x94a3b8, linewidth: 1 }));
         mesh.add(line);
 
-        // Guardar referencia en el mesh para selección
         mesh.userData = { pieceData: data };
 
         hnScene.add(mesh);
@@ -2845,7 +2832,6 @@ function actualizarDimensionesMaestras() {
     const T = parseFloat(espInput.value) || 18;
     const F = parseFloat(fondoInput.value) || 3;
 
-    // Actualizar geometrías y posiciones de cada pieza existente sin destruir el array conceptual
     hnPiezasActuales.forEach(pieza => {
         let newWidth = pieza.width;
         let newHeight = pieza.height;
@@ -2898,11 +2884,8 @@ function actualizarDimensionesMaestras() {
         pieza.y = newY;
         pieza.z = newZ;
 
-        // Reconstruir geometría del mesh
         pieza.mesh.geometry.dispose();
         pieza.mesh.geometry = new THREE.BoxGeometry(newWidth, newHeight, newDepth);
-
-        // Actualizar posición
         pieza.mesh.position.set(newX - (W / 2), newY, newZ - (D / 2));
     });
 
@@ -2910,7 +2893,6 @@ function actualizarDimensionesMaestras() {
         hnControls.target.set(0, H / 2, 0);
     }
 
-    // Si hay una pieza seleccionada y sigue activa, actualizar panel derecho con sus nuevas dimensiones
     if (hnPiezaSeleccionada) {
         mostrarPropiedadesPieza(hnPiezaSeleccionada);
     }
@@ -2927,7 +2909,6 @@ function onHNDesignerClick(event) {
 
     hnRaycaster.setFromCamera(hnMouse, hnCamera);
     
-    // Obtener todos los meshes de las piezas
     const meshes = hnPiezasActuales.map(p => p.mesh);
     const intersects = hnRaycaster.intersectObjects(meshes, false);
 
@@ -2941,7 +2922,6 @@ function onHNDesignerClick(event) {
 }
 
 function seleccionarPiezaPorId(id) {
-    // Restaurar color anterior de todas las piezas
     hnPiezasActuales.forEach(p => {
         if (p.mesh && p.mesh.material) {
             p.mesh.material.color.setHex(0xfafafa);
@@ -2953,12 +2933,10 @@ function seleccionarPiezaPorId(id) {
 
     hnPiezaSeleccionada = piezaEncontrada;
 
-    // Resaltar pieza seleccionada (color ámbar suave o azulado distintivo)
     if (piezaEncontrada.mesh && piezaEncontrada.mesh.material) {
         piezaEncontrada.mesh.material.color.setHex(0xf59e0b);
     }
 
-    // Mostrar propiedades en el panel derecho existente
     mostrarPropiedadesPieza(piezaEncontrada);
 }
 
@@ -3033,7 +3011,6 @@ function restaurarPanelDerechoMaestro() {
     titleText.innerText = "DIMENSIONES MAESTRAS";
     if (selectedBadge) selectedBadge.innerText = 'Módulo';
 
-    // Obtener valores actuales de los inputs maestros o defaults
     const wVal = document.getElementById('hn-master-ancho') ? document.getElementById('hn-master-ancho').value : 1000;
     const hVal = document.getElementById('hn-master-alto') ? document.getElementById('hn-master-alto').value : 2000;
     const dVal = document.getElementById('hn-master-prof') ? document.getElementById('hn-master-prof').value : 500;
