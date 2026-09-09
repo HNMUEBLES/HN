@@ -2235,7 +2235,7 @@
             </div>
         </div>
         <div class="hn-topbar-right">
-            <span style="font-size: 0.8rem; color: #6b7280; font-weight: 500;">Modo Interfaz Visual v2.0 (Motor Paramétrico)</span>
+            <span style="font-size: 0.8rem; color: #6b7280; font-weight: 500;">Modo Interfaz Visual v2.0 (3D Real)</span>
             <button class="hn-close-designer-btn" onclick="cerrarHNDesigner()">Cerrar Diseñador</button>
         </div>
     </div>
@@ -2259,7 +2259,7 @@
                 <div class="hn-sidebar-title">Estructura</div>
                 <div class="hn-sidebar-group">
                     <div class="hn-tool-item" onclick="seleccionarHerramientaVisual('Montantes')">Montantes <span class="hn-note">Vertical</span></div>
-                    <div class="hn-tool-item" onclick="agregarRepisasAlEspacioActivo()">Repisas / Estantes <span class="hn-note">+5 Repisas</span></div>
+                    <div class="hn-tool-item" onclick="seleccionarHerramientaVisual('Repisas')">Repisas / Estantes <span class="hn-note">Horizontal</span></div>
                     <div class="hn-tool-item" onclick="seleccionarHerramientaVisual('Fondo')">Fondo <span class="hn-note">Respaldo</span></div>
                 </div>
             </div>
@@ -2350,7 +2350,7 @@
                 </div>
                 <div class="hn-properties-divider"></div>
                 <div style="font-size: 0.75rem; color: #6b7280; text-align: center;">
-                    Modifica las dimensiones maestras para recalcular el módulo estructural y sus elementos dependientes.
+                    Modifica las dimensiones maestras para recalcular el módulo estructural.
                 </div>
             </div>
         </div>
@@ -2556,7 +2556,7 @@ function cambiarVistaAdmin(vista, botonSeleccionado) {
 
 /*
 =============================================================
-HN DESIGNER - MOTOR PARAMÉTRICO DE DEPENDENCIAS (THREE.JS)
+FUNCIONES DE HN DESIGNER Y MOTOR 3D (THREE.JS)
 =============================================================
 */
 
@@ -2568,10 +2568,8 @@ let hnAnimationId = null;
 let hnRaycaster = new THREE.Raycaster();
 let hnMouse = new THREE.Vector2();
 
-// Estado del motor paramétrico
-let hnCurrentModuleId = null;
-let hnEspaciosActuales = [];
-let hnElementosDependientes = []; // Repisas y futuros elementos
+// Estado del módulo y piezas
+let hnPiezasActuales = [];
 let hnPiezaSeleccionada = null;
 let timerDimensionesMaestras = null;
 
@@ -2595,13 +2593,14 @@ function cerrarHNDesigner() {
 }
 
 function seleccionarHerramientaVisual(nombreHerramienta) {
-    console.log("HN Designer - Herramienta seleccionada:", nombreHerramienta);
+    console.log("HN Designer - Herramienta seleccionada visualmente:", nombreHerramienta);
 }
 
 function initHNDesigner3D() {
     const container = document.getElementById('hn-viewport-3d');
     if (!container) return;
 
+    // Limpiar canvas anterior si existe
     container.innerHTML = '';
 
     const width = container.clientWidth;
@@ -2611,6 +2610,7 @@ function initHNDesigner3D() {
     hnScene.background = new THREE.Color(0xf8fafc);
 
     hnCamera = new THREE.PerspectiveCamera(45, width / height, 1, 50000);
+    // Posición inicial de cámara acorde a un módulo de 2000 mm de alto
     hnCamera.position.set(0, 1000, 3000);
 
     hnRenderer = new THREE.WebGLRenderer({ antialias: true });
@@ -2624,6 +2624,7 @@ function initHNDesigner3D() {
     hnControls.dampingFactor = 0.05;
     hnControls.target.set(0, 1000, 0);
 
+    // Iluminación
     const ambientLight = new THREE.AmbientLight(0xffffff, 0.7);
     hnScene.add(ambientLight);
 
@@ -2635,14 +2636,21 @@ function initHNDesigner3D() {
     dirLight2.position.set(-1000, -1000, -2000);
     hnScene.add(dirLight2);
 
+    // Grid de referencia en el piso
     const gridHelper = new THREE.GridHelper(5000, 50, 0xd1d5db, 0xe5e7eb);
     gridHelper.position.y = 0;
     hnScene.add(gridHelper);
 
+    // Event listeners para selección de piezas 3D
     container.addEventListener('click', onHNDesignerClick, false);
+
+    // Redimensionado de ventana
     window.addEventListener('resize', onHNDesignerResize, false);
 
+    // Crear el módulo inicial estándar
     crearModuloNuevoVisual();
+
+    // Loop de renderizado
     animateHNDesigner();
 }
 
@@ -2664,23 +2672,163 @@ function onHNDesignerResize() {
     hnRenderer.setSize(width, height);
 }
 
-// Ruta única de actualización paramétrica (MUEBLE -> ESTRUCTURA -> ESPACIOS -> ELEMENTOS)
+// Generar o reconstruir módulo inicial de 5 piezas independientes con ID y estructura conceptual
 function crearModuloNuevoVisual() {
-    if (!hnCurrentModuleId) {
-        hnCurrentModuleId = 'mod_' + Math.random().toString(36).substr(2, 9);
+    // Leer dimensiones maestras actuales o valores por defecto
+    const anchoInput = document.getElementById('hn-master-ancho');
+    const altoInput = document.getElementById('hn-master-alto');
+    const profInput = document.getElementById('hn-master-prof');
+    const espInput = document.getElementById('hn-master-espesor');
+    const fondoInput = document.getElementById('hn-master-fondo');
+
+    const W = anchoInput ? parseFloat(anchoInput.value) : 1000;
+    const H = altoInput ? parseFloat(altoInput.value) : 2000;
+    const D = profInput ? parseFloat(profInput.value) : 500;
+    const T = espInput ? parseFloat(espInput.value) : 18;
+    const F = fondoInput ? parseFloat(fondoInput.value) : 3;
+
+    // Limpiar piezas anteriores en la escena y eliminar geometrías y materiales para evitar superposiciones o geometría fantasma
+    if (hnScene) {
+        hnPiezasActuales.forEach(piezaObj => {
+            if (piezaObj.mesh) {
+                hnScene.remove(piezaObj.mesh);
+                if (piezaObj.mesh.geometry) piezaObj.mesh.geometry.dispose();
+                if (piezaObj.mesh.material) {
+                    if (Array.isArray(piezaObj.mesh.material)) {
+                        piezaObj.mesh.material.forEach(m => m.dispose());
+                    } else {
+                        piezaObj.mesh.material.dispose();
+                    }
+                }
+            }
+        });
     }
-    hnElementosDependientes = [];
-    recalcularEstructuraYDependencias();
+
+    hnPiezasActuales = [];
+    hnPiezaSeleccionada = null;
+    restaurarPanelDerechoMaestro();
+
+    const moduleId = 'mod_' + Math.random().toString(36).substr(2, 9);
+
+    // Definición de las 5 piezas estructurales independientes en milímetros
+    const definicionesPiezas = [
+        {
+            id: 'piez_lat_izq_' + Math.random().toString(36).substr(2, 5),
+            moduleId: moduleId,
+            type: 'Lateral izquierdo',
+            width: T,
+            height: H,
+            depth: D,
+            thickness: T,
+            x: T / 2,
+            y: H / 2,
+            z: D / 2,
+            material: 'Blanco'
+        },
+        {
+            id: 'piez_lat_der_' + Math.random().toString(36).substr(2, 5),
+            moduleId: moduleId,
+            type: 'Lateral derecho',
+            width: T,
+            height: H,
+            depth: D,
+            thickness: T,
+            x: W - (T / 2),
+            y: H / 2,
+            z: D / 2,
+            material: 'Blanco'
+        },
+        {
+            id: 'piez_tapa_' + Math.random().toString(36).substr(2, 5),
+            moduleId: moduleId,
+            type: 'Tapa superior',
+            width: W - (2 * T),
+            height: T,
+            depth: D,
+            thickness: T,
+            x: W / 2,
+            y: H - (T / 2),
+            z: D / 2,
+            material: 'Blanco'
+        },
+        {
+            id: 'piez_base_' + Math.random().toString(36).substr(2, 5),
+            moduleId: moduleId,
+            type: 'Base inferior',
+            width: W - (2 * T),
+            height: T,
+            depth: D,
+            thickness: T,
+            x: W / 2,
+            y: T / 2,
+            z: D / 2,
+            material: 'Blanco'
+        },
+        {
+            id: 'piez_fondo_' + Math.random().toString(36).substr(2, 5),
+            moduleId: moduleId,
+            type: 'Fondo',
+            width: W - (2 * T),
+            height: H - (2 * T),
+            depth: F,
+            thickness: F,
+            x: W / 2,
+            y: H / 2,
+            z: F / 2,
+            material: 'Blanco'
+        }
+    ];
+
+    // Crear geometría 3D en Three.js para cada pieza independiente
+    definicionesPiezas.forEach(data => {
+        let geometry;
+        if (data.type === 'Lateral izquierdo' || data.type === 'Lateral derecho') {
+            geometry = new THREE.BoxGeometry(data.width, data.height, data.depth);
+        } else if (data.type === 'Tapa superior' || data.type === 'Base inferior') {
+            geometry = new THREE.BoxGeometry(data.width, data.height, data.depth);
+        } else if (data.type === 'Fondo') {
+            geometry = new THREE.BoxGeometry(data.width, data.height, data.depth);
+        }
+
+        const material = new THREE.MeshStandardMaterial({
+            color: 0xfafafa,
+            roughness: 0.4,
+            metalness: 0.1
+        });
+
+        const mesh = new THREE.Mesh(geometry, material);
+        mesh.position.set(data.x - (W / 2), data.y, data.z - (D / 2));
+
+        const edges = new THREE.EdgesGeometry(geometry);
+        const line = new THREE.LineSegments(edges, new THREE.LineBasicMaterial({ color: 0x94a3b8, linewidth: 1 }));
+        mesh.add(line);
+
+        mesh.userData = { pieceData: data };
+
+        hnScene.add(mesh);
+        hnPiezasActuales.push({
+            ...data,
+            mesh: mesh,
+            originalColor: 0xfafafa
+        });
+    });
+
+    if (hnControls) {
+        hnControls.target.set(0, H / 2, 0);
+        hnControls.update();
+    }
 }
 
+// Wrapper con debounce para evitar pérdida de foco al escribir rápido en los inputs maestros
 function actualizarDimensionesMaestrasDebounced() {
     if (timerDimensionesMaestras) clearTimeout(timerDimensionesMaestras);
     timerDimensionesMaestras = setTimeout(() => {
-        recalcularEstructuraYDependencias();
+        actualizarDimensionesMaestras();
     }, 250);
 }
 
-function recalcularEstructuraYDependencias() {
+// Recálculo paramétrico en tiempo real: Reconstruye completamente la geometría con las nuevas dimensiones sin dejar rastros anteriores
+function actualizarDimensionesMaestras() {
     const anchoInput = document.getElementById('hn-master-ancho');
     const altoInput = document.getElementById('hn-master-alto');
     const profInput = document.getElementById('hn-master-prof');
@@ -2695,91 +2843,104 @@ function recalcularEstructuraYDependencias() {
     const T = parseFloat(espInput.value) || 18;
     const F = parseFloat(fondoInput.value) || 3;
 
-    // Limpieza total de meshes anteriores en la escena
+    // Eliminar completamente todos los meshes anteriores de la escena y liberar recursos de memoria
     if (hnScene) {
-        const toRemove = [];
-        hnScene.traverse((child) => {
-            if (child.isMesh && child !== hnScene) {
-                toRemove.push(child);
-            }
-        });
-        toRemove.forEach(mesh => {
-            hnScene.remove(mesh);
-            if (mesh.geometry) mesh.geometry.dispose();
-            if (mesh.material) {
-                if (Array.isArray(mesh.material)) mesh.material.forEach(m => m.dispose());
-                else mesh.material.dispose();
+        hnPiezasActuales.forEach(piezaObj => {
+            if (piezaObj.mesh) {
+                hnScene.remove(piezaObj.mesh);
+                if (piezaObj.mesh.geometry) piezaObj.mesh.geometry.dispose();
+                if (piezaObj.mesh.material) {
+                    if (Array.isArray(piezaObj.mesh.material)) {
+                        piezaObj.mesh.material.forEach(m => m.dispose());
+                    } else {
+                        piezaObj.mesh.material.dispose();
+                    }
+                }
             }
         });
     }
 
-    // 1. NIVEL ESTRUCTURA (5 Piezas principales)
-    const estructuraPiezas = [
+    hnPiezasActuales = [];
+
+    const moduleId = 'mod_' + Math.random().toString(36).substr(2, 9);
+
+    const definicionesPiezas = [
         {
-            id: 'piez_lat_izq_' + hnCurrentModuleId,
-            moduleId: hnCurrentModuleId,
+            id: 'piez_lat_izq_' + Math.random().toString(36).substr(2, 5),
+            moduleId: moduleId,
             type: 'Lateral izquierdo',
             width: T,
             height: H,
             depth: D,
+            thickness: T,
             x: T / 2,
             y: H / 2,
-            z: D / 2
+            z: D / 2,
+            material: 'Blanco'
         },
         {
-            id: 'piez_lat_der_' + hnCurrentModuleId,
-            moduleId: hnCurrentModuleId,
+            id: 'piez_lat_der_' + Math.random().toString(36).substr(2, 5),
+            moduleId: moduleId,
             type: 'Lateral derecho',
             width: T,
             height: H,
             depth: D,
+            thickness: T,
             x: W - (T / 2),
             y: H / 2,
-            z: D / 2
+            z: D / 2,
+            material: 'Blanco'
         },
         {
-            id: 'piez_tapa_' + hnCurrentModuleId,
-            moduleId: hnCurrentModuleId,
+            id: 'piez_tapa_' + Math.random().toString(36).substr(2, 5),
+            moduleId: moduleId,
             type: 'Tapa superior',
             width: W - (2 * T),
             height: T,
             depth: D,
+            thickness: T,
             x: W / 2,
             y: H - (T / 2),
-            z: D / 2
+            z: D / 2,
+            material: 'Blanco'
         },
         {
-            id: 'piez_base_' + hnCurrentModuleId,
-            moduleId: hnCurrentModuleId,
+            id: 'piez_base_' + Math.random().toString(36).substr(2, 5),
+            moduleId: moduleId,
             type: 'Base inferior',
             width: W - (2 * T),
             height: T,
             depth: D,
+            thickness: T,
             x: W / 2,
             y: T / 2,
-            z: D / 2
+            z: D / 2,
+            material: 'Blanco'
         },
         {
-            id: 'piez_fondo_' + hnCurrentModuleId,
-            moduleId: hnCurrentModuleId,
+            id: 'piez_fondo_' + Math.random().toString(36).substr(2, 5),
+            moduleId: moduleId,
             type: 'Fondo',
             width: W - (2 * T),
             height: H - (2 * T),
             depth: F,
+            thickness: F,
             x: W / 2,
             y: H / 2,
-            z: F / 2
+            z: F / 2,
+            material: 'Blanco'
         }
     ];
 
-    // Renderizar estructura en 3D
-    estructuraPiezas.forEach(data => {
-        const geometry = new THREE.BoxGeometry(data.width, data.height, data.depth);
+    definicionesPiezas.forEach(data => {
+        let geometry = new THREE.BoxGeometry(data.width, data.height, data.depth);
+
         const material = new THREE.MeshStandardMaterial({
-            color: (hnPiezaSeleccionada && hnPiezaSeleccionada.id === data.id) ? 0xf59e0b : 0xfafafa,
+            color: (hnPiezaSeleccionada && hnPiezaSeleccionada.type === data.type) ? 0xf59e0b : 0xfafafa,
             roughness: 0.4,
             metalness: 0.1
         });
+
         const mesh = new THREE.Mesh(geometry, material);
         mesh.position.set(data.x - (W / 2), data.y, data.z - (D / 2));
 
@@ -2788,62 +2949,24 @@ function recalcularEstructuraYDependencias() {
         mesh.add(line);
 
         mesh.userData = { pieceData: data };
+
         hnScene.add(mesh);
+        hnPiezasActuales.push({
+            ...data,
+            mesh: mesh,
+            originalColor: 0xfafafa
+        });
     });
 
-    // 2. NIVEL ESPACIOS (Cálculo automático del espacio interior útil)
-    const espacioUtilLeft = T;
-    const espacioUtilRight = W - T;
-    const espacioUtilBottom = T;
-    const espacioUtilTop = H - T;
-    const espacioUtilDepth = D - F; // Profundidad útil descontando el fondo
-
-    const spaceId = 'space_main_' + hnCurrentModuleId;
-    hnEspaciosActuales = [{
-        spaceId: spaceId,
-        moduleId: hnCurrentModuleId,
-        left: espacioUtilLeft,
-        right: espacioUtilRight,
-        bottom: espacioUtilBottom,
-        top: espacioUtilTop,
-        width: espacioUtilRight - espacioUtilLeft,
-        height: espacioUtilTop - espacioUtilBottom,
-        depth: espacioUtilDepth
-    }];
-
-    // 3. NIVEL ELEMENTOS DEPENDIENTES (Recálculo paramétrico de repisas existentes vinculadas al espacio)
-    if (hnElementosDependientes.length > 0) {
-        const numRepisas = hnElementosDependientes.length;
-        const espacioUtilH = (espacioUtilTop - espacioUtilBottom);
-        const pasoY = espacioUtilH / (numRepisas + 1);
-        const repisaAncho = espacioUtilRight - espacioUtilLeft;
-        const repisaDepth = espacioUtilDepth;
-        const espRepisa = 18; // Espesor estándar de repisa
-
-        hnElementosDependientes.forEach((repisa, index) => {
-            repisa.width = repisaAncho;
-            repisa.depth = repisaDepth;
-            repisa.thickness = espRepisa;
-            repisa.x = W / 2;
-            repisa.y = espacioUtilBottom + pasoY * (index + 1);
-            repisa.z = (repisaDepth / 2) + F;
-
-            const geometry = new THREE.BoxGeometry(repisa.width, repisa.thickness, repisa.depth);
-            const material = new THREE.MeshStandardMaterial({
-                color: (hnPiezaSeleccionada && hnPiezaSeleccionada.id === repisa.id) ? 0xf59e0b : 0xfafafa,
-                roughness: 0.4,
-                metalness: 0.1
-            });
-            const mesh = new THREE.Mesh(geometry, material);
-            mesh.position.set(repisa.x - (W / 2), repisa.y, repisa.z - (D / 2));
-
-            const edges = new THREE.EdgesGeometry(geometry);
-            const line = new THREE.LineSegments(edges, new THREE.LineBasicMaterial({ color: 0x94a3b8, linewidth: 1 }));
-            mesh.add(line);
-
-            mesh.userData = { pieceData: repisa };
-            hnScene.add(mesh);
-        });
+    if (hnPiezaSeleccionada) {
+        const encontrada = hnPiezasActuales.find(p => p.type === hnPiezaSeleccionada.type);
+        if (encontrada) {
+            hnPiezaSeleccionada = encontrada;
+            mostrarPropiedadesPieza(hnPiezaSeleccionada);
+        } else {
+            hnPiezaSeleccionada = null;
+            restaurarPanelDerechoMaestro();
+        }
     }
 
     if (hnControls) {
@@ -2851,26 +2974,7 @@ function recalcularEstructuraYDependencias() {
     }
 }
 
-// Función para agregar 5 repisas automáticas al espacio principal respetando el principio paramétrico
-function agregarRepisasAlEspacioActivo() {
-    if (hnEspaciosActuales.length === 0) return;
-    const espacio = hnEspaciosActuales[0];
-
-    hnElementosDependientes = [];
-    const cantidadRepisas = 5;
-    for (let i = 0; i < cantidadRepisas; i++) {
-        hnElementosDependientes.push({
-            id: 'repisa_' + Math.random().toString(36).substr(2, 7),
-            moduleId: hnCurrentModuleId,
-            spaceId: espacio.spaceId,
-            type: 'Repisa',
-            material: 'Blanco'
-        });
-    }
-
-    recalcularEstructuraYDependencias();
-}
-
+// Selección de pieza desde la vista 3D mediante Raycasting
 function onHNDesignerClick(event) {
     const container = document.getElementById('hn-viewport-3d');
     if (!container) return;
@@ -2881,13 +2985,7 @@ function onHNDesignerClick(event) {
 
     hnRaycaster.setFromCamera(hnMouse, hnCamera);
     
-    const meshes = [];
-    hnScene.traverse((child) => {
-        if (child.isMesh && child.userData && child.userData.pieceData) {
-            meshes.push(child);
-        }
-    });
-
+    const meshes = hnPiezasActuales.map(p => p.mesh);
     const intersects = hnRaycaster.intersectObjects(meshes, false);
 
     if (intersects.length > 0) {
@@ -2900,22 +2998,21 @@ function onHNDesignerClick(event) {
 }
 
 function seleccionarPiezaPorId(id) {
-    hnScene.traverse((child) => {
-        if (child.isMesh && child.material && child.userData && child.userData.pieceData) {
-            child.material.color.setHex(0xfafafa);
+    hnPiezasActuales.forEach(p => {
+        if (p.mesh && p.mesh.material) {
+            p.mesh.material.color.setHex(0xfafafa);
         }
     });
 
-    let piezaEncontrada = null;
-    hnScene.traverse((child) => {
-        if (child.isMesh && child.userData && child.userData.pieceData && child.userData.pieceData.id === id) {
-            piezaEncontrada = child.userData.pieceData;
-            child.material.color.setHex(0xf59e0b);
-        }
-    });
-
+    const piezaEncontrada = hnPiezasActuales.find(p => p.id === id);
     if (!piezaEncontrada) return;
+
     hnPiezaSeleccionada = piezaEncontrada;
+
+    if (piezaEncontrada.mesh && piezaEncontrada.mesh.material) {
+        piezaEncontrada.mesh.material.color.setHex(0xf59e0b);
+    }
+
     mostrarPropiedadesPieza(piezaEncontrada);
 }
 
@@ -2934,21 +3031,16 @@ function mostrarPropiedadesPieza(pieza) {
             <label>ID de Pieza</label>
             <input type="text" value="${pieza.id}" readonly style="background:#f3f4f6; color:#6b7280; font-size:0.75rem;">
         </div>
-        ${pieza.spaceId ? `
-        <div class="hn-prop-row">
-            <label>Espacio Vinculado (spaceId)</label>
-            <input type="text" value="${pieza.spaceId}" readonly style="background:#f3f4f6; color:#6b7280; font-size:0.75rem;">
-        </div>` : ''}
         <div class="hn-prop-row">
             <label>Ancho (mm)</label>
             <input type="number" value="${pieza.width.toFixed(1)}" readonly>
         </div>
         <div class="hn-prop-row">
             <label>Alto / Longitud (mm)</label>
-            <input type="number" value="${(pieza.height || pieza.thickness || 0).toFixed(1)}" readonly>
+            <input type="number" value="${pieza.height.toFixed(1)}" readonly>
         </div>
         <div class="hn-prop-row">
-            <label>Profundidad (mm)</label>
+            <label>Profundidad / Espesor (mm)</label>
             <input type="number" value="${pieza.depth.toFixed(1)}" readonly>
         </div>
         <div class="hn-prop-row">
@@ -2980,9 +3072,9 @@ function mostrarPropiedadesPieza(pieza) {
 
 function restaurarPanelDerechoMaestro() {
     hnPiezaSeleccionada = null;
-    hnScene.traverse((child) => {
-        if (child.isMesh && child.material && child.userData && child.userData.pieceData) {
-            child.material.color.setHex(0xfafafa);
+    hnPiezasActuales.forEach(p => {
+        if (p.mesh && p.mesh.material) {
+            p.mesh.material.color.setHex(0xfafafa);
         }
     });
 
@@ -3024,7 +3116,7 @@ function restaurarPanelDerechoMaestro() {
         </div>
         <div class="hn-properties-divider"></div>
         <div style="font-size: 0.75rem; color: #6b7280; text-align: center;">
-            Modifica las dimensiones maestras para recalcular el módulo estructural y sus elementos dependientes.
+            Modifica las dimensiones maestras para recalcular el módulo estructural.
         </div>
     `;
 }
