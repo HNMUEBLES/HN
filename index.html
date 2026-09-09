@@ -440,6 +440,335 @@
     }
 
 
+    /* ==========================================================
+       HN DESIGNER - INTERFAZ VISUAL PROFESIONAL (PASO 1)
+       Aislado con contenedor principal #hn-designer
+       Estilo limpio, profesional, blanco/gris, sin romper nada.
+       ========================================================== */
+    #hn-designer {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      background-color: #f3f4f6;
+      color: #1f2937;
+      z-index: 999999;
+      flex-direction: column;
+      overflow: hidden;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    }
+
+    #hn-designer .hn-topbar {
+      height: 56px;
+      background-color: #ffffff;
+      border-bottom: 1px solid #e5e7eb;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 1rem;
+      flex-shrink: 0;
+    }
+
+    #hn-designer .hn-topbar-left {
+      display: flex;
+      align-items: center;
+      gap: 1.5rem;
+    }
+
+    #hn-designer .hn-logo-area {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+    }
+
+    #hn-designer .hn-logo-area .hn-brand {
+      font-weight: 700;
+      font-size: 0.95rem;
+      color: #111827;
+    }
+
+    #hn-designer .hn-logo-area .hn-subbrand {
+      font-weight: 500;
+      font-size: 0.85rem;
+      color: #6b7280;
+      border-left: 1px solid #e5e7eb;
+      padding-left: 0.75rem;
+    }
+
+    #hn-designer .hn-menu-bar {
+      display: flex;
+      align-items: center;
+      gap: 0.25rem;
+    }
+
+    #hn-designer .hn-menu-btn {
+      background: transparent;
+      border: none;
+      padding: 0.4rem 0.75rem;
+      border-radius: 4px;
+      font-size: 0.85rem;
+      font-weight: 500;
+      color: #374151;
+      cursor: pointer;
+    }
+
+    #hn-designer .hn-menu-btn:hover {
+      background-color: #f9fafb;
+      color: #111827;
+    }
+
+    #hn-designer .hn-topbar-right {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+    }
+
+    #hn-designer .hn-close-designer-btn {
+      background: #ef4444;
+      color: white;
+      border: none;
+      padding: 0.4rem 0.8rem;
+      border-radius: 4px;
+      font-size: 0.8rem;
+      font-weight: 600;
+      cursor: pointer;
+    }
+
+    #hn-designer .hn-close-designer-btn:hover {
+      background: #dc2626;
+    }
+
+    #hn-designer .hn-main-layout {
+      display: flex;
+      flex: 1;
+      overflow: hidden;
+    }
+
+    #hn-designer .hn-left-panel {
+      width: 280px;
+      background-color: #ffffff;
+      border-right: 1px solid #e5e7eb;
+      display: flex;
+      flex-direction: column;
+      overflow-y: auto;
+      flex-shrink: 0;
+      user-select: none;
+    }
+
+    #hn-designer .hn-sidebar-section {
+      border-bottom: 1px solid #e5e7eb;
+      padding: 0.75rem 1rem;
+    }
+
+    #hn-designer .hn-sidebar-title {
+      font-size: 0.75rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: #9ca3af;
+      margin-bottom: 0.5rem;
+    }
+
+    #hn-designer .hn-sidebar-group {
+      display: flex;
+      flex-direction: column;
+      gap: 0.35rem;
+    }
+
+    #hn-designer .hn-tool-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: #f9fafb;
+      border: 1px solid #e5e7eb;
+      padding: 0.5rem 0.75rem;
+      border-radius: 6px;
+      font-size: 0.85rem;
+      font-weight: 500;
+      color: #374151;
+      cursor: pointer;
+      transition: all 0.15s ease;
+    }
+
+    #hn-designer .hn-tool-item:hover {
+      background: #f3f4f6;
+      border-color: #d1d5db;
+      color: #111827;
+    }
+
+    #hn-designer .hn-tool-item span.hn-note {
+      font-size: 0.7rem;
+      color: #6b7280;
+      background: #e5e7eb;
+      padding: 0.1rem 0.3rem;
+      border-radius: 3px;
+    }
+
+    #hn-designer .hn-center-viewport {
+      flex: 1;
+      background: radial-gradient(circle, #f8fafc 0%, #e2e8f0 100%);
+      position: relative;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+    }
+
+    #hn-designer .hn-viewport-placeholder {
+      text-align: center;
+      padding: 2rem;
+      background: rgba(255, 255, 255, 0.85);
+      border: 1px dashed #cbd5e1;
+      border-radius: 12px;
+      box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05);
+      max-width: 450px;
+      z-index: 2;
+    }
+
+    #hn-designer .hn-viewport-placeholder h3 {
+      font-size: 1.2rem;
+      color: #1e293b;
+      margin-bottom: 0.5rem;
+    }
+
+    #hn-designer .hn-viewport-placeholder p {
+      font-size: 0.9rem;
+      color: #64748b;
+      margin-bottom: 1rem;
+    }
+
+    #hn-designer .hn-viewport-badge {
+      display: inline-block;
+      background: #dbeafe;
+      color: #1e40af;
+      font-size: 0.75rem;
+      font-weight: 600;
+      padding: 0.25rem 0.75rem;
+      border-radius: 9999px;
+      margin-bottom: 0.5rem;
+    }
+
+    #hn-designer .hn-demo-cube-scene {
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      pointer-events: none;
+    }
+
+    #hn-designer .hn-demo-cabinet {
+      width: 220px;
+      height: 300px;
+      border: 2px solid #334155;
+      background: rgba(255, 255, 255, 0.6);
+      box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+      position: relative;
+      border-radius: 4px;
+      transform: perspective(800px) rotateY(-15deg) rotateX(5deg);
+    }
+
+    #hn-designer .hn-demo-shelf {
+      position: absolute;
+      width: 100%;
+      height: 12px;
+      background: #cbd5e1;
+      border-top: 1px solid #94a3b8;
+      border-bottom: 1px solid #94a3b8;
+      top: 45%;
+    }
+
+    #hn-designer .hn-demo-montante {
+      position: absolute;
+      width: 12px;
+      height: 100%;
+      background: #cbd5e1;
+      left: 50%;
+      transform: translateX(-50%);
+      border-left: 1px solid #94a3b8;
+      border-right: 1px solid #94a3b8;
+    }
+
+    #hn-designer .hn-right-panel {
+      width: 300px;
+      background-color: #ffffff;
+      border-left: 1px solid #e5e7eb;
+      display: flex;
+      flex-direction: column;
+      overflow-y: auto;
+      flex-shrink: 0;
+    }
+
+    #hn-designer .hn-properties-header {
+      padding: 1rem;
+      border-bottom: 1px solid #e5e7eb;
+      background: #f9fafb;
+    }
+
+    #hn-designer .hn-properties-title {
+      font-size: 0.9rem;
+      font-weight: 700;
+      color: #111827;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    #hn-designer .hn-selected-indicator {
+      font-size: 0.7rem;
+      background: #dcfce7;
+      color: #166534;
+      padding: 0.15rem 0.5rem;
+      border-radius: 4px;
+      font-weight: 600;
+    }
+
+    #hn-designer .hn-properties-body {
+      padding: 1rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.85rem;
+    }
+
+    #hn-designer .hn-prop-row {
+      display: flex;
+      flex-direction: column;
+      gap: 0.3rem;
+    }
+
+    #hn-designer .hn-prop-row label {
+      font-size: 0.75rem;
+      font-weight: 600;
+      color: #4b5563;
+    }
+
+    #hn-designer .hn-prop-row input,
+    #hn-designer .hn-prop-row select {
+      padding: 0.5rem;
+      border: 1px solid #e5e7eb;
+      border-radius: 6px;
+      font-size: 0.85rem;
+      background: #fff;
+      color: #1f2937;
+    }
+
+    #hn-designer .hn-prop-row input:focus,
+    #hn-designer .hn-prop-row select:focus {
+      outline: none;
+      border-color: #3b82f6;
+      box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.15);
+    }
+
+    #hn-designer .hn-properties-divider {
+      height: 1px;
+      background: #e5e7eb;
+      margin: 0.5rem 0;
+    }
+
+
     /*
       =====================================================
       RESPONSIVE
@@ -1335,16 +1664,26 @@
         </h2>
 
 
-        <button
-          onclick="cerrarSesionAdmin()"
-          class="logout-btn"
-        >
+        <div style="display: flex; gap: 10px; align-items: center;">
+          <button
+            onclick="abrirHNDesigner()"
+            class="btn-primary-modern"
+            style="background: #10b981; border: none; padding: 10px 16px; cursor: pointer; font-weight: bold; border-radius: 8px; display: flex; align-items: center; gap: 8px;"
+          >
+            <i class="fa-solid fa-cube"></i> Abrir HN DESIGNER
+          </button>
 
-          <i class="fa-solid fa-right-from-bracket"></i>
+          <button
+            onclick="cerrarSesionAdmin()"
+            class="logout-btn"
+          >
 
-          Salir
+            <i class="fa-solid fa-right-from-bracket"></i>
 
-        </button>
+            Salir
+
+          </button>
+        </div>
 
       </div>
 
@@ -1945,6 +2284,169 @@
 
 
 
+<!-- ==========================================================
+     HN DESIGNER - INTERFAZ VISUAL PROFESIONAL (PASO 1)
+     Contenedor aislado independiente
+     ========================================================== -->
+<div id="hn-designer">
+    <!-- BARRA SUPERIOR -->
+    <div class="hn-topbar">
+        <div class="hn-topbar-left">
+            <div class="hn-logo-area">
+                <span class="hn-brand">HN MUEBLES</span>
+                <span class="hn-subbrand">HN DESIGNER</span>
+            </div>
+            <div class="hn-menu-bar">
+                <button class="hn-menu-btn" onclick="alert('Nuevo proyecto (Visual)')">Nuevo</button>
+                <button class="hn-menu-btn" onclick="alert('Abrir proyecto (Visual)')">Abrir</button>
+                <button class="hn-menu-btn" onclick="alert('Guardar modelo (Visual)')">Guardar</button>
+                <button class="hn-menu-btn" onclick="alert('Deshacer (Visual)')">Deshacer</button>
+                <button class="hn-menu-btn" onclick="alert('Rehacer (Visual)')">Rehacer</button>
+                <button class="hn-menu-btn" onclick="alert('Configuración de vista (Visual)')">Vista</button>
+                <button class="hn-menu-btn" onclick="alert('Configuración general (Visual)')">Configuración</button>
+            </div>
+        </div>
+        <div class="hn-topbar-right">
+            <span style="font-size: 0.8rem; color: #6b7280; font-weight: 500;">Modo Interfaz Visual v1.0</span>
+            <button class="hn-close-designer-btn" onclick="cerrarHNDesigner()">Cerrar Diseñador</button>
+        </div>
+    </div>
+
+    <!-- CUERPO PRINCIPAL -->
+    <div class="hn-main-layout">
+        <!-- PANEL IZQUIERDO -->
+        <div class="hn-left-panel">
+            <!-- PROYECTO -->
+            <div class="hn-sidebar-section">
+                <div class="hn-sidebar-title">Proyecto</div>
+                <div class="hn-sidebar-group">
+                    <div class="hn-tool-item" onclick="seleccionarHerramientaVisual('Nuevo módulo')">Nuevo módulo <span class="hn-note">Módulo</span></div>
+                    <div class="hn-tool-item" onclick="seleccionarHerramientaVisual('Módulos')">Módulos <span class="hn-note">Lista</span></div>
+                    <div class="hn-tool-item" onclick="seleccionarHerramientaVisual('Conjuntos')">Conjuntos <span class="hn-note">Grupo</span></div>
+                </div>
+            </div>
+
+            <!-- ESTRUCTURA -->
+            <div class="hn-sidebar-section">
+                <div class="hn-sidebar-title">Estructura</div>
+                <div class="hn-sidebar-group">
+                    <div class="hn-tool-item" onclick="seleccionarHerramientaVisual('Montantes')">Montantes <span class="hn-note">Vertical</span></div>
+                    <div class="hn-tool-item" onclick="seleccionarHerramientaVisual('Repisas')">Repisas / Estantes <span class="hn-note">Horizontal</span></div>
+                    <div class="hn-tool-item" onclick="seleccionarHerramientaVisual('Fondo')">Fondo <span class="hn-note">Respaldo</span></div>
+                </div>
+            </div>
+
+            <!-- CAJONES -->
+            <div class="hn-sidebar-section">
+                <div class="hn-sidebar-title">Cajones</div>
+                <div class="hn-sidebar-group">
+                    <div class="hn-tool-item" onclick="seleccionarHerramientaVisual('Agregar cajón')">Agregar cajón <span class="hn-note">Cajón</span></div>
+                    <div class="hn-tool-item" onclick="seleccionarHerramientaVisual('Riel telescópico')">Riel telescópico <span class="hn-note">Herraje</span></div>
+                </div>
+            </div>
+
+            <!-- PUERTAS -->
+            <div class="hn-sidebar-section">
+                <div class="hn-sidebar-title">Puertas</div>
+                <div class="hn-sidebar-group">
+                    <div class="hn-tool-item" onclick="seleccionarHerramientaVisual('Agregar puerta')">Agregar puerta <span class="hn-note">Hoja</span></div>
+                    <div class="hn-tool-item" onclick="seleccionarHerramientaVisual('Bisagras')">Bisagras <span class="hn-note">Herraje</span></div>
+                </div>
+            </div>
+
+            <!-- PERCHEROS -->
+            <div class="hn-sidebar-section">
+                <div class="hn-sidebar-title">Percheros</div>
+                <div class="hn-sidebar-group">
+                    <div class="hn-tool-item" onclick="seleccionarHerramientaVisual('Tubo redondo')">Tubo redondo <span class="hn-note">Colgador</span></div>
+                    <div class="hn-tool-item" onclick="seleccionarHerramientaVisual('Tubo ovalado')">Tubo ovalado <span class="hn-note">Colgador</span></div>
+                </div>
+            </div>
+
+            <!-- ACCESORIOS -->
+            <div class="hn-sidebar-section">
+                <div class="hn-sidebar-title">Accesorios</div>
+                <div class="hn-sidebar-group">
+                    <div class="hn-tool-item" onclick="seleccionarHerramientaVisual('Jaladores')">Jaladores <span class="hn-note">Tirador</span></div>
+                    <div class="hn-tool-item" onclick="seleccionarHerramientaVisual('Soportes')">Soportes <span class="hn-note">Herraje</span></div>
+                    <div class="hn-tool-item" onclick="seleccionarHerramientaVisual('Perchas')">Perchas <span class="hn-note">Colgador</span></div>
+                </div>
+            </div>
+
+            <!-- MATERIALES -->
+            <div class="hn-sidebar-section">
+                <div class="hn-sidebar-title">Materiales</div>
+                <div class="hn-sidebar-group">
+                    <div class="hn-tool-item" onclick="seleccionarHerramientaVisual('Melamina')">Melamina <span class="hn-note">Tablero</span></div>
+                    <div class="hn-tool-item" onclick="seleccionarHerramientaVisual('Espesor')">Espesor <span class="hn-note">18 mm</span></div>
+                    <div class="hn-tool-item" onclick="seleccionarHerramientaVisual('Color')">Color <span class="hn-note">Blanco</span></div>
+                    <div class="hn-tool-item" onclick="seleccionarHerramientaVisual('Textura')">Textura <span class="hn-note">Madera</span></div>
+                    <div class="hn-tool-item" onclick="seleccionarHerramientaVisual('Acabado')">Acabado <span class="hn-note">Mate</span></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ÁREA CENTRAL (VISOR 3D DEMO) -->
+        <div class="hn-center-viewport">
+            <div class="hn-demo-cube-scene">
+                <div class="hn-demo-cabinet">
+                    <div class="hn-demo-montante"></div>
+                    <div class="hn-demo-shelf"></div>
+                </div>
+            </div>
+
+            <div class="hn-viewport-placeholder">
+                <span class="hn-viewport-badge">Visor 3D Preparado</span>
+                <h3>Área del Visor 3D Profesional</h3>
+                <p>Preparado para la futura integración con Three.js / WebGL y el motor paramétrico independiente.</p>
+                <button class="btn-primary-modern" style="padding: 0.5rem 1rem; font-size: 0.85rem;" onclick="alternarEjemploPanelDerecho()">Cambiar Elemento de Prueba</button>
+            </div>
+        </div>
+
+        <!-- PANEL DERECHO (PROPIEDADES CONTEXTUALES) -->
+        <div class="hn-right-panel">
+            <div class="hn-properties-header">
+                <div class="hn-properties-title">
+                    <span id="hn-prop-title-text">REPISA #3</span>
+                    <span class="hn-selected-indicator">Seleccionado</span>
+                </div>
+            </div>
+            <div class="hn-properties-body" id="hn-properties-content-container">
+                <div class="hn-prop-row">
+                    <label>Ancho (mm)</label>
+                    <input type="number" value="964" id="hn-prop-ancho">
+                </div>
+                <div class="hn-prop-row">
+                    <label>Profundidad (mm)</label>
+                    <input type="number" value="482" id="hn-prop-prof">
+                </div>
+                <div class="hn-prop-row">
+                    <label>Espesor (mm)</label>
+                    <input type="number" value="18" id="hn-prop-esp">
+                </div>
+                <div class="hn-prop-row">
+                    <label>Desde abajo (mm)</label>
+                    <input type="number" value="730" id="hn-prop-y">
+                </div>
+                <div class="hn-prop-row">
+                    <label>Material</label>
+                    <select id="hn-prop-mat">
+                        <option value="Blanco">Blanco</option>
+                        <option value="Roble">Roble Natural</option>
+                        <option value="Negro Mate">Negro Mate</option>
+                    </select>
+                </div>
+                <div class="hn-properties-divider"></div>
+                <div style="font-size: 0.75rem; color: #6b7280; text-align: center;">
+                    Propiedades visuales de demostración para el Paso 1.
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+
 <!-- =========================================================
      FIREBASE
 ========================================================= -->
@@ -2142,6 +2644,128 @@ function cambiarVistaAdmin(vista, botonSeleccionado) {
 
 /*
 =============================================================
+FUNCIONES DE HN DESIGNER (AISLADAS)
+=============================================================
+*/
+
+function abrirHNDesigner() {
+    const designer = document.getElementById('hn-designer');
+    if (designer) {
+        designer.style.display = 'flex';
+    }
+}
+
+function cerrarHNDesigner() {
+    const designer = document.getElementById('hn-designer');
+    if (designer) {
+        designer.style.display = 'none';
+    }
+}
+
+function seleccionarHerramientaVisual(nombreHerramienta) {
+    console.log("HN Designer - Herramienta seleccionada visualmente:", nombreHerramienta);
+}
+
+let tipoEjemploActual = 1;
+function alternarEjemploPanelDerecho() {
+    const titleText = document.getElementById('hn-prop-title-text');
+    const container = document.getElementById('hn-properties-content-container');
+    
+    if (tipoEjemploActual === 1) {
+        titleText.innerText = "CAJÓN #2";
+        container.innerHTML = `
+            <div class="hn-prop-row">
+                <label>Ancho (mm)</label>
+                <input type="number" value="764">
+            </div>
+            <div class="hn-prop-row">
+                <label>Alto (mm)</label>
+                <input type="number" value="180">
+            </div>
+            <div class="hn-prop-row">
+                <label>Profundidad (mm)</label>
+                <input type="number" value="450">
+            </div>
+            <div class="hn-prop-row">
+                <label>Espesor (mm)</label>
+                <input type="number" value="18">
+            </div>
+            <div class="hn-prop-row">
+                <label>Riel</label>
+                <select>
+                    <option value="Telescópico">Telescópico</option>
+                    <option value="Oculto">Oculto</option>
+                </select>
+            </div>
+            <div class="hn-properties-divider"></div>
+            <div style="font-size: 0.75rem; color: #6b7280; text-align: center;">Propiedad de cajón demostrativa.</div>
+        `;
+        tipoEjemploActual = 2;
+    } else if (tipoEjemploActual === 2) {
+        titleText.innerText = "PERCHERO #1";
+        container.innerHTML = `
+            <div class="hn-prop-row">
+                <label>Tipo</label>
+                <select>
+                    <option value="Ovalado">Ovalado</option>
+                    <option value="Redondo">Redondo</option>
+                </select>
+            </div>
+            <div class="hn-prop-row">
+                <label>Longitud (mm)</label>
+                <input type="number" value="964">
+            </div>
+            <div class="hn-prop-row">
+                <label>Altura (mm)</label>
+                <input type="number" value="350">
+            </div>
+            <div class="hn-prop-row">
+                <label>Material</label>
+                <input type="text" value="Aluminio">
+            </div>
+            <div class="hn-prop-row">
+                <label>Perchas</label>
+                <input type="number" value="6">
+            </div>
+            <div class="hn-properties-divider"></div>
+            <div style="font-size: 0.75rem; color: #6b7280; text-align: center;">Propiedad de perchero demostrativa.</div>
+        `;
+        tipoEjemploActual = 3;
+    } else {
+        titleText.innerText = "REPISA #3";
+        container.innerHTML = `
+            <div class="hn-prop-row">
+                <label>Ancho (mm)</label>
+                <input type="number" value="964">
+            </div>
+            <div class="hn-prop-row">
+                <label>Profundidad (mm)</label>
+                <input type="number" value="482">
+            </div>
+            <div class="hn-prop-row">
+                <label>Espesor (mm)</label>
+                <input type="number" value="18">
+            </div>
+            <div class="hn-prop-row">
+                <label>Desde abajo (mm)</label>
+                <input type="number" value="730">
+            </div>
+            <div class="hn-prop-row">
+                <label>Material</label>
+                <select>
+                    <option value="Blanco">Blanco</option>
+                    <option value="Roble">Roble Natural</option>
+                </select>
+            </div>
+            <div class="hn-properties-divider"></div>
+            <div style="font-size: 0.75rem; color: #6b7280; text-align: center;">Propiedad de repisa demostrativa.</div>
+        `;
+        tipoEjemploActual = 1;
+    }
+}
+
+/*
+=============================================================
 ESC PARA CERRAR PANELES
 =============================================================
 */
@@ -2150,6 +2774,12 @@ document.addEventListener(
   "keydown",
   function(event) {
     if (event.key !== "Escape") return;
+
+    const designer = document.getElementById("hn-designer");
+    if (designer && designer.style.display === "flex") {
+      cerrarHNDesigner();
+      return;
+    }
 
     const admin = document.getElementById("modal-admin");
     if (admin && !admin.classList.contains("hidden")) {
