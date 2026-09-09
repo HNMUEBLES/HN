@@ -1364,6 +1364,9 @@
         <button onclick="cambiarVistaAdmin('portafolio', this)">
           <i class="fa-solid fa-images"></i> Portafolio
         </button>
+        <button onclick="cambiarVistaAdmin('disenador', this)">
+          <i class="fa-solid fa-cube"></i> 🧩 Diseñador 3D
+        </button>
       </nav>
 
 
@@ -1937,6 +1940,23 @@
       </div>
 
 
+
+      <!-- =================================================
+           VISTA 4: DISEÑADOR 3D
+      ================================================== -->
+
+      <div id="vista-disenador" class="admin-vista hidden">
+        <div style="text-align: center; padding: 60px 20px;">
+          <h2>
+            <i class="fa-solid fa-cube font-amber"></i> DISEÑADOR 3D
+          </h2>
+          <p class="subtitle" style="margin-top: 10px;">
+            Módulo reservado para el sistema de diseño en 3D.
+          </p>
+        </div>
+      </div>
+
+
     </div>
 
   </div>
@@ -2128,6 +2148,7 @@ function cambiarVistaAdmin(vista, botonSeleccionado) {
   document.getElementById('vista-proyectos').classList.add('hidden');
   document.getElementById('vista-ingresos').classList.add('hidden');
   document.getElementById('vista-portafolio').classList.add('hidden');
+  document.getElementById('vista-disenador').classList.add('hidden');
 
   document.getElementById('vista-' + vista).classList.remove('hidden');
 
