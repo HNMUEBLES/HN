@@ -2686,16 +2686,18 @@ function crearModuloNuevoVisual() {
     const T = espInput ? parseFloat(espInput.value) : 18;
     const F = fondoInput ? parseFloat(fondoInput.value) : 3;
 
-    // Limpiar piezas anteriores en la escena
+    // Limpiar piezas anteriores en la escena y eliminar geometrías y materiales para evitar superposiciones o geometría fantasma
     if (hnScene) {
         hnPiezasActuales.forEach(piezaObj => {
-            hnScene.remove(piezaObj.mesh);
-            if (piezaObj.mesh.geometry) piezaObj.mesh.geometry.dispose();
-            if (piezaObj.mesh.material) {
-                if (Array.isArray(piezaObj.mesh.material)) {
-                    piezaObj.mesh.material.forEach(m => m.dispose());
-                } else {
-                    piezaObj.mesh.material.dispose();
+            if (piezaObj.mesh) {
+                hnScene.remove(piezaObj.mesh);
+                if (piezaObj.mesh.geometry) piezaObj.mesh.geometry.dispose();
+                if (piezaObj.mesh.material) {
+                    if (Array.isArray(piezaObj.mesh.material)) {
+                        piezaObj.mesh.material.forEach(m => m.dispose());
+                    } else {
+                        piezaObj.mesh.material.dispose();
+                    }
                 }
             }
         });
@@ -2816,7 +2818,7 @@ function crearModuloNuevoVisual() {
     }
 }
 
-// Recálculo automático en tiempo real al cambiar dimensiones maestras
+// Recálculo paramétrico en tiempo real: Reconstruye completamente la geometría con las nuevas dimensiones sin dejar rastros anteriores
 function actualizarDimensionesMaestras() {
     const anchoInput = document.getElementById('hn-master-ancho');
     const altoInput = document.getElementById('hn-master-alto');
@@ -2832,69 +2834,134 @@ function actualizarDimensionesMaestras() {
     const T = parseFloat(espInput.value) || 18;
     const F = parseFloat(fondoInput.value) || 3;
 
-    hnPiezasActuales.forEach(pieza => {
-        let newWidth = pieza.width;
-        let newHeight = pieza.height;
-        let newDepth = pieza.depth;
-        let newX = pieza.x;
-        let newY = pieza.y;
-        let newZ = pieza.z;
+    // Eliminar completamente todos los meshes anteriores de la escena y liberar recursos de memoria
+    if (hnScene) {
+        hnPiezasActuales.forEach(piezaObj => {
+            if (piezaObj.mesh) {
+                hnScene.remove(piezaObj.mesh);
+                if (piezaObj.mesh.geometry) piezaObj.mesh.geometry.dispose();
+                if (piezaObj.mesh.material) {
+                    if (Array.isArray(piezaObj.mesh.material)) {
+                        piezaObj.mesh.material.forEach(m => m.dispose());
+                    } else {
+                        piezaObj.mesh.material.dispose();
+                    }
+                }
+            }
+        });
+    }
 
-        if (pieza.type === 'Lateral izquierdo') {
-            newWidth = T;
-            newHeight = H;
-            newDepth = D;
-            newX = T / 2;
-            newY = H / 2;
-            newZ = D / 2;
-        } else if (pieza.type === 'Lateral derecho') {
-            newWidth = T;
-            newHeight = H;
-            newDepth = D;
-            newX = W - (T / 2);
-            newY = H / 2;
-            newZ = D / 2;
-        } else if (pieza.type === 'Tapa superior') {
-            newWidth = W - (2 * T);
-            newHeight = T;
-            newDepth = D;
-            newX = W / 2;
-            newY = H - (T / 2);
-            newZ = D / 2;
-        } else if (pieza.type === 'Base inferior') {
-            newWidth = W - (2 * T);
-            newHeight = T;
-            newDepth = D;
-            newX = W / 2;
-            newY = T / 2;
-            newZ = D / 2;
-        } else if (pieza.type === 'Fondo') {
-            newWidth = W - (2 * T);
-            newHeight = H - (2 * T);
-            newDepth = F;
-            newX = W / 2;
-            newY = H / 2;
-            newZ = F / 2;
+    hnPiezasActuales = [];
+
+    const moduleId = 'mod_' + Math.random().toString(36).substr(2, 9);
+
+    const definicionesPiezas = [
+        {
+            id: 'piez_lat_izq_' + Math.random().toString(36).substr(2, 5),
+            moduleId: moduleId,
+            type: 'Lateral izquierdo',
+            width: T,
+            height: H,
+            depth: D,
+            thickness: T,
+            x: T / 2,
+            y: H / 2,
+            z: D / 2,
+            material: 'Blanco'
+        },
+        {
+            id: 'piez_lat_der_' + Math.random().toString(36).substr(2, 5),
+            moduleId: moduleId,
+            type: 'Lateral derecho',
+            width: T,
+            height: H,
+            depth: D,
+            thickness: T,
+            x: W - (T / 2),
+            y: H / 2,
+            z: D / 2,
+            material: 'Blanco'
+        },
+        {
+            id: 'piez_tapa_' + Math.random().toString(36).substr(2, 5),
+            moduleId: moduleId,
+            type: 'Tapa superior',
+            width: W - (2 * T),
+            height: T,
+            depth: D,
+            thickness: T,
+            x: W / 2,
+            y: H - (T / 2),
+            z: D / 2,
+            material: 'Blanco'
+        },
+        {
+            id: 'piez_base_' + Math.random().toString(36).substr(2, 5),
+            moduleId: moduleId,
+            type: 'Base inferior',
+            width: W - (2 * T),
+            height: T,
+            depth: D,
+            thickness: T,
+            x: W / 2,
+            y: T / 2,
+            z: D / 2,
+            material: 'Blanco'
+        },
+        {
+            id: 'piez_fondo_' + Math.random().toString(36).substr(2, 5),
+            moduleId: moduleId,
+            type: 'Fondo',
+            width: W - (2 * T),
+            height: H - (2 * T),
+            depth: F,
+            thickness: F,
+            x: W / 2,
+            y: H / 2,
+            z: F / 2,
+            material: 'Blanco'
         }
+    ];
 
-        pieza.width = newWidth;
-        pieza.height = newHeight;
-        pieza.depth = newDepth;
-        pieza.x = newX;
-        pieza.y = newY;
-        pieza.z = newZ;
+    definicionesPiezas.forEach(data => {
+        let geometry = new THREE.BoxGeometry(data.width, data.height, data.depth);
 
-        pieza.mesh.geometry.dispose();
-        pieza.mesh.geometry = new THREE.BoxGeometry(newWidth, newHeight, newDepth);
-        pieza.mesh.position.set(newX - (W / 2), newY, newZ - (D / 2));
+        const material = new THREE.MeshStandardMaterial({
+            color: (hnPiezaSeleccionada && hnPiezaSeleccionada.type === data.type) ? 0xf59e0b : 0xfafafa,
+            roughness: 0.4,
+            metalness: 0.1
+        });
+
+        const mesh = new THREE.Mesh(geometry, material);
+        mesh.position.set(data.x - (W / 2), data.y, data.z - (D / 2));
+
+        const edges = new THREE.EdgesGeometry(geometry);
+        const line = new THREE.LineSegments(edges, new THREE.LineBasicMaterial({ color: 0x94a3b8, linewidth: 1 }));
+        mesh.add(line);
+
+        mesh.userData = { pieceData: data };
+
+        hnScene.add(mesh);
+        hnPiezasActuales.push({
+            ...data,
+            mesh: mesh,
+            originalColor: 0xfafafa
+        });
     });
+
+    if (hnPiezaSeleccionada) {
+        const encontrada = hnPiezasActuales.find(p => p.type === hnPiezaSeleccionada.type);
+        if (encontrada) {
+            hnPiezaSeleccionada = encontrada;
+            mostrarPropiedadesPieza(hnPiezaSeleccionada);
+        } else {
+            hnPiezaSeleccionada = null;
+            restaurarPanelDerechoMaestro();
+        }
+    }
 
     if (hnControls) {
         hnControls.target.set(0, H / 2, 0);
-    }
-
-    if (hnPiezaSeleccionada) {
-        mostrarPropiedadesPieza(hnPiezaSeleccionada);
     }
 }
 
