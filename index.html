@@ -1948,13 +1948,13 @@
 
 
       <!-- =================================================
-           VISTA 4: DISEÑADOR 3D (PASO 8: ESPACIOS Y DIVISIONES AUTOMÁTICAS)
+           VISTA 4: DISEÑADOR 3D (PASO 9: PUERTAS AUTOMÁTICAS POR ESPACIO)
       ================================================== -->
 
       <div id="vista-disenador" class="admin-vista hidden">
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
           <h2>
-            <i class="fa-solid fa-cube font-amber"></i> DISEÑADOR 3D <span style="font-size:0.9rem; color:#f59e0b; font-weight:normal;">(Espacios & Divisiones Automáticas)</span>
+            <i class="fa-solid fa-cube font-amber"></i> DISEÑADOR 3D <span style="font-size:0.9rem; color:#f59e0b; font-weight:normal;">(Puertas Automáticas por Espacio)</span>
           </h2>
           <div style="display: flex; gap: 10px; align-items: center;">
             <button type="button" onclick="agregarCajonParametrico()" class="btn-primary-modern" style="padding: 8px 16px; font-size: 0.9rem; background: #f59e0b; color: #000; font-weight: bold;">
@@ -1997,7 +1997,7 @@
               <i class="fa-solid fa-sliders"></i> Panel del Diseñador
             </h3>
 
-            <!-- SECCIÓN: AGREGAR ELEMENTO (PASO 8) -->
+            <!-- SECCIÓN: AGREGAR ELEMENTO (PASO 9: PUERTAS) -->
             <div id="seccion-agregar-elemento" style="background: rgba(245,158,11,0.04); border: 1px solid rgba(245,158,11,0.2); border-radius: 8px; padding: 12px; margin-bottom: 15px;">
               <label style="font-size: 0.8rem; font-weight: bold; color: #f59e0b; display: block; margin-bottom: 8px;">
                 <i class="fa-solid fa-plus-circle"></i> AGREGAR ELEMENTO
@@ -2006,35 +2006,39 @@
               <div style="display: flex; gap: 6px; margin-bottom: 8px; flex-wrap: wrap;">
                 <button type="button" class="btn-herramienta-diseno" onclick="seleccionarHerramienta('repisa')" style="flex: 1; padding: 6px 10px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.15); border-radius: 6px; color: #fff; font-size: 0.8rem; cursor: pointer;">Repisas</button>
                 <button type="button" class="btn-herramienta-diseno" onclick="seleccionarHerramienta('cajon')" style="flex: 1; padding: 6px 10px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.15); border-radius: 6px; color: #fff; font-size: 0.8rem; cursor: pointer;">Cajón</button>
-                <button type="button" class="btn-herramienta-diseno active-herramienta" onclick="seleccionarHerramienta('division')" style="flex: 1; padding: 6px 10px; background: rgba(245,158,11,0.2); border: 1px solid #f59e0b; border-radius: 6px; color: #f59e0b; font-size: 0.8rem; font-weight: bold; cursor: pointer;">División</button>
+                <button type="button" class="btn-herramienta-diseno" onclick="seleccionarHerramienta('division')" style="flex: 1; padding: 6px 10px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.15); border-radius: 6px; color: #fff; font-size: 0.8rem; cursor: pointer;">División</button>
+                <button type="button" class="btn-herramienta-diseno active-herramienta" onclick="seleccionarHerramienta('puerta')" style="flex: 1; padding: 6px 10px; background: rgba(245,158,11,0.2); border: 1px solid #f59e0b; border-radius: 6px; color: #f59e0b; font-size: 0.8rem; font-weight: bold; cursor: pointer;">Puerta</button>
               </div>
 
-              <!-- Controles para División Automática -->
-              <div id="controles-division-auto" style="margin-top: 10px; border-top: 1px dashed rgba(245,158,11,0.2); pt: 8px;">
+              <!-- Controles para Puerta Automática por Espacio -->
+              <div id="controles-puerta-auto" style="margin-top: 10px; border-top: 1px dashed rgba(245,158,11,0.2); pt: 8px;">
                 <div style="font-size: 0.75rem; color: rgba(255,255,255,0.7); margin-bottom: 6px;">
                   Espacio Seleccionado: <strong id="lbl-espacio-activo" style="color: #f59e0b;">Ninguno (Selecciona un espacio 3D)</strong>
                 </div>
                 
                 <div style="display: flex; gap: 8px; align-items: center; margin-bottom: 8px;">
-                  <label style="font-size: 0.75rem; color: #fff; white-space: nowrap;">Cantidad de divisiones:</label>
-                  <input type="number" id="input-cant-divisiones" value="2" min="1" max="10" style="width: 60px; padding: 4px; background: rgba(0,0,0,0.5); border: 1px solid rgba(255,255,255,0.2); border-radius: 6px; color: #fff; text-align: center;" />
+                  <label style="font-size: 0.75rem; color: #fff; white-space: nowrap;">Tipo de Puerta:</label>
+                  <select id="select-tipo-puerta" style="width: 100%; padding: 6px; background: rgba(0,0,0,0.5); border: 1px solid rgba(255,255,255,0.2); border-radius: 6px; color: #fff; font-size: 0.8rem;">
+                    <option value="batiente_1">1 Hoja Batiente</option>
+                    <option value="batiente_2">2 Hojas Batientes</option>
+                  </select>
                 </div>
 
-                <button type="button" onclick="ejecutarDivisionAutomatica()" class="btn-primary-modern" style="width: 100%; padding: 8px; font-size: 0.85rem; background: #f59e0b; color: #000; font-weight: bold;">
-                  + DIVISIÓN AUTOMÁTICA
+                <button type="button" onclick="ejecutarPuertaAutomatica()" class="btn-primary-modern" style="width: 100%; padding: 8px; font-size: 0.85rem; background: #f59e0b; color: #000; font-weight: bold;">
+                  + PUERTA AUTOMÁTICA
                 </button>
               </div>
 
               <!-- Futuros elementos preparados -->
               <div style="margin-top: 8px; font-size: 0.7rem; color: rgba(255,255,255,0.4); display: flex; gap: 6px; flex-wrap: wrap;">
-                <span>[Puerta]</span> <span>[Fondo]</span> <span>[Colgador]</span> <span>[Accesorios]</span> <span>[Otros]</span>
+                <span>[Fondo]</span> <span>[Colgador]</span> <span>[Accesorios]</span> <span>[Otros]</span>
               </div>
             </div>
 
             <!-- PROPIEDADES DE PIEZA / ESPACIO SELECCIONADO -->
             <div id="sin-seleccion-msg" style="text-align: center; color: rgba(255,255,255,0.5); padding: 20px 10px; font-size: 0.9rem;">
               <i class="fa-solid fa-hand-pointer" style="font-size: 1.5rem; margin-bottom: 8px; display: block; color: rgba(245,158,11,0.4);"></i>
-              Selecciona visualmente un espacio interior en el visor 3D para agregar divisiones automáticas.
+              Selecciona visualmente un espacio interior en el visor 3D para agregar puertas automáticas exactas.
             </div>
 
             <div id="con-seleccion-form" class="hidden" style="display: flex; flex-direction: column; gap: 10px;">
@@ -2252,7 +2256,7 @@ function cerrarModalAdmin() {
 
 /*
 =============================================================
-SISTEMA DE DISEÑADOR 3D — PASO 8: DIVISIONES AUTOMÁTICAS POR ESPACIOS
+SISTEMA DE DISEÑADOR 3D — PASO 9: PUERTAS AUTOMÁTICAS POR ESPACIO
 =============================================================
 */
 let scene3D, camera3D, renderer3D, controls3D, animationFrameId3D;
@@ -2272,7 +2276,7 @@ let meshesPiezasMap = new Map();
 let meshesEspaciosMap = new Map();
 let piezaSeleccionadaId = null;
 let espacioSeleccionadoId = null;
-let herramientaActiva = 'division';
+let herramientaActiva = 'puerta';
 let raycaster3D, mouse3D;
 
 function initDisenador3D() {
@@ -2335,7 +2339,7 @@ function seleccionarHerramienta(herramienta) {
   herramientaActiva = herramienta;
 }
 
-// Reconstrucción paramétrica completa (Mueble Maestro + Espacios + Divisiones Vinculadas)
+// Reconstrucción paramétrica completa (Mueble Maestro + Espacios + Divisiones + Puertas Automáticas Vinculadas)
 function reconstruirEstructuraMuebleMaestro() {
   const W = muebleMaestro.ancho;
   const H = muebleMaestro.alto;
@@ -2362,8 +2366,9 @@ function reconstruirEstructuraMuebleMaestro() {
   });
   meshesEspaciosMap.clear();
 
-  // Filtrar divisiones y cajones existentes para recalcular sus posiciones según el nuevo espacio/maestras
-  const divisionesExistentes = piezasDisenador.filter(p => p.tipo === 'division' || p.spaceId);
+  // Guardar elementos existentes para recalcular sus posiciones según el nuevo espacio/maestras
+  const divisionesExistentes = piezasDisenador.filter(p => p.tipo === 'division' || (p.spaceId && !p.esPuerta));
+  const puertasExistentes = piezasDisenador.filter(p => p.tipo === 'puerta' || p.esPuerta);
   const cajonesExistentes = piezasDisenador.filter(p => p.drawerId);
   
   piezasDisenador = [];
@@ -2455,10 +2460,16 @@ function reconstruirEstructuraMuebleMaestro() {
   espaciosDisenador = [espacioInterior];
   crearEspacioEnEscena(espacioInterior);
 
-  // Recalcular divisiones vinculadas a su spaceId original
+  // Recalcular divisiones vinculadas
   divisionesExistentes.forEach(div => {
     const space = espaciosDisenador.find(s => s.id === div.spaceId) || espacioInterior;
     recalcularYAgregarDivision(space, div.cantidadTotal || 1, div.id);
+  });
+
+  // Recalcular puertas automáticas vinculadas
+  puertasExistentes.forEach(p => {
+    const space = espaciosDisenador.find(s => s.id === p.spaceId) || espacioInterior;
+    recalcularYAgregarPuerta(space, p.tipoPuerta || 'batiente_1', p.id);
   });
 
   cajonesExistentes.forEach(c => agregarPiezaDirecta(c));
@@ -2489,8 +2500,10 @@ function crearPiezaEnEscena(pieza) {
   const geometry = new THREE.BoxGeometry(pieza.ancho, pieza.alto, pieza.profundidad);
   const material = new THREE.MeshStandardMaterial({
     color: pieza.id === piezaSeleccionadaId ? 0xf59e0b : pieza.materialColor,
-    roughness: 0.5,
-    metalness: 0.1
+    roughness: 0.4,
+    metalness: 0.1,
+    transparent: pieza.esPuerta || pieza.tipo === 'puerta',
+    opacity: (pieza.esPuerta || pieza.tipo === 'puerta') ? 0.92 : 1.0
   });
 
   const mesh = new THREE.Mesh(geometry, material);
@@ -2504,7 +2517,6 @@ function crearPiezaEnEscena(pieza) {
 function crearEspacioEnEscena(espacio) {
   if (!scene3D) return;
 
-  // Geometría wireframe semitransparente para representar visualmente el espacio seleccionable
   const geometry = new THREE.BoxGeometry(espacio.ancho, espacio.alto, espacio.profundidad);
   const material = new THREE.MeshBasicMaterial({
     color: espacio.id === espacioSeleccionadoId ? 0xf59e0b : 0x333333,
@@ -2536,9 +2548,8 @@ function ejecutarDivisionAutomatica() {
 }
 
 function recalcularYAgregarDivision(space, cantidad, divisionIdExistente = null) {
-  const esporDiv = 18; // Espesor estándar de la repisa/división
+  const esporDiv = 18;
   
-  // Eliminar divisiones previas vinculadas a este espacio para recalcular limpio
   const idsAnteriores = piezasDisenador.filter(p => p.spaceId === space.id && p.tipo === 'division').map(p => p.id);
   idsAnteriores.forEach(id => {
     const m = meshesPiezasMap.get(id);
@@ -2551,7 +2562,6 @@ function recalcularYAgregarDivision(space, cantidad, divisionIdExistente = null)
   });
   piezasDisenador = piezasDisenador.filter(p => !idsAnteriores.includes(p.id));
 
-  // Cálculo automático paramétrico exacto dentro de los límites del espacio
   const alturaDisponible = space.alto;
   const pasoY = alturaDisponible / (cantidad + 1);
   const baseYInferior = space.posY - (space.alto / 2);
@@ -2577,6 +2587,110 @@ function recalcularYAgregarDivision(space, cantidad, divisionIdExistente = null)
 
     piezasDisenador.push(nuevaDivision);
     crearPiezaEnEscena(nuevaDivision);
+  }
+}
+
+// LÓGICA DE PUERTAS AUTOMÁTICAS POR ESPACIO (PASO 9)
+function ejecutarPuertaAutomatica() {
+  if (!espacioSeleccionadoId) {
+    alert('Por favor, selecciona visualmente un espacio interior primero para colocar su puerta.');
+    return;
+  }
+
+  const space = espaciosDisenador.find(s => s.id === espacioSeleccionadoId);
+  if (!space) return;
+
+  const tipoPuerta = document.getElementById('select-tipo-puerta').value;
+  recalcularYAgregarPuerta(space, tipoPuerta);
+}
+
+function recalcularYAgregarPuerta(space, tipoPuerta, puertaIdExistente = null) {
+  const espesorPuerta = 18;
+  const holgura = 4; // Holgura perimetral estándar de fabricación
+
+  // Eliminar puertas anteriores vinculadas a este espacio
+  const idsAnteriores = piezasDisenador.filter(p => p.spaceId === space.id && p.esPuerta).map(p => p.id);
+  idsAnteriores.forEach(id => {
+    const m = meshesPiezasMap.get(id);
+    if (m) {
+      scene3D.remove(m);
+      if (m.geometry) m.geometry.dispose();
+      if (m.material) m.material.dispose();
+      meshesPiezasMap.delete(id);
+    }
+  });
+  piezasDisenador = piezasDisenador.filter(p => !idsAnteriores.includes(p.id));
+
+  const altoPuerta = space.alto - holgura;
+  const posicionZPuerta = space.posZ + (space.profundidad / 2) + (espesorPuerta / 2);
+  const colorPuerta = 0xfefae0; // Tono melamina blanca / clara premium para puertas
+
+  if (tipoPuerta === 'batiente_1') {
+    const anchoPuerta = space.ancho - holgura;
+    const puertaId = puertaIdExistente || 'puerta_' + Math.random().toString(36).substring(2, 9);
+
+    const nuevaPuerta = {
+      id: puertaId,
+      tipo: 'puerta',
+      esPuerta: true,
+      spaceId: space.id,
+      tipoPuerta: 'batiente_1',
+      ancho: anchoPuerta,
+      alto: altoPuerta,
+      profundidad: espesorPuerta,
+      espesor: espesorPuerta,
+      posX: space.posX,
+      posY: space.posY,
+      posZ: posicionZPuerta,
+      materialColor: colorPuerta
+    };
+
+    piezasDisenador.push(nuevaPuerta);
+    crearPiezaEnEscena(nuevaPuerta);
+
+  } else if (tipoPuerta === 'batiente_2') {
+    const anchoHoja = (space.ancho / 2) - (holgura / 2) - 2;
+    const centroIzqX = space.posX - (space.ancho / 4);
+    const centroDerX = space.posX + (space.ancho / 4);
+
+    const idIzq = puertaIdExistente ? puertaIdExistente + '_izq' : 'puerta_' + Math.random().toString(36).substring(2, 9) + '_izq';
+    const idDer = puertaIdExistente ? puertaIdExistente + '_der' : 'puerta_' + Math.random().toString(36).substring(2, 9) + '_der';
+
+    const puertaIzq = {
+      id: idIzq,
+      tipo: 'puerta',
+      esPuerta: true,
+      spaceId: space.id,
+      tipoPuerta: 'batiente_2',
+      ancho: anchoHoja,
+      alto: altoPuerta,
+      profundidad: espesorPuerta,
+      espesor: espesorPuerta,
+      posX: centroIzqX,
+      posY: space.posY,
+      posZ: posicionZPuerta,
+      materialColor: colorPuerta
+    };
+
+    const puertaDer = {
+      id: idDer,
+      tipo: 'puerta',
+      esPuerta: true,
+      spaceId: space.id,
+      tipoPuerta: 'batiente_2',
+      ancho: anchoHoja,
+      alto: altoPuerta,
+      profundidad: espesorPuerta,
+      espesor: espesorPuerta,
+      posX: centroDerX,
+      posY: space.posY,
+      posZ: posicionZPuerta,
+      materialColor: colorPuerta
+    };
+
+    piezasDisenador.push(puertaIzq, puertaDer);
+    crearPiezaEnEscena(puertaIzq);
+    crearPiezaEnEscena(puertaDer);
   }
 }
 
