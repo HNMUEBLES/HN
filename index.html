@@ -2508,7 +2508,7 @@ function cambiarVistaAdmin(vista, botonSeleccionado) {
 
 /*
 =============================================================
-HN DESIGNER - MOTOR PARAMÉTRICO REAL PASO 6 (EDICIÓN MANUAL SIN PROMPT/ALERT)
+HN DESIGNER - MOTOR PARAMÉTRICO REAL PASO 6 (EDICIÓN MANUAL DE ESPACIOS Y ELEMENTOS)
 =============================================================
 */
 
@@ -2520,7 +2520,6 @@ let hnAnimationId = null;
 let hnRaycaster = new THREE.Raycaster();
 let hnMouse = new THREE.Vector2();
 
-// Estado del módulo paramétrico, espacios y elementos
 let hnModuloActual = {
     moduleId: 'mod_default',
     ancho: 1000,
@@ -2534,8 +2533,8 @@ let hnModuloActual = {
 };
 
 let hnEspaciosActuales = [];
-let hnElementosActuales = []; // Contiene montantes y repisas con spaceId real
-let hnSeleccionActual = null; // { tipo: 'modulo'|'espacio'|'montante'|'repisa', objeto: ... }
+let hnElementosActuales = []; 
+let hnSeleccionActual = null; 
 let timerDimensionesMaestras = null;
 
 function abrirHNDesigner() {
@@ -2623,7 +2622,6 @@ function onHNDesignerResize() {
     hnRenderer.setSize(width, height);
 }
 
-// MOTOR DE RECÁLCULO CENTRAL PARAMÉTRICO (PASO 6)
 function crearModuloNuevoParametrico() {
     const anchoInput = document.getElementById('hn-master-ancho');
     const altoInput = document.getElementById('hn-master-alto');
@@ -2637,7 +2635,6 @@ function crearModuloNuevoParametrico() {
     hnModuloActual.espesor = espInput ? parseFloat(espInput.value) || 18 : 18;
     hnModuloActual.fondo = fondoInput ? parseFloat(fondoInput.value) || 3 : 3;
 
-    // Inicializar un espacio principal que abarque todo el módulo útil
     hnEspaciosActuales = [{
         spaceId: 'space_' + Math.random().toString(36).substr(2, 6),
         moduleId: hnModuloActual.moduleId,
@@ -2685,7 +2682,6 @@ function ejecutarRecalculoParametricoCompleto() {
     hnModuloActual.espesor = nuevoEsp;
     hnModuloActual.fondo = nuevoFondo;
 
-    // Recalcular espacios existentes proporcionalmente o mantener límites válidos
     hnEspaciosActuales.forEach(esp => {
         esp.xMin = Math.min(esp.xMin * factorAncho, hnModuloActual.ancho - hnModuloActual.espesor);
         esp.xMax = Math.min(esp.xMax * factorAncho, hnModuloActual.ancho - hnModuloActual.espesor);
@@ -2694,7 +2690,6 @@ function ejecutarRecalculoParametricoCompleto() {
         esp.profundidad = hnModuloActual.profundidad - hnModuloActual.fondo;
     });
 
-    // RELACIÓN PARAMÉTRICA estricta: MONTANTE -> ESPACIO -> REPISA
     hnElementosActuales.forEach(elem => {
         if (elem.tipo === 'montante') {
             elem.x = Math.max(hnModuloActual.espesor, Math.min(elem.x * factorAncho, hnModuloActual.ancho - hnModuloActual.espesor - elem.espesor));
@@ -2719,7 +2714,6 @@ function ejecutarRecalculoParametricoCompleto() {
 function reconstruirEscena3DParametrica() {
     if (!hnScene) return;
 
-    // Limpiar meshes anteriores
     const objetosAEliminar = [];
     hnScene.traverse(child => {
         if (child.isMesh && child.userData && child.userData.isParametric) {
@@ -2742,7 +2736,6 @@ function reconstruirEscena3DParametrica() {
     const T = hnModuloActual.espesor;
     const F = hnModuloActual.fondo;
 
-    // 1. ESTRUCTURA BASE (5 piezas maestras)
     const piezasEstructurales = [
         { type: 'Lateral izquierdo', width: T, height: H, depth: D, x: T / 2, y: H / 2, z: D / 2 },
         { type: 'Lateral derecho', width: T, height: H, depth: D, x: W - (T / 2), y: H / 2, z: D / 2 },
@@ -2765,7 +2758,6 @@ function reconstruirEscena3DParametrica() {
         hnScene.add(mesh);
     });
 
-    // 2. ELEMENTOS DEPENDIENTES (Montantes y Repisas adaptadas a sus espacios)
     hnElementosActuales.forEach(elem => {
         let geom;
         if (elem.tipo === 'montante') {
@@ -2802,9 +2794,8 @@ function reconstruirEscena3DParametrica() {
     }
 }
 
-// GESTIÓN DE MONTANTES SIN PROMPT/ALERT (DESDE BOTONES / PANEL)
 function agregarMontanteParametricoModal() {
-    const posX = hnModuloActual.ancho / 2; // Posición inicial por defecto al centro
+    const posX = hnModuloActual.ancho / 2;
     if (posX <= hnModuloActual.espesor || posX >= hnModuloActual.ancho - hnModuloActual.espesor) return;
 
     const pieceId = 'mont_' + Math.random().toString(36).substr(2, 6);
@@ -2872,7 +2863,6 @@ function recalcularEspaciosConMontante(posX) {
     hnEspaciosActuales = nuevosEspacios;
 }
 
-// GESTIÓN DE REPISAS PARAMÉTRICAS SIN PROMPT/ALERT
 function agregarRepisaParametricaModal() {
     if (hnEspaciosActuales.length === 0) return;
 
@@ -2928,7 +2918,6 @@ function actualizarSidebarEspacios() {
     });
 }
 
-// SELECCIÓN Y PROPIEDADES EN 3D
 function onHNDesignerClick(event) {
     const container = document.getElementById('hn-viewport-3d');
     if (!container) return;
