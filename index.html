@@ -1119,20 +1119,20 @@
             <!-- Contenedor de Medidas Detalladas -->
             <div class="cotizador-full" id="contenedor-medidas-detalladas">
               <label style="display: block; margin-bottom: 8px;">
-                Medidas aproximadas <span class="medidas-nota">(en metros o centímetros)</span>
+                Medidas aproximadas <span class="medidas-nota">(en milímetros)</span>
               </label>
               <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px;">
                 <div>
-                  <label for="cot-alto" style="font-size: 0.8rem; color: #aaa;">Alto</label>
-                  <input type="text" id="cot-alto" placeholder="Ej: 2.10m" />
+                  <label for="cot-alto" style="font-size: 0.8rem; color: #aaa;">Alto (mm)</label>
+                  <input type="text" id="cot-alto" placeholder="Ej: 2100" />
                 </div>
                 <div>
-                  <label for="cot-largo" style="font-size: 0.8rem; color: #aaa;">Largo / Ancho</label>
-                  <input type="text" id="cot-largo" placeholder="Ej: 1.80m" />
+                  <label for="cot-largo" style="font-size: 0.8rem; color: #aaa;">Largo / Ancho (mm)</label>
+                  <input type="text" id="cot-largo" placeholder="Ej: 1800" />
                 </div>
                 <div>
-                  <label for="cot-profundidad" style="font-size: 0.8rem; color: #aaa;">Profundidad</label>
-                  <input type="text" id="cot-profundidad" placeholder="Ej: 60cm" />
+                  <label for="cot-profundidad" style="font-size: 0.8rem; color: #aaa;">Profundidad (mm)</label>
+                  <input type="text" id="cot-profundidad" placeholder="Ej: 600" />
                 </div>
               </div>
             </div>
@@ -1948,17 +1948,22 @@
 
 
       <!-- =================================================
-           VISTA 4: DISEÑADOR 3D (VISOR THREE.JS + PASO 6 EDICIÓN PARAMÉTRICA)
+           VISTA 4: DISEÑADOR 3D (VISOR THREE.JS + PASO 6 & PASO 7 CAJONES)
       ================================================== -->
 
       <div id="vista-disenador" class="admin-vista hidden">
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
           <h2>
-            <i class="fa-solid fa-cube font-amber"></i> DISEÑADOR 3D <span style="font-size:0.9rem; color:#f59e0b; font-weight:normal;">(Edición Paramétrica para SketchUp)</span>
+            <i class="fa-solid fa-cube font-amber"></i> DISEÑADOR 3D <span style="font-size:0.9rem; color:#f59e0b; font-weight:normal;">(Estandarizado en mm)</span>
           </h2>
-          <span style="font-size: 0.85rem; color: rgba(255,255,255,0.6); background: rgba(255,255,255,0.05); padding: 6px 12px; border-radius: 6px; border: 1px solid rgba(255,255,255,0.08);">
-            Haz clic en cualquier pieza para editar sus propiedades
-          </span>
+          <div style="display: flex; gap: 10px; align-items: center;">
+            <button type="button" onclick="agregarCajonParametrico()" class="btn-primary-modern" style="padding: 8px 16px; font-size: 0.9rem; background: #f59e0b; color: #000; font-weight: bold;">
+              <i class="fa-solid fa-plus"></i> + CAJÓN
+            </button>
+            <span style="font-size: 0.85rem; color: rgba(255,255,255,0.6); background: rgba(255,255,255,0.05); padding: 6px 12px; border-radius: 6px; border: 1px solid rgba(255,255,255,0.08);">
+              Haz clic en cualquier pieza para editar
+            </span>
+          </div>
         </div>
 
         <div style="display: grid; grid-template-columns: 1fr 340px; gap: 20px; align-items: start;">
@@ -1967,7 +1972,7 @@
             <!-- El canvas de Three.js se inyectará aquí -->
           </div>
 
-          <!-- Panel de Propiedades Paramétricas (PASO 6) -->
+          <!-- Panel de Propiedades Paramétricas -->
           <div id="panel-propiedades-pieza" style="background: rgba(255,255,255,0.025); border: 1px solid rgba(255,255,255,0.08); border-radius: 12px; padding: 20px; max-height: 72vh; overflow-y: auto;">
             <h3 style="font-size: 1.05rem; margin-bottom: 15px; color: #f59e0b; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 8px;">
               <i class="fa-solid fa-sliders"></i> Propiedades de Pieza
@@ -1984,43 +1989,48 @@
                 <input type="text" id="prop-id-tipo" readonly style="width: 100%; padding: 8px; background: rgba(0,0,0,0.6); border: 1px solid rgba(255,255,255,0.1); border-radius: 6px; color: #f59e0b; font-size: 0.85rem;" />
               </div>
 
+              <div id="drawer-id-container" class="hidden">
+                <label style="font-size: 0.75rem; color: rgba(255,255,255,0.6);">ID de Cajón (drawerId)</label>
+                <input type="text" id="prop-drawer-id" readonly style="width: 100%; padding: 8px; background: rgba(0,0,0,0.6); border: 1px solid rgba(255,255,255,0.1); border-radius: 6px; color: #10b981; font-size: 0.85rem;" />
+              </div>
+
               <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
                 <div>
-                  <label style="font-size: 0.75rem; color: rgba(255,255,255,0.6);">Ancho (m)</label>
-                  <input type="number" id="prop-ancho" step="0.01" min="0.01" style="width: 100%; padding: 8px; background: rgba(0,0,0,0.4); border: 1px solid rgba(255,255,255,0.12); border-radius: 6px; color: #fff;" oninput="actualizarPiezaDesdePanel()" />
+                  <label style="font-size: 0.75rem; color: rgba(255,255,255,0.6);">Ancho (mm)</label>
+                  <input type="number" id="prop-ancho" step="1" min="1" style="width: 100%; padding: 8px; background: rgba(0,0,0,0.4); border: 1px solid rgba(255,255,255,0.12); border-radius: 6px; color: #fff;" oninput="actualizarPiezaDesdePanel()" />
                 </div>
                 <div>
-                  <label style="font-size: 0.75rem; color: rgba(255,255,255,0.6);">Alto (m)</label>
-                  <input type="number" id="prop-alto" step="0.01" min="0.01" style="width: 100%; padding: 8px; background: rgba(0,0,0,0.4); border: 1px solid rgba(255,255,255,0.12); border-radius: 6px; color: #fff;" oninput="actualizarPiezaDesdePanel()" />
+                  <label style="font-size: 0.75rem; color: rgba(255,255,255,0.6);">Alto (mm)</label>
+                  <input type="number" id="prop-alto" step="1" min="1" style="width: 100%; padding: 8px; background: rgba(0,0,0,0.4); border: 1px solid rgba(255,255,255,0.12); border-radius: 6px; color: #fff;" oninput="actualizarPiezaDesdePanel()" />
                 </div>
               </div>
 
               <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
                 <div>
-                  <label style="font-size: 0.75rem; color: rgba(255,255,255,0.6);">Profundidad (m)</label>
-                  <input type="number" id="prop-prof" step="0.01" min="0.01" style="width: 100%; padding: 8px; background: rgba(0,0,0,0.4); border: 1px solid rgba(255,255,255,0.12); border-radius: 6px; color: #fff;" oninput="actualizarPiezaDesdePanel()" />
+                  <label style="font-size: 0.75rem; color: rgba(255,255,255,0.6);">Profundidad (mm)</label>
+                  <input type="number" id="prop-prof" step="1" min="1" style="width: 100%; padding: 8px; background: rgba(0,0,0,0.4); border: 1px solid rgba(255,255,255,0.12); border-radius: 6px; color: #fff;" oninput="actualizarPiezaDesdePanel()" />
                 </div>
                 <div>
-                  <label style="font-size: 0.75rem; color: rgba(255,255,255,0.6);">Espesor (m)</label>
-                  <input type="number" id="prop-espesor" step="0.001" min="0.005" style="width: 100%; padding: 8px; background: rgba(0,0,0,0.4); border: 1px solid rgba(255,255,255,0.12); border-radius: 6px; color: #fff;" oninput="actualizarPiezaDesdePanel()" />
+                  <label style="font-size: 0.75rem; color: rgba(255,255,255,0.6);">Espesor (mm)</label>
+                  <input type="number" id="prop-espesor" step="0.5" min="1" style="width: 100%; padding: 8px; background: rgba(0,0,0,0.4); border: 1px solid rgba(255,255,255,0.12); border-radius: 6px; color: #fff;" oninput="actualizarPiezaDesdePanel()" />
                 </div>
               </div>
 
               <hr style="border: 0; border-top: 1px solid rgba(255,255,255,0.08); margin: 4px 0;" />
-              <label style="font-size: 0.8rem; font-weight: bold; color: rgba(255,255,255,0.9);">Posición Cartesiana</label>
+              <label style="font-size: 0.8rem; font-weight: bold; color: rgba(255,255,255,0.9);">Posición Cartesiana (mm)</label>
 
               <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 6px;">
                 <div>
                   <label style="font-size: 0.7rem; color: rgba(255,255,255,0.6);">Pos X</label>
-                  <input type="number" id="prop-posx" step="0.01" style="width: 100%; padding: 6px; background: rgba(0,0,0,0.4); border: 1px solid rgba(255,255,255,0.12); border-radius: 6px; color: #fff; font-size: 0.85rem;" oninput="actualizarPiezaDesdePanel()" />
+                  <input type="number" id="prop-posx" step="1" style="width: 100%; padding: 6px; background: rgba(0,0,0,0.4); border: 1px solid rgba(255,255,255,0.12); border-radius: 6px; color: #fff; font-size: 0.85rem;" oninput="actualizarPiezaDesdePanel()" />
                 </div>
                 <div>
                   <label style="font-size: 0.7rem; color: rgba(255,255,255,0.6);">Pos Y</label>
-                  <input type="number" id="prop-posy" step="0.01" style="width: 100%; padding: 6px; background: rgba(0,0,0,0.4); border: 1px solid rgba(255,255,255,0.12); border-radius: 6px; color: #fff; font-size: 0.85rem;" oninput="actualizarPiezaDesdePanel()" />
+                  <input type="number" id="prop-posy" step="1" style="width: 100%; padding: 6px; background: rgba(0,0,0,0.4); border: 1px solid rgba(255,255,255,0.12); border-radius: 6px; color: #fff; font-size: 0.85rem;" oninput="actualizarPiezaDesdePanel()" />
                 </div>
                 <div>
                   <label style="font-size: 0.7rem; color: rgba(255,255,255,0.6);">Pos Z</label>
-                  <input type="number" id="prop-posz" step="0.01" style="width: 100%; padding: 6px; background: rgba(0,0,0,0.4); border: 1px solid rgba(255,255,255,0.12); border-radius: 6px; color: #fff; font-size: 0.85rem;" oninput="actualizarPiezaDesdePanel()" />
+                  <input type="number" id="prop-posz" step="1" style="width: 100%; padding: 6px; background: rgba(0,0,0,0.4); border: 1px solid rgba(255,255,255,0.12); border-radius: 6px; color: #fff; font-size: 0.85rem;" oninput="actualizarPiezaDesdePanel()" />
                 </div>
               </div>
 
@@ -2230,14 +2240,13 @@ function cerrarModalAdmin() {
 
 /*
 =============================================================
-SISTEMA DE DISEÑADOR 3D Y EDICIÓN PARAMÉTRICA DE PIEZAS (PASO 6)
-Preparado para SketchUp
+SISTEMA DE DISEÑADOR 3D Y EDICIÓN PARAMÉTRICA (ESTANDARIZADO EN MM) + PASO 7 CAJONES
 =============================================================
 */
 let scene3D, camera3D, renderer3D, controls3D, animationFrameId3D;
 let isInitialized3D = false;
 
-// Estructura de datos global para almacenar las piezas independientes del mueble
+// Estructura de datos global para almacenar las piezas independientes del mueble (1 unidad = 1 mm)
 let piezasDisenador = [];
 // Mapeo interno para asociar los IDs con sus objetos THREE.Mesh correspondientes
 let meshesPiezasMap = new Map();
@@ -2258,11 +2267,11 @@ function initDisenador3D() {
   scene3D = new THREE.Scene();
   scene3D.background = new THREE.Color(0x0b0b0b);
 
-  // 2. Cámara
+  // 2. Cámara (Ajustada para escala en milímetros, ej: 4000mm = 4m de distancia inicial)
   const width = container.clientWidth;
   const height = container.clientHeight;
-  camera3D = new THREE.PerspectiveCamera(45, width / height, 0.1, 1000);
-  camera3D.position.set(4, 3, 5);
+  camera3D = new THREE.PerspectiveCamera(45, width / height, 1, 10000);
+  camera3D.position.set(1500, 1200, 2000);
 
   // 3. Renderizador WebGL
   renderer3D = new THREE.WebGLRenderer({ antialias: true });
@@ -2274,27 +2283,28 @@ function initDisenador3D() {
   controls3D = new THREE.OrbitControls(camera3D, renderer3D.domElement);
   controls3D.enableDamping = true;
   controls3D.dampingFactor = 0.05;
+  controls3D.target.set(0, 500, 0);
 
   // 5. Iluminación
   const ambientLight = new THREE.AmbientLight(0xffffff, 0.7);
   scene3D.add(ambientLight);
 
   const dirLight = new THREE.DirectionalLight(0xffffff, 0.8);
-  dirLight.position.set(10, 20, 15);
+  dirLight.position.set(3000, 6000, 4500);
   scene3D.add(dirLight);
 
-  // 6. Piso / Plano de referencia
-  const gridHelper = new THREE.GridHelper(10, 10, 0xf59e0b, 0x333333);
-  gridHelper.position.y = -0.01;
+  // 6. Piso / Plano de referencia (Escalado en mm)
+  const gridHelper = new THREE.GridHelper(4000, 20, 0xf59e0b, 0x333333);
+  gridHelper.position.y = -1;
   scene3D.add(gridHelper);
 
-  const floorGeometry = new THREE.PlaneGeometry(10, 10);
+  const floorGeometry = new THREE.PlaneGeometry(4000, 4000);
   const floorMaterial = new THREE.MeshStandardMaterial({ color: 0x111111, roughness: 0.9 });
   const floor = new THREE.Mesh(floorGeometry, floorMaterial);
   floor.rotation.x = -Math.PI / 2;
   scene3D.add(floor);
 
-  // 7. Raycaster para selección de piezas mediante clic (PASO 6)
+  // 7. Raycaster para selección de piezas mediante clic
   raycaster3D = new THREE.Raycaster();
   mouse3D = new THREE.Vector2();
 
@@ -2302,7 +2312,7 @@ function initDisenador3D() {
 
   isInitialized3D = true;
 
-  // Inicializar estructura de prueba con piezas paramétricas independientes
+  // Inicializar estructura de prueba con piezas paramétricas en milímetros
   inicializarEstructuraPruebaMueble();
 
   // 8. Loop de animación
@@ -2316,15 +2326,16 @@ function initDisenador3D() {
   window.addEventListener('resize', onWindowResize3D);
 }
 
-// Función para crear una pieza individual con sus dimensiones y registrarla
+// Función para crear una pieza individual con sus dimensiones en milímetros y registrarla
 function agregarPieza(datos) {
   const pieza = {
     id: datos.id || 'pieza_' + Math.random().toString(36).substring(2, 9),
     tipo: datos.tipo || 'repisa',
-    ancho: datos.ancho !== undefined ? datos.ancho : 0.6,
-    alto: datos.alto !== undefined ? datos.alto : 0.6,
-    profundidad: datos.profundidad !== undefined ? datos.profundidad : 0.3,
-    espesor: datos.espesor !== undefined ? datos.espesor : 0.02,
+    drawerId: datos.drawerId || null,
+    ancho: datos.ancho !== undefined ? datos.ancho : 600,
+    alto: datos.alto !== undefined ? datos.alto : 600,
+    profundidad: datos.profundidad !== undefined ? datos.profundidad : 300,
+    espesor: datos.espesor !== undefined ? datos.espesor : 18,
     posX: datos.posX !== undefined ? datos.posX : 0,
     posY: datos.posY !== undefined ? datos.posY : 0,
     posZ: datos.posZ !== undefined ? datos.posZ : 0,
@@ -2355,7 +2366,7 @@ function crearPiezaEnEscena(pieza) {
     geomAncho = pieza.ancho;
     geomAlto = pieza.espesor;
     geomProf = pieza.profundidad;
-  } else if (pieza.tipo === 'fondo') {
+  } else if (pieza.tipo === 'fondo' || pieza.tipo === 'frente') {
     geomAncho = pieza.ancho;
     geomAlto = pieza.alto;
     geomProf = pieza.espesor;
@@ -2376,7 +2387,7 @@ function crearPiezaEnEscena(pieza) {
     THREE.MathUtils.degToRad(pieza.rotZ)
   );
 
-  mesh.userData = { id: pieza.id, tipo: pieza.tipo };
+  mesh.userData = { id: pieza.id, tipo: pieza.tipo, drawerId: pieza.drawerId };
 
   scene3D.add(mesh);
   meshesPiezasMap.set(pieza.id, mesh);
@@ -2407,7 +2418,6 @@ function actualizarPieza(id, nuevosDatos) {
 
   const mesh = meshesPiezasMap.get(id);
   if (mesh) {
-    // Reconstruir geometría si cambiaron dimensiones o tipo
     scene3D.remove(mesh);
     if (mesh.geometry) mesh.geometry.dispose();
     if (mesh.material) mesh.material.dispose();
@@ -2415,6 +2425,110 @@ function actualizarPieza(id, nuevosDatos) {
   }
 
   crearPiezaEnEscena(pieza);
+}
+
+/*
+=============================================================
+PASO 7 — SISTEMA BÁSICO DE CAJONES
+Cálculo automático de las 5 piezas independientes asociadas a un drawerId
+=============================================================
+*/
+function agregarCajonParametrico() {
+  const drawerId = 'drawer_' + Math.random().toString(36).substring(2, 9);
+  
+  // Parámetros iniciales del cajón (en milímetros)
+  const cAncho = 500;      // Ancho exterior del cajón
+  const cAlto = 200;       // Alto exterior del cajón
+  const cProfundidad = 450;// Profundidad exterior del cajón
+  const esp = 15;          // Espesor del material (melamina)
+  
+  // Posición inicial por defecto (centrado en el piso o sobre la base)
+  const posX = 0;
+  const posY = 200;
+  const posZ = 0;
+
+  const colorMelamina = 0xe9d8a6; // Tono madera claro para diferenciar cajones
+
+  // 1. Frente del cajón (ancho x alto x esp)
+  agregarPieza({
+    id: drawerId + '_frente',
+    tipo: 'frente',
+    drawerId: drawerId,
+    ancho: cAncho,
+    alto: cAlto,
+    profundidad: cProfundidad,
+    espesor: esp,
+    posX: posX,
+    posY: posY,
+    posZ: posZ + (cProfundidad / 2) - (esp / 2),
+    materialColor: colorMelamina
+  });
+
+  // 2. Lateral izquierdo (esp x alto_lateral x prof)
+  const altoLateral = cAlto - 30; // Un poco más bajo que el frente
+  const profLateral = cProfundidad - 30;
+  agregarPieza({
+    id: drawerId + '_lat_izq',
+    tipo: 'lateral',
+    drawerId: drawerId,
+    ancho: cAncho,
+    alto: altoLateral,
+    profundidad: profLateral,
+    espesor: esp,
+    posX: posX - (cAncho / 2) + (esp / 2),
+    posY: posY - (cAlto / 2) + (altoLateral / 2) + 10,
+    posZ: posZ,
+    materialColor: colorMelamina
+  });
+
+  // 3. Lateral derecho (esp x alto_lateral x prof)
+  agregarPieza({
+    id: drawerId + '_lat_der',
+    tipo: 'lateral',
+    drawerId: drawerId,
+    ancho: cAncho,
+    alto: altoLateral,
+    profundidad: profLateral,
+    espesor: esp,
+    posX: posX + (cAncho / 2) - (esp / 2),
+    posY: posY - (cAlto / 2) + (altoLateral / 2) + 10,
+    posZ: posZ,
+    materialColor: colorMelamina
+  });
+
+  // 4. Base del cajón ((ancho - 2*esp) x esp x prof_lateral)
+  const anchoBase = cAncho - (esp * 2);
+  agregarPieza({
+    id: drawerId + '_base',
+    tipo: 'base',
+    drawerId: drawerId,
+    ancho: anchoBase,
+    alto: altoLateral,
+    profundidad: profLateral,
+    espesor: esp,
+    posX: posX,
+    posY: posY - (cAlto / 2) + (esp / 2) + 10,
+    posZ: posZ,
+    materialColor: colorMelamina
+  });
+
+  // 5. Fondo / trasera del cajón ((ancho - 2*esp) x alto_lateral x esp)
+  agregarPieza({
+    id: drawerId + '_fondo',
+    tipo: 'fondo',
+    drawerId: drawerId,
+    ancho: anchoBase,
+    alto: altoLateral,
+    profundidad: profLateral,
+    espesor: esp,
+    posX: posX,
+    posY: posY - (cAlto / 2) + (altoLateral / 2) + 10,
+    posZ: posZ - (cProfundidad / 2) + (esp / 2) + 15,
+    materialColor: colorMelamina
+  });
+
+  // Seleccionar automáticamente el frente del nuevo cajón recién creado
+  seleccionarPieza(drawerId + '_frente');
 }
 
 // Manejo de clics en el canvas para seleccionar piezas mediante Raycaster
@@ -2428,7 +2542,6 @@ function onCanvasClick3D(event) {
 
   raycaster3D.setFromCamera(mouse3D, camera3D);
 
-  // Filtrar solo los meshes que corresponden a piezas (excluyendo piso y grid)
   const meshesObjetos = [];
   meshesPiezasMap.forEach(mesh => meshesObjetos.push(mesh));
 
@@ -2441,11 +2554,10 @@ function onCanvasClick3D(event) {
   }
 }
 
-// Selecciona una pieza, actualiza su resaltado visual y carga sus datos en el panel de propiedades (PASO 6)
+// Selecciona una pieza, actualiza su resaltado visual y carga sus datos en el panel de propiedades (coexistiendo con drawerId)
 function seleccionarPieza(id) {
   piezaSeleccionadaId = id;
 
-  // Actualizar colores visuales de todas las piezas (resaltar la seleccionada)
   meshesPiezasMap.forEach((mesh, pId) => {
     const pieza = piezasDisenador.find(p => p.id === pId);
     if (pieza && mesh.material) {
@@ -2456,12 +2568,21 @@ function seleccionarPieza(id) {
   const pieza = piezasDisenador.find(p => p.id === id);
   if (!pieza) return;
 
-  // Mostrar el formulario en el panel lateral y ocultar el mensaje de "sin selección"
   document.getElementById('sin-seleccion-msg').classList.add('hidden');
   document.getElementById('con-seleccion-form').classList.remove('hidden');
 
-  // Rellenar valores en el panel de propiedades
   document.getElementById('prop-id-tipo').value = `${pieza.id} (${pieza.tipo})`;
+  
+  const drawerContainer = document.getElementById('drawer-id-container');
+  const drawerInput = document.getElementById('prop-drawer-id');
+  if (pieza.drawerId) {
+    drawerContainer.classList.remove('hidden');
+    drawerInput.value = pieza.drawerId;
+  } else {
+    drawerContainer.classList.add('hidden');
+    drawerInput.value = '';
+  }
+
   document.getElementById('prop-ancho').value = pieza.ancho;
   document.getElementById('prop-alto').value = pieza.alto;
   document.getElementById('prop-prof').value = pieza.profundidad;
@@ -2479,10 +2600,10 @@ function actualizarPiezaDesdePanel() {
   if (!piezaSeleccionadaId) return;
 
   const nuevosDatos = {
-    ancho: parseFloat(document.getElementById('prop-ancho').value) || 0.1,
-    alto: parseFloat(document.getElementById('prop-alto').value) || 0.1,
-    profundidad: parseFloat(document.getElementById('prop-prof').value) || 0.1,
-    espesor: parseFloat(document.getElementById('prop-espesor').value) || 0.02,
+    ancho: parseFloat(document.getElementById('prop-ancho').value) || 10,
+    alto: parseFloat(document.getElementById('prop-alto').value) || 10,
+    profundidad: parseFloat(document.getElementById('prop-prof').value) || 10,
+    espesor: parseFloat(document.getElementById('prop-espesor').value) || 18,
     posX: parseFloat(document.getElementById('prop-posx').value) || 0,
     posY: parseFloat(document.getElementById('prop-posy').value) || 0,
     posZ: parseFloat(document.getElementById('prop-posz').value) || 0,
@@ -2494,7 +2615,7 @@ function actualizarPiezaDesdePanel() {
   actualizarPieza(piezaSeleccionadaId, nuevosDatos);
 }
 
-// Estructura de prueba inicial compuesta por piezas independientes
+// Estructura de prueba inicial compuesta por piezas independientes en milímetros
 function inicializarEstructuraPruebaMueble() {
   piezasDisenador.forEach(p => {
     const mesh = meshesPiezasMap.get(p.id);
@@ -2513,11 +2634,11 @@ function inicializarEstructuraPruebaMueble() {
   agregarPieza({
     id: 'pieza_lat_izq',
     tipo: 'lateral',
-    alto: 1.0,
-    profundidad: 0.4,
-    espesor: 0.02,
-    posX: -0.49,
-    posY: 0.5,
+    alto: 1000,
+    profundidad: 400,
+    espesor: 20,
+    posX: -490,
+    posY: 500,
     posZ: 0,
     materialColor: colorMelamina
   });
@@ -2525,11 +2646,11 @@ function inicializarEstructuraPruebaMueble() {
   agregarPieza({
     id: 'pieza_lat_der',
     tipo: 'lateral',
-    alto: 1.0,
-    profundidad: 0.4,
-    espesor: 0.02,
-    posX: 0.49,
-    posY: 0.5,
+    alto: 1000,
+    profundidad: 400,
+    espesor: 20,
+    posX: 490,
+    posY: 500,
     posZ: 0,
     materialColor: colorMelamina
   });
@@ -2537,11 +2658,11 @@ function inicializarEstructuraPruebaMueble() {
   agregarPieza({
     id: 'pieza_base',
     tipo: 'base',
-    ancho: 1.0,
-    profundidad: 0.4,
-    espesor: 0.02,
+    ancho: 1000,
+    profundidad: 400,
+    espesor: 20,
     posX: 0,
-    posY: 0.01,
+    posY: 10,
     posZ: 0,
     materialColor: colorMelamina
   });
@@ -2549,11 +2670,11 @@ function inicializarEstructuraPruebaMueble() {
   agregarPieza({
     id: 'pieza_tapa',
     tipo: 'tapa',
-    ancho: 1.0,
-    profundidad: 0.4,
-    espesor: 0.02,
+    ancho: 1000,
+    profundidad: 400,
+    espesor: 20,
     posX: 0,
-    posY: 0.99,
+    posY: 990,
     posZ: 0,
     materialColor: colorMelamina
   });
@@ -2561,25 +2682,13 @@ function inicializarEstructuraPruebaMueble() {
   agregarPieza({
     id: 'pieza_fondo',
     tipo: 'fondo',
-    ancho: 0.98,
-    alto: 0.96,
-    espesor: 0.015,
+    ancho: 960,
+    alto: 960,
+    espesor: 15,
     posX: 0,
-    posY: 0.5,
-    posZ: -0.19,
+    posY: 500,
+    posZ: -190,
     materialColor: 0xbc8a5f
-  });
-
-  agregarPieza({
-    id: 'pieza_repisa',
-    tipo: 'repisa',
-    ancho: 0.96,
-    profundidad: 0.38,
-    espesor: 0.02,
-    posX: 0,
-    posY: 0.5,
-    posZ: 0,
-    materialColor: colorMelamina
   });
 }
 
