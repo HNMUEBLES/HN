@@ -2229,6 +2229,7 @@
                 <button class="hn-menu-btn" onclick="agregarMontanteParametricoModal()">+ Montante</button>
                 <button class="hn-menu-btn" onclick="agregarRepisaParametricaPrompt()">+ Repisa</button>
                 <button class="hn-menu-btn" onclick="agregarCajonParametricoPrompt()" style="color: #f59e0b; font-weight: bold;">+ Cajón</button>
+                <button class="hn-menu-btn" onclick="agregarPuertasParametricasPrompt()">+ Puertas</button>
             </div>
         </div>
         <div class="hn-topbar-right">
@@ -2256,6 +2257,7 @@
                     <div class="hn-tool-item" onclick="agregarMontanteParametricoModal()">Agregar montante <span class="hn-note">Vertical</span></div>
                     <div class="hn-tool-item" onclick="agregarRepisaParametricaPrompt()">Agregar repisa <span class="hn-note">Horizontal</span></div>
                     <div class="hn-tool-item" onclick="agregarCajonParametricoPrompt()">Agregar cajón <span class="hn-note" style="background:#fef3c7; color:#d97706;">Conjunto</span></div>
+                    <div class="hn-tool-item" onclick="agregarPuertasParametricasPrompt()">Agregar puertas <span class="hn-note">0–4 / espacio</span></div>
                 </div>
             </div>
 
@@ -2542,9 +2544,17 @@ let timerDimensionesMaestras = null;
 
 function abrirHNDesigner() {
     const designer = document.getElementById('hn-designer');
-    if (designer) {
-        designer.style.display = 'flex';
+    if (!designer) return;
+
+    designer.style.display = 'flex';
+
+    // Si el motor ya existe, NO reconstruir el proyecto: conservar estado, selección y elementos.
+    if (!hnScene || !hnRenderer || !hnControls) {
         initHNDesigner3D();
+    } else {
+        onHNDesignerResize();
+        if (!hnAnimationId) animateHNDesigner();
+        restaurarPanelDerechoMaestro(false);
     }
 }
 
@@ -2562,6 +2572,13 @@ function cerrarHNDesigner() {
 function initHNDesigner3D() {
     const container = document.getElementById('hn-viewport-3d');
     if (!container) return;
+
+    // Protección contra inicializaciones duplicadas de Three.js y listeners.
+    if (hnScene && hnRenderer && hnControls) {
+        onHNDesignerResize();
+        if (!hnAnimationId) animateHNDesigner();
+        return;
+    }
 
     container.innerHTML = '';
 
@@ -2711,8 +2728,9 @@ function ejecutarRecalculoParametricoCompleto() {
         }
     });
 
-    // Recalcular cajones existentes ante cambios maestros
+    // Recalcular elementos paramétricos existentes ante cambios maestros.
     recalcularTodosLosCajones();
+    recalcularTodasLasPuertas();
 
     reconstruirEscena3DParametrica();
     actualizarSidebarEspacios();
@@ -2765,9 +2783,12 @@ function reconstruirEscena3DParametrica() {
         hnScene.add(mesh);
     });
 
-    // Renderizar elementos estándar (Montantes y Repisas)
+    // Renderizar elementos estándar y PASO 9 (Montantes, Repisas y Puertas).
     hnElementosActuales.forEach(elem => {
         let geom;
+        let colorNormal = 0xfafafa;
+        let colorBorde = 0x94a3b8;
+
         if (elem.tipo === 'montante') {
             geom = new THREE.BoxGeometry(elem.espesor, elem.alto, elem.profundidad);
         } else if (elem.tipo === 'repisa') {
@@ -2778,12 +2799,19 @@ function reconstruirEscena3DParametrica() {
                 elem.profundidad = espacioAsociado.profundidad;
             }
             geom = new THREE.BoxGeometry(elem.width, elem.espesor, elem.profundidad);
+        } else if (elem.tipo === 'puerta') {
+            // Puerta real de espesor físico, ubicada en el frente del módulo.
+            geom = new THREE.BoxGeometry(elem.ancho, elem.alto, elem.espesor);
+            colorNormal = 0xe5e7eb;
+            colorBorde = 0x64748b;
         }
 
-        const isSelected = (hnSeleccionActual && hnSeleccionActual.objeto.pieceId === elem.pieceId);
+        if (!geom) return;
+
+        const isSelected = (hnSeleccionActual && hnSeleccionActual.objeto && hnSeleccionActual.objeto.pieceId === elem.pieceId);
         const mat = new THREE.MeshStandardMaterial({
-            color: isSelected ? 0xf59e0b : 0xfafafa,
-            roughness: 0.4,
+            color: isSelected ? 0xf59e0b : colorNormal,
+            roughness: elem.tipo === 'puerta' ? 0.32 : 0.4,
             metalness: 0.1
         });
 
@@ -2791,7 +2819,7 @@ function reconstruirEscena3DParametrica() {
         mesh.position.set(elem.x - (W / 2), elem.y, elem.z - (D / 2));
 
         const edges = new THREE.EdgesGeometry(geom);
-        const line = new THREE.LineSegments(edges, new THREE.LineBasicMaterial({ color: isSelected ? 0xb45309 : 0x94a3b8, linewidth: 1 }));
+        const line = new THREE.LineSegments(edges, new THREE.LineBasicMaterial({ color: isSelected ? 0xb45309 : colorBorde, linewidth: 1 }));
         mesh.add(line);
 
         mesh.userData = { isParametric: true, tipo: elem.tipo, elementoData: elem };
@@ -2893,7 +2921,7 @@ function recalcularEspaciosYElementosPorMontante(movMontantePieceId = null, posX
 
     hnEspaciosActuales = nuevosEspacios;
 
-    // Actualizar spaceId de las repisas
+    // Actualizar asociaciones de repisas y puertas sin borrar elementos existentes.
     hnElementosActuales.forEach(elem => {
         if (elem.tipo === 'repisa') {
             let espCorrecto = hnEspaciosActuales.find(e => elem.x >= e.xMin && elem.x <= e.xMax);
@@ -2906,11 +2934,19 @@ function recalcularEspaciosYElementosPorMontante(movMontantePieceId = null, posX
                 elem.width = hnEspaciosActuales[0].xMax - hnEspaciosActuales[0].xMin;
                 elem.x = hnEspaciosActuales[0].xMin + (elem.width / 2);
             }
+        } else if (elem.tipo === 'puerta') {
+            let espCorrecto = hnEspaciosActuales.find(e => elem.x >= e.xMin && elem.x <= e.xMax);
+            if (espCorrecto) {
+                elem.spaceId = espCorrecto.spaceId;
+            } else if (hnEspaciosActuales.length > 0) {
+                elem.spaceId = hnEspaciosActuales[0].spaceId;
+            }
         }
     });
 
-    // REGLA CRÍTICA PASO 8: Actualizar spaceId y recalcular completamente los cajones al mover montantes
+    // REGLA CRÍTICA PASO 8 + PASO 9: recalcular sin perder cajones ni puertas.
     recalcularTodosLosCajones();
+    recalcularTodasLasPuertas();
 }
 
 function agregarRepisaParametricaPrompt() {
@@ -3149,6 +3185,138 @@ function recalcularTodosLosCajones() {
     }
 }
 
+/*
+=============================================================
+PASO 9 — SISTEMA PARAMÉTRICO REAL DE PUERTAS
+=============================================================
+*/
+
+function obtenerEspacioDestinoParaPuertas() {
+    if (hnEspaciosActuales.length === 0) return null;
+
+    if (hnSeleccionActual && hnSeleccionActual.tipo === 'espacio') {
+        return hnEspaciosActuales.find(e => e.spaceId === hnSeleccionActual.objeto.spaceId) || hnEspaciosActuales[0];
+    }
+
+    if (hnSeleccionActual && hnSeleccionActual.objeto && hnSeleccionActual.objeto.spaceId) {
+        return hnEspaciosActuales.find(e => e.spaceId === hnSeleccionActual.objeto.spaceId) || hnEspaciosActuales[0];
+    }
+
+    return hnEspaciosActuales[0];
+}
+
+function agregarPuertasParametricasPrompt() {
+    const espacioDestino = obtenerEspacioDestinoParaPuertas();
+    if (!espacioDestino) {
+        alert('Primero debes tener al menos un espacio creado.');
+        return;
+    }
+
+    const puertasActuales = hnElementosActuales.filter(e => e.tipo === 'puerta' && e.spaceId === espacioDestino.spaceId).length;
+    const cantidadStr = prompt(
+        `¿Cuántas puertas deseas en el espacio seleccionado? (0 a 4)\nActualmente: ${puertasActuales}`,
+        String(Math.max(1, puertasActuales || 1))
+    );
+    if (cantidadStr === null) return;
+
+    const cantidad = parseInt(cantidadStr, 10);
+    if (isNaN(cantidad) || cantidad < 0 || cantidad > 4) {
+        alert('La cantidad de puertas debe estar entre 0 y 4.');
+        return;
+    }
+
+    // Solo reemplaza las puertas del espacio elegido. Cajones, repisas y otros espacios permanecen intactos.
+    hnElementosActuales = hnElementosActuales.filter(e => !(e.tipo === 'puerta' && e.spaceId === espacioDestino.spaceId));
+
+    if (cantidad > 0) {
+        generarPuertasEnEspacio(espacioDestino, cantidad);
+    }
+
+    hnSeleccionActual = null;
+    reconstruirEscena3DParametrica();
+    actualizarSidebarEspacios();
+    restaurarPanelDerechoMaestro();
+}
+
+function generarPuertasEnEspacio(espacio, cantidad) {
+    const anchoUtil = Math.max(0, espacio.xMax - espacio.xMin);
+    const altoUtil = Math.max(0, espacio.yMax - espacio.yMin);
+    const T = Math.max(1, hnModuloActual.espesor);
+
+    const holguraBorde = 2;
+    const holguraEntrePuertas = 3;
+    const altoPuerta = Math.max(20, altoUtil - (2 * holguraBorde));
+    const anchoDisponible = anchoUtil - (2 * holguraBorde) - ((cantidad - 1) * holguraEntrePuertas);
+    const anchoPuerta = Math.max(20, anchoDisponible / cantidad);
+    const zFrente = hnModuloActual.profundidad - (T / 2);
+
+    for (let i = 0; i < cantidad; i++) {
+        const x = espacio.xMin + holguraBorde + (anchoPuerta / 2) + i * (anchoPuerta + holguraEntrePuertas);
+        const y = espacio.yMin + (altoPuerta / 2) + holguraBorde;
+
+        hnElementosActuales.push({
+            pieceId: 'door_' + Math.random().toString(36).substr(2, 6),
+            moduleId: hnModuloActual.moduleId,
+            spaceId: espacio.spaceId,
+            tipo: 'puerta',
+            numeroPuerta: i + 1,
+            cantidadPuertas: cantidad,
+            ancho: anchoPuerta,
+            alto: altoPuerta,
+            espesor: T,
+            profundidad: T,
+            x: x,
+            y: y,
+            z: zFrente,
+            holguraBorde: holguraBorde,
+            holguraEntrePuertas: holguraEntrePuertas,
+            material: 'Blanco'
+        });
+    }
+}
+
+function recalcularTodasLasPuertas() {
+    const puertas = hnElementosActuales.filter(e => e.tipo === 'puerta');
+    if (puertas.length === 0) return;
+
+    const cantidadesPorEspacio = {};
+    puertas.forEach(p => {
+        if (!cantidadesPorEspacio[p.spaceId]) cantidadesPorEspacio[p.spaceId] = 0;
+        cantidadesPorEspacio[p.spaceId]++;
+    });
+
+    // Eliminamos solo las puertas y las reconstruimos según los espacios actuales.
+    hnElementosActuales = hnElementosActuales.filter(e => e.tipo !== 'puerta');
+
+    Object.keys(cantidadesPorEspacio).forEach(spaceId => {
+        const espacio = hnEspaciosActuales.find(e => e.spaceId === spaceId);
+        if (espacio) {
+            const cantidad = Math.min(4, Math.max(0, cantidadesPorEspacio[spaceId]));
+            if (cantidad > 0) generarPuertasEnEspacio(espacio, cantidad);
+        }
+    });
+}
+
+function eliminarPuertaParametrica(pieceId) {
+    const elem = hnElementosActuales.find(e => e.pieceId === pieceId && e.tipo === 'puerta');
+    if (!elem) return;
+
+    const espacio = hnEspaciosActuales.find(e => e.spaceId === elem.spaceId);
+    hnElementosActuales = hnElementosActuales.filter(e => e.pieceId !== pieceId);
+
+    // Renumerar y mantener las puertas restantes del mismo espacio coherentes.
+    if (espacio) {
+        const restantes = hnElementosActuales.filter(e => e.tipo === 'puerta' && e.spaceId === espacio.spaceId).length;
+        hnElementosActuales = hnElementosActuales.filter(e => !(e.tipo === 'puerta' && e.spaceId === espacio.spaceId));
+        if (restantes > 0) generarPuertasEnEspacio(espacio, restantes);
+    }
+
+    hnSeleccionActual = null;
+    reconstruirEscena3DParametrica();
+    actualizarSidebarEspacios();
+    restaurarPanelDerechoMaestro();
+}
+
 function actualizarSidebarEspacios() {
     const container = document.getElementById('hn-lista-espacios-sidebar');
     if (!container) return;
@@ -3159,6 +3327,7 @@ function actualizarSidebarEspacios() {
         const altoUtil = esp.yMax - esp.yMin;
         const repisasEnEspacio = hnElementosActuales.filter(e => e.tipo === 'repisa' && e.spaceId === esp.spaceId).length;
         const cajonesEnEspacio = hnCajonesActuales.filter(c => c.spaceId === esp.spaceId).length;
+        const puertasEnEspacio = hnElementosActuales.filter(e => e.tipo === 'puerta' && e.spaceId === esp.spaceId).length;
 
         const div = document.createElement('div');
         div.className = 'hn-tool-item';
@@ -3170,7 +3339,7 @@ function actualizarSidebarEspacios() {
         div.innerHTML = `
             <div style="display:flex; justify-content:space-between; width:100%; align-items:center;">
                 <strong>Espacio #${idx + 1}</strong>
-                <span class="hn-note">${anchoUtil.toFixed(0)} x ${altoUtil.toFixed(0)} mm (${repisasEnEspacio} rep, ${cajonesEnEspacio} caj)</span>
+                <span class="hn-note">${anchoUtil.toFixed(0)} x ${altoUtil.toFixed(0)} mm (${repisasEnEspacio} rep, ${cajonesEnEspacio} caj, ${puertasEnEspacio} pta)</span>
             </div>
             <div style="font-size:0.7rem; color:#6b7280;">X: [${esp.xMin.toFixed(0)} - ${esp.xMax.toFixed(0)}]</div>
         `;
@@ -3222,6 +3391,8 @@ function seleccionarElementoPorId(pieceId) {
         mostrarPropiedadesMontante(elem);
     } else if (elem.tipo === 'repisa') {
         mostrarPropiedadesRepisa(elem);
+    } else if (elem.tipo === 'puerta') {
+        mostrarPropiedadesPuerta(elem);
     }
 }
 
@@ -3280,6 +3451,9 @@ function mostrarPropiedadesEspacio(esp) {
         </button>
         <button type="button" class="btn-primary-modern full-btn" style="padding: 8px; font-size: 0.85rem; margin-top:6px; background:#d97706; border:none;" onclick="agregarCajonParametricoPrompt()">
             + Agregar Cajón
+        </button>
+        <button type="button" class="btn-primary-modern full-btn" style="padding: 8px; font-size: 0.85rem; margin-top:6px; background:#2563eb; border:none;" onclick="agregarPuertasParametricasPrompt()">
+            + Configurar Puertas (0–4)
         </button>
         <button type="button" class="btn-primary-modern full-btn" style="padding: 8px; font-size: 0.85rem; margin-top:6px;" onclick="restaurarPanelDerechoMaestro()">
             Volver a Dimensiones Maestras
@@ -3358,6 +3532,56 @@ function mostrarPropiedadesRepisa(elem) {
             Eliminar Repisa
         </button>
         <button type="button" class="btn-primary-modern full-btn" style="padding: 8px; font-size: 0.85rem; margin-top:6px;" onclick="restaurarPanelDerechoMaestro()">
+            Volver a Dimensiones Maestras
+        </button>
+    `;
+}
+
+function mostrarPropiedadesPuerta(elem) {
+    const titleText = document.getElementById('hn-prop-title-text');
+    const selectedBadge = document.getElementById('hn-selected-badge');
+    const container = document.getElementById('hn-properties-content-container');
+
+    if (!titleText || !container) return;
+
+    titleText.innerText = 'PUERTA PARAMÉTRICA';
+    if (selectedBadge) selectedBadge.innerText = 'Seleccionado';
+
+    const puertasEspacio = hnElementosActuales.filter(e => e.tipo === 'puerta' && e.spaceId === elem.spaceId).length;
+
+    container.innerHTML = `
+        <div class="hn-prop-row">
+            <label>ID de Pieza (pieceId)</label>
+            <input type="text" value="${elem.pieceId}" readonly style="background:#f3f4f6; color:#6b7280; font-size:0.75rem;">
+        </div>
+        <div class="hn-prop-row">
+            <label>Espacio (spaceId)</label>
+            <input type="text" value="${elem.spaceId}" readonly style="background:#f3f4f6; color:#6b7280; font-size:0.75rem;">
+        </div>
+        <div class="hn-prop-row">
+            <label>Puerta</label>
+            <input type="text" value="${elem.numeroPuerta} de ${puertasEspacio}" readonly>
+        </div>
+        <div class="hn-prop-row">
+            <label>Ancho calculado (mm)</label>
+            <input type="number" value="${elem.ancho.toFixed(1)}" readonly style="background:#f3f4f6;">
+        </div>
+        <div class="hn-prop-row">
+            <label>Alto calculado (mm)</label>
+            <input type="number" value="${elem.alto.toFixed(1)}" readonly style="background:#f3f4f6;">
+        </div>
+        <div class="hn-prop-row">
+            <label>Espesor (mm)</label>
+            <input type="number" value="${elem.espesor.toFixed(1)}" readonly style="background:#f3f4f6;">
+        </div>
+        <div class="hn-properties-divider"></div>
+        <button type="button" class="btn-primary-modern full-btn" style="padding:8px; font-size:0.85rem; background:#2563eb; border:none;" onclick="agregarPuertasParametricasPrompt()">
+            Cambiar cantidad de puertas
+        </button>
+        <button type="button" class="btn-primary-modern full-btn" style="padding:8px; font-size:0.85rem; margin-top:6px; background:#ef4444; border:none;" onclick="eliminarPuertaParametrica('${elem.pieceId}')">
+            Eliminar esta puerta
+        </button>
+        <button type="button" class="btn-primary-modern full-btn" style="padding:8px; font-size:0.85rem; margin-top:6px;" onclick="restaurarPanelDerechoMaestro()">
             Volver a Dimensiones Maestras
         </button>
     `;
@@ -3464,9 +3688,9 @@ function eliminarElementoParametrico(pieceId) {
     actualizarSidebarEspacios();
 }
 
-function restaurarPanelDerechoMaestro() {
+function restaurarPanelDerechoMaestro(redibujar = true) {
     hnSeleccionActual = null;
-    reconstruirEscena3DParametrica();
+    if (redibujar) reconstruirEscena3DParametrica();
 
     const titleText = document.getElementById('hn-prop-title-text');
     const selectedBadge = document.getElementById('hn-selected-badge');
