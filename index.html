@@ -3162,54 +3162,49 @@ function actualizarSidebarEspacios() {
 
         const div = document.createElement('div');
         div.className = 'hn-tool-item';
-        if (hnSeleccionActual && hnSeleccionActual.tipo === 'espacio' && hnSeleccionActual.objeto.spaceId === esp.spaceId) {
-            div.style.borderColor = '#f59e0b';
-            div.style.background = '#fef3c7';
-        }
-
         div.onclick = () => seleccionarEspacioSidebar(esp.spaceId);
+        
+        const isSelected = (hnSeleccionActual && hnSeleccionActual.tipo === 'espacio' && hnSeleccionActual.objeto.spaceId === esp.spaceId);
+        if (isSelected) {
+            div.style.background = '#e0f2fe';
+            div.style.borderColor = '#0284c7';
+        }
 
         div.innerHTML = `
             <div>
-                <strong>Espacio ${idx + 1}</strong>
-                <div style="font-size:0.7rem; color:#6b7280;">${anchoUtil.toFixed(0)} x ${altoUtil.toFixed(0)} mm</div>
+                <strong style="display:block; font-size:0.8rem;">Espacio ${idx + 1}</strong>
+                <span style="font-size:0.7rem; color:#6b7280;">${anchoUtil.toFixed(0)} x ${altoUtil.toFixed(0)} mm</span>
             </div>
-            <span class="hn-note">${repisasEnEspacio} rep | ${cajonesEnEspacio} caj</span>
+            <span class="hn-note">${cajonesEnEspacio > 0 ? cajonesEnEspacio + ' cajones' : repisasEnEspacio + ' rep.'}</span>
         `;
         container.appendChild(div);
     });
 }
 
 function seleccionarEspacioSidebar(spaceId) {
-    const esp = hnEspaciosActuales.find(e => e.spaceId === spaceId);
-    if (!esp) return;
-
-    hnSeleccionActual = {
-        tipo: 'espacio',
-        objeto: esp
-    };
-
-    reconstruirEscena3DParametrica();
-    actualizarSidebarEspacios();
-    mostrarPropiedadesEspacio(esp);
+    const espacio = hnEspaciosActuales.find(e => e.spaceId === spaceId);
+    if (espacio) {
+        hnSeleccionActual = { tipo: 'espacio', objeto: espacio };
+        reconstruirEscena3DParametrica();
+        actualizarSidebarEspacios();
+        mostrarPropiedadesEspacio(espacio);
+    }
 }
 
 function seleccionarElementoPorId(pieceId) {
     const elem = hnElementosActuales.find(e => e.pieceId === pieceId);
-    if (!elem) return;
-
-    hnSeleccionActual = {
-        tipo: elem.tipo,
-        objeto: elem
-    };
-
-    reconstruirEscena3DParametrica();
-    mostrarPropiedadesElemento(elem);
+    if (elem) {
+        hnSeleccionActual = { tipo: elem.tipo, objeto: elem };
+        reconstruirEscena3DParametrica();
+        actualizarSidebarEspacios();
+        if (elem.tipo === 'montante') mostrarPropiedadesMontante(elem);
+        else if (elem.tipo === 'repisa') mostrarPropiedadesRepisa(elem);
+    }
 }
 
 function onHNDesignerClick(event) {
     const container = document.getElementById('hn-viewport-3d');
-    if (!container || !hnCamera || !hnScene) return;
+    if (!container) return;
 
     const rect = container.getBoundingClientRect();
     hnMouse.x = ((event.clientX - rect.left) / container.clientWidth) * 2 - 1;
@@ -3218,249 +3213,227 @@ function onHNDesignerClick(event) {
     hnRaycaster.setFromCamera(hnMouse, hnCamera);
     const intersects = hnRaycaster.intersectObjects(hnScene.children, true);
 
-    const parametricoIntersect = intersects.find(hit => hit.object.userData && hit.object.userData.isParametric);
-
-    if (parametricoIntersect) {
-        const userData = parametricoIntersect.object.userData;
-        if (userData.tipo === 'montante' || userData.tipo === 'repisa') {
-            hnSeleccionActual = {
-                tipo: userData.tipo,
-                objeto: userData.elementoData
-            };
-            mostrarPropiedadesElemento(userData.elementoData);
-        } else if (userData.tipo === 'cajon_pieza') {
-            const cajonPadre = hnCajonesActuales.find(c => c.drawerId === userData.drawerId);
-            hnSeleccionActual = {
-                tipo: 'cajon',
-                objeto: userData.elementoData,
-                cajonPadre: cajonPadre
-            };
-            mostrarPropiedadesCajon(userData.elementoData, cajonPadre);
-        } else {
-            restaurarPanelDerechoMaestro();
+    for (let i = 0; i < intersects.length; i++) {
+        const mesh = intersects[i].object;
+        if (mesh.userData && mesh.userData.isParametric) {
+            if (mesh.userData.tipo === 'montante' || mesh.userData.tipo === 'repisa') {
+                seleccionarElementoPorId(mesh.userData.elementoData.pieceId);
+                return;
+            } else if (mesh.userData.tipo === 'cajon_pieza') {
+                const cajonPadre = hnCajonesActuales.find(c => c.drawerId === mesh.userData.drawerId);
+                if (cajonPadre) {
+                    hnSeleccionActual = { tipo: 'cajon', objeto: mesh.userData.elementoData, cajonPadre: cajonPadre };
+                    reconstruirEscena3DParametrica();
+                    mostrarPropiedadesCajon(cajonPadre, mesh.userData.elementoData);
+                    return;
+                }
+            }
         }
-    } else {
-        restaurarPanelDerechoMaestro();
     }
 
+    // Clic fuera -> restaurar selección maestra
+    hnSeleccionActual = null;
     reconstruirEscena3DParametrica();
     actualizarSidebarEspacios();
+    restaurarPanelDerechoMaestro();
 }
 
-function mostrarPropiedadesEspacio(esp) {
-    const titleText = document.getElementById('hn-prop-title-text');
-    const badgeText = document.getElementById('hn-selected-badge');
+/*
+=============================================================
+PROPIEDADES DINÁMICAS PANEL DERECHO
+=============================================================
+*/
+
+function restaurarPanelDerechoMaestro() {
+    document.getElementById('hn-prop-title-text').innerText = 'DIMENSIONES MAESTRAS';
+    document.getElementById('hn-selected-badge').innerText = 'Módulo';
+    document.getElementById('hn-selected-badge').style.background = '#dcfce7';
+    document.getElementById('hn-selected-badge').style.color = '#166534';
+
     const container = document.getElementById('hn-properties-content-container');
-
-    if (titleText) titleText.innerText = 'PROPIEDADES ESPACIO';
-    if (badgeText) {
-        badgeText.innerText = 'Espacio';
-        badgeText.style.background = '#dbeafe';
-        badgeText.style.color = '#1e40af';
-    }
-
-    const anchoUtil = esp.xMax - esp.xMin;
-    const altoUtil = esp.yMax - esp.yMin;
-
-    if (container) {
-        container.innerHTML = `
-            <div class="hn-prop-row">
-                <label>Ancho libre (mm)</label>
-                <input type="number" value="${anchoUtil.toFixed(0)}" disabled>
-            </div>
-            <div class="hn-prop-row">
-                <label>Alto libre (mm)</label>
-                <input type="number" value="${altoUtil.toFixed(0)}" disabled>
-            </div>
-            <div class="hn-prop-row">
-                <label>Profundidad libre (mm)</label>
-                <input type="number" value="${esp.profundidad.toFixed(0)}" disabled>
-            </div>
-            <div class="hn-properties-divider"></div>
-            <button class="hn-menu-btn" onclick="agregarRepisaParametricaPrompt()" style="background:#f3f4f6; width:100%; border:1px solid #d1d5db;">+ Agregar Repisa Aquí</button>
-            <button class="hn-menu-btn" onclick="agregarCajonParametricoPrompt()" style="background:#fef3c7; color:#d97706; width:100%; border:1px solid #fcd34d; margin-top:0.5rem; font-weight:bold;">+ Agregar Cajones Aquí</button>
-            <button class="hn-menu-btn" onclick="restaurarPanelDerechoMaestro()" style="background:#e5e7eb; width:100%; margin-top:0.5rem;">Volver a Maestras</button>
-        `;
-    }
-}
-
-function mostrarPropiedadesElemento(elem) {
-    const titleText = document.getElementById('hn-prop-title-text');
-    const badgeText = document.getElementById('hn-selected-badge');
-    const container = document.getElementById('hn-properties-content-container');
-
-    if (titleText) titleText.innerText = elem.tipo.toUpperCase();
-    if (badgeText) {
-        badgeText.innerText = elem.tipo;
-        badgeText.style.background = '#fef3c7';
-        badgeText.style.color = '#92400e';
-    }
-
-    if (!container) return;
-
-    if (elem.tipo === 'montante') {
-        container.innerHTML = `
-            <div class="hn-prop-row">
-                <label>Posición X (mm)</label>
-                <input type="number" value="${elem.x.toFixed(0)}" id="hn-elem-pos-x" onchange="actualizarMontanteDesdePropiedades('${elem.pieceId}')">
-            </div>
-            <div class="hn-prop-row">
-                <label>Alto (mm)</label>
-                <input type="number" value="${elem.alto.toFixed(0)}" disabled>
-            </div>
-            <div class="hn-prop-row">
-                <label>Profundidad (mm)</label>
-                <input type="number" value="${elem.profundidad.toFixed(0)}" disabled>
-            </div>
-            <div class="hn-properties-divider"></div>
-            <button class="hn-close-designer-btn" onclick="eliminarElementoActual('${elem.pieceId}')" style="width:100%;">Eliminar Montante</button>
-            <button class="hn-menu-btn" onclick="restaurarPanelDerechoMaestro()" style="background:#e5e7eb; width:100%; margin-top:0.5rem;">Volver a Maestras</button>
-        `;
-    } else if (elem.tipo === 'repisa') {
-        container.innerHTML = `
-            <div class="hn-prop-row">
-                <label>Posición Y / Altura (mm)</label>
-                <input type="number" value="${elem.y.toFixed(0)}" id="hn-elem-pos-y" onchange="actualizarRepisaDesdePropiedades('${elem.pieceId}')">
-            </div>
-            <div class="hn-prop-row">
-                <label>Ancho (mm)</label>
-                <input type="number" value="${elem.width.toFixed(0)}" disabled>
-            </div>
-            <div class="hn-prop-row">
-                <label>Profundidad (mm)</label>
-                <input type="number" value="${elem.profundidad.toFixed(0)}" disabled>
-            </div>
-            <div class="hn-properties-divider"></div>
-            <button class="hn-close-designer-btn" onclick="eliminarElementoActual('${elem.pieceId}')" style="width:100%;">Eliminar Repisa</button>
-            <button class="hn-menu-btn" onclick="restaurarPanelDerechoMaestro()" style="background:#e5e7eb; width:100%; margin-top:0.5rem;">Volver a Maestras</button>
-        `;
-    }
-}
-
-function mostrarPropiedadesCajon(pieza, cajonPadre) {
-    const titleText = document.getElementById('hn-prop-title-text');
-    const badgeText = document.getElementById('hn-selected-badge');
-    const container = document.getElementById('hn-properties-content-container');
-
-    if (titleText) titleText.innerText = 'PROPIEDADES CAJÓN';
-    if (badgeText) {
-        badgeText.innerText = 'Cajón';
-        badgeText.style.background = '#fef3c7';
-        badgeText.style.color = '#d97706';
-    }
-
-    if (!container) return;
-
     container.innerHTML = `
         <div class="hn-prop-row">
-            <label>Pieza seleccionada</label>
-            <input type="text" value="${pieza.tipo.replace('cajon_', '').toUpperCase()}" disabled>
+            <label>Ancho (mm)</label>
+            <input type="number" value="${hnModuloActual.ancho}" id="hn-master-ancho" oninput="actualizarDimensionesMaestrasDebounced()">
         </div>
         <div class="hn-prop-row">
-            <label>Ancho pieza (mm)</label>
-            <input type="number" value="${pieza.ancho.toFixed(0)}" disabled>
+            <label>Alto (mm)</label>
+            <input type="number" value="${hnModuloActual.alto}" id="hn-master-alto" oninput="actualizarDimensionesMaestrasDebounced()">
         </div>
         <div class="hn-prop-row">
-            <label>Alto pieza (mm)</label>
-            <input type="number" value="${pieza.alto.toFixed(0)}" disabled>
+            <label>Profundidad (mm)</label>
+            <input type="number" value="${hnModuloActual.profundidad}" id="hn-master-prof" oninput="actualizarDimensionesMaestrasDebounced()">
         </div>
         <div class="hn-prop-row">
-            <label>Profundidad pieza (mm)</label>
-            <input type="number" value="${pieza.profundidad.toFixed(0)}" disabled>
+            <label>Espesor estructural (mm)</label>
+            <input type="number" value="${hnModuloActual.espesor}" id="hn-master-espesor" oninput="actualizarDimensionesMaestrasDebounced()">
+        </div>
+        <div class="hn-prop-row">
+            <label>Fondo (mm)</label>
+            <input type="number" value="${hnModuloActual.fondo}" id="hn-master-fondo" oninput="actualizarDimensionesMaestrasDebounced()">
         </div>
         <div class="hn-properties-divider"></div>
-        <button class="hn-close-designer-btn" onclick="eliminarConjuntoCajon('${cajonPadre ? cajonPadre.drawerId : ''}')" style="width:100%;">Eliminar Cajón</button>
-        <button class="hn-menu-btn" onclick="restaurarPanelDerechoMaestro()" style="background:#e5e7eb; width:100%; margin-top:0.5rem;">Volver a Maestras</button>
+        <div style="font-size: 0.75rem; color: #6b7280; text-align: center;">
+            Modifica las dimensiones maestras para recalcular estructura, espacios y elementos automáticamente.
+        </div>
     `;
 }
 
-function actualizarMontanteDesdePropiedades(pieceId) {
-    const inputX = document.getElementById('hn-elem-pos-x');
-    if (!inputX) return;
-    const nuevaX = parseFloat(inputX.value);
-    if (isNaN(nuevaX)) return;
+function mostrarPropiedadesEspacio(espacio) {
+    document.getElementById('hn-prop-title-text').innerText = 'PROPIEDADES ESPACIO';
+    document.getElementById('hn-selected-badge').innerText = 'Espacio';
+    document.getElementById('hn-selected-badge').style.background = '#e0f2fe';
+    document.getElementById('hn-selected-badge').style.color = '#0369a1';
 
-    recalcularEspaciosYElementosPorMontante(pieceId, nuevaX);
+    const ancho = espacio.xMax - espacio.xMin;
+    const alto = espacio.yMax - espacio.yMin;
+
+    const container = document.getElementById('hn-properties-content-container');
+    container.innerHTML = `
+        <div class="hn-prop-row">
+            <label>Ancho útil (mm)</label>
+            <input type="number" value="${ancho.toFixed(0)}" disabled>
+        </div>
+        <div class="hn-prop-row">
+            <label>Alto útil (mm)</label>
+            <input type="number" value="${alto.toFixed(0)}" disabled>
+        </div>
+        <div class="hn-prop-row">
+            <label>Profundidad útil (mm)</label>
+            <input type="number" value="${espacio.profundidad.toFixed(0)}" disabled>
+        </div>
+        <div class="hn-properties-divider"></div>
+        <button class="hn-menu-btn" onclick="agregarCajonParametricoPrompt()" style="width:100%; background:#fef3c7; color:#d97706; border:1px solid #fcd34d;">
+            + Insertar Cajones Aquí
+        </button>
+        <button class="hn-menu-btn" onclick="restaurarPanelDerechoMaestro()" style="width:100%; margin-top:0.5rem; background:#f3f4f6;">
+            Volver a Dimensiones Maestras
+        </button>
+    `;
+}
+
+function mostrarPropiedadesMontante(montante) {
+    document.getElementById('hn-prop-title-text').innerText = 'MONTANTE VERTICAL';
+    document.getElementById('hn-selected-badge').innerText = 'Montante';
+    document.getElementById('hn-selected-badge').style.background = '#fef3c7';
+    document.getElementById('hn-selected-badge').style.color = '#92400e';
+
+    const container = document.getElementById('hn-properties-content-container');
+    container.innerHTML = `
+        <div class="hn-prop-row">
+            <label>Posición X (mm)</label>
+            <input type="number" value="${montante.x.toFixed(0)}" oninput="actualizarPosicionMontanteDirecto('${montante.pieceId}', this.value)">
+        </div>
+        <div class="hn-prop-row">
+            <label>Espesor (mm)</label>
+            <input type="number" value="${montante.espesor}" disabled>
+        </div>
+        <div class="hn-prop-row">
+            <label>Alto (mm)</label>
+            <input type="number" value="${montante.alto.toFixed(0)}" disabled>
+        </div>
+        <div class="hn-properties-divider"></div>
+        <button class="hn-close-designer-btn" onclick="eliminarElementoParametrico('${montante.pieceId}')" style="width:100%;">
+            Eliminar Montante
+        </button>
+        <button class="hn-menu-btn" onclick="restaurarPanelDerechoMaestro()" style="width:100%; margin-top:0.5rem; background:#f3f4f6;">
+            Volver a Dimensiones Maestras
+        </button>
+    `;
+}
+
+function mostrarPropiedadesRepisa(repisa) {
+    document.getElementById('hn-prop-title-text').innerText = 'REPISA HORIZONTAL';
+    document.getElementById('hn-selected-badge').innerText = 'Repisa';
+    document.getElementById('hn-selected-badge').style.background = '#fef3c7';
+    document.getElementById('hn-selected-badge').style.color = '#92400e';
+
+    const container = document.getElementById('hn-properties-content-container');
+    container.innerHTML = `
+        <div class="hn-prop-row">
+            <label>Posición Y (Altura mm)</label>
+            <input type="number" value="${repisa.y.toFixed(0)}" oninput="actualizarPosicionRepisaDirecto('${repisa.pieceId}', this.value)">
+        </div>
+        <div class="hn-prop-row">
+            <label>Ancho (mm)</label>
+            <input type="number" value="${repisa.width.toFixed(0)}" disabled>
+        </div>
+        <div class="hn-properties-divider"></div>
+        <button class="hn-close-designer-btn" onclick="eliminarElementoParametrico('${repisa.pieceId}')" style="width:100%;">
+            Eliminar Repisa
+        </button>
+        <button class="hn-menu-btn" onclick="restaurarPanelDerechoMaestro()" style="width:100%; margin-top:0.5rem; background:#f3f4f6;">
+            Volver a Dimensiones Maestras
+        </button>
+    `;
+}
+
+function mostrarPropiedadesCajon(cajon, piezaResaltada) {
+    document.getElementById('hn-prop-title-text').innerText = 'CONJUNTO DE CAJÓN';
+    document.getElementById('hn-selected-badge').innerText = 'Cajón';
+    document.getElementById('hn-selected-badge').style.background = '#fef3c7';
+    document.getElementById('hn-selected-badge').style.color = '#b45309';
+
+    const container = document.getElementById('hn-properties-content-container');
+    container.innerHTML = `
+        <div class="hn-prop-row">
+            <label>Pieza Seleccionada</label>
+            <input type="text" value="${piezaResaltada.tipo.toUpperCase()}" disabled>
+        </div>
+        <div class="hn-prop-row">
+            <label>Ancho pieza (mm)</label>
+            <input type="number" value="${piezaResaltada.ancho.toFixed(0)}" disabled>
+        </div>
+        <div class="hn-prop-row">
+            <label>Alto pieza (mm)</label>
+            <input type="number" value="${piezaResaltada.alto.toFixed(0)}" disabled>
+        </div>
+        <div class="hn-prop-row">
+            <label>Profundidad pieza (mm)</label>
+            <input type="number" value="${piezaResaltada.profundidad.toFixed(0)}" disabled>
+        </div>
+        <div class="hn-properties-divider"></div>
+        <button class="hn-close-designer-btn" onclick="eliminarCajonParametrico('${cajon.drawerId}')" style="width:100%;">
+            Eliminar este Cajón
+        </button>
+        <button class="hn-menu-btn" onclick="restaurarPanelDerechoMaestro()" style="width:100%; margin-top:0.5rem; background:#f3f4f6;">
+            Volver a Dimensiones Maestras
+        </button>
+    `;
+}
+
+function actualizarPosicionMontanteDirecto(pieceId, valStr) {
+    const val = parseFloat(valStr);
+    if (isNaN(val)) return;
+    const valLimitado = Math.max(hnModuloActual.espesor + 50, Math.min(val, hnModuloActual.ancho - hnModuloActual.espesor - 50));
+    recalcularEspaciosYElementosPorMontante(pieceId, valLimitado);
     reconstruirEscena3DParametrica();
     actualizarSidebarEspacios();
 }
 
-function actualizarRepisaDesdePropiedades(pieceId) {
-    const inputY = document.getElementById('hn-elem-pos-y');
-    if (!inputY) return;
-    const nuevaY = parseFloat(inputY.value);
-    if (isNaN(nuevaY)) return;
-
+function actualizarPosicionRepisaDirecto(pieceId, valStr) {
+    const val = parseFloat(valStr);
+    if (isNaN(val)) return;
     const repisa = hnElementosActuales.find(e => e.pieceId === pieceId);
     if (repisa) {
-        repisa.y = nuevaY;
+        repisa.y = Math.max(hnModuloActual.espesor + 20, Math.min(val, hnModuloActual.alto - hnModuloActual.espesor - 20));
         reconstruirEscena3DParametrica();
     }
 }
 
-function eliminarElementoActual(pieceId) {
+function eliminarElementoParametrico(pieceId) {
     hnElementosActuales = hnElementosActuales.filter(e => e.pieceId !== pieceId);
-    hnSeleccionActual = null;
-
     recalcularEspaciosYElementosPorMontante();
     reconstruirEscena3DParametrica();
     actualizarSidebarEspacios();
     restaurarPanelDerechoMaestro();
 }
 
-function eliminarConjuntoCajon(drawerId) {
-    if (!drawerId) return;
+function eliminarCajonParametrico(drawerId) {
     hnCajonesActuales = hnCajonesActuales.filter(c => c.drawerId !== drawerId);
-    hnSeleccionActual = null;
-
     reconstruirEscena3DParametrica();
     actualizarSidebarEspacios();
     restaurarPanelDerechoMaestro();
-}
-
-function restaurarPanelDerechoMaestro() {
-    hnSeleccionActual = null;
-    const titleText = document.getElementById('hn-prop-title-text');
-    const badgeText = document.getElementById('hn-selected-badge');
-    const container = document.getElementById('hn-properties-content-container');
-
-    if (titleText) titleText.innerText = 'DIMENSIONES MAESTRAS';
-    if (badgeText) {
-        badgeText.innerText = 'Módulo';
-        badgeText.style.background = '#dcfce7';
-        badgeText.style.color = '#166534';
-    }
-
-    if (container) {
-        container.innerHTML = `
-            <div class="hn-prop-row">
-                <label>Ancho (mm)</label>
-                <input type="number" value="${hnModuloActual.ancho}" id="hn-master-ancho" oninput="actualizarDimensionesMaestrasDebounced()">
-            </div>
-            <div class="hn-prop-row">
-                <label>Alto (mm)</label>
-                <input type="number" value="${hnModuloActual.alto}" id="hn-master-alto" oninput="actualizarDimensionesMaestrasDebounced()">
-            </div>
-            <div class="hn-prop-row">
-                <label>Profundidad (mm)</label>
-                <input type="number" value="${hnModuloActual.profundidad}" id="hn-master-prof" oninput="actualizarDimensionesMaestrasDebounced()">
-            </div>
-            <div class="hn-prop-row">
-                <label>Espesor estructural (mm)</label>
-                <input type="number" value="${hnModuloActual.espesor}" id="hn-master-espesor" oninput="actualizarDimensionesMaestrasDebounced()">
-            </div>
-            <div class="hn-prop-row">
-                <label>Fondo (mm)</label>
-                <input type="number" value="${hnModuloActual.fondo}" id="hn-master-fondo" oninput="actualizarDimensionesMaestrasDebounced()">
-            </div>
-            <div class="hn-properties-divider"></div>
-            <div style="font-size: 0.75rem; color: #6b7280; text-align: center;">
-                Modifica las dimensiones maestras para recalcular estructura, espacios y elementos automáticamente.
-            </div>
-        `;
-    }
-
-    reconstruirEscena3DParametrica();
 }
 
 </script>
