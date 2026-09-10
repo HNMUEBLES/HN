@@ -445,7 +445,7 @@
 
 
     /* ==========================================================
-       HN DESIGNER - INTERFAZ VISUAL PROFESIONAL (PASO 7)
+       HN DESIGNER - INTERFAZ VISUAL PROFESIONAL (PASO 8)
        Aislado con contenedor principal #hn-designer
        Estilo limpio, profesional, blanco/gris, sin romper nada.
        ========================================================== */
@@ -2213,7 +2213,7 @@
 
 
 <!-- ==========================================================
-     HN DESIGNER - MOTOR PARAMÉTRICO DE ELEMENTOS DENTRO DE ESPACIOS (PASO 7)
+     HN DESIGNER - MOTOR PARAMÉTRICO DE CAJONES (PASO 8)
      Contenedor aislado independiente
      ========================================================== -->
 <div id="hn-designer">
@@ -2228,10 +2228,11 @@
                 <button class="hn-menu-btn" onclick="crearModuloNuevoParametrico()">Nuevo Módulo</button>
                 <button class="hn-menu-btn" onclick="agregarMontanteParametricoModal()">+ Montante</button>
                 <button class="hn-menu-btn" onclick="agregarRepisaParametricaPrompt()">+ Repisa</button>
+                <button class="hn-menu-btn" onclick="agregarCajonParametricoPrompt()" style="color: #f59e0b; font-weight: bold;">+ Cajón</button>
             </div>
         </div>
         <div class="hn-topbar-right">
-            <span style="font-size: 0.8rem; color: #6b7280; font-weight: 500;">Motor Paramétrico v7.0 (Milímetros)</span>
+            <span style="font-size: 0.8rem; color: #6b7280; font-weight: 500;">Motor Paramétrico v8.0 (Milímetros)</span>
             <button class="hn-close-designer-btn" onclick="cerrarHNDesigner()">Cerrar Diseñador</button>
         </div>
     </div>
@@ -2254,6 +2255,7 @@
                 <div class="hn-sidebar-group">
                     <div class="hn-tool-item" onclick="agregarMontanteParametricoModal()">Agregar montante <span class="hn-note">Vertical</span></div>
                     <div class="hn-tool-item" onclick="agregarRepisaParametricaPrompt()">Agregar repisa <span class="hn-note">Horizontal</span></div>
+                    <div class="hn-tool-item" onclick="agregarCajonParametricoPrompt()">Agregar cajón <span class="hn-note" style="background:#fef3c7; color:#d97706;">Conjunto</span></div>
                 </div>
             </div>
 
@@ -2508,7 +2510,7 @@ function cambiarVistaAdmin(vista, botonSeleccionado) {
 
 /*
 =============================================================
-HN DESIGNER - MOTOR PARAMÉTRICO REAL PASO 7 (ESTRUCTURA -> ESPACIOS -> ELEMENTOS)
+HN DESIGNER - MOTOR PARAMÉTRICO REAL PASO 8 (ESTRUCTURA -> ESPACIOS -> CAJONES & REPISAS)
 =============================================================
 */
 
@@ -2534,6 +2536,7 @@ let hnModuloActual = {
 
 let hnEspaciosActuales = [];
 let hnElementosActuales = []; 
+let hnCajonesActuales = [];
 let hnSeleccionActual = null; 
 let timerDimensionesMaestras = null;
 
@@ -2646,6 +2649,7 @@ function crearModuloNuevoParametrico() {
     }];
 
     hnElementosActuales = [];
+    hnCajonesActuales = [];
     reconstruirEscena3DParametrica();
     actualizarSidebarEspacios();
     restaurarPanelDerechoMaestro();
@@ -2707,6 +2711,9 @@ function ejecutarRecalculoParametricoCompleto() {
         }
     });
 
+    // Recalcular cajones existentes ante cambios maestros
+    recalcularTodosLosCajones();
+
     reconstruirEscena3DParametrica();
     actualizarSidebarEspacios();
 }
@@ -2758,6 +2765,7 @@ function reconstruirEscena3DParametrica() {
         hnScene.add(mesh);
     });
 
+    // Renderizar elementos estándar (Montantes y Repisas)
     hnElementosActuales.forEach(elem => {
         let geom;
         if (elem.tipo === 'montante') {
@@ -2788,6 +2796,30 @@ function reconstruirEscena3DParametrica() {
 
         mesh.userData = { isParametric: true, tipo: elem.tipo, elementoData: elem };
         hnScene.add(mesh);
+    });
+
+    // Renderizar piezas independientes de cada cajón (PASO 8)
+    hnCajonesActuales.forEach(cajon => {
+        if (cajon.piezas && Array.isArray(cajon.piezas)) {
+            cajon.piezas.forEach(pieza => {
+                const geom = new THREE.BoxGeometry(pieza.ancho, pieza.alto, pieza.profundidad);
+                const isSelected = (hnSeleccionActual && hnSeleccionActual.objeto.pieceId === pieza.pieceId);
+                const mat = new THREE.MeshStandardMaterial({
+                    color: isSelected ? 0xf59e0b : 0xfef3c7, // Tono melamina cálida o resaltado
+                    roughness: 0.3,
+                    metalness: 0.1
+                });
+                const mesh = new THREE.Mesh(geom, mat);
+                mesh.position.set(pieza.x - (W / 2), pieza.y, pieza.z - (D / 2));
+
+                const edges = new THREE.EdgesGeometry(geom);
+                const line = new THREE.LineSegments(edges, new THREE.LineBasicMaterial({ color: isSelected ? 0xb45309 : 0xd97706, linewidth: 1 }));
+                mesh.add(line);
+
+                mesh.userData = { isParametric: true, tipo: 'cajon_pieza', elementoData: pieza, drawerId: cajon.drawerId };
+                hnScene.add(mesh);
+            });
+        }
     });
 
     if (hnControls) {
@@ -2821,13 +2853,11 @@ function agregarMontanteParametricoModal() {
 }
 
 function recalcularEspaciosYElementosPorMontante(movMontantePieceId = null, posXForzada = null) {
-    // Si se movió un montante específico, actualizamos su posición primero si se pasó
     if (movMontantePieceId && posXForzada !== null) {
         const mObj = hnElementosActuales.find(e => e.pieceId === movMontantePieceId);
         if (mObj) mObj.x = posXForzada;
     }
 
-    // Recogemos todos los montantes ordenados por coordenada X
     const montantes = hnElementosActuales
         .filter(e => e.tipo === 'montante')
         .sort((a, b) => a.x - b.x);
@@ -2844,8 +2874,7 @@ function recalcularEspaciosYElementosPorMontante(movMontantePieceId = null, posX
         if (i + 1 < limitesX.length) {
             let xMin = limitesX[i];
             let xMax = limitesX[i+1];
-            if (xMax - xMin > 10) { // Espacio válido
-                // Buscamos si ya existía un espacio que cubriera esta zona para conservar su ID si es posible o crear uno estable
+            if (xMax - xMin > 10) {
                 let espacioExistente = hnEspaciosActuales.find(e => Math.abs(e.xMin - xMin) < 5 && Math.abs(e.xMax - xMax) < 5);
                 let spaceId = espacioExistente ? espacioExistente.spaceId : ('space_' + Math.random().toString(36).substr(2, 6));
                 
@@ -2864,7 +2893,7 @@ function recalcularEspaciosYElementosPorMontante(movMontantePieceId = null, posX
 
     hnEspaciosActuales = nuevosEspacios;
 
-    // Actualizar spaceId de las repisas si quedaron dentro de nuevos límites
+    // Actualizar spaceId de las repisas
     hnElementosActuales.forEach(elem => {
         if (elem.tipo === 'repisa') {
             let espCorrecto = hnEspaciosActuales.find(e => elem.x >= e.xMin && elem.x <= e.xMax);
@@ -2879,6 +2908,9 @@ function recalcularEspaciosYElementosPorMontante(movMontantePieceId = null, posX
             }
         }
     });
+
+    // REGLA CRÍTICA PASO 8: Actualizar spaceId y recalcular completamente los cajones al mover montantes
+    recalcularTodosLosCajones();
 }
 
 function agregarRepisaParametricaPrompt() {
@@ -2887,7 +2919,6 @@ function agregarRepisaParametricaPrompt() {
         return;
     }
 
-    // Si hay más de un espacio, permitimos elegir o usamos el primero por defecto (o el seleccionado)
     let espacioDestino = hnEspaciosActuales[0];
     if (hnSeleccionActual && hnSeleccionActual.tipo === 'espacio') {
         espacioDestino = hnSeleccionActual.objeto;
@@ -2907,8 +2938,6 @@ function agregarRepisaParametricaPrompt() {
     const yMin = espacioDestino.yMin;
     const yMax = espacioDestino.yMax;
     const alturaUtil = yMax - yMin;
-    
-    // Separación y distribución automática profesional
     let separacion = alturaUtil / (cantidad + 1);
 
     for (let i = 1; i <= cantidad; i++) {
@@ -2937,6 +2966,189 @@ function agregarRepisaParametricaPrompt() {
     actualizarSidebarEspacios();
 }
 
+/*
+=============================================================
+PASO 8 — SISTEMA PARAMÉTRICO DE CAJONES
+=============================================================
+*/
+
+function agregarCajonParametricoPrompt() {
+    if (hnEspaciosActuales.length === 0) {
+        alert('Primero debes tener al menos un espacio creado para insertar cajones.');
+        return;
+    }
+
+    let espacioDestino = hnEspaciosActuales[0];
+    if (hnSeleccionActual && hnSeleccionActual.tipo === 'espacio') {
+        espacioDestino = hnSeleccionActual.objeto;
+    } else if (hnSeleccionActual && hnSeleccionActual.tipo === 'repisa') {
+        espacioDestino = hnEspaciosActuales.find(e => e.spaceId === hnSeleccionActual.objeto.spaceId) || hnEspaciosActuales[0];
+    } else if (hnSeleccionActual && hnSeleccionActual.tipo === 'cajon') {
+        espacioDestino = hnEspaciosActuales.find(e => e.spaceId === hnSeleccionActual.objeto.spaceId) || hnEspaciosActuales[0];
+    }
+
+    let cantidadStr = prompt(`¿Cuántos cajones deseas crear en el espacio seleccionado?`, "3");
+    if (!cantidadStr) return;
+
+    let cantidad = parseInt(cantidadStr);
+    if (isNaN(cantidad) || cantidad <= 0) {
+        alert('Cantidad inválida.');
+        return;
+    }
+
+    generarConjuntoCajonesEnEspacio(espacioDestino, cantidad);
+    reconstruirEscena3DParametrica();
+    actualizarSidebarEspacios();
+}
+
+function generarConjuntoCajonesEnEspacio(espacio, cantidad) {
+    const anchoUtil = espacio.xMax - espacio.xMin;
+    const altoUtil = espacio.yMax - espacio.yMin;
+    const profUtil = espacio.profundidad;
+    const T = hnModuloActual.espesor;
+    const juegoHolguraLateral = 26; // Holgura típica de rieles / armado
+    const holguraAltura = 10;
+
+    // Altura disponible para repartir entre la cantidad de cajones
+    const alturaTotalCajones = altoUtil - ((cantidad + 1) * holguraAltura);
+    const alturaCajonIndividual = alturaTotalCajones / cantidad;
+
+    for (let i = 0; i < cantidad; i++) {
+        const drawerId = 'drw_' + Math.random().toString(36).substr(2, 6);
+        const yBaseCajon = espacio.yMin + holguraAltura + (i * (alturaCajonIndividual + holguraAltura));
+
+        const piezasCajon = [];
+        const matEsp = T;
+
+        // 1. Frente de cajón
+        const anchoFrente = anchoUtil - 4;
+        const altoFrente = alturaCajonIndividual - 4;
+        const piezaFrente = {
+            pieceId: 'p_' + Math.random().toString(36).substr(2, 6),
+            drawerId: drawerId,
+            spaceId: espacio.spaceId,
+            moduleId: hnModuloActual.moduleId,
+            tipo: 'cajon_frente',
+            ancho: anchoFrente,
+            alto: altoFrente,
+            profundidad: matEsp,
+            espesor: matEsp,
+            x: espacio.xMin + (anchoUtil / 2),
+            y: yBaseCajon + (altoFrente / 2),
+            z: profUtil - (matEsp / 2)
+        };
+        piezasCajon.push(piezaFrente);
+
+        // 2. Lateral Izquierdo del cajón
+        const profLateral = profUtil - 40;
+        const altoLateral = altoFrente - 30;
+        const piezaLatIzq = {
+            pieceId: 'p_' + Math.random().toString(36).substr(2, 6),
+            drawerId: drawerId,
+            spaceId: espacio.spaceId,
+            moduleId: hnModuloActual.moduleId,
+            tipo: 'cajon_lateral_izq',
+            ancho: matEsp,
+            alto: altoLateral,
+            profundidad: profLateral,
+            espesor: matEsp,
+            x: espacio.xMin + (matEsp / 2) + 10,
+            y: yBaseCajon + (altoFrente / 2),
+            z: (profLateral / 2) + 20
+        };
+        piezasCajon.push(piezaLatIzq);
+
+        // 3. Lateral Derecho del cajón
+        const piezaLatDer = {
+            pieceId: 'p_' + Math.random().toString(36).substr(2, 6),
+            drawerId: drawerId,
+            spaceId: espacio.spaceId,
+            moduleId: hnModuloActual.moduleId,
+            tipo: 'cajon_lateral_der',
+            ancho: matEsp,
+            alto: altoLateral,
+            profundidad: profLateral,
+            espesor: matEsp,
+            x: espacio.xMax - (matEsp / 2) - 10,
+            y: yBaseCajon + (altoFrente / 2),
+            z: (profLateral / 2) + 20
+        };
+        piezasCajon.push(piezaLatDer);
+
+        // 4. Trasera del cajón
+        const anchoTrasera = anchoUtil - juegoHolguraLateral - (2 * matEsp);
+        const piezaTrasera = {
+            pieceId: 'p_' + Math.random().toString(36).substr(2, 6),
+            drawerId: drawerId,
+            spaceId: espacio.spaceId,
+            moduleId: hnModuloActual.moduleId,
+            tipo: 'cajon_trasera',
+            ancho: anchoTrasera,
+            alto: altoLateral,
+            profundidad: matEsp,
+            espesor: matEsp,
+            x: espacio.xMin + (anchoUtil / 2),
+            y: yBaseCajon + (altoFrente / 2),
+            z: matEsp / 2 + 10
+        };
+        piezasCajon.push(piezaTrasera);
+
+        // 5. Fondo / Base del cajón
+        const piezaBase = {
+            pieceId: 'p_' + Math.random().toString(36).substr(2, 6),
+            drawerId: drawerId,
+            spaceId: espacio.spaceId,
+            moduleId: hnModuloActual.moduleId,
+            tipo: 'cajon_fondo',
+            ancho: anchoTrasera,
+            alto: hnModuloActual.fondo,
+            profundidad: profLateral - matEsp,
+            espesor: hnModuloActual.fondo,
+            x: espacio.xMin + (anchoUtil / 2),
+            y: yBaseCajon + (hnModuloActual.fondo / 2) + 5,
+            z: ((profLateral - matEsp) / 2) + 20
+        };
+        piezasCajon.push(piezaBase);
+
+        hnCajonesActuales.push({
+            drawerId: drawerId,
+            spaceId: espacio.spaceId,
+            moduleId: hnModuloActual.moduleId,
+            cantidadEnGrupo: cantidad,
+            piezas: piezasCajon
+        });
+    }
+}
+
+function recalcularTodosLosCajones() {
+    // Si se mueven montantes o cambian dimensiones maestras, cada cajón se recalcula según su espacio actual
+    let cajonesAntiguos = [...hnCajonesActuales];
+    hnCajonesActuales = [];
+
+    // Agrupamos por spaceId para mantener la cantidad solicitada originalmente
+    let mapaEspaciosCajones = {};
+    cajonesAntiguos.forEach(c => {
+        if (!mapaEspaciosCajones[c.spaceId]) {
+            mapaEspaciosCajones[c.spaceId] = 0;
+        }
+        mapaEspaciosCajones[c.spaceId]++;
+    });
+
+    for (let spaceId in mapaEspaciosCajones) {
+        let espacioReal = hnEspaciosActuales.find(e => e.spaceId === spaceId);
+        if (espacioReal) {
+            let cantidad = mapaEspaciosCajones[spaceId];
+            generarConjuntoCajonesEnEspacio(espacioReal, cantidad);
+        } else {
+            // Si el espacio se eliminó por completo, reasignar al primer espacio disponible
+            if (hnEspaciosActuales.length > 0) {
+                let espacioFallback = hnEspaciosActuales[0];
+                generarConjuntoCajonesEnEspacio(espacioFallback, 1);
+            }
+        }
+    }
+}
+
 function actualizarSidebarEspacios() {
     const container = document.getElementById('hn-lista-espacios-sidebar');
     if (!container) return;
@@ -2946,6 +3158,7 @@ function actualizarSidebarEspacios() {
         const anchoUtil = esp.xMax - esp.xMin;
         const altoUtil = esp.yMax - esp.yMin;
         const repisasEnEspacio = hnElementosActuales.filter(e => e.tipo === 'repisa' && e.spaceId === esp.spaceId).length;
+        const cajonesEnEspacio = hnCajonesActuales.filter(c => c.spaceId === esp.spaceId).length;
 
         const div = document.createElement('div');
         div.className = 'hn-tool-item';
@@ -2957,7 +3170,7 @@ function actualizarSidebarEspacios() {
         div.innerHTML = `
             <div style="display:flex; justify-content:space-between; width:100%; align-items:center;">
                 <strong>Espacio #${idx + 1}</strong>
-                <span class="hn-note">${anchoUtil.toFixed(0)} x ${altoUtil.toFixed(0)} mm (${repisasEnEspacio} repisas)</span>
+                <span class="hn-note">${anchoUtil.toFixed(0)} x ${altoUtil.toFixed(0)} mm (${repisasEnEspacio} rep, ${cajonesEnEspacio} caj)</span>
             </div>
             <div style="font-size:0.7rem; color:#6b7280;">X: [${esp.xMin.toFixed(0)} - ${esp.xMax.toFixed(0)}]</div>
         `;
@@ -2987,7 +3200,11 @@ function onHNDesignerClick(event) {
     if (intersects.length > 0) {
         const intersectedMesh = intersects[0].object;
         const elementoData = intersectedMesh.userData.elementoData;
-        if (elementoData) {
+        const drawerId = intersectedMesh.userData.drawerId;
+
+        if (drawerId) {
+            seleccionarPiezaCajonPorId(drawerId, elementoData.pieceId);
+        } else if (elementoData) {
             seleccionarElementoPorId(elementoData.pieceId);
         }
     } else {
@@ -3006,6 +3223,17 @@ function seleccionarElementoPorId(pieceId) {
     } else if (elem.tipo === 'repisa') {
         mostrarPropiedadesRepisa(elem);
     }
+}
+
+function seleccionarPiezaCajonPorId(drawerId, pieceId) {
+    const cajon = hnCajonesActuales.find(c => c.drawerId === drawerId);
+    if (!cajon) return;
+    const pieza = cajon.piezas.find(p => p.pieceId === pieceId);
+    if (!pieza) return;
+
+    hnSeleccionActual = { tipo: 'cajon', objeto: pieza, drawerId: drawerId };
+    reconstruirEscena3DParametrica();
+    mostrarPropiedadesPiezaCajon(cajon, pieza);
 }
 
 function seleccionarEspacioPorId(spaceId) {
@@ -3046,17 +3274,12 @@ function mostrarPropiedadesEspacio(esp) {
             <label>Profundidad útil (mm)</label>
             <input type="number" value="${esp.profundidad.toFixed(1)}" readonly>
         </div>
-        <div class="hn-prop-row">
-            <label>Límite X mínimo (mm)</label>
-            <input type="number" id="hn-edit-xmin" value="${esp.xMin.toFixed(1)}" readonly style="background:#f3f4f6;">
-        </div>
-        <div class="hn-prop-row">
-            <label>Límite X máximo (mm)</label>
-            <input type="number" id="hn-edit-xmax" value="${esp.xMax.toFixed(1)}" readonly style="background:#f3f4f6;">
-        </div>
         <div class="hn-properties-divider"></div>
         <button type="button" class="btn-primary-modern full-btn" style="padding: 8px; font-size: 0.85rem; background:#10b981; border:none;" onclick="agregarRepisaParametricaPrompt()">
-            + Agregar Repisa a este Espacio
+            + Agregar Repisa
+        </button>
+        <button type="button" class="btn-primary-modern full-btn" style="padding: 8px; font-size: 0.85rem; margin-top:6px; background:#d97706; border:none;" onclick="agregarCajonParametricoPrompt()">
+            + Agregar Cajón
         </button>
         <button type="button" class="btn-primary-modern full-btn" style="padding: 8px; font-size: 0.85rem; margin-top:6px;" onclick="restaurarPanelDerechoMaestro()">
             Volver a Dimensiones Maestras
@@ -3138,6 +3361,58 @@ function mostrarPropiedadesRepisa(elem) {
             Volver a Dimensiones Maestras
         </button>
     `;
+}
+
+function mostrarPropiedadesPiezaCajon(cajon, pieza) {
+    const titleText = document.getElementById('hn-prop-title-text');
+    const selectedBadge = document.getElementById('hn-selected-badge');
+    const container = document.getElementById('hn-properties-content-container');
+
+    if (!titleText || !container) return;
+
+    titleText.innerText = "PIEZA DE CAJÓN";
+    if (selectedBadge) selectedBadge.innerText = 'Cajón';
+
+    container.innerHTML = `
+        <div class="hn-prop-row">
+            <label>ID de Pieza (pieceId)</label>
+            <input type="text" value="${pieza.pieceId}" readonly style="background:#f3f4f6; color:#6b7280; font-size:0.75rem;">
+        </div>
+        <div class="hn-prop-row">
+            <label>ID del Cajón (drawerId)</label>
+            <input type="text" value="${pieza.drawerId}" readonly style="background:#f3f4f6; color:#6b7280; font-size:0.75rem;">
+        </div>
+        <div class="hn-prop-row">
+            <label>Tipo de pieza</label>
+            <input type="text" value="${pieza.tipo}" readonly style="background:#f3f4f6;">
+        </div>
+        <div class="hn-prop-row">
+            <label>Ancho (mm)</label>
+            <input type="number" value="${pieza.ancho.toFixed(1)}" readonly>
+        </div>
+        <div class="hn-prop-row">
+            <label>Alto (mm)</label>
+            <input type="number" value="${pieza.alto.toFixed(1)}" readonly>
+        </div>
+        <div class="hn-prop-row">
+            <label>Profundidad (mm)</label>
+            <input type="number" value="${pieza.profundidad.toFixed(1)}" readonly>
+        </div>
+        <div class="hn-properties-divider"></div>
+        <button type="button" class="btn-primary-modern full-btn" style="padding: 8px; font-size: 0.85rem; background:#ef4444; border:none;" onclick="eliminarCajonParametrico('${cajon.drawerId}')">
+            Eliminar Cajón Completo
+        </button>
+        <button type="button" class="btn-primary-modern full-btn" style="padding: 8px; font-size: 0.85rem; margin-top:6px;" onclick="restaurarPanelDerechoMaestro()">
+            Volver a Dimensiones Maestras
+        </button>
+    `;
+}
+
+function eliminarCajonParametrico(drawerId) {
+    hnCajonesActuales = hnCajonesActuales.filter(c => c.drawerId !== drawerId);
+    restaurarPanelDerechoMaestro();
+    reconstruirEscena3DParametrica();
+    actualizarSidebarEspacios();
 }
 
 function actualizarPosicionMontanteManual(pieceId, nuevoValorStr) {
