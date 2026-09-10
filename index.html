@@ -2967,6 +2967,7 @@ function agregarRepisaParametricaPrompt() {
 }
 
 /*
+/*
 =============================================================
 PASO 8 — SISTEMA PARAMÉTRICO DE CAJONES
 =============================================================
@@ -3006,10 +3007,9 @@ function generarConjuntoCajonesEnEspacio(espacio, cantidad) {
     const altoUtil = espacio.yMax - espacio.yMin;
     const profUtil = espacio.profundidad;
     const T = hnModuloActual.espesor;
-    const juegoHolguraLateral = 26; // Holgura típica de rieles / armado
+    const juegoHolguraLateral = 26;
     const holguraAltura = 10;
 
-    // Altura disponible para repartir entre la cantidad de cajones
     const alturaTotalCajones = altoUtil - ((cantidad + 1) * holguraAltura);
     const alturaCajonIndividual = alturaTotalCajones / cantidad;
 
@@ -3020,9 +3020,9 @@ function generarConjuntoCajonesEnEspacio(espacio, cantidad) {
         const piezasCajon = [];
         const matEsp = T;
 
-        // 1. Frente de cajón
         const anchoFrente = anchoUtil - 4;
         const altoFrente = alturaCajonIndividual - 4;
+
         const piezaFrente = {
             pieceId: 'p_' + Math.random().toString(36).substr(2, 6),
             drawerId: drawerId,
@@ -3039,9 +3039,9 @@ function generarConjuntoCajonesEnEspacio(espacio, cantidad) {
         };
         piezasCajon.push(piezaFrente);
 
-        // 2. Lateral Izquierdo del cajón
         const profLateral = profUtil - 40;
         const altoLateral = altoFrente - 30;
+
         const piezaLatIzq = {
             pieceId: 'p_' + Math.random().toString(36).substr(2, 6),
             drawerId: drawerId,
@@ -3058,7 +3058,6 @@ function generarConjuntoCajonesEnEspacio(espacio, cantidad) {
         };
         piezasCajon.push(piezaLatIzq);
 
-        // 3. Lateral Derecho del cajón
         const piezaLatDer = {
             pieceId: 'p_' + Math.random().toString(36).substr(2, 6),
             drawerId: drawerId,
@@ -3075,8 +3074,8 @@ function generarConjuntoCajonesEnEspacio(espacio, cantidad) {
         };
         piezasCajon.push(piezaLatDer);
 
-        // 4. Trasera del cajón
         const anchoTrasera = anchoUtil - juegoHolguraLateral - (2 * matEsp);
+
         const piezaTrasera = {
             pieceId: 'p_' + Math.random().toString(36).substr(2, 6),
             drawerId: drawerId,
@@ -3093,7 +3092,6 @@ function generarConjuntoCajonesEnEspacio(espacio, cantidad) {
         };
         piezasCajon.push(piezaTrasera);
 
-        // 5. Fondo / Base del cajón
         const piezaBase = {
             pieceId: 'p_' + Math.random().toString(36).substr(2, 6),
             drawerId: drawerId,
@@ -3121,12 +3119,11 @@ function generarConjuntoCajonesEnEspacio(espacio, cantidad) {
 }
 
 function recalcularTodosLosCajones() {
-    // Si se mueven montantes o cambian dimensiones maestras, cada cajón se recalcula según su espacio actual
     let cajonesAntiguos = [...hnCajonesActuales];
     hnCajonesActuales = [];
 
-    // Agrupamos por spaceId para mantener la cantidad solicitada originalmente
     let mapaEspaciosCajones = {};
+
     cajonesAntiguos.forEach(c => {
         if (!mapaEspaciosCajones[c.spaceId]) {
             mapaEspaciosCajones[c.spaceId] = 0;
@@ -3136,11 +3133,11 @@ function recalcularTodosLosCajones() {
 
     for (let spaceId in mapaEspaciosCajones) {
         let espacioReal = hnEspaciosActuales.find(e => e.spaceId === spaceId);
+
         if (espacioReal) {
             let cantidad = mapaEspaciosCajones[spaceId];
             generarConjuntoCajonesEnEspacio(espacioReal, cantidad);
         } else {
-            // Si el espacio se eliminó por completo, reasignar al primer espacio disponible
             if (hnEspaciosActuales.length > 0) {
                 let espacioFallback = hnEspaciosActuales[0];
                 generarConjuntoCajonesEnEspacio(espacioFallback, 1);
@@ -3154,6 +3151,7 @@ function actualizarSidebarEspacios() {
     if (!container) return;
 
     container.innerHTML = '';
+
     hnEspaciosActuales.forEach((esp, idx) => {
         const anchoUtil = esp.xMax - esp.xMin;
         const altoUtil = esp.yMax - esp.yMin;
@@ -3161,12 +3159,15 @@ function actualizarSidebarEspacios() {
         const cajonesEnEspacio = hnCajonesActuales.filter(c => c.spaceId === esp.spaceId).length;
 
         const div = document.createElement('div');
+
         div.className = 'hn-tool-item';
         div.style.flexDirection = 'column';
         div.style.alignItems = 'flex-start';
         div.style.gap = '2px';
         div.style.cursor = 'pointer';
+
         div.onclick = () => seleccionarEspacioPorId(esp.spaceId);
+
         div.innerHTML = `
             <div style="display:flex; justify-content:space-between; width:100%; align-items:center;">
                 <strong>Espacio #${idx + 1}</strong>
@@ -3174,23 +3175,31 @@ function actualizarSidebarEspacios() {
             </div>
             <div style="font-size:0.7rem; color:#6b7280;">X: [${esp.xMin.toFixed(0)} - ${esp.xMax.toFixed(0)}]</div>
         `;
+
         container.appendChild(div);
     });
 }
 
 function onHNDesignerClick(event) {
     const container = document.getElementById('hn-viewport-3d');
-    if (!container) return;
+    if (!container || !hnCamera || !hnScene) return;
 
     const rect = container.getBoundingClientRect();
-    hnMouse.x = ((event.clientX - rect.left) / container.clientWidth) * 2 - 1;
-    hnMouse.y = -((event.clientY - rect.top) / container.clientHeight) * 2 + 1;
+
+    hnMouse.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
+    hnMouse.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
 
     hnRaycaster.setFromCamera(hnMouse, hnCamera);
-    
+
     const meshes = [];
+
     hnScene.traverse(child => {
-        if (child.isMesh && child.userData && child.userData.isParametric && child.userData.tipo !== 'estructura') {
+        if (
+            child.isMesh &&
+            child.userData &&
+            child.userData.isParametric &&
+            child.userData.tipo !== 'estructura'
+        ) {
             meshes.push(child);
         }
     });
@@ -3202,14 +3211,68 @@ function onHNDesignerClick(event) {
         const elementoData = intersectedMesh.userData.elementoData;
         const drawerId = intersectedMesh.userData.drawerId;
 
-        if (drawerId) {
+        if (drawerId && elementoData && elementoData.pieceId) {
             seleccionarPiezaCajonPorId(drawerId, elementoData.pieceId);
-        } else if (elementoData) {
-            seleccionarElementoPorId(elementoData.pieceId);
+            return;
         }
-    } else {
-        restaurarPanelDerechoMaestro();
+
+        if (elementoData && elementoData.pieceId) {
+            seleccionarElementoPorId(elementoData.pieceId);
+            return;
+        }
     }
+
+    if (hnEspaciosActuales.length > 0) {
+        const W = hnModuloActual.ancho;
+        const D = hnModuloActual.profundidad;
+        const F = hnModuloActual.fondo;
+
+        const profundidadInterior = Math.max(0, D - F);
+
+        const zInteriorLocal = profundidadInterior / 2;
+        const zInteriorMundo = zInteriorLocal - (D / 2);
+
+        const planoEspacio = new THREE.Plane(
+            new THREE.Vector3(0, 0, 1),
+            -zInteriorMundo
+        );
+
+        const puntoClic = new THREE.Vector3();
+
+        const rayIntersecaPlano = hnRaycaster.ray.intersectPlane(
+            planoEspacio,
+            puntoClic
+        );
+
+        if (rayIntersecaPlano) {
+            const moduleX = puntoClic.x + (W / 2);
+            const moduleY = puntoClic.y;
+            const moduleZ = puntoClic.z + (D / 2);
+
+            const espacioEncontrado = hnEspaciosActuales.find(esp => {
+                const dentroX =
+                    moduleX >= esp.xMin &&
+                    moduleX <= esp.xMax;
+
+                const dentroY =
+                    moduleY >= esp.yMin &&
+                    moduleY <= esp.yMax;
+
+                const dentroZ =
+                    moduleZ >= 0 &&
+                    moduleZ <= esp.profundidad;
+
+                return dentroX && dentroY && dentroZ;
+            });
+
+            if (espacioEncontrado) {
+                seleccionarEspacioPorId(espacioEncontrado.spaceId);
+                return;
+            }
+        }
+    }
+
+    restaurarPanelDerechoMaestro();
 }
 
 function seleccionarElementoPorId(pieceId) {
@@ -3218,6 +3281,7 @@ function seleccionarElementoPorId(pieceId) {
 
     hnSeleccionActual = { tipo: elem.tipo, objeto: elem };
     reconstruirEscena3DParametrica();
+
     if (elem.tipo === 'montante') {
         mostrarPropiedadesMontante(elem);
     } else if (elem.tipo === 'repisa') {
@@ -3228,10 +3292,16 @@ function seleccionarElementoPorId(pieceId) {
 function seleccionarPiezaCajonPorId(drawerId, pieceId) {
     const cajon = hnCajonesActuales.find(c => c.drawerId === drawerId);
     if (!cajon) return;
+
     const pieza = cajon.piezas.find(p => p.pieceId === pieceId);
     if (!pieza) return;
 
-    hnSeleccionActual = { tipo: 'cajon', objeto: pieza, drawerId: drawerId };
+    hnSeleccionActual = {
+        tipo: 'cajon',
+        objeto: pieza,
+        drawerId: drawerId
+    };
+
     reconstruirEscena3DParametrica();
     mostrarPropiedadesPiezaCajon(cajon, pieza);
 }
@@ -3240,7 +3310,11 @@ function seleccionarEspacioPorId(spaceId) {
     const esp = hnEspaciosActuales.find(e => e.spaceId === spaceId);
     if (!esp) return;
 
-    hnSeleccionActual = { tipo: 'espacio', objeto: esp };
+    hnSeleccionActual = {
+        tipo: 'espacio',
+        objeto: esp
+    };
+
     mostrarPropiedadesEspacio(esp);
 }
 
@@ -3252,7 +3326,10 @@ function mostrarPropiedadesEspacio(esp) {
     if (!titleText || !container) return;
 
     titleText.innerText = "ESPACIO INTERNO";
-    if (selectedBadge) selectedBadge.innerText = 'Seleccionado';
+
+    if (selectedBadge) {
+        selectedBadge.innerText = 'Seleccionado';
+    }
 
     const anchoUtil = esp.xMax - esp.xMin;
     const altoUtil = esp.yMax - esp.yMin;
@@ -3262,25 +3339,32 @@ function mostrarPropiedadesEspacio(esp) {
             <label>ID del Espacio</label>
             <input type="text" value="${esp.spaceId}" readonly style="background:#f3f4f6; color:#6b7280; font-size:0.75rem;">
         </div>
+
         <div class="hn-prop-row">
             <label>Ancho útil (mm)</label>
             <input type="number" value="${anchoUtil.toFixed(1)}" readonly>
         </div>
+
         <div class="hn-prop-row">
             <label>Alto útil (mm)</label>
             <input type="number" value="${altoUtil.toFixed(1)}" readonly>
         </div>
+
         <div class="hn-prop-row">
             <label>Profundidad útil (mm)</label>
             <input type="number" value="${esp.profundidad.toFixed(1)}" readonly>
         </div>
+
         <div class="hn-properties-divider"></div>
+
         <button type="button" class="btn-primary-modern full-btn" style="padding: 8px; font-size: 0.85rem; background:#10b981; border:none;" onclick="agregarRepisaParametricaPrompt()">
             + Agregar Repisa
         </button>
+
         <button type="button" class="btn-primary-modern full-btn" style="padding: 8px; font-size: 0.85rem; margin-top:6px; background:#d97706; border:none;" onclick="agregarCajonParametricoPrompt()">
             + Agregar Cajón
         </button>
+
         <button type="button" class="btn-primary-modern full-btn" style="padding: 8px; font-size: 0.85rem; margin-top:6px;" onclick="restaurarPanelDerechoMaestro()">
             Volver a Dimensiones Maestras
         </button>
@@ -3295,26 +3379,35 @@ function mostrarPropiedadesMontante(elem) {
     if (!titleText || !container) return;
 
     titleText.innerText = "MONTANTE VERTICAL";
-    if (selectedBadge) selectedBadge.innerText = 'Seleccionado';
+
+    if (selectedBadge) {
+        selectedBadge.innerText = 'Seleccionado';
+    }
 
     container.innerHTML = `
         <div class="hn-prop-row">
             <label>ID de Pieza (pieceId)</label>
             <input type="text" value="${elem.pieceId}" readonly style="background:#f3f4f6; color:#6b7280; font-size:0.75rem;">
         </div>
+
         <div class="hn-prop-row">
             <label>Posición X (mm)</label>
             <input type="number" id="hn-edit-pos-montante" value="${elem.x.toFixed(1)}" oninput="actualizarPosicionMontanteManual('${elem.pieceId}', this.value)">
         </div>
+
         <div id="hn-validacion-error" style="color: #ef4444; font-size: 0.75rem; margin-top: 2px;"></div>
+
         <div class="hn-prop-row">
             <label>Espesor (mm)</label>
             <input type="number" value="${elem.espesor}" readonly>
         </div>
+
         <div class="hn-properties-divider"></div>
+
         <button type="button" class="btn-primary-modern full-btn" style="padding: 8px; font-size: 0.85rem; background:#ef4444; border:none;" onclick="eliminarElementoParametrico('${elem.pieceId}')">
             Eliminar Montante
         </button>
+
         <button type="button" class="btn-primary-modern full-btn" style="padding: 8px; font-size: 0.85rem; margin-top:6px;" onclick="restaurarPanelDerechoMaestro()">
             Volver a Dimensiones Maestras
         </button>
@@ -3329,7 +3422,10 @@ function mostrarPropiedadesRepisa(elem) {
     if (!titleText || !container) return;
 
     titleText.innerText = "REPISA";
-    if (selectedBadge) selectedBadge.innerText = 'Seleccionado';
+
+    if (selectedBadge) {
+        selectedBadge.innerText = 'Seleccionado';
+    }
 
     const espAsociado = hnEspaciosActuales.find(e => e.spaceId === elem.spaceId);
     const yMinValid = espAsociado ? espAsociado.yMin : hnModuloActual.espesor;
@@ -3340,23 +3436,32 @@ function mostrarPropiedadesRepisa(elem) {
             <label>ID de Pieza (pieceId)</label>
             <input type="text" value="${elem.pieceId}" readonly style="background:#f3f4f6; color:#6b7280; font-size:0.75rem;">
         </div>
+
         <div class="hn-prop-row">
             <label>Espacio (spaceId)</label>
             <input type="text" value="${elem.spaceId}" readonly style="background:#f3f4f6; color:#6b7280; font-size:0.75rem;">
         </div>
+
         <div class="hn-prop-row">
             <label>Ancho actual (mm)</label>
             <input type="number" value="${elem.width.toFixed(1)}" readonly style="background:#f3f4f6;">
         </div>
+
         <div class="hn-prop-row">
             <label>Posición Y / Altura (mm)</label>
             <input type="number" id="hn-edit-pos-repisa" value="${elem.y.toFixed(1)}" oninput="actualizarPosicionRepisaManual('${elem.pieceId}', this.value)">
         </div>
-        <div id="hn-validacion-error" style="color: #ef4444; font-size: 0.75rem; margin-top: 2px;">Rango válido: [${yMinValid.toFixed(0)} - ${yMaxValid.toFixed(0)}] mm</div>
+
+        <div id="hn-validacion-error" style="color: #ef4444; font-size: 0.75rem; margin-top: 2px;">
+            Rango válido: [${yMinValid.toFixed(0)} - ${yMaxValid.toFixed(0)}] mm
+        </div>
+
         <div class="hn-properties-divider"></div>
+
         <button type="button" class="btn-primary-modern full-btn" style="padding: 8px; font-size: 0.85rem; background:#ef4444; border:none;" onclick="eliminarElementoParametrico('${elem.pieceId}')">
             Eliminar Repisa
         </button>
+
         <button type="button" class="btn-primary-modern full-btn" style="padding: 8px; font-size: 0.85rem; margin-top:6px;" onclick="restaurarPanelDerechoMaestro()">
             Volver a Dimensiones Maestras
         </button>
@@ -3371,37 +3476,48 @@ function mostrarPropiedadesPiezaCajon(cajon, pieza) {
     if (!titleText || !container) return;
 
     titleText.innerText = "PIEZA DE CAJÓN";
-    if (selectedBadge) selectedBadge.innerText = 'Cajón';
+
+    if (selectedBadge) {
+        selectedBadge.innerText = 'Cajón';
+    }
 
     container.innerHTML = `
         <div class="hn-prop-row">
             <label>ID de Pieza (pieceId)</label>
             <input type="text" value="${pieza.pieceId}" readonly style="background:#f3f4f6; color:#6b7280; font-size:0.75rem;">
         </div>
+
         <div class="hn-prop-row">
             <label>ID del Cajón (drawerId)</label>
             <input type="text" value="${pieza.drawerId}" readonly style="background:#f3f4f6; color:#6b7280; font-size:0.75rem;">
         </div>
+
         <div class="hn-prop-row">
             <label>Tipo de pieza</label>
             <input type="text" value="${pieza.tipo}" readonly style="background:#f3f4f6;">
         </div>
+
         <div class="hn-prop-row">
             <label>Ancho (mm)</label>
             <input type="number" value="${pieza.ancho.toFixed(1)}" readonly>
         </div>
+
         <div class="hn-prop-row">
             <label>Alto (mm)</label>
             <input type="number" value="${pieza.alto.toFixed(1)}" readonly>
         </div>
+
         <div class="hn-prop-row">
             <label>Profundidad (mm)</label>
             <input type="number" value="${pieza.profundidad.toFixed(1)}" readonly>
         </div>
+
         <div class="hn-properties-divider"></div>
+
         <button type="button" class="btn-primary-modern full-btn" style="padding: 8px; font-size: 0.85rem; background:#ef4444; border:none;" onclick="eliminarCajonParametrico('${cajon.drawerId}')">
             Eliminar Cajón Completo
         </button>
+
         <button type="button" class="btn-primary-modern full-btn" style="padding: 8px; font-size: 0.85rem; margin-top:6px;" onclick="restaurarPanelDerechoMaestro()">
             Volver a Dimensiones Maestras
         </button>
@@ -3418,6 +3534,7 @@ function eliminarCajonParametrico(drawerId) {
 function actualizarPosicionMontanteManual(pieceId, nuevoValorStr) {
     const val = parseFloat(nuevoValorStr);
     const errorDiv = document.getElementById('hn-validacion-error');
+
     if (isNaN(val)) return;
 
     if (val > hnModuloActual.espesor + 50 && val < hnModuloActual.ancho - hnModuloActual.espesor - 50) {
@@ -3433,6 +3550,7 @@ function actualizarPosicionMontanteManual(pieceId, nuevoValorStr) {
 function actualizarPosicionRepisaManual(pieceId, nuevoValorStr) {
     const val = parseFloat(nuevoValorStr);
     const errorDiv = document.getElementById('hn-validacion-error');
+
     if (isNaN(val)) return;
 
     const elem = hnElementosActuales.find(e => e.pieceId === pieceId);
@@ -3452,6 +3570,7 @@ function actualizarPosicionRepisaManual(pieceId, nuevoValorStr) {
 
 function eliminarElementoParametrico(pieceId) {
     const elem = hnElementosActuales.find(e => e.pieceId === pieceId);
+
     if (elem && elem.tipo === 'montante') {
         hnElementosActuales = hnElementosActuales.filter(e => e.pieceId !== pieceId);
         recalcularEspaciosYElementosPorMontante();
@@ -3475,37 +3594,38 @@ function restaurarPanelDerechoMaestro() {
     if (!titleText || !container) return;
 
     titleText.innerText = "DIMENSIONES MAESTRAS";
-    if (selectedBadge) selectedBadge.innerText = 'Módulo';
+
+    if (selectedBadge) {
+        selectedBadge.innerText = 'Módulo';
+    }
 
     container.innerHTML = `
         <div class="hn-prop-row">
             <label>Ancho (mm)</label>
             <input type="number" value="${hnModuloActual.ancho}" id="hn-master-ancho" oninput="actualizarDimensionesMaestrasDebounced()">
         </div>
+
         <div class="hn-prop-row">
             <label>Alto (mm)</label>
             <input type="number" value="${hnModuloActual.alto}" id="hn-master-alto" oninput="actualizarDimensionesMaestrasDebounced()">
         </div>
+
         <div class="hn-prop-row">
             <label>Profundidad (mm)</label>
-            <input type="number" value="${hnModuloActual.profundidad}" id="hn-master-prof" oninput="actualizarDimensionesMaestrasDebounced()">
+            <input type="number" value="${hnModuloActual.profundidad}" id="hn-master-profundidad" oninput="actualizarDimensionesMaestrasDebounced()">
         </div>
+
         <div class="hn-prop-row">
-            <label>Espesor estructural (mm)</label>
+            <label>Espesor (mm)</label>
             <input type="number" value="${hnModuloActual.espesor}" id="hn-master-espesor" oninput="actualizarDimensionesMaestrasDebounced()">
         </div>
+
         <div class="hn-prop-row">
             <label>Fondo (mm)</label>
             <input type="number" value="${hnModuloActual.fondo}" id="hn-master-fondo" oninput="actualizarDimensionesMaestrasDebounced()">
         </div>
-        <div class="hn-properties-divider"></div>
-        <div style="font-size: 0.75rem; color: #6b7280; text-align: center;">
-            Modifica las dimensiones maestras para recalcular estructura, espacios y elementos automáticamente.
-        </div>
     `;
 }
-
-/*
 =============================================================
 ESC PARA CERRAR PANELES
 =============================================================
