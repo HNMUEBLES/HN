@@ -2711,7 +2711,6 @@ function ejecutarRecalculoParametricoCompleto() {
         }
     });
 
-    // Recalcular cajones existentes ante cambios maestros
     recalcularTodosLosCajones();
 
     reconstruirEscena3DParametrica();
@@ -2765,7 +2764,6 @@ function reconstruirEscena3DParametrica() {
         hnScene.add(mesh);
     });
 
-    // Renderizar elementos estándar (Montantes y Repisas)
     hnElementosActuales.forEach(elem => {
         let geom;
         if (elem.tipo === 'montante') {
@@ -2798,14 +2796,13 @@ function reconstruirEscena3DParametrica() {
         hnScene.add(mesh);
     });
 
-    // Renderizar piezas independientes de cada cajón (PASO 8)
     hnCajonesActuales.forEach(cajon => {
         if (cajon.piezas && Array.isArray(cajon.piezas)) {
             cajon.piezas.forEach(pieza => {
                 const geom = new THREE.BoxGeometry(pieza.ancho, pieza.alto, pieza.profundidad);
                 const isSelected = (hnSeleccionActual && hnSeleccionActual.objeto.pieceId === pieza.pieceId);
                 const mat = new THREE.MeshStandardMaterial({
-                    color: isSelected ? 0xf59e0b : 0xfef3c7, // Tono melamina cálida o resaltado
+                    color: isSelected ? 0xf59e0b : 0xfef3c7,
                     roughness: 0.3,
                     metalness: 0.1
                 });
@@ -2893,7 +2890,6 @@ function recalcularEspaciosYElementosPorMontante(movMontantePieceId = null, posX
 
     hnEspaciosActuales = nuevosEspacios;
 
-    // Actualizar spaceId de las repisas
     hnElementosActuales.forEach(elem => {
         if (elem.tipo === 'repisa') {
             let espCorrecto = hnEspaciosActuales.find(e => elem.x >= e.xMin && elem.x <= e.xMax);
@@ -2909,7 +2905,6 @@ function recalcularEspaciosYElementosPorMontante(movMontantePieceId = null, posX
         }
     });
 
-    // REGLA CRÍTICA PASO 8: Actualizar spaceId y recalcular completamente los cajones al mover montantes
     recalcularTodosLosCajones();
 }
 
@@ -2966,12 +2961,6 @@ function agregarRepisaParametricaPrompt() {
     actualizarSidebarEspacios();
 }
 
-/*
-=============================================================
-PASO 8 — SISTEMA PARAMÉTRICO DE CAJONES
-=============================================================
-*/
-
 function agregarCajonParametricoPrompt() {
     if (hnEspaciosActuales.length === 0) {
         alert('Primero debes tener al menos un espacio creado para insertar cajones.');
@@ -3006,10 +2995,9 @@ function generarConjuntoCajonesEnEspacio(espacio, cantidad) {
     const altoUtil = espacio.yMax - espacio.yMin;
     const profUtil = espacio.profundidad;
     const T = hnModuloActual.espesor;
-    const juegoHolguraLateral = 26; // Holgura típica de rieles / armado
+    const juegoHolguraLateral = 26;
     const holguraAltura = 10;
 
-    // Altura disponible para repartir entre la cantidad de cajones
     const alturaTotalCajones = altoUtil - ((cantidad + 1) * holguraAltura);
     const alturaCajonIndividual = alturaTotalCajones / cantidad;
 
@@ -3020,7 +3008,6 @@ function generarConjuntoCajonesEnEspacio(espacio, cantidad) {
         const piezasCajon = [];
         const matEsp = T;
 
-        // 1. Frente de cajón
         const anchoFrente = anchoUtil - 4;
         const altoFrente = alturaCajonIndividual - 4;
         const piezaFrente = {
@@ -3039,7 +3026,6 @@ function generarConjuntoCajonesEnEspacio(espacio, cantidad) {
         };
         piezasCajon.push(piezaFrente);
 
-        // 2. Lateral Izquierdo del cajón
         const profLateral = profUtil - 40;
         const altoLateral = altoFrente - 30;
         const piezaLatIzq = {
@@ -3058,7 +3044,6 @@ function generarConjuntoCajonesEnEspacio(espacio, cantidad) {
         };
         piezasCajon.push(piezaLatIzq);
 
-        // 3. Lateral Derecho del cajón
         const piezaLatDer = {
             pieceId: 'p_' + Math.random().toString(36).substr(2, 6),
             drawerId: drawerId,
@@ -3075,7 +3060,6 @@ function generarConjuntoCajonesEnEspacio(espacio, cantidad) {
         };
         piezasCajon.push(piezaLatDer);
 
-        // 4. Trasera del cajón
         const anchoTrasera = anchoUtil - juegoHolguraLateral - (2 * matEsp);
         const piezaTrasera = {
             pieceId: 'p_' + Math.random().toString(36).substr(2, 6),
@@ -3093,7 +3077,6 @@ function generarConjuntoCajonesEnEspacio(espacio, cantidad) {
         };
         piezasCajon.push(piezaTrasera);
 
-        // 5. Fondo / Base del cajón
         const piezaBase = {
             pieceId: 'p_' + Math.random().toString(36).substr(2, 6),
             drawerId: drawerId,
@@ -3121,11 +3104,9 @@ function generarConjuntoCajonesEnEspacio(espacio, cantidad) {
 }
 
 function recalcularTodosLosCajones() {
-    // Si se mueven montantes o cambian dimensiones maestras, cada cajón se recalcula según su espacio actual
     let cajonesAntiguos = [...hnCajonesActuales];
     hnCajonesActuales = [];
 
-    // Agrupamos por spaceId para mantener la cantidad solicitada originalmente
     let mapaEspaciosCajones = {};
     cajonesAntiguos.forEach(c => {
         if (!mapaEspaciosCajones[c.spaceId]) {
@@ -3140,7 +3121,6 @@ function recalcularTodosLosCajones() {
             let cantidad = mapaEspaciosCajones[spaceId];
             generarConjuntoCajonesEnEspacio(espacioReal, cantidad);
         } else {
-            // Si el espacio se eliminó por completo, reasignar al primer espacio disponible
             if (hnEspaciosActuales.length > 0) {
                 let espacioFallback = hnEspaciosActuales[0];
                 generarConjuntoCajonesEnEspacio(espacioFallback, 1);
