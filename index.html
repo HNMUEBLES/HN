@@ -3357,9 +3357,12 @@ function onHNDesignerClick(event) {
 
     hnRaycaster.setFromCamera(hnMouse, hnCamera);
     
+    // IMPORTANTE: también incluimos la estructura en el raycast.
+    // Antes solo se podían seleccionar elementos que ya tuvieran un mesh propio,
+    // por lo que el espacio interno vacío no podía recibirse como selección 3D.
     const meshes = [];
     hnScene.traverse(child => {
-        if (child.isMesh && child.userData && child.userData.isParametric && child.userData.tipo !== 'estructura') {
+        if (child.isMesh && child.userData && child.userData.isParametric) {
             meshes.push(child);
         }
     });
@@ -3367,18 +3370,53 @@ function onHNDesignerClick(event) {
     const intersects = hnRaycaster.intersectObjects(meshes, false);
 
     if (intersects.length > 0) {
-        const intersectedMesh = intersects[0].object;
-        const elementoData = intersectedMesh.userData.elementoData;
-        const drawerId = intersectedMesh.userData.drawerId;
+        // Primero intentamos seleccionar un elemento real (cajón, repisa, puerta,
+        // montante). Si lo que recibió el clic es estructura, usamos el punto
+        // exacto del impacto para determinar automáticamente en qué espacio cayó.
+        const intersectElemento = intersects.find(hit =>
+            hit.object.userData && hit.object.userData.tipo !== 'estructura' &&
+            (hit.object.userData.elementoData || hit.object.userData.drawerId)
+        );
 
-        if (drawerId) {
-            seleccionarPiezaCajonPorId(drawerId, elementoData.pieceId);
-        } else if (elementoData) {
-            seleccionarElementoPorId(elementoData.pieceId);
+        if (intersectElemento) {
+            const mesh = intersectElemento.object;
+            const elementoData = mesh.userData.elementoData;
+            const drawerId = mesh.userData.drawerId;
+
+            if (drawerId && elementoData) {
+                seleccionarPiezaCajonPorId(drawerId, elementoData.pieceId);
+            } else if (elementoData) {
+                seleccionarElementoPorId(elementoData.pieceId);
+            }
+            return;
         }
-    } else {
-        restaurarPanelDerechoMaestro();
+
+        // Clic sobre fondo, laterales, tapa o base: convertir el punto 3D
+        // en coordenadas del módulo y seleccionar el espacio correspondiente.
+        const hitEstructura = intersects.find(hit =>
+            hit.object.userData && hit.object.userData.tipo === 'estructura'
+        );
+
+        if (hitEstructura && hitEstructura.point) {
+            const W = hnModuloActual.ancho;
+            const puntoXModulo = hitEstructura.point.x + (W / 2);
+            const puntoYModulo = hitEstructura.point.y;
+
+            const espacioEncontrado = hnEspaciosActuales.find(esp =>
+                puntoXModulo >= esp.xMin - 1 &&
+                puntoXModulo <= esp.xMax + 1 &&
+                puntoYModulo >= esp.yMin - 1 &&
+                puntoYModulo <= esp.yMax + 1
+            );
+
+            if (espacioEncontrado) {
+                seleccionarEspacioPorId(espacioEncontrado.spaceId);
+                return;
+            }
+        }
     }
+
+    restaurarPanelDerechoMaestro();
 }
 
 function seleccionarElementoPorId(pieceId) {
