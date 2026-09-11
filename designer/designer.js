@@ -218,17 +218,39 @@ function recalcularSectores() {
     hnSectoresActuales = [];
 
     hnEspaciosActuales.forEach(space => {
-        // Encontrar todas las repisas dentro de este espacio
+        // Encontrar todas las repisas pertenecientes a este espacio
+        // o ubicadas físicamente dentro de sus límites actuales.
         const repisasEnEspacio = hnElementosActuales
-            .filter(e => e.tipo === 'repisa' && e.spaceId === space.spaceId)
+            .filter(e => {
+                if (e.tipo !== 'repisa') return false;
+
+                const pertenecePorId = e.spaceId === space.spaceId;
+                const estaDentro = e.x >= space.xMin && e.x <= space.xMax;
+
+                return pertenecePorId || estaDentro;
+            })
             .sort((a, b) => a.y - b.y);
+
+        // Evitar que una misma repisa pueda incorporarse dos veces
+        // al cálculo de sectores.
+        const repisasUnicas = [];
+        const repisasIds = new Set();
+
+        repisasEnEspacio.forEach(repisa => {
+            if (!repisasIds.has(repisa.pieceId)) {
+                repisasIds.add(repisa.pieceId);
+                repisasUnicas.push(repisa);
+            }
+        });
 
         // Definir límites verticales según repisas
         let limitesY = [space.yMin];
-        repisasEnEspacio.forEach(r => {
+
+        repisasUnicas.forEach(r => {
             limitesY.push(r.y - (r.espesor / 2));
             limitesY.push(r.y + (r.espesor / 2));
         });
+
         limitesY.push(space.yMax);
 
         // Crear sectores independientes entre repisas consecutivas
@@ -239,6 +261,7 @@ function recalcularSectores() {
 
                 if (yMaxSec - yMinSec > 10) {
                     let sectorId = 'sec_' + Math.random().toString(36).substr(2, 6);
+
                     hnSectoresActuales.push({
                         sectorId: sectorId,
                         spaceId: space.spaceId,
@@ -316,7 +339,7 @@ function reconstruirEscena3DParametrica() {
         const mat = new THREE.MeshStandardMaterial({
             color: isSelected ? 0xf59e0b : 0x3b82f6,
             transparent: true,
-            opacity: isSelected ? 0.35 : 0.03, // Casi invisible por defecto, muy claro al resaltar
+            opacity: isSelected ? 0.35 : 0.03,
             roughness: 0.5
         });
 
@@ -336,16 +359,20 @@ function reconstruirEscena3DParametrica() {
     // Renderizar elementos estándar (Montantes y Repisas)
     hnElementosActuales.forEach(elem => {
         let geom;
+
         if (elem.tipo === 'montante') {
             geom = new THREE.BoxGeometry(elem.espesor, elem.alto, elem.profundidad);
         } else if (elem.tipo === 'repisa') {
-            const espacioAsociado = hnEspaciosActuales.find(e => e.spaceId === elem.spaceId);
-            if (espacioAsociado) {
-                elem.width = espacioAsociado.xMax - espacioAsociado.xMin;
-                elem.x = espacioAsociado.xMin + (elem.width / 2);
-                elem.profundidad = espacioAsociado.profundidad;
-            }
+            /*
+             * IMPORTANTE:
+             * La repisa conserva sus propios datos paramétricos.
+             * No se modifica su spaceId, x, width ni profundidad durante
+             * la reconstrucción visual. La reconstrucción solamente dibuja
+             * el estado existente del modelo.
+             */
             geom = new THREE.BoxGeometry(elem.width, elem.espesor, elem.profundidad);
+        } else {
+            return;
         }
 
         const isSelected = (hnSeleccionActual && hnSeleccionActual.objeto.pieceId === elem.pieceId);
@@ -432,21 +459,31 @@ function recalcularEspaciosYElementosPorMontante(movMontantePieceId = null, posX
         .sort((a, b) => a.x - b.x);
 
     let limitesX = [hnModuloActual.espesor];
+
     montantes.forEach(m => {
         limitesX.push(m.x - (hnModuloActual.espesor / 2));
         limitesX.push(m.x + (hnModuloActual.espesor / 2));
     });
+
     limitesX.push(hnModuloActual.ancho - hnModuloActual.espesor);
 
     let nuevosEspacios = [];
+
     for (let i = 0; i < limitesX.length; i += 2) {
         if (i + 1 < limitesX.length) {
             let xMin = limitesX[i];
-            let xMax = limitesX[i+1];
+            let xMax = limitesX[i + 1];
+
             if (xMax - xMin > 10) {
-                let espacioExistente = hnEspaciosActuales.find(e => Math.abs(e.xMin - xMin) < 5 && Math.abs(e.xMax - xMax) < 5);
-                let spaceId = espacioExistente ? espacioExistente.spaceId : ('space_' + Math.random().toString(36).substr(2, 6));
-                
+                let espacioExistente = hnEspaciosActuales.find(e =>
+                    Math.abs(e.xMin - xMin) < 5 &&
+                    Math.abs(e.xMax - xMax) < 5
+                );
+
+                let spaceId = espacioExistente
+                    ? espacioExistente.spaceId
+                    : ('space_' + Math.random().toString(36).substr(2, 6));
+
                 nuevosEspacios.push({
                     spaceId: spaceId,
                     moduleId: hnModuloActual.moduleId,
@@ -460,22 +497,24 @@ function recalcularEspaciosYElementosPorMontante(movMontantePieceId = null, posX
         }
     }
 
+    /*
+     * IMPORTANTE:
+     * Los elementos existentes NO se reasignan ni se reconstruyen aquí.
+     *
+     * Antes, al agregar/mover un montante, las repisas eran forzadas a
+     * buscar uno de los nuevos espacios y se modificaban sus:
+     * - spaceId
+     * - width
+     * - x
+     *
+     * Eso hacía que una operación sobre un montante modificara datos de
+     * repisas que ya existían.
+     *
+     * Ahora los nuevos espacios se calculan independientemente y los
+     * elementos existentes conservan sus propios datos paramétricos.
+     * El nuevo montante se agrega sin destruir ni reemplazar repisas.
+     */
     hnEspaciosActuales = nuevosEspacios;
-
-    hnElementosActuales.forEach(elem => {
-        if (elem.tipo === 'repisa') {
-            let espCorrecto = hnEspaciosActuales.find(e => elem.x >= e.xMin && elem.x <= e.xMax);
-            if (espCorrecto) {
-                elem.spaceId = espCorrecto.spaceId;
-                elem.width = espCorrecto.xMax - espCorrecto.xMin;
-                elem.x = espCorrecto.xMin + (elem.width / 2);
-            } else if (hnEspaciosActuales.length > 0) {
-                elem.spaceId = hnEspaciosActuales[0].spaceId;
-                elem.width = hnEspaciosActuales[0].xMax - hnEspaciosActuales[0].xMin;
-                elem.x = hnEspaciosActuales[0].xMin + (elem.width / 2);
-            }
-        }
-    });
 
     recalcularTodosLosCajones();
     recalcularSectores();
@@ -488,6 +527,7 @@ function agregarRepisaParametricaPrompt() {
     }
 
     let espacioDestino = hnEspaciosActuales[0];
+
     if (hnSeleccionActual && hnSeleccionActual.tipo === 'sector') {
         espacioDestino = hnEspaciosActuales.find(e => e.spaceId === hnSeleccionActual.objeto.spaceId) || hnEspaciosActuales[0];
     } else if (hnSeleccionActual && hnSeleccionActual.tipo === 'espacio') {
@@ -500,6 +540,7 @@ function agregarRepisaParametricaPrompt() {
     if (!cantidadStr) return;
 
     let cantidad = parseInt(cantidadStr);
+
     if (isNaN(cantidad) || cantidad <= 0) {
         alert('Cantidad inválida.');
         return;
@@ -544,6 +585,7 @@ function agregarCajonParametricoPrompt() {
     }
 
     let espacioDestino = hnEspaciosActuales[0];
+
     if (hnSeleccionActual && hnSeleccionActual.tipo === 'sector') {
         espacioDestino = hnEspaciosActuales.find(e => e.spaceId === hnSeleccionActual.objeto.spaceId) || hnEspaciosActuales[0];
     } else if (hnSeleccionActual && hnSeleccionActual.tipo === 'espacio') {
@@ -556,6 +598,7 @@ function agregarCajonParametricoPrompt() {
     if (!cantidadStr) return;
 
     let cantidad = parseInt(cantidadStr);
+
     if (isNaN(cantidad) || cantidad <= 0) {
         alert('Cantidad inválida.');
         return;
@@ -586,6 +629,7 @@ function generarConjuntoCajonesEnEspacio(espacio, cantidad) {
 
         const anchoFrente = anchoUtil - 4;
         const altoFrente = alturaCajonIndividual - 4;
+
         const piezaFrente = {
             pieceId: 'p_' + Math.random().toString(36).substr(2, 6),
             drawerId: drawerId,
@@ -600,10 +644,12 @@ function generarConjuntoCajonesEnEspacio(espacio, cantidad) {
             y: yBaseCajon + (altoFrente / 2),
             z: profUtil - (matEsp / 2)
         };
+
         piezasCajon.push(piezaFrente);
 
         const profLateral = profUtil - 40;
         const altoLateral = altoFrente - 30;
+
         const piezaLatIzq = {
             pieceId: 'p_' + Math.random().toString(36).substr(2, 6),
             drawerId: drawerId,
@@ -618,6 +664,7 @@ function generarConjuntoCajonesEnEspacio(espacio, cantidad) {
             y: yBaseCajon + (altoFrente / 2),
             z: (profLateral / 2) + 20
         };
+
         piezasCajon.push(piezaLatIzq);
 
         const piezaLatDer = {
@@ -634,9 +681,11 @@ function generarConjuntoCajonesEnEspacio(espacio, cantidad) {
             y: yBaseCajon + (altoFrente / 2),
             z: (profLateral / 2) + 20
         };
+
         piezasCajon.push(piezaLatDer);
 
         const anchoTrasera = anchoUtil - juegoHolguraLateral - (2 * matEsp);
+
         const piezaTrasera = {
             pieceId: 'p_' + Math.random().toString(36).substr(2, 6),
             drawerId: drawerId,
@@ -651,6 +700,7 @@ function generarConjuntoCajonesEnEspacio(espacio, cantidad) {
             y: yBaseCajon + (altoFrente / 2),
             z: matEsp / 2 + 10
         };
+
         piezasCajon.push(piezaTrasera);
 
         const piezaBase = {
@@ -667,6 +717,7 @@ function generarConjuntoCajonesEnEspacio(espacio, cantidad) {
             y: yBaseCajon + (hnModuloActual.fondo / 2) + 5,
             z: ((profLateral - matEsp) / 2) + 20
         };
+
         piezasCajon.push(piezaBase);
 
         hnCajonesActuales.push({
@@ -684,15 +735,18 @@ function recalcularTodosLosCajones() {
     hnCajonesActuales = [];
 
     let mapaEspaciosCajones = {};
+
     cajonesAntiguos.forEach(c => {
         if (!mapaEspaciosCajones[c.spaceId]) {
             mapaEspaciosCajones[c.spaceId] = 0;
         }
+
         mapaEspaciosCajones[c.spaceId]++;
     });
 
     for (let spaceId in mapaEspaciosCajones) {
         let espacioReal = hnEspaciosActuales.find(e => e.spaceId === spaceId);
+
         if (espacioReal) {
             let cantidad = mapaEspaciosCajones[spaceId];
             generarConjuntoCajonesEnEspacio(espacioReal, cantidad);
@@ -710,6 +764,7 @@ function actualizarSidebarEspacios() {
     if (!container) return;
 
     container.innerHTML = '';
+
     hnEspaciosActuales.forEach((esp, idx) => {
         const anchoUtil = esp.xMax - esp.xMin;
         const altoUtil = esp.yMax - esp.yMin;
@@ -722,6 +777,7 @@ function actualizarSidebarEspacios() {
         div.style.gap = '2px';
         div.style.cursor = 'pointer';
         div.onclick = () => seleccionarEspacioPorId(esp.spaceId);
+
         div.innerHTML = `
             <div style="display:flex; justify-content:space-between; width:100%; align-items:center;">
                 <strong>Espacio #${idx + 1}</strong>
@@ -729,6 +785,7 @@ function actualizarSidebarEspacios() {
             </div>
             <div style="font-size:0.7rem; color:#6b7280;">X: [${esp.xMin.toFixed(0)} - ${esp.xMax.toFixed(0)}]</div>
         `;
+
         container.appendChild(div);
     });
 }
@@ -738,14 +795,21 @@ function onHNDesignerClick(event) {
     if (!container) return;
 
     const rect = container.getBoundingClientRect();
+
     hnMouse.x = ((event.clientX - rect.left) / container.clientWidth) * 2 - 1;
     hnMouse.y = -((event.clientY - rect.top) / container.clientHeight) * 2 + 1;
 
     hnRaycaster.setFromCamera(hnMouse, hnCamera);
     
     const meshes = [];
+
     hnScene.traverse(child => {
-        if (child.isMesh && child.userData && child.userData.isParametric && child.userData.tipo !== 'estructura') {
+        if (
+            child.isMesh &&
+            child.userData &&
+            child.userData.isParametric &&
+            child.userData.tipo !== 'estructura'
+        ) {
             meshes.push(child);
         }
     });
@@ -760,8 +824,11 @@ function onHNDesignerClick(event) {
         const drawerId = intersectedMesh.userData.drawerId;
 
         if (tipo === 'sector' && sectorData) {
-            // Regla Paso 9: Si ya está seleccionado, se deselecciona; si no, se selecciona y se resalta en naranja/ámbar
-            if (hnSeleccionActual && hnSeleccionActual.tipo === 'sector' && hnSeleccionActual.objeto.sectorId === sectorData.sectorId) {
+            if (
+                hnSeleccionActual &&
+                hnSeleccionActual.tipo === 'sector' &&
+                hnSeleccionActual.objeto.sectorId === sectorData.sectorId
+            ) {
                 restaurarPanelDerechoMaestro();
             } else {
                 seleccionarSectorPorId(sectorData.sectorId);
@@ -781,6 +848,7 @@ function seleccionarSectorPorId(sectorId) {
     if (!sec) return;
 
     hnSeleccionActual = { tipo: 'sector', objeto: sec };
+
     reconstruirEscena3DParametrica();
     mostrarPropiedadesSector(sec);
 }
@@ -790,7 +858,9 @@ function seleccionarElementoPorId(pieceId) {
     if (!elem) return;
 
     hnSeleccionActual = { tipo: elem.tipo, objeto: elem };
+
     reconstruirEscena3DParametrica();
+
     if (elem.tipo === 'montante') {
         mostrarPropiedadesMontante(elem);
     } else if (elem.tipo === 'repisa') {
@@ -801,10 +871,12 @@ function seleccionarElementoPorId(pieceId) {
 function seleccionarPiezaCajonPorId(drawerId, pieceId) {
     const cajon = hnCajonesActuales.find(c => c.drawerId === drawerId);
     if (!cajon) return;
+
     const pieza = cajon.piezas.find(p => p.pieceId === pieceId);
     if (!pieza) return;
 
     hnSeleccionActual = { tipo: 'cajon', objeto: pieza, drawerId: drawerId };
+
     reconstruirEscena3DParametrica();
     mostrarPropiedadesPiezaCajon(cajon, pieza);
 }
@@ -825,6 +897,7 @@ function mostrarPropiedadesSector(sec) {
     if (!titleText || !container) return;
 
     titleText.innerText = "SECTOR SELECCIONADO";
+
     if (selectedBadge) {
         selectedBadge.innerText = 'Naranja / Ámbar';
         selectedBadge.style.background = '#fef3c7';
@@ -876,6 +949,7 @@ function mostrarPropiedadesEspacio(esp) {
     if (!titleText || !container) return;
 
     titleText.innerText = "ESPACIO INTERNO";
+
     if (selectedBadge) {
         selectedBadge.innerText = 'Espacio';
         selectedBadge.style.background = '#dcfce7';
@@ -919,6 +993,7 @@ function mostrarPropiedadesMontante(elem) {
     if (!titleText || !container) return;
 
     titleText.innerText = "MONTANTE VERTICAL";
+
     if (selectedBadge) selectedBadge.innerText = 'Seleccionado';
 
     container.innerHTML = `
@@ -953,6 +1028,7 @@ function mostrarPropiedadesRepisa(elem) {
     if (!titleText || !container) return;
 
     titleText.innerText = "REPISA";
+
     if (selectedBadge) selectedBadge.innerText = 'Seleccionado';
 
     const espAsociado = hnEspaciosActuales.find(e => e.spaceId === elem.spaceId);
@@ -995,6 +1071,7 @@ function mostrarPropiedadesPiezaCajon(cajon, pieza) {
     if (!titleText || !container) return;
 
     titleText.innerText = "PIEZA DE CAJÓN";
+
     if (selectedBadge) selectedBadge.innerText = 'Cajón';
 
     container.innerHTML = `
@@ -1042,10 +1119,15 @@ function eliminarCajonParametrico(drawerId) {
 function actualizarPosicionMontanteManual(pieceId, nuevoValorStr) {
     const val = parseFloat(nuevoValorStr);
     const errorDiv = document.getElementById('hn-validacion-error');
+
     if (isNaN(val)) return;
 
-    if (val > hnModuloActual.espesor + 50 && val < hnModuloActual.ancho - hnModuloActual.espesor - 50) {
+    if (
+        val > hnModuloActual.espesor + 50 &&
+        val < hnModuloActual.ancho - hnModuloActual.espesor - 50
+    ) {
         if (errorDiv) errorDiv.innerText = '';
+
         recalcularEspaciosYElementosPorMontante(pieceId, val);
         recalcularSectores();
         reconstruirEscena3DParametrica();
@@ -1058,6 +1140,7 @@ function actualizarPosicionMontanteManual(pieceId, nuevoValorStr) {
 function actualizarPosicionRepisaManual(pieceId, nuevoValorStr) {
     const val = parseFloat(nuevoValorStr);
     const errorDiv = document.getElementById('hn-validacion-error');
+
     if (isNaN(val)) return;
 
     const elem = hnElementosActuales.find(e => e.pieceId === pieceId);
@@ -1067,17 +1150,23 @@ function actualizarPosicionRepisaManual(pieceId, nuevoValorStr) {
     if (!esp) return;
 
     if (val >= esp.yMin && val <= esp.yMax) {
-        if (errorDiv) errorDiv.innerText = `Rango válido: [${esp.yMin.toFixed(0)} - ${esp.yMax.toFixed(0)}] mm`;
+        if (errorDiv) {
+            errorDiv.innerText = `Rango válido: [${esp.yMin.toFixed(0)} - ${esp.yMax.toFixed(0)}] mm`;
+        }
+
         elem.y = val;
         recalcularSectores();
         reconstruirEscena3DParametrica();
     } else {
-        if (errorDiv) errorDiv.innerText = 'La repisa debe permanecer estrictamente dentro de su espacio.';
+        if (errorDiv) {
+            errorDiv.innerText = 'La repisa debe permanecer estrictamente dentro de su espacio.';
+        }
     }
 }
 
 function eliminarElementoParametrico(pieceId) {
     const elem = hnElementosActuales.find(e => e.pieceId === pieceId);
+
     if (elem && elem.tipo === 'montante') {
         hnElementosActuales = hnElementosActuales.filter(e => e.pieceId !== pieceId);
         recalcularEspaciosYElementosPorMontante();
@@ -1102,6 +1191,7 @@ function restaurarPanelDerechoMaestro() {
     if (!titleText || !container) return;
 
     titleText.innerText = "DIMENSIONES MAESTRAS";
+
     if (selectedBadge) {
         selectedBadge.innerText = 'Módulo';
         selectedBadge.style.background = '#dcfce7';
@@ -1167,6 +1257,7 @@ document.addEventListener(
     if (event.key !== "Escape") return;
 
     const designer = document.getElementById("hn-designer");
+
     if (designer) {
       cerrarHNDesigner();
     }
