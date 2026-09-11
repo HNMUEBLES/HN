@@ -1948,7 +1948,7 @@
 
 
       <!-- =================================================
-           VISTA 4: DISEÑADOR 3D (PANEL ÚNICO REPARADO)
+           VISTA 4: DISEÑADOR 3D (PANEL ÚNICO ETAPA 1)
       ================================================== -->
 
       <div id="vista-disenador" class="admin-vista hidden">
@@ -1999,10 +1999,10 @@
               </label>
               
               <div style="display: flex; gap: 6px; margin-bottom: 12px; flex-wrap: wrap;">
-                <button type="button" class="btn-herramienta-diseno" id="btn-tool-repisa" onclick="seleccionarHerramienta('repisa')" style="flex: 1; padding: 6px 10px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.15); border-radius: 6px; color: #fff; font-size: 0.8rem; cursor: pointer;">Repisas</button>
+                <button type="button" class="btn-herramienta-diseno active-herramienta" id="btn-tool-repisa" onclick="seleccionarHerramienta('repisa')" style="flex: 1; padding: 6px 10px; background: rgba(245,158,11,0.2); border: 1px solid #f59e0b; border-radius: 6px; color: #f59e0b; font-size: 0.8rem; font-weight: bold; cursor: pointer;">Repisas</button>
                 <button type="button" class="btn-herramienta-diseno" id="btn-tool-cajon" onclick="seleccionarHerramienta('cajon')" style="flex: 1; padding: 6px 10px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.15); border-radius: 6px; color: #fff; font-size: 0.8rem; cursor: pointer;">Cajón</button>
                 <button type="button" class="btn-herramienta-diseno" id="btn-tool-division" onclick="seleccionarHerramienta('division')" style="flex: 1; padding: 6px 10px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.15); border-radius: 6px; color: #fff; font-size: 0.8rem; cursor: pointer;">División</button>
-                <button type="button" class="btn-herramienta-diseno active-herramienta" id="btn-tool-puerta" onclick="seleccionarHerramienta('puerta')" style="flex: 1; padding: 6px 10px; background: rgba(245,158,11,0.2); border: 1px solid #f59e0b; border-radius: 6px; color: #f59e0b; font-size: 0.8rem; font-weight: bold; cursor: pointer;">Puerta</button>
+                <button type="button" class="btn-herramienta-diseno" id="btn-tool-puerta" onclick="seleccionarHerramienta('puerta')" style="flex: 1; padding: 6px 10px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.15); border-radius: 6px; color: #fff; font-size: 0.8rem; cursor: pointer;">Puerta</button>
               </div>
 
               <!-- Indicador de Espacio Activo Común -->
@@ -2011,10 +2011,10 @@
               </div>
 
               <!-- CONTROLES: REPISAS -->
-              <div id="controles-repisa" class="panel-herramienta-controls hidden" style="margin-top: 8px; border-top: 1px dashed rgba(245,158,11,0.2); padding-top: 8px;">
+              <div id="controles-repisa" class="panel-herramienta-controls" style="margin-top: 8px; border-top: 1px dashed rgba(245,158,11,0.2); padding-top: 8px; display: block;">
                 <div style="display: flex; gap: 8px; align-items: center; margin-bottom: 8px;">
                   <label style="font-size: 0.75rem; color: #fff; white-space: nowrap;">Cantidad:</label>
-                  <input type="number" id="input-cant-repisas" value="2" min="1" max="10" style="width: 100%; padding: 6px; background: rgba(0,0,0,0.5); border: 1px solid rgba(255,255,255,0.2); border-radius: 6px; color: #fff; font-size: 0.8rem;" />
+                  <input type="number" id="input-cant-repisas" value="3" min="1" max="10" style="width: 100%; padding: 6px; background: rgba(0,0,0,0.5); border: 1px solid rgba(255,255,255,0.2); border-radius: 6px; color: #fff; font-size: 0.8rem;" />
                 </div>
                 <button type="button" onclick="ejecutarRepisasAutomaticas()" class="btn-primary-modern" style="width: 100%; padding: 8px; font-size: 0.85rem; background: #f59e0b; color: #000; font-weight: bold;">
                   + REPISAS AUTOMÁTICAS
@@ -2022,10 +2022,10 @@
               </div>
 
               <!-- CONTROLES: CAJÓN -->
-              <div id="controles-cajon" class="panel-herramienta-controls hidden" style="margin-top: 8px; border-top: 1px dashed rgba(245,158,11,0.2); padding-top: 8px;">
+              <div id="controles-cajon" class="panel-herramienta-controls hidden" style="margin-top: 8px; border-top: 1px dashed rgba(245,158,11,0.2); padding-top: 8px; display: none;">
                 <div style="display: flex; gap: 8px; align-items: center; margin-bottom: 8px;">
                   <label style="font-size: 0.75rem; color: #fff; white-space: nowrap;">Cantidad:</label>
-                  <input type="number" id="input-cant-cajones" value="1" min="1" max="5" style="width: 100%; padding: 6px; background: rgba(0,0,0,0.5); border: 1px solid rgba(255,255,255,0.2); border-radius: 6px; color: #fff; font-size: 0.8rem;" />
+                  <input type="number" id="input-cant-cajones" value="2" min="1" max="5" style="width: 100%; padding: 6px; background: rgba(0,0,0,0.5); border: 1px solid rgba(255,255,255,0.2); border-radius: 6px; color: #fff; font-size: 0.8rem;" />
                 </div>
                 <button type="button" onclick="ejecutarCajonesAutomaticos()" class="btn-primary-modern" style="width: 100%; padding: 8px; font-size: 0.85rem; background: #f59e0b; color: #000; font-weight: bold;">
                   + CAJONES AUTOMÁTICOS
@@ -2033,7 +2033,7 @@
               </div>
 
               <!-- CONTROLES: DIVISIÓN -->
-              <div id="controles-division" class="panel-herramienta-controls hidden" style="margin-top: 8px; border-top: 1px dashed rgba(245,158,11,0.2); padding-top: 8px;">
+              <div id="controles-division" class="panel-herramienta-controls hidden" style="margin-top: 8px; border-top: 1px dashed rgba(245,158,11,0.2); padding-top: 8px; display: none;">
                 <div style="display: flex; gap: 8px; align-items: center; margin-bottom: 8px;">
                   <label style="font-size: 0.75rem; color: #fff; white-space: nowrap;">Divisiones:</label>
                   <input type="number" id="input-cant-divisiones" value="1" min="1" max="5" style="width: 100%; padding: 6px; background: rgba(0,0,0,0.5); border: 1px solid rgba(255,255,255,0.2); border-radius: 6px; color: #fff; font-size: 0.8rem;" />
@@ -2044,7 +2044,7 @@
               </div>
 
               <!-- CONTROLES: PUERTA -->
-              <div id="controles-puerta" class="panel-herramienta-controls" style="margin-top: 8px; border-top: 1px dashed rgba(245,158,11,0.2); padding-top: 8px;">
+              <div id="controles-puerta" class="panel-herramienta-controls hidden" style="margin-top: 8px; border-top: 1px dashed rgba(245,158,11,0.2); padding-top: 8px; display: none;">
                 <div style="display: flex; gap: 8px; align-items: center; margin-bottom: 8px;">
                   <label style="font-size: 0.75rem; color: #fff; white-space: nowrap;">Tipo:</label>
                   <select id="select-tipo-puerta" style="width: 100%; padding: 6px; background: rgba(0,0,0,0.5); border: 1px solid rgba(255,255,255,0.2); border-radius: 6px; color: #fff; font-size: 0.8rem;">
@@ -2062,13 +2062,19 @@
             <!-- PROPIEDADES DE PIEZA / ESPACIO SELECCIONADO -->
             <div id="sin-seleccion-msg" style="text-align: center; color: rgba(255,255,255,0.5); padding: 20px 10px; font-size: 0.9rem;">
               <i class="fa-solid fa-hand-pointer" style="font-size: 1.5rem; margin-bottom: 8px; display: block; color: rgba(245,158,11,0.4);"></i>
-              Selecciona visualmente un espacio o pieza en el visor 3D para editar sus propiedades.
+              Selecciona visualmente una repisa, cajón o espacio en el visor 3D para editar sus propiedades individuales en mm.
             </div>
 
             <div id="con-seleccion-form" class="hidden" style="display: flex; flex-direction: column; gap: 10px;">
               <div>
                 <label style="font-size: 0.75rem; color: rgba(255,255,255,0.6);">ID / Tipo de Pieza</label>
                 <input type="text" id="prop-id-tipo" readonly style="width: 100%; padding: 6px; background: rgba(0,0,0,0.6); border: 1px solid rgba(255,255,255,0.1); border-radius: 6px; color: #f59e0b; font-size: 0.8rem;" />
+              </div>
+
+              <!-- CONTROLES ESPECÍFICOS PARA POSICIÓN VERTICAL "DESDE ABAJO: ___ MM" (REPISAS) -->
+              <div id="grupo-posicion-desde-abajo" class="hidden" style="background: rgba(245,158,11,0.06); border: 1px solid rgba(245,158,11,0.3); border-radius: 8px; padding: 10px;">
+                <label id="lbl-desde-abajo-titulo" style="font-size: 0.75rem; font-weight: bold; color: #f59e0b; display: block; margin-bottom: 4px;">Desde abajo: ___ mm</label>
+                <input type="number" id="prop-desde-abajo" step="1" min="0" style="width: 100%; padding: 6px; background: rgba(0,0,0,0.5); border: 1px solid rgba(245,158,11,0.5); border-radius: 6px; color: #fff; font-size: 0.85rem;" oninput="actualizarRepisaDesdeAbajoPanel()" />
               </div>
 
               <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 6px;">
@@ -2280,7 +2286,7 @@ function cerrarModalAdmin() {
 
 /*
 =============================================================
-SISTEMA DE DISEÑADOR 3D — PANEL ÚNICO Y HERRAMIENTAS REPARADAS
+SISTEMA DE DISEÑADOR 3D — ETAPA 1 (CAJONES Y REPISAS INDEPENDIENTES)
 =============================================================
 */
 let scene3D, camera3D, renderer3D, controls3D, animationFrameId3D;
@@ -2300,7 +2306,7 @@ let meshesPiezasMap = new Map();
 let meshesEspaciosMap = new Map();
 let piezaSeleccionadaId = null;
 let espacioSeleccionadoId = null;
-let herramientaActiva = 'puerta';
+let herramientaActiva = 'repisa';
 let raycaster3D, mouse3D;
 
 function initDisenador3D() {
@@ -2359,11 +2365,10 @@ function initDisenador3D() {
   window.addEventListener('resize', onWindowResize3D);
 }
 
-// Selector de herramientas dentro del mismo panel único
+// Selector de herramientas dentro del panel único
 function seleccionarHerramienta(herramienta) {
   herramientaActiva = herramienta;
 
-  // Actualizar clases activas de los botones de herramientas
   const botones = ['repisa', 'cajon', 'division', 'puerta'];
   botones.forEach(t => {
     const btn = document.getElementById(`btn-tool-${t}`);
@@ -2395,13 +2400,13 @@ function seleccionarHerramienta(herramienta) {
   });
 }
 
-// Reconstrucción paramétrica limpia separando estrictamente cada tipo de pieza
+// Reconstrucción paramétrica limpia de la estructura maestra
 function reconstruirEstructuraMuebleMaestro() {
   const W = muebleMaestro.ancho;
   const H = muebleMaestro.alto;
   const D = muebleMaestro.profundidad;
 
-  // Limpiar meshes existentes
+  // Limpiar meshes existentes en la escena
   piezasDisenador.forEach(p => {
     const mesh = meshesPiezasMap.get(p.id);
     if (mesh) {
@@ -2422,7 +2427,7 @@ function reconstruirEstructuraMuebleMaestro() {
   });
   meshesEspaciosMap.clear();
 
-  // Guardar elementos existentes conservando estrictamente sus tipos individuales
+  // Conservar elementos existentes por tipo
   const divisionesExistentes = piezasDisenador.filter(p => p.tipo === 'division');
   const repisasExistentes = piezasDisenador.filter(p => p.tipo === 'repisa');
   const puertasExistentes = piezasDisenador.filter(p => p.tipo === 'puerta' || p.esPuerta);
@@ -2517,7 +2522,7 @@ function reconstruirEstructuraMuebleMaestro() {
   espaciosDisenador = [espacioInterior];
   crearEspacioEnEscena(espacioInterior);
 
-  // Recalcular elementos conservando tipos por separado
+  // Reinsertar elementos conservando su vinculación al espacio
   divisionesExistentes.forEach(div => {
     const space = espaciosDisenador.find(s => s.id === div.spaceId) || espacioInterior;
     recalcularYAgregarDivision(space, div.cantidadTotal || 1, div.id);
@@ -2525,7 +2530,12 @@ function reconstruirEstructuraMuebleMaestro() {
 
   repisasExistentes.forEach(rep => {
     const space = espaciosDisenador.find(s => s.id === rep.spaceId) || espacioInterior;
-    recalcularYAgregarRepisa(space, rep.cantidadTotal || 1, rep.id);
+    // Si ya tiene una altura personalizada guardada, respetarla
+    if (rep.alturaDesdeAbajo !== undefined) {
+      crearRepisaIndividualConAltura(space, rep.alturaDesdeAbajo, rep.id);
+    } else {
+      recalcularYAgregarRepisa(space, rep.cantidadTotal || 1, rep.id);
+    }
   });
 
   puertasExistentes.forEach(p => {
@@ -2569,7 +2579,7 @@ function crearPiezaEnEscena(pieza) {
 
   const mesh = new THREE.Mesh(geometry, material);
   mesh.position.set(pieza.posX, pieza.posY, pieza.posZ);
-  mesh.userData = { id: pieza.id, tipo: pieza.tipo, spaceId: pieza.spaceId };
+  mesh.userData = { id: pieza.id, tipo: pieza.tipo, spaceId: pieza.spaceId, drawerId: pieza.drawerId };
 
   scene3D.add(mesh);
   meshesPiezasMap.set(pieza.id, mesh);
@@ -2594,7 +2604,11 @@ function crearEspacioEnEscena(espacio) {
   meshesEspaciosMap.set(espacio.id, mesh);
 }
 
-// 1. REPARAR REPISAS
+/*
+=============================================================
+2. REPISAS (DISTRIBUCIÓN AUTOMÁTICA UNIFORME Y EDICIÓN INDIVIDUAL)
+=============================================================
+*/
 function ejecutarRepisasAutomaticas() {
   if (!espacioSeleccionadoId) {
     alert('Por favor, selecciona visualmente un espacio interior primero.');
@@ -2603,13 +2617,14 @@ function ejecutarRepisasAutomaticas() {
   const space = espaciosDisenador.find(s => s.id === espacioSeleccionadoId);
   if (!space) return;
 
-  const cantidad = parseInt(document.getElementById('input-cant-repisas').value) || 2;
+  const cantidad = parseInt(document.getElementById('input-cant-repisas').value) || 3;
   recalcularYAgregarRepisa(space, cantidad);
 }
 
-function recalcularYAgregarRepisa(space, cantidad, repisaIdExistente = null) {
+function recalcularYAgregarRepisa(space, cantidad) {
   const espesorRepisa = 18;
   
+  // Limpiar repisas anteriores de este espacio específico
   const idsAnteriores = piezasDisenador.filter(p => p.spaceId === space.id && p.tipo === 'repisa').map(p => p.id);
   idsAnteriores.forEach(id => {
     const m = meshesPiezasMap.get(id);
@@ -2628,13 +2643,17 @@ function recalcularYAgregarRepisa(space, cantidad, repisaIdExistente = null) {
 
   for (let i = 1; i <= cantidad; i++) {
     const posYRepisa = baseYInferior + (pasoY * i);
-    const repId = repisaIdExistente && i === 1 ? repisaIdExistente : 'rep_' + Math.random().toString(36).substring(2, 9);
+    const repId = 'rep_' + Math.random().toString(36).substring(2, 9);
+    
+    // Altura relativa desde la base inferior del espacio en mm
+    const alturaDesdeAbajo = Math.round(posYRepisa - baseYInferior);
 
     const nuevaRepisa = {
       id: repId,
       tipo: 'repisa',
       spaceId: space.id,
       cantidadTotal: cantidad,
+      alturaDesdeAbajo: alturaDesdeAbajo,
       ancho: space.ancho,
       alto: espesorRepisa,
       profundidad: space.profundidad - 10,
@@ -2650,7 +2669,64 @@ function recalcularYAgregarRepisa(space, cantidad, repisaIdExistente = null) {
   }
 }
 
-// 2. REPARAR CAJÓN (Desde el panel único con arquitectura paramétrica independiente de varias piezas)
+function crearRepisaIndividualConAltura(space, alturaDesdeAbajo, repId) {
+  const espesorRepisa = 18;
+  const baseYInferior = space.posY - (space.alto / 2);
+  const posYRepisa = baseYInferior + alturaDesdeAbajo;
+
+  const nuevaRepisa = {
+    id: repId,
+    tipo: 'repisa',
+    spaceId: space.id,
+    alturaDesdeAbajo: alturaDesdeAbajo,
+    ancho: space.ancho,
+    alto: espesorRepisa,
+    profundidad: space.profundidad - 10,
+    espesor: espesorRepisa,
+    posX: space.posX,
+    posY: posYRepisa,
+    posZ: space.posZ,
+    materialColor: 0xd4a373
+  };
+
+  piezasDisenador.push(nuevaRepisa);
+  crearPiezaEnEscena(nuevaRepisa);
+}
+
+// Modificación individual estricta: Solo se mueve la repisa seleccionada, las demás permanecen intactas
+function actualizarRepisaDesdeAbajoPanel() {
+  if (!piezaSeleccionadaId) return;
+
+  const pieza = piezasDisenador.find(p => p.id === piezaSeleccionadaId);
+  if (!pieza || pieza.tipo !== 'repisa') return;
+
+  const nuevaAlturaMm = parseFloat(document.getElementById('prop-desde-abajo').value);
+  if (isNaN(nuevaAlturaMm)) return;
+
+  const space = espaciosDisenador.find(s => s.id === pieza.spaceId);
+  if (!space) return;
+
+  const baseYInferior = space.posY - (space.alto / 2);
+  pieza.alturaDesdeAbajo = nuevaAlturaMm;
+  pieza.posY = baseYInferior + nuevaAlturaMm;
+
+  // Actualizar solo el mesh de esta repisa específica sin tocar ninguna otra pieza
+  const mesh = meshesPiezasMap.get(piezaSeleccionadaId);
+  if (mesh) {
+    scene3D.remove(mesh);
+    if (mesh.geometry) mesh.geometry.dispose();
+    if (mesh.material) mesh.material.dispose();
+    meshesPiezasMap.delete(piezaSeleccionadaId);
+  }
+
+  crearPiezaEnEscena(pieza);
+}
+
+/*
+=============================================================
+1. CAJONES (PIEZAS INDEPENDIENTES VINCULADAS AL spaceId Y drawerId)
+=============================================================
+*/
 function ejecutarCajonesAutomaticos() {
   if (!espacioSeleccionadoId) {
     alert('Por favor, selecciona visualmente un espacio interior primero.');
@@ -2659,9 +2735,9 @@ function ejecutarCajonesAutomaticos() {
   const space = espaciosDisenador.find(s => s.id === espacioSeleccionadoId);
   if (!space) return;
 
-  const cantidad = parseInt(document.getElementById('input-cant-cajones').value) || 1;
+  const cantidad = parseInt(document.getElementById('input-cant-cajones').value) || 2;
   
-  // Limpiar cajones anteriores de este espacio
+  // Limpiar cajones anteriores de este espacio específico
   const drawersAnteriores = piezasDisenador.filter(p => p.spaceId === space.id && p.tipo === 'cajon').map(p => p.id);
   drawersAnteriores.forEach(id => {
     const m = meshesPiezasMap.get(id);
@@ -2679,15 +2755,15 @@ function ejecutarCajonesAutomaticos() {
 
   for (let i = 0; i < cantidad; i++) {
     const drawerId = 'drawer_' + Math.random().toString(36).substring(2, 9);
-    const posYActual = baseY + (i * (alturaCajonUnidad + 10));
+    const posYActual = baseY + (i * (alturaCajonUnidad + 15));
 
-    // Pieza Frente de Cajón
+    // 1. Frente del cajón
     agregarPiezaDirecta({
       id: drawerId + '_frente',
       tipo: 'cajon',
       drawerId: drawerId,
       spaceId: space.id,
-      ancho: space.ancho - 4,
+      ancho: space.ancho - 6,
       alto: alturaCajonUnidad,
       profundidad: 18,
       espesor: 18,
@@ -2697,7 +2773,7 @@ function ejecutarCajonesAutomaticos() {
       materialColor: 0xe9d8a6
     });
 
-    // Lateral Izquierdo del cajón
+    // 2. Lateral izquierdo del cajón
     agregarPiezaDirecta({
       id: drawerId + '_lat_izq',
       tipo: 'cajon',
@@ -2713,7 +2789,7 @@ function ejecutarCajonesAutomaticos() {
       materialColor: 0xcbc0ad
     });
 
-    // Lateral Derecho del cajón
+    // 3. Lateral derecho del cajón
     agregarPiezaDirecta({
       id: drawerId + '_lat_der',
       tipo: 'cajon',
@@ -2729,7 +2805,7 @@ function ejecutarCajonesAutomaticos() {
       materialColor: 0xcbc0ad
     });
 
-    // Base del cajón
+    // 4. Base del cajón
     agregarPiezaDirecta({
       id: drawerId + '_base',
       tipo: 'cajon',
@@ -2744,16 +2820,35 @@ function ejecutarCajonesAutomaticos() {
       posZ: space.posZ,
       materialColor: 0xcbc0ad
     });
+
+    // 5. Fondo / trasera del cajón
+    agregarPiezaDirecta({
+      id: drawerId + '_fondo',
+      tipo: 'cajon',
+      drawerId: drawerId,
+      spaceId: space.id,
+      ancho: space.ancho - 50,
+      alto: alturaCajonUnidad - 30,
+      profundidad: 15,
+      espesor: 15,
+      posX: space.posX,
+      posY: posYActual,
+      posZ: space.posZ - (space.profundidad / 2) + 35,
+      materialColor: 0xcbc0ad
+    });
   }
 }
 
-// 3. REPARAR DIVISIÓN
+/*
+=============================================================
+OTRAS FUNCIONES DE SOPORTE (DIVISIONES Y PUERTAS)
+=============================================================
+*/
 function ejecutarDivisionAutomatica() {
   if (!espacioSeleccionadoId) {
     alert('Por favor, selecciona visualmente un espacio interior primero.');
     return;
   }
-
   const space = espaciosDisenador.find(s => s.id === espacioSeleccionadoId);
   if (!space) return;
 
@@ -2761,9 +2856,8 @@ function ejecutarDivisionAutomatica() {
   recalcularYAgregarDivision(space, cantidad);
 }
 
-function recalcularYAgregarDivision(space, cantidad, divisionIdExistente = null) {
+function recalcularYAgregarDivision(space, cantidad) {
   const esporDiv = 18;
-  
   const idsAnteriores = piezasDisenador.filter(p => p.spaceId === space.id && p.tipo === 'division').map(p => p.id);
   idsAnteriores.forEach(id => {
     const m = meshesPiezasMap.get(id);
@@ -2782,7 +2876,7 @@ function recalcularYAgregarDivision(space, cantidad, divisionIdExistente = null)
 
   for (let i = 1; i <= cantidad; i++) {
     const posYDivision = baseYInferior + (pasoY * i);
-    const divId = divisionIdExistente && i === 1 ? divisionIdExistente : 'div_' + Math.random().toString(36).substring(2, 9);
+    const divId = 'div_' + Math.random().toString(36).substring(2, 9);
 
     const nuevaDivision = {
       id: divId,
@@ -2804,13 +2898,11 @@ function recalcularYAgregarDivision(space, cantidad, divisionIdExistente = null)
   }
 }
 
-// 4. MANTENER PUERTA FUNCIONANDO
 function ejecutarPuertaAutomatica() {
   if (!espacioSeleccionadoId) {
     alert('Por favor, selecciona visualmente un espacio interior primero para colocar su puerta.');
     return;
   }
-
   const space = espaciosDisenador.find(s => s.id === espacioSeleccionadoId);
   if (!space) return;
 
@@ -2964,11 +3056,30 @@ function seleccionarPieza(id) {
   document.getElementById('sin-seleccion-msg').classList.add('hidden');
   document.getElementById('con-seleccion-form').classList.remove('hidden');
 
-  document.getElementById('prop-id-tipo').value = `${pieza.id} (${pieza.tipo})`;
+  document.getElementById('prop-id-tipo').value = `${pieza.id} (${pieza.tipo}${pieza.drawerId ? ' - Drawer: ' + pieza.drawerId : ''})`;
   document.getElementById('prop-ancho').value = pieza.ancho || 0;
   document.getElementById('prop-alto').value = pieza.alto || 0;
   document.getElementById('prop-prof').value = pieza.profundidad || 0;
   document.getElementById('prop-espesor').value = pieza.espesor || 18;
+
+  // Mostrar u ocultar el control de "Desde abajo: ___ mm" si la pieza seleccionada es una repisa
+  const grupoDesdeAbajo = document.getElementById('grupo-posicion-desde-abajo');
+  const lblDesdeAbajoTitulo = document.getElementById('lbl-desde-abajo-titulo');
+  const inputDesdeAbajo = document.getElementById('prop-desde-abajo');
+
+  if (pieza.tipo === 'repisa') {
+    grupoDesdeAbajo.classList.remove('hidden');
+    grupoDesdeAbajo.style.display = 'block';
+    if (lblDesdeAbajoTitulo) {
+      lblDesdeAbajoTitulo.textContent = `Desde abajo: ${pieza.alturaDesdeAbajo || 0} mm`;
+    }
+    if (inputDesdeAbajo) {
+      inputDesdeAbajo.value = pieza.alturaDesdeAbajo || 0;
+    }
+  } else {
+    grupoDesdeAbajo.classList.add('hidden');
+    grupoDesdeAbajo.style.display = 'none';
+  }
 }
 
 function actualizarPiezaDesdePanel() {
@@ -3037,7 +3148,7 @@ function cambiarVistaAdmin(vista, botonSeleccionado) {
   if (vista === 'disenador') {
     setTimeout(() => {
       initDisenador3D();
-      seleccionarHerramienta('puerta');
+      seleccionarHerramienta('repisa');
     }, 50);
   }
 }
