@@ -445,7 +445,7 @@
 
 
     /* ==========================================================
-       HN DESIGNER - INTERFAZ VISUAL PROFESIONAL (PASO 8)
+       HN DESIGNER - INTERFAZ VISUAL PROFESIONAL (PASO 9)
        Aislado con contenedor principal #hn-designer
        Estilo limpio, profesional, blanco/gris, sin romper nada.
        ========================================================== */
@@ -2213,7 +2213,7 @@
 
 
 <!-- ==========================================================
-     HN DESIGNER - MOTOR PARAMÉTRICO DE CAJONES (PASO 8)
+     HN DESIGNER - MOTOR PARAMÉTRICO DE CAJONES (PASO 9)
      Contenedor aislado independiente
      ========================================================== -->
 <div id="hn-designer">
@@ -2232,7 +2232,7 @@
             </div>
         </div>
         <div class="hn-topbar-right">
-            <span style="font-size: 0.8rem; color: #6b7280; font-weight: 500;">Motor Paramétrico v8.0 (Milímetros)</span>
+            <span style="font-size: 0.8rem; color: #6b7280; font-weight: 500;">Motor Paramétrico v9.0 (Milímetros)</span>
             <button class="hn-close-designer-btn" onclick="cerrarHNDesigner()">Cerrar Diseñador</button>
         </div>
     </div>
@@ -2510,7 +2510,7 @@ function cambiarVistaAdmin(vista, botonSeleccionado) {
 
 /*
 =============================================================
-HN DESIGNER - MOTOR PARAMÉTRICO REAL PASO 8 (ESTRUCTURA -> ESPACIOS -> CAJONES & REPISAS)
+HN DESIGNER - MOTOR PARAMÉTRICO REAL PASO 9 (SELECCIÓN DE SECTOR)
 =============================================================
 */
 
@@ -2535,6 +2535,7 @@ let hnModuloActual = {
 };
 
 let hnEspaciosActuales = [];
+let hnSectoresActuales = [];
 let hnElementosActuales = []; 
 let hnCajonesActuales = [];
 let hnSeleccionActual = null; 
@@ -2650,6 +2651,7 @@ function crearModuloNuevoParametrico() {
 
     hnElementosActuales = [];
     hnCajonesActuales = [];
+    recalcularSectores();
     reconstruirEscena3DParametrica();
     actualizarSidebarEspacios();
     restaurarPanelDerechoMaestro();
@@ -2711,11 +2713,55 @@ function ejecutarRecalculoParametricoCompleto() {
         }
     });
 
-    // Recalcular cajones existentes ante cambios maestros
     recalcularTodosLosCajones();
-
+    recalcularSectores();
     reconstruirEscena3DParametrica();
     actualizarSidebarEspacios();
+}
+
+/*
+=============================================================
+PASO 9 — RECALCULO Y GESTIÓN DE SECTORES VERTICALES
+=============================================================
+*/
+function recalcularSectores() {
+    hnSectoresActuales = [];
+
+    hnEspaciosActuales.forEach(space => {
+        // Encontrar todas las repisas dentro de este espacio
+        const repisasEnEspacio = hnElementosActuales
+            .filter(e => e.tipo === 'repisa' && e.spaceId === space.spaceId)
+            .sort((a, b) => a.y - b.y);
+
+        // Definir límites verticales según repisas
+        let limitesY = [space.yMin];
+        repisasEnEspacio.forEach(r => {
+            limitesY.push(r.y - (r.espesor / 2));
+            limitesY.push(r.y + (r.espesor / 2));
+        });
+        limitesY.push(space.yMax);
+
+        // Crear sectores independientes entre repisas consecutivas
+        for (let i = 0; i < limitesY.length; i += 2) {
+            if (i + 1 < limitesY.length) {
+                let yMinSec = limitesY[i];
+                let yMaxSec = limitesY[i + 1];
+
+                if (yMaxSec - yMinSec > 10) {
+                    let sectorId = 'sec_' + Math.random().toString(36).substr(2, 6);
+                    hnSectoresActuales.push({
+                        sectorId: sectorId,
+                        spaceId: space.spaceId,
+                        xMin: space.xMin,
+                        xMax: space.xMax,
+                        yMin: yMinSec,
+                        yMax: yMaxSec,
+                        profundidad: space.profundidad
+                    });
+                }
+            }
+        }
+    });
 }
 
 function reconstruirEscena3DParametrica() {
@@ -2765,6 +2811,38 @@ function reconstruirEscena3DParametrica() {
         hnScene.add(mesh);
     });
 
+    // Renderizar mallas interactivas de sectores (PASO 9)
+    hnSectoresActuales.forEach(sector => {
+        const anchoSec = sector.xMax - sector.xMin;
+        const altoSec = sector.yMax - sector.yMin;
+        const profSec = sector.profundidad;
+        const xSec = sector.xMin + (anchoSec / 2);
+        const ySec = sector.yMin + (altoSec / 2);
+        const zSec = profSec / 2;
+
+        const isSelected = (hnSeleccionActual && hnSeleccionActual.tipo === 'sector' && hnSeleccionActual.objeto.sectorId === sector.sectorId);
+        
+        const geom = new THREE.BoxGeometry(anchoSec - 4, altoSec - 4, profSec - 20);
+        const mat = new THREE.MeshStandardMaterial({
+            color: isSelected ? 0xf59e0b : 0x3b82f6,
+            transparent: true,
+            opacity: isSelected ? 0.35 : 0.03, // Casi invisible por defecto, muy claro al resaltar
+            roughness: 0.5
+        });
+
+        const mesh = new THREE.Mesh(geom, mat);
+        mesh.position.set(xSec - (W / 2), ySec, zSec - (D / 2));
+
+        if (isSelected) {
+            const edges = new THREE.EdgesGeometry(geom);
+            const line = new THREE.LineSegments(edges, new THREE.LineBasicMaterial({ color: 0xb45309, linewidth: 2 }));
+            mesh.add(line);
+        }
+
+        mesh.userData = { isParametric: true, tipo: 'sector', sectorData: sector };
+        hnScene.add(mesh);
+    });
+
     // Renderizar elementos estándar (Montantes y Repisas)
     hnElementosActuales.forEach(elem => {
         let geom;
@@ -2798,14 +2876,14 @@ function reconstruirEscena3DParametrica() {
         hnScene.add(mesh);
     });
 
-    // Renderizar piezas independientes de cada cajón (PASO 8)
+    // Renderizar piezas independientes de cada cajón
     hnCajonesActuales.forEach(cajon => {
         if (cajon.piezas && Array.isArray(cajon.piezas)) {
             cajon.piezas.forEach(pieza => {
                 const geom = new THREE.BoxGeometry(pieza.ancho, pieza.alto, pieza.profundidad);
                 const isSelected = (hnSeleccionActual && hnSeleccionActual.objeto.pieceId === pieza.pieceId);
                 const mat = new THREE.MeshStandardMaterial({
-                    color: isSelected ? 0xf59e0b : 0xfef3c7, // Tono melamina cálida o resaltado
+                    color: isSelected ? 0xf59e0b : 0xfef3c7,
                     roughness: 0.3,
                     metalness: 0.1
                 });
@@ -2847,6 +2925,7 @@ function agregarMontanteParametricoModal() {
 
     hnElementosActuales.push(nuevoMontante);
     recalcularEspaciosYElementosPorMontante(pieceId, posX);
+    recalcularSectores();
     reconstruirEscena3DParametrica();
     actualizarSidebarEspacios();
     seleccionarElementoPorId(pieceId);
@@ -2893,7 +2972,6 @@ function recalcularEspaciosYElementosPorMontante(movMontantePieceId = null, posX
 
     hnEspaciosActuales = nuevosEspacios;
 
-    // Actualizar spaceId de las repisas
     hnElementosActuales.forEach(elem => {
         if (elem.tipo === 'repisa') {
             let espCorrecto = hnEspaciosActuales.find(e => elem.x >= e.xMin && elem.x <= e.xMax);
@@ -2909,8 +2987,8 @@ function recalcularEspaciosYElementosPorMontante(movMontantePieceId = null, posX
         }
     });
 
-    // REGLA CRÍTICA PASO 8: Actualizar spaceId y recalcular completamente los cajones al mover montantes
     recalcularTodosLosCajones();
+    recalcularSectores();
 }
 
 function agregarRepisaParametricaPrompt() {
@@ -2920,13 +2998,15 @@ function agregarRepisaParametricaPrompt() {
     }
 
     let espacioDestino = hnEspaciosActuales[0];
-    if (hnSeleccionActual && hnSeleccionActual.tipo === 'espacio') {
+    if (hnSeleccionActual && hnSeleccionActual.tipo === 'sector') {
+        espacioDestino = hnEspaciosActuales.find(e => e.spaceId === hnSeleccionActual.objeto.spaceId) || hnEspaciosActuales[0];
+    } else if (hnSeleccionActual && hnSeleccionActual.tipo === 'espacio') {
         espacioDestino = hnSeleccionActual.objeto;
     } else if (hnSeleccionActual && hnSeleccionActual.tipo === 'repisa') {
         espacioDestino = hnEspaciosActuales.find(e => e.spaceId === hnSeleccionActual.objeto.spaceId) || hnEspaciosActuales[0];
     }
 
-    let cantidadStr = prompt(`¿Cuántas repisas deseas agregar en el espacio seleccionado (${(espacioDestino.xMax - espacioDestino.xMin).toFixed(0)} mm ancho)?`, "1");
+    let cantidadStr = prompt(`¿Cuántas repisas deseas agregar en el espacio seleccionado?`, "1");
     if (!cantidadStr) return;
 
     let cantidad = parseInt(cantidadStr);
@@ -2962,15 +3042,10 @@ function agregarRepisaParametricaPrompt() {
         hnElementosActuales.push(nuevaRepisa);
     }
 
+    recalcularSectores();
     reconstruirEscena3DParametrica();
     actualizarSidebarEspacios();
 }
-
-/*
-=============================================================
-PASO 8 — SISTEMA PARAMÉTRICO DE CAJONES
-=============================================================
-*/
 
 function agregarCajonParametricoPrompt() {
     if (hnEspaciosActuales.length === 0) {
@@ -2979,11 +3054,11 @@ function agregarCajonParametricoPrompt() {
     }
 
     let espacioDestino = hnEspaciosActuales[0];
-    if (hnSeleccionActual && hnSeleccionActual.tipo === 'espacio') {
+    if (hnSeleccionActual && hnSeleccionActual.tipo === 'sector') {
+        espacioDestino = hnEspaciosActuales.find(e => e.spaceId === hnSeleccionActual.objeto.spaceId) || hnEspaciosActuales[0];
+    } else if (hnSeleccionActual && hnSeleccionActual.tipo === 'espacio') {
         espacioDestino = hnSeleccionActual.objeto;
     } else if (hnSeleccionActual && hnSeleccionActual.tipo === 'repisa') {
-        espacioDestino = hnEspaciosActuales.find(e => e.spaceId === hnSeleccionActual.objeto.spaceId) || hnEspaciosActuales[0];
-    } else if (hnSeleccionActual && hnSeleccionActual.tipo === 'cajon') {
         espacioDestino = hnEspaciosActuales.find(e => e.spaceId === hnSeleccionActual.objeto.spaceId) || hnEspaciosActuales[0];
     }
 
@@ -3006,10 +3081,9 @@ function generarConjuntoCajonesEnEspacio(espacio, cantidad) {
     const altoUtil = espacio.yMax - espacio.yMin;
     const profUtil = espacio.profundidad;
     const T = hnModuloActual.espesor;
-    const juegoHolguraLateral = 26; // Holgura típica de rieles / armado
+    const juegoHolguraLateral = 26;
     const holguraAltura = 10;
 
-    // Altura disponible para repartir entre la cantidad de cajones
     const alturaTotalCajones = altoUtil - ((cantidad + 1) * holguraAltura);
     const alturaCajonIndividual = alturaTotalCajones / cantidad;
 
@@ -3020,7 +3094,6 @@ function generarConjuntoCajonesEnEspacio(espacio, cantidad) {
         const piezasCajon = [];
         const matEsp = T;
 
-        // 1. Frente de cajón
         const anchoFrente = anchoUtil - 4;
         const altoFrente = alturaCajonIndividual - 4;
         const piezaFrente = {
@@ -3039,7 +3112,6 @@ function generarConjuntoCajonesEnEspacio(espacio, cantidad) {
         };
         piezasCajon.push(piezaFrente);
 
-        // 2. Lateral Izquierdo del cajón
         const profLateral = profUtil - 40;
         const altoLateral = altoFrente - 30;
         const piezaLatIzq = {
@@ -3058,7 +3130,6 @@ function generarConjuntoCajonesEnEspacio(espacio, cantidad) {
         };
         piezasCajon.push(piezaLatIzq);
 
-        // 3. Lateral Derecho del cajón
         const piezaLatDer = {
             pieceId: 'p_' + Math.random().toString(36).substr(2, 6),
             drawerId: drawerId,
@@ -3075,7 +3146,6 @@ function generarConjuntoCajonesEnEspacio(espacio, cantidad) {
         };
         piezasCajon.push(piezaLatDer);
 
-        // 4. Trasera del cajón
         const anchoTrasera = anchoUtil - juegoHolguraLateral - (2 * matEsp);
         const piezaTrasera = {
             pieceId: 'p_' + Math.random().toString(36).substr(2, 6),
@@ -3093,7 +3163,6 @@ function generarConjuntoCajonesEnEspacio(espacio, cantidad) {
         };
         piezasCajon.push(piezaTrasera);
 
-        // 5. Fondo / Base del cajón
         const piezaBase = {
             pieceId: 'p_' + Math.random().toString(36).substr(2, 6),
             drawerId: drawerId,
@@ -3121,11 +3190,9 @@ function generarConjuntoCajonesEnEspacio(espacio, cantidad) {
 }
 
 function recalcularTodosLosCajones() {
-    // Si se mueven montantes o cambian dimensiones maestras, cada cajón se recalcula según su espacio actual
     let cajonesAntiguos = [...hnCajonesActuales];
     hnCajonesActuales = [];
 
-    // Agrupamos por spaceId para mantener la cantidad solicitada originalmente
     let mapaEspaciosCajones = {};
     cajonesAntiguos.forEach(c => {
         if (!mapaEspaciosCajones[c.spaceId]) {
@@ -3140,7 +3207,6 @@ function recalcularTodosLosCajones() {
             let cantidad = mapaEspaciosCajones[spaceId];
             generarConjuntoCajonesEnEspacio(espacioReal, cantidad);
         } else {
-            // Si el espacio se eliminó por completo, reasignar al primer espacio disponible
             if (hnEspaciosActuales.length > 0) {
                 let espacioFallback = hnEspaciosActuales[0];
                 generarConjuntoCajonesEnEspacio(espacioFallback, 1);
@@ -3157,8 +3223,7 @@ function actualizarSidebarEspacios() {
     hnEspaciosActuales.forEach((esp, idx) => {
         const anchoUtil = esp.xMax - esp.xMin;
         const altoUtil = esp.yMax - esp.yMin;
-        const repisasEnEspacio = hnElementosActuales.filter(e => e.tipo === 'repisa' && e.spaceId === esp.spaceId).length;
-        const cajonesEnEspacio = hnCajonesActuales.filter(c => c.spaceId === esp.spaceId).length;
+        const sectoresEnEspacio = hnSectoresActuales.filter(s => s.spaceId === esp.spaceId).length;
 
         const div = document.createElement('div');
         div.className = 'hn-tool-item';
@@ -3170,7 +3235,7 @@ function actualizarSidebarEspacios() {
         div.innerHTML = `
             <div style="display:flex; justify-content:space-between; width:100%; align-items:center;">
                 <strong>Espacio #${idx + 1}</strong>
-                <span class="hn-note">${anchoUtil.toFixed(0)} x ${altoUtil.toFixed(0)} mm (${repisasEnEspacio} rep, ${cajonesEnEspacio} caj)</span>
+                <span class="hn-note">${anchoUtil.toFixed(0)} x ${altoUtil.toFixed(0)} mm (${sectoresEnEspacio} sectores)</span>
             </div>
             <div style="font-size:0.7rem; color:#6b7280;">X: [${esp.xMin.toFixed(0)} - ${esp.xMax.toFixed(0)}]</div>
         `;
@@ -3199,10 +3264,19 @@ function onHNDesignerClick(event) {
 
     if (intersects.length > 0) {
         const intersectedMesh = intersects[0].object;
+        const tipo = intersectedMesh.userData.tipo;
         const elementoData = intersectedMesh.userData.elementoData;
+        const sectorData = intersectedMesh.userData.sectorData;
         const drawerId = intersectedMesh.userData.drawerId;
 
-        if (drawerId) {
+        if (tipo === 'sector' && sectorData) {
+            // Regla Paso 9: Si ya está seleccionado, se deselecciona; si no, se selecciona y se resalta en naranja/ámbar
+            if (hnSeleccionActual && hnSeleccionActual.tipo === 'sector' && hnSeleccionActual.objeto.sectorId === sectorData.sectorId) {
+                restaurarPanelDerechoMaestro();
+            } else {
+                seleccionarSectorPorId(sectorData.sectorId);
+            }
+        } else if (drawerId) {
             seleccionarPiezaCajonPorId(drawerId, elementoData.pieceId);
         } else if (elementoData) {
             seleccionarElementoPorId(elementoData.pieceId);
@@ -3210,6 +3284,15 @@ function onHNDesignerClick(event) {
     } else {
         restaurarPanelDerechoMaestro();
     }
+}
+
+function seleccionarSectorPorId(sectorId) {
+    const sec = hnSectoresActuales.find(s => s.sectorId === sectorId);
+    if (!sec) return;
+
+    hnSeleccionActual = { tipo: 'sector', objeto: sec };
+    reconstruirEscena3DParametrica();
+    mostrarPropiedadesSector(sec);
 }
 
 function seleccionarElementoPorId(pieceId) {
@@ -3244,6 +3327,57 @@ function seleccionarEspacioPorId(spaceId) {
     mostrarPropiedadesEspacio(esp);
 }
 
+function mostrarPropiedadesSector(sec) {
+    const titleText = document.getElementById('hn-prop-title-text');
+    const selectedBadge = document.getElementById('hn-selected-badge');
+    const container = document.getElementById('hn-properties-content-container');
+
+    if (!titleText || !container) return;
+
+    titleText.innerText = "SECTOR SELECCIONADO";
+    if (selectedBadge) {
+        selectedBadge.innerText = 'Naranja / Ámbar';
+        selectedBadge.style.background = '#fef3c7';
+        selectedBadge.style.color = '#d97706';
+    }
+
+    const anchoUtil = sec.xMax - sec.xMin;
+    const altoUtil = sec.yMax - sec.yMin;
+
+    container.innerHTML = `
+        <div class="hn-prop-row">
+            <label>ID del Sector</label>
+            <input type="text" value="${sec.sectorId}" readonly style="background:#f3f4f6; color:#6b7280; font-size:0.75rem;">
+        </div>
+        <div class="hn-prop-row">
+            <label>ID del Espacio Padre</label>
+            <input type="text" value="${sec.spaceId}" readonly style="background:#f3f4f6; color:#6b7280; font-size:0.75rem;">
+        </div>
+        <div class="hn-prop-row">
+            <label>Ancho útil (mm)</label>
+            <input type="number" value="${anchoUtil.toFixed(1)}" readonly>
+        </div>
+        <div class="hn-prop-row">
+            <label>Alto útil (mm)</label>
+            <input type="number" value="${altoUtil.toFixed(1)}" readonly>
+        </div>
+        <div class="hn-prop-row">
+            <label>Límites Y [Min - Max] (mm)</label>
+            <input type="text" value="${sec.yMin.toFixed(0)} - ${sec.yMax.toFixed(0)}" readonly style="background:#f3f4f6;">
+        </div>
+        <div class="hn-properties-divider"></div>
+        <button type="button" class="btn-primary-modern full-btn" style="padding: 8px; font-size: 0.85rem; background:#10b981; border:none;" onclick="agregarRepisaParametricaPrompt()">
+            + Agregar Repisa
+        </button>
+        <button type="button" class="btn-primary-modern full-btn" style="padding: 8px; font-size: 0.85rem; margin-top:6px; background:#d97706; border:none;" onclick="agregarCajonParametricoPrompt()">
+            + Agregar Cajón
+        </button>
+        <button type="button" class="btn-primary-modern full-btn" style="padding: 8px; font-size: 0.85rem; margin-top:6px;" onclick="restaurarPanelDerechoMaestro()">
+            Deseleccionar Sector
+        </button>
+    `;
+}
+
 function mostrarPropiedadesEspacio(esp) {
     const titleText = document.getElementById('hn-prop-title-text');
     const selectedBadge = document.getElementById('hn-selected-badge');
@@ -3252,7 +3386,11 @@ function mostrarPropiedadesEspacio(esp) {
     if (!titleText || !container) return;
 
     titleText.innerText = "ESPACIO INTERNO";
-    if (selectedBadge) selectedBadge.innerText = 'Seleccionado';
+    if (selectedBadge) {
+        selectedBadge.innerText = 'Espacio';
+        selectedBadge.style.background = '#dcfce7';
+        selectedBadge.style.color = '#166534';
+    }
 
     const anchoUtil = esp.xMax - esp.xMin;
     const altoUtil = esp.yMax - esp.yMin;
@@ -3269,10 +3407,6 @@ function mostrarPropiedadesEspacio(esp) {
         <div class="hn-prop-row">
             <label>Alto útil (mm)</label>
             <input type="number" value="${altoUtil.toFixed(1)}" readonly>
-        </div>
-        <div class="hn-prop-row">
-            <label>Profundidad útil (mm)</label>
-            <input type="number" value="${esp.profundidad.toFixed(1)}" readonly>
         </div>
         <div class="hn-properties-divider"></div>
         <button type="button" class="btn-primary-modern full-btn" style="padding: 8px; font-size: 0.85rem; background:#10b981; border:none;" onclick="agregarRepisaParametricaPrompt()">
@@ -3423,6 +3557,7 @@ function actualizarPosicionMontanteManual(pieceId, nuevoValorStr) {
     if (val > hnModuloActual.espesor + 50 && val < hnModuloActual.ancho - hnModuloActual.espesor - 50) {
         if (errorDiv) errorDiv.innerText = '';
         recalcularEspaciosYElementosPorMontante(pieceId, val);
+        recalcularSectores();
         reconstruirEscena3DParametrica();
         actualizarSidebarEspacios();
     } else {
@@ -3444,6 +3579,7 @@ function actualizarPosicionRepisaManual(pieceId, nuevoValorStr) {
     if (val >= esp.yMin && val <= esp.yMax) {
         if (errorDiv) errorDiv.innerText = `Rango válido: [${esp.yMin.toFixed(0)} - ${esp.yMax.toFixed(0)}] mm`;
         elem.y = val;
+        recalcularSectores();
         reconstruirEscena3DParametrica();
     } else {
         if (errorDiv) errorDiv.innerText = 'La repisa debe permanecer estrictamente dentro de su espacio.';
@@ -3459,6 +3595,7 @@ function eliminarElementoParametrico(pieceId) {
         hnElementosActuales = hnElementosActuales.filter(e => e.pieceId !== pieceId);
     }
 
+    recalcularSectores();
     restaurarPanelDerechoMaestro();
     reconstruirEscena3DParametrica();
     actualizarSidebarEspacios();
@@ -3475,7 +3612,11 @@ function restaurarPanelDerechoMaestro() {
     if (!titleText || !container) return;
 
     titleText.innerText = "DIMENSIONES MAESTRAS";
-    if (selectedBadge) selectedBadge.innerText = 'Módulo';
+    if (selectedBadge) {
+        selectedBadge.innerText = 'Módulo';
+        selectedBadge.style.background = '#dcfce7';
+        selectedBadge.style.color = '#166534';
+    }
 
     container.innerHTML = `
         <div class="hn-prop-row">
